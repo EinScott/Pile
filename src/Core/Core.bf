@@ -144,7 +144,11 @@ namespace Pile
 
 		static void CallUpdate()
 		{
-			System.[Friend]Update();
+			if (System != null)
+			{
+				Input.[Friend]Step();
+				System.[Friend]Update();
+			}
 
 			Game.[Friend]Update();
 		}

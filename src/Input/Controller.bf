@@ -47,6 +47,10 @@ namespace Pile
 				down[i] = false;
 				released[i] = false;
 				timestamp[i] = 0L;
+			}
+
+			for (int i = 0; i < MaxAxis; i++)
+			{
 				axis[i] = 0;
 				axisTimestamp[i] = 0L;
 			}

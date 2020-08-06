@@ -17,7 +17,7 @@ namespace Pile
 		public float repeatDelay = 0.4f;
 		public float repeatInterval = 0.03f;
 
-		protected List<VirtualButton> virtualButtons = new List<VirtualButton>() ~ DeleteContainerAndItems!(_);
+		protected List<VirtualButton> virtualButtons = new List<VirtualButton>();
 
 		public this(int maxControllers = 8)
 		{
@@ -34,22 +34,20 @@ namespace Pile
 			delete state;
 			delete lastState;
 			delete nextState;
+
+			for (int i = 0; i < virtualButtons.Count; i++)
+				virtualButtons[i].[Friend]deletingList = true;
+			DeleteContainerAndItems!(virtualButtons);
 		}
 
 		void Step()
 		{
 			lastState.[Friend]Copy(state);
 			state.[Friend]Copy(nextState);
-			lastState.[Friend]Step();
+			nextState.[Friend]Step();
 
 			for (int i = 0; i < virtualButtons.Count; i++)
-			{
-				if (virtualButtons[i] != null)
-				{
-					virtualButtons[i].[Friend]Update();
-				}
-				else virtualButtons.RemoveAt(i--);
-			}
+				virtualButtons[i].[Friend]Update();
 		}
 
 		public abstract void SetMouseCursor(Cursors cursor);
@@ -70,7 +68,7 @@ namespace Pile
 		protected void OnKeyDown(Keys key)
 		{
 		    int id = (int)key;
-		    if (id >= Pile.Keyboard.MaxKeys)
+		    if (id < Pile.Keyboard.MaxKeys)
 			{
 			    nextState.keyboard.[Friend]down[id] = true;
 			    nextState.keyboard.[Friend]pressed[id] = true;
@@ -81,7 +79,7 @@ namespace Pile
 		protected void OnKeyUp(Keys key)
 		{
 		    int id = (int)key;
-		    if (id >= Pile.Keyboard.MaxKeys)
+		    if (id < Pile.Keyboard.MaxKeys)
 		    {
 			    nextState.keyboard.[Friend]down[id] = false;
 			    nextState.keyboard.[Friend]released[id] = true;

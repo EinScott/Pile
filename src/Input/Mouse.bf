@@ -17,7 +17,7 @@ namespace Pile
 			for (int i = 0; i < MaxButtons; i++)
 			{
 				pressed[i] = false;
-				released[i] = false;
+				released[i] = false; // for some reason this doesnt reset it
 			}
 
 			wheelValue.X = 0;
