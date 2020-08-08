@@ -62,11 +62,15 @@ namespace Pile
 			Graphics = graphics;
 			Audio = audio;
 
+			// System init
 			System?.[Friend]Initialize();
 			
 			Window = System?.[Friend]CreateWindow(windowWidth, windowHeight);
 			Input = System?.[Friend]CreateInput();
 			System?.[Friend]DetermineDataPath();
+
+			// Graphics init
+			Graphics?.[Friend]Initialize();
 
 			Directory.SetCurrentDirectory(System.DataPath);
 
@@ -144,6 +148,7 @@ namespace Pile
 
 		static void CallUpdate()
 		{
+			Graphics?.[Friend]Update();
 			if (System != null)
 			{
 				Input.[Friend]Step();
@@ -155,7 +160,7 @@ namespace Pile
 
 		static void CallRender()
 		{
-
+			Graphics?.[Friend]AfterRender();
 		}
 
 		static void CallShutdown()

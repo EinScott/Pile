@@ -4,11 +4,20 @@ namespace Pile
 {
 	public abstract class Window
 	{
+		public bool Closed { get; private set; }
+
+		protected this()
+		{
+			OnCloseRequested.Add(new => Close); // Default to closing
+		}
+
 		public ~this()
 		{
 			OnResized.Dispose();
 			OnFocusChanged.Dispose();
 			OnMoved.Dispose();
+			OnVisibilityChanged.Dispose();
+			OnCloseRequested.Dispose();
 		}
 
 		public abstract void SetTitle(String title);
@@ -28,11 +37,18 @@ namespace Pile
 
 		public abstract void Focus();
 
+		public void Close()
+		{
+			Core.Exit();
+			Closed = true;
+			CloseInternal();
+		}
+		protected abstract void CloseInternal();
+
 		public Event<Action> OnResized;
 		public Event<Action> OnFocusChanged;
 		public Event<Action> OnMoved;
 		public Event<Action> OnVisibilityChanged;
-
-		//SetIcon?
+		public Event<Action> OnCloseRequested;
 	}
 }

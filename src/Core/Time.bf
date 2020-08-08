@@ -14,7 +14,10 @@ namespace Pile
 			set
 			{
 				targetFps = value;
-				targetMilliseconds = (double)1000 / targetFps;
+
+				// 0 pretty much means no limit
+				if (targetFps == 0) targetMilliseconds = 0;
+				else targetMilliseconds = (double)1000 / targetFps;
 			}
 		}
 

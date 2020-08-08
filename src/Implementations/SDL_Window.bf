@@ -9,9 +9,9 @@ namespace Pile.Implementations
 		SDL.Window* window;
 		uint32 windowID;
 
-		public this(String title, int width, int height)
+		protected this(String title, int width, int height)
 		{
-			window = SDL.CreateWindow(title, .Centered, .Centered, (int32)width, (int32)height, .Shown);
+			window = SDL.CreateWindow(title, .Centered, .Centered, (int32)width, (int32)height, .Shown | .OpenGL);
 			windowID = SDL.GetWindowID(window);
 
 			// Set current values
@@ -23,7 +23,13 @@ namespace Pile.Implementations
 
 		public ~this()
 		{
+			CloseInternal();
+		}
+
+		protected override void CloseInternal()
+		{
 			SDL.DestroyWindow(window);
+			((SDL_System)Core.System).[Friend]DeleteGLContext();
 		}
 
 		public override void SetTitle(String title) => SDL.SetWindowTitle(window, title);

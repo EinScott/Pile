@@ -4,10 +4,12 @@ using SDL2;
 
 namespace Pile.Implementations
 {
-	public class SDL_System : System
+	public class SDL_System : System, ISystemOpenGL
 	{
-		SDL_Window window; // Is managed by Core
+		SDL_Window window; // Are both managed by Core
 		SDL_Input input;
+		SDL.SDL_GLContext context;
+		bool hasContext;
 
 		public this()
 		{
@@ -16,22 +18,66 @@ namespace Pile.Implementations
 
 		public ~this()
 		{
+			//DeleteGLContext(); // context *should* be deleted when window is closed
+		}
 
+		[Hide]
+		public void* GetGLProcAddress(StringView procName)
+		{
+			return SDL.SDL_GL_GetProcAddress(procName.ToScopeCStr!());
+		}
+
+		[Hide]
+		public void CreateGLContext()
+		{
+			if (!hasContext)
+			{
+				context = SDL.GL_CreateContext(window.[Friend]window);
+				//SDL.SDL_GL_MakeCurrent(window.[Friend]window, context); // is already done when creating
+			}
+		}
+
+		protected void DeleteGLContext()
+		{
+			if (hasContext)
+			{
+				hasContext = false;
+				SDL.GL_DeleteContext(context);
+			}
 		}
 
 		protected override Input CreateInput()
 		{
-			return input = new SDL_Input(window);
+			// Only one input
+			if (input == null) return input = new SDL_Input(window);
+			else return input;
 		}
 
 		protected override Window CreateWindow(int width, int height)
 		{
-			return window = new SDL_Window(Core.Title, width, height);
+			// Only one window
+			if (window == null)
+			{
+				window = new [Friend]SDL_Window(Core.Title, width, height);
+				CreateGLContext();
+
+				return window;
+			}
+			else return window;
 		}
 
 		protected override void Initialize()
 		{
 			SDL_Init.[Friend]Init();
+
+			if (Core.Graphics is IGraphicsOpenGL)
+			{
+				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_MAJOR_VERSION, Core.Graphics.MajorVersion);
+				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_MINOR_VERSION, Core.Graphics.MinorVersion);
+				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
+				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_FLAGS, (int32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_DOUBLEBUFFER, 1);
+			}
 		}
 
 		protected override void Update()
@@ -45,12 +91,12 @@ namespace Pile.Implementations
 					Core.Exit();
 					return;
 				case .WindowEvent:
-					if (event.window.windowID == window.[Friend]windowID)
+					if (!window.Closed && event.window.windowID == window.[Friend]windowID)
 					{
 						switch (event.window.windowEvent)
 						{
 						case .Close:
-							Core.Exit();
+							window.OnCloseRequested();
 							return;
 		
 						// Size
