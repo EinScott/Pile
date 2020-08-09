@@ -6,8 +6,8 @@ namespace Pile.Implementations
 	public class GL_Graphics : Graphics, IGraphicsOpenGL
 	{
 		public IGraphicsOpenGL.GLProfile Profile => IGraphicsOpenGL.GLProfile.Core;
-		public override int32 MajorVersion => 4;
-		public override int32 MinorVersion => 6;
+		public override int32 MajorVersion => 3;
+		public override int32 MinorVersion => 3;
 
 		int32 maxTextureSize = 0;
 		public override int32 MaxTextureSize

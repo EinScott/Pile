@@ -5,14 +5,6 @@ using System.IO;
 
 namespace Pile
 {
-	static
-	{
-		public static mixin CondDelete(var instance)
-		{
-			if (instance != null) delete instance;
-		}	
-	}
-
 	public static class Core
 	{
 		static this()
@@ -58,24 +50,30 @@ namespace Pile
 			if (running || exiting) return .Err("Is already running");
 			else if (game == null) return .Err("Game is null");
 
-			var w = scope Stopwatch(true);
-			Title = title;
-			Game = game;
-			System = system;
-			Graphics = graphics;
-			Audio = audio;
-
-			// System init
-			System?.[Friend]Initialize();
-			
-			Window = System?.[Friend]CreateWindow(windowWidth, windowHeight);
-			Input = System?.[Friend]CreateInput();
-			System?.[Friend]DetermineDataPath();
-
-			// Graphics init
-			Graphics?.[Friend]Initialize();
-
-			Directory.SetCurrentDirectory(System.DataPath);
+			{
+				var w = scope Stopwatch(true);
+				Title = title;
+				Game = game;
+				System = system;
+				Graphics = graphics;
+				Audio = audio;
+	
+				// System init
+				System?.[Friend]Initialize();
+				
+				Window = System?.[Friend]CreateWindow(windowWidth, windowHeight);
+				Input = System?.[Friend]CreateInput();
+				System?.[Friend]DetermineDataPath();
+	
+				// Graphics init
+				Graphics?.[Friend]Initialize();
+	
+				Directory.SetCurrentDirectory(System.DataPath);
+	
+				var s = scope String("Pile started (took {0}ms)");
+				Log.Message(Format(s, w.Elapsed.Milliseconds));
+				w.Stop();
+			}
 
 			let timer = scope Stopwatch(true);
 			double sleepError = 0;
@@ -85,10 +83,6 @@ namespace Pile
 			int64 lastTime = 0;
 			int64 currTime;
 			int64 diffTime;
-
-			//Log.Message(scope String("Pile started (took {0}ms)").Format(w.Elapsed.Milliseconds));
-
-			DoStuff();
 
 			running = true;
 			CallStartup();

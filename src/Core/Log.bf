@@ -6,6 +6,9 @@ namespace Pile
 {
 	public static class Log
 	{
+		// this is slightly dumb, because we cant really save the log when we crash
+		// maybe save to file 'per line' even though that sounds really dumb?
+
 		public enum Types
 		{
 			case Message;
