@@ -17,7 +17,7 @@ namespace Pile
 	{
 		static this()
 		{
-			//Runtime.SetCrashReportKind(.GUI);
+			Runtime.SetCrashReportKind(.GUI);
 		}
 
 		static ~this()
@@ -49,6 +49,8 @@ namespace Pile
 		public static Input Input { get; private set; }
 		public static Window Window { get; private set; }
 
+		public static bool SaveLogOnExit;
+
 		static Game Game;
 
 		public static Result<void, String> Run(Game game, System system, Graphics graphics, Audio audio, int windowWidth, int windowHeight, String title)
@@ -56,6 +58,7 @@ namespace Pile
 			if (running || exiting) return .Err("Is already running");
 			else if (game == null) return .Err("Game is null");
 
+			var w = scope Stopwatch(true);
 			Title = title;
 			Game = game;
 			System = system;
@@ -82,6 +85,10 @@ namespace Pile
 			int64 lastTime = 0;
 			int64 currTime;
 			int64 diffTime;
+
+			//Log.Message(scope String("Pile started (took {0}ms)").Format(w.Elapsed.Milliseconds));
+
+			DoStuff();
 
 			running = true;
 			CallStartup();
@@ -114,7 +121,6 @@ namespace Pile
 					Time.[Friend]FPS = frameCount;
 					frameTicks = timer.[Friend]GetElapsedDateTimeTicks();
 					frameCount = 0;
-					Console.WriteLine(Time.FPS);
 				}
 
 				// Wait for FPS
@@ -125,6 +131,14 @@ namespace Pile
 					Thread.Sleep((int32)Math.Floor(sleep));
 					sleepError = Math.Floor(sleep) - sleep;
 				}
+
+			}
+
+			if (SaveLogOnExit)
+			{
+				var s = scope String();
+				Path.InternalCombine(s, system.DataPath, @"log.txt");
+				Log.AppendToFile(s);
 			}
 
 			CallShutdown();

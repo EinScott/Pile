@@ -11,7 +11,10 @@ namespace Pile.Implementations
 
 		protected this(String title, int width, int height)
 		{
-			window = SDL.CreateWindow(title, .Centered, .Centered, (int32)width, (int32)height, .Shown | .OpenGL);
+			SDL.WindowFlags flags = .Shown;
+			if (((SDL_System)Core.System).[Friend]glGraphics) flags |= .OpenGL;
+
+			window = SDL.CreateWindow(title, .Centered, .Centered, (int32)width, (int32)height, flags);
 			windowID = SDL.GetWindowID(window);
 
 			// Set current values
@@ -29,7 +32,7 @@ namespace Pile.Implementations
 		protected override void CloseInternal()
 		{
 			SDL.DestroyWindow(window);
-			((SDL_System)Core.System).[Friend]DeleteGLContext();
+			if (((SDL_System)Core.System).[Friend]glGraphics) ((SDL_System)Core.System).[Friend]DeleteGLContext();
 		}
 
 		public override void SetTitle(String title) => SDL.SetWindowTitle(window, title);

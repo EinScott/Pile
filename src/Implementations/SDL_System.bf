@@ -10,6 +10,7 @@ namespace Pile.Implementations
 		SDL_Input input;
 		SDL.SDL_GLContext context;
 		bool hasContext;
+		bool glGraphics;
 
 		public this()
 		{
@@ -33,7 +34,11 @@ namespace Pile.Implementations
 			if (!hasContext)
 			{
 				context = SDL.GL_CreateContext(window.[Friend]window);
-				//SDL.SDL_GL_MakeCurrent(window.[Friend]window, context); // is already done when creating
+				SDL.SDL_GL_MakeCurrent(window.[Friend]window, context);
+				if (*SDL.GetError() != '\0')
+					Console.WriteLine(scope String(SDL.GetError()));
+
+				hasContext = true;
 			}
 		}
 
@@ -59,7 +64,7 @@ namespace Pile.Implementations
 			if (window == null)
 			{
 				window = new [Friend]SDL_Window(Core.Title, width, height);
-				CreateGLContext();
+				if (glGraphics) CreateGLContext();
 
 				return window;
 			}
@@ -77,7 +82,15 @@ namespace Pile.Implementations
 				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
 				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_FLAGS, (int32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_DOUBLEBUFFER, 1);
+				glGraphics = true;
 			}
+		}
+
+		[Hide]
+		public void ConfigureForGL()
+		{
+			// Do this here since Graphics needs to initialize before getting MajorVersion & MinorVersion works
+
 		}
 
 		protected override void Update()
