@@ -6,15 +6,20 @@ namespace Pile.Implementations
 {
 	public class SDL_Window : Window
 	{
+		SDL_System system;
 		SDL.Window* window;
 		uint32 windowID;
 
-		protected this(String title, int width, int height)
+		SDL_Context context = null;
+
+		protected this(String title, int32 width, int32 height, SDL_System system)
 		{
-			SDL.WindowFlags flags = .Shown;
+			this.system = system;
+
+			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
 			if (((SDL_System)Core.System).[Friend]glGraphics) flags |= .OpenGL;
 
-			window = SDL.CreateWindow(title, .Centered, .Centered, (int32)width, (int32)height, flags);
+			window = SDL.CreateWindow(title, .Centered, .Centered, width, height, flags);
 			windowID = SDL.GetWindowID(window);
 
 			// Set current values
@@ -22,6 +27,14 @@ namespace Pile.Implementations
 			position.Set(px, py);
 
 			size.Set(width, height);
+
+			if (system.[Friend]glGraphics)
+			{
+				context = new [Friend].(this);
+
+				if (*SDL.GetError() != '\0')
+					Console.WriteLine(scope .(SDL.GetError()));
+			}
 		}
 
 		public ~this()
@@ -32,7 +45,11 @@ namespace Pile.Implementations
 		protected override void CloseInternal()
 		{
 			SDL.DestroyWindow(window);
-			if (((SDL_System)Core.System).[Friend]glGraphics) ((SDL_System)Core.System).[Friend]DeleteGLContext();
+			if (system.[Friend]glGraphics && context != null)
+			{
+				delete context;
+				context = null;
+			}
 		}
 
 		public override void SetTitle(String title) => SDL.SetWindowTitle(window, title);
@@ -68,6 +85,35 @@ namespace Pile.Implementations
 			}
 		}
 
+		public override Point RenderSize
+		{
+			get
+			{
+				int32 w = 0, h = 0;
+
+				if (system.[Friend]glGraphics)
+					SDL.GL_GetDrawableSize(window, out w, out h);
+				else
+					SDL.GetWindowSize(window, out w, out h);
+
+				return Point(w, h);
+			}
+		}
+
+		public override Vector ContentScale
+		{
+			get
+			{
+				float hidpiRes = 72f;
+				/*if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+				    hidpiRes = 96;*/
+
+				int32 index = (int32)SDL.SDL_GetWindowDisplayIndex(window);
+				SDL.GetDisplayDPI(index, let ddpi, let _hdpi, let _vdpi);
+				return Vector.One * (ddpi / hidpiRes);
+			}
+		}
+
 		bool resizable;
 		public override bool Resizable
 		{
@@ -76,10 +122,7 @@ namespace Pile.Implementations
 			set
 			{
 				if (value != resizable)
-				{
-					resizable = value;
-					SDL.SetWindowResizable(window, value);
-				}
+					SDL.SetWindowResizable(window, resizable = value);
 			}
 		}
 
@@ -91,10 +134,7 @@ namespace Pile.Implementations
 			set
 			{
 				if (value != fullscreen)
-				{
-					SDL.SetWindowFullscreen(window, value ? (uint)SDL.WindowFlags.FullscreenDesktop : 0);
-					fullscreen = value;
-				}
+					SDL.SetWindowFullscreen(window, (fullscreen = value) ? (uint)SDL.WindowFlags.FullscreenDesktop : 0);
 			}
 		}
 
@@ -106,10 +146,7 @@ namespace Pile.Implementations
 			set
 			{
 				if (value != bordered)
-				{
-					SDL.SetWindowBordered(window, value);
-					bordered = value;
-				}
+					SDL.SetWindowBordered(window, bordered = value);
 			}
 		}
 
@@ -121,10 +158,7 @@ namespace Pile.Implementations
 			set
 			{
 				if (value != transparent)
-				{
-					SDL.SetWindowOpacity(window, transparent ? 0 : 1);
-					transparent = value;
-				}
+					SDL.SetWindowOpacity(window, (transparent = value) ? 0 : 1);
 			}
 		}
 
@@ -137,13 +171,19 @@ namespace Pile.Implementations
 			{
 				if (value != visible)
 				{
-					if (value)
+					if (visible = value)
 						SDL.ShowWindow(window);
 					else
 						SDL.HideWindow(window);
-					visible = value;
 				}
 			}
+		}
+
+		bool vSync = true;
+		public override bool VSync
+		{
+			get => vSync;
+			set => vSync = value;
 		}
 
 		bool focus;
@@ -161,6 +201,15 @@ namespace Pile.Implementations
 		public override void Focus()
 		{
 			SDL.RaiseWindow(window);
+		}
+
+		protected override void Present()
+		{
+			if (system.[Friend]glGraphics)
+			{
+				//SDL.GL_SetSwapInterval(vSync ? 1 : 0);
+				SDL.GL_SwapWindow(window);
+			}
 		}
 	}
 }

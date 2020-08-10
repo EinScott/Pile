@@ -5,6 +5,8 @@ namespace Pile
 {
 	public abstract class System
 	{
+		public abstract String ApiName { get; }
+
 		public ~this()
 		{
 			delete DataPath;
@@ -22,7 +24,7 @@ namespace Pile
 		}
 
 		protected abstract Input CreateInput();
-		protected abstract Window CreateWindow(int width, int height);
+		protected abstract Window CreateWindow(int32 width, int32 height);
 
 		protected abstract void Initialize();
 		protected abstract void Update();

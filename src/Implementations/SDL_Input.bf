@@ -109,7 +109,7 @@ namespace Pile.Implementations
 			case .JoyDeviceAdded:
 				let index = e.jdevice.which;
 
-				if (maxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
+				if (index >= 0 && maxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
 				{
 				    let ptr = sdlJoysticks[index] = SDL.JoystickOpen(index);
 				    let buttonCount = SDL.JoystickNumButtons(ptr);
@@ -120,7 +120,7 @@ namespace Pile.Implementations
 			case .JoyDeviceRemoved:
 				let index = e.jdevice.which;
 
-				if (maxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
+				if (index >= 0 && maxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
 				{
 				    OnJoystickDisconnect((uint)index);
 

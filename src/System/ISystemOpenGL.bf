@@ -4,9 +4,24 @@ namespace Pile
 {
 	public interface ISystemOpenGL
 	{
-		void* GetGLProcAddress(StringView procName);
+		public abstract class Context
+		{
+			protected this()
+			{
 
-		void CreateGLContext();
-		//void* GetGLContext();
+			}
+
+			public ~this()
+			{
+				if (!Disposed) Dispose();
+			}
+
+			public abstract bool Disposed { get; }
+			public abstract void Dispose();
+			public abstract void MakeCurrent();
+		}
+
+		void* GetGLProcAddress(StringView procName);
+		Context GetGLContext();
 	}
 }

@@ -13,6 +13,6 @@ namespace Pile
 		protected virtual void Shutdown() {}
 
 		protected virtual void Update() {}
-		//public virtual void Render() {} -- implementation details to be done
+		protected virtual void Render() {}
 	}
 }

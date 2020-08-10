@@ -6,10 +6,11 @@ namespace Pile.Implementations
 {
 	public class SDL_System : System, ISystemOpenGL
 	{
+		public override String ApiName => "SDL2";
+
 		SDL_Window window; // Are both managed by Core
 		SDL_Input input;
-		SDL.SDL_GLContext context;
-		bool hasContext;
+		
 		bool glGraphics;
 
 		public this()
@@ -28,43 +29,24 @@ namespace Pile.Implementations
 			return SDL.SDL_GL_GetProcAddress(procName.ToScopeCStr!());
 		}
 
-		[Hide]
-		public void CreateGLContext()
+		public ISystemOpenGL.Context GetGLContext()
 		{
-			if (!hasContext)
-			{
-				context = SDL.GL_CreateContext(window.[Friend]window);
-				SDL.SDL_GL_MakeCurrent(window.[Friend]window, context);
-				if (*SDL.GetError() != '\0')
-					Console.WriteLine(scope String(SDL.GetError()));
-
-				hasContext = true;
-			}
-		}
-
-		protected void DeleteGLContext()
-		{
-			if (hasContext)
-			{
-				hasContext = false;
-				SDL.GL_DeleteContext(context);
-			}
+			return window.[Friend]context;
 		}
 
 		protected override Input CreateInput()
 		{
 			// Only one input
-			if (input == null) return input = new SDL_Input(window);
+			if (input == null) return input = new .(window);
 			else return input;
 		}
 
-		protected override Window CreateWindow(int width, int height)
+		protected override Window CreateWindow(int32 width, int32 height)
 		{
 			// Only one window
 			if (window == null)
 			{
-				window = new [Friend]SDL_Window(Core.Title, width, height);
-				if (glGraphics) CreateGLContext();
+				window = new [Friend].(Core.Title, width, height, this);
 
 				return window;
 			}
@@ -86,13 +68,6 @@ namespace Pile.Implementations
 			}
 		}
 
-		[Hide]
-		public void ConfigureForGL()
-		{
-			// Do this here since Graphics needs to initialize before getting MajorVersion & MinorVersion works
-
-		}
-
 		protected override void Update()
 		{
 			SDL.Event event;
@@ -111,12 +86,15 @@ namespace Pile.Implementations
 						case .Close:
 							window.OnCloseRequested();
 							return;
-		
+
+						case .SizeChanged: // Preceeds .Resize, is always triggered when size changes
+							window.OnResized();
+
 						// Size
 						case .Resized: // Only resize through external causes
 							window.[Friend]size.X = event.window.data1;
 							window.[Friend]size.Y = event.window.data2;
-							window.OnResized();
+							window.OnUserResized();
 		
 						// Moved
 						case .Moved:
@@ -158,7 +136,13 @@ namespace Pile.Implementations
 				default:
 				}
 
-				
+				if (*SDL.GetError() != '\0')
+				{
+					let s = scope String("SDL error {0} while processing event {1}");
+					Log.Message(Format(s, scope String(SDL.GetError()), event.type));
+
+					SDL.ClearError();
+				}
 			}
 		}
 	}

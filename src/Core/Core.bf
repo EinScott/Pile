@@ -45,7 +45,7 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void, String> Run(Game game, System system, Graphics graphics, Audio audio, int windowWidth, int windowHeight, String title)
+		public static Result<void, String> Run(Game game, System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight, String title)
 		{
 			if (running || exiting) return .Err("Is already running");
 			else if (game == null) return .Err("Game is null");
@@ -59,16 +59,26 @@ namespace Pile
 				Audio = audio;
 	
 				// System init
-				System?.[Friend]Initialize();
-				
-				Window = System?.[Friend]CreateWindow(windowWidth, windowHeight);
-				Input = System?.[Friend]CreateInput();
-				System?.[Friend]DetermineDataPath();
+				if (System != null)
+				{
+					System.[Friend]Initialize();
+					var ss = scope String("System: {0}");
+					Log.Message(Format(ss, System.ApiName));
+					
+					Window = System.[Friend]CreateWindow(windowWidth, windowHeight);
+					Input = System.[Friend]CreateInput();
+					System.[Friend]DetermineDataPath();
 	
+					Directory.SetCurrentDirectory(System.DataPath);
+				}
+
 				// Graphics init
-				Graphics?.[Friend]Initialize();
-	
-				Directory.SetCurrentDirectory(System.DataPath);
+				if (Graphics != null)
+				{
+					Graphics.[Friend]Initialize();
+					var sg = scope String("Graphics: {0} {1}.{2} ({3})");
+					Log.Message(Format(sg, Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
+				}
 	
 				var s = scope String("Pile started (took {0}ms)");
 				Log.Message(Format(s, w.Elapsed.Milliseconds));
@@ -103,9 +113,10 @@ namespace Pile
 				CallUpdate();
 
 				// Render
-				if (!exiting)
+				if (!exiting && !Window.Closed)
 				{
-					CallRender();
+					Window.[Friend]Render(); // Calls CallRender()
+					Window.[Friend]Present();
 				}
 
 				// Count FPS
@@ -121,11 +132,12 @@ namespace Pile
 				if ((float)(timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError < Time.[Friend]targetMilliseconds)
 				{
 					let sleep = Time.[Friend]targetMilliseconds - (timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError;
-					
-					Thread.Sleep((int32)Math.Floor(sleep));
-					sleepError = Math.Floor(sleep) - sleep;
-				}
+					let realSleep = (int32)Math.Floor(sleep);
 
+					if (sleep > 0)Thread.Sleep(realSleep);
+
+					sleepError = realSleep - sleep;
+				}
 			}
 
 			if (SaveLogOnExit)
@@ -168,6 +180,7 @@ namespace Pile
 
 		static void CallRender()
 		{
+			Game.[Friend]Render();
 			Graphics?.[Friend]AfterRender();
 		}
 
