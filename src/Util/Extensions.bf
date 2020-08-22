@@ -4,7 +4,7 @@ namespace Pile
 {
 	static
 	{
-		public static String Format(String format, params Object[] insertions) // THIS is missing here
+		public static String Format(this String format, params Object[] insertions) // THIS is missing here
 		{
 			var findString = scope String(4); // No one will probably ever exceed two digit numbers here... hopefully
 			var insertBuf = scope String();

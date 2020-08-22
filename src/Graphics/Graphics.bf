@@ -38,10 +38,23 @@ namespace Pile
 		}
 
 		protected abstract void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
-		protected abstract void RenderInternal();
 
-		// Make texutre, framebuffer... etc. classes
-		protected abstract Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format); // Format format
+		public Result<void, String> Render(ref RenderPass pass)
+		{
+			if (!pass.target.Renderable)
+				return .Err("Render Target cannot currently be drawn to");
+
+			if (!(pass.target is FrameBuffer) && !(pass.target is Window))
+				return .Err("RenderTarget must be a FrameBuffer or Window");
+
+			
+			return .Ok;
+		}
+
+		protected abstract void RenderInternal(ref RenderPass pass);
+
+		protected abstract Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format);
+		protected abstract Mesh.Platform CreateMesh();
 		// ...
 	}
 }

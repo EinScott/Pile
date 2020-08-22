@@ -5,7 +5,7 @@ namespace Pile.Implementations
 {
 	public class GL_Texture : Texture.Platform
 	{
-		public uint32 ID { get; private set; }
+		uint32 textureID;
 
 		readonly GL_Graphics graphics;
 		bool isFrameBuffer;
@@ -27,10 +27,10 @@ namespace Pile.Implementations
 
 		void Delete()
 		{
-			if (ID != 0)
+			if (textureID != 0)
 			{
-				graphics.[Friend]texturesToDelete.Add(uint32(ID));
-				ID = 0;
+				graphics.[Friend]texturesToDelete.Add(uint32(textureID));
+				textureID = 0;
 			}
 		}
 
@@ -71,7 +71,7 @@ namespace Pile.Implementations
 
 		private void Create()
 		{
-			GL.glGenTextures(1, &ID);
+			GL.glGenTextures(1, &textureID);
 			Prepare();
 
 			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, texture.Width, texture.Height, 0, glFormat, glType, null);
@@ -87,7 +87,7 @@ namespace Pile.Implementations
 		private void Prepare()
 		{
 			GL.glActiveTexture(GL.GL_TEXTURE0);
-			GL.glBindTexture(GL.GL_TEXTURE_2D, ID);
+			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
 		}
 
 		public override void Resize(int32 width, int32 height)

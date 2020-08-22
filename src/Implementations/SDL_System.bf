@@ -18,11 +18,6 @@ namespace Pile.Implementations
 			SDL_Init.[Friend]InitFlags |= .Video | .Joystick | .GameController | .Events;
 		}
 
-		public ~this()
-		{
-			//DeleteGLContext(); // context *should* be deleted when window is closed
-		}
-
 		[Hide]
 		public void* GetGLProcAddress(StringView procName)
 		{
@@ -138,8 +133,7 @@ namespace Pile.Implementations
 
 				if (*SDL.GetError() != '\0')
 				{
-					let s = scope String("SDL error {0} while processing event {1}");
-					Log.Message(Format(s, scope String(SDL.GetError()), event.type));
+					Log.Message(scope String("SDL error {0} while processing event {1}").Format(scope String(SDL.GetError()), event.type));
 
 					SDL.ClearError();
 				}

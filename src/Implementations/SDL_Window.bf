@@ -17,7 +17,7 @@ namespace Pile.Implementations
 			this.system = system;
 
 			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
-			if (((SDL_System)Core.System).[Friend]glGraphics) flags |= .OpenGL;
+			if (system.[Friend]glGraphics) flags |= .OpenGL;
 
 			window = SDL.CreateWindow(title, .Centered, .Centered, width, height, flags);
 			windowID = SDL.GetWindowID(window);

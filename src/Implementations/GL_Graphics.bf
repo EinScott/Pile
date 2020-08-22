@@ -1,4 +1,4 @@
-using OpenGL43;
+using static OpenGL43.GL;
 using System;
 using System.Collections;
 
@@ -21,7 +21,7 @@ namespace Pile.Implementations
 		static ISystemOpenGL system;
 
 		private delegate void DeleteResource(uint32* id);
-		readonly DeleteResource deleteTexture = new (id) => GL.glDeleteTextures(1, id);
+		readonly DeleteResource deleteTexture = new (id) => glDeleteTextures(1, id);
 
 		// These were in context's ContextMeta class before and can be put back if we ever need multiple contexts
 		bool context_forceScissorsUpdate;
@@ -29,6 +29,7 @@ namespace Pile.Implementations
 		// --
 
 		List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
+		List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
 
 		public ~this()
 		{
@@ -44,15 +45,15 @@ namespace Pile.Implementations
 			system = Core.System as ISystemOpenGL;
 
 			// Init & Config GL
-			GL.Init(=> GetProcAddress);
-			GL.glDepthMask(GL.GL_TRUE);
+			Init(=> GetProcAddress);
+			glDepthMask(GL_TRUE);
 
-			GL.glEnable(GL.GL_DEBUG_OUTPUT);
-			GL.glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
-			GL.glDebugMessageCallback(=> DebugCallback, null);
-			GL.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
-			deviceName = new String(GL.glGetString(GL.GL_RENDERER));
+			glDebugMessageCallback(=> DebugCallback, null);
+			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
+			deviceName = new String(glGetString(GL_RENDERER));
 			OriginBottomLeft = true;
 
 			return .Ok;
@@ -77,7 +78,7 @@ namespace Pile.Implementations
 
 		protected override void AfterRender()
 		{
-			GL.glFlush();
+			glFlush();
 		}
 
 		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
@@ -86,7 +87,7 @@ namespace Pile.Implementations
 			{
 				// Assume context is set right since there is only one
 
-				GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				Clear(this, system.GetGLContext(), target, flags, color, depth, stencil, viewport);
 			}
 			// Else framebuffer
@@ -103,46 +104,46 @@ namespace Pile.Implementations
 
 			    if (graphics.context_viewport != viewport)
 			    {
-			        GL.glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+			        glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
 			        graphics.context_viewport = viewport;
 			    }
 			}
 
 			// we disable the scissor for clearing
 			graphics.context_forceScissorsUpdate = true;
-			GL.glDisable(GL.GL_SCISSOR_TEST);
+			glDisable(GL_SCISSOR_TEST);
 
 			// clear
-			var mask = GL.GL_ZERO;
+			var mask = GL_ZERO;
 
 			if (flags.HasFlag(.Color))
 			{
-			    GL.glClearColor(color.Rf, color.Gf, color.Bf, color.Af);
-			    mask |= GL.GL_COLOR_BUFFER_BIT;
+			    glClearColor(color.Rf, color.Gf, color.Bf, color.Af);
+			    mask |= GL_COLOR_BUFFER_BIT;
 			}
 
 			if (flags.HasFlag(.Depth))
 			{
-			    GL.glClearDepth(depth);
-			    mask |= GL.GL_DEPTH_BUFFER_BIT;
+			    glClearDepth(depth);
+			    mask |= GL_DEPTH_BUFFER_BIT;
 			}
 
 			if (flags.HasFlag(.Stencil))
 			{
-			    GL.glClearStencil(stencil);
-			    mask |= GL.GL_STENCIL_BUFFER_BIT;
+			    glClearStencil(stencil);
+			    mask |= GL_STENCIL_BUFFER_BIT;
 			}
 
-			GL.glClear(mask);
-			GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+			glClear(mask);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-		protected override void RenderInternal()
+		protected override void RenderInternal(ref RenderPass pass)
 		{
 
 			// Set size
 			var size = Core.Window.RenderSize;
-			GL.glViewport(0, 0, size.X, size.Y);
+			glViewport(0, 0, size.X, size.Y);
 		}
 
 		protected override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
@@ -150,23 +151,29 @@ namespace Pile.Implementations
 			return new [Friend]GL_Texture(this);
 		}
 
+		
+		protected override Mesh.Platform CreateMesh()
+		{
+			return new [Friend]GL_Mesh(this);
+		}
+
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)
 		{
-			if (severity != GL.GL_DEBUG_SEVERITY_HIGH && severity != GL.GL_DEBUG_SEVERITY_MEDIUM && severity != GL.GL_DEBUG_SEVERITY_LOW) return;
+			if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM && severity != GL_DEBUG_SEVERITY_LOW) return;
 
 			var s = scope String("OpenGL ");
 
 			switch (type)
 			{
-			case GL.GL_DEBUG_TYPE_ERROR: s.Append("ERROR");
-			case GL.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: s.Append("DEPRECATED BEHAVIOR");
-			case GL.GL_DEBUG_TYPE_MARKER: s.Append("MARKER");
-			case GL.GL_DEBUG_TYPE_OTHER: s.Append("OTHER");
-			case GL.GL_DEBUG_TYPE_PERFORMANCE: s.Append("PEROFRMANCE");
-			case GL.GL_DEBUG_TYPE_POP_GROUP: s.Append("POP GROUP");
-			case GL.GL_DEBUG_TYPE_PORTABILITY: s.Append("PORTABILITY");
-			case GL.GL_DEBUG_TYPE_PUSH_GROUP: s.Append("PUSH GROUP");
-			case GL.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: s.Append("UNDEFINED BEHAVIOR");
+			case GL_DEBUG_TYPE_ERROR: s.Append("ERROR");
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: s.Append("DEPRECATED BEHAVIOR");
+			case GL_DEBUG_TYPE_MARKER: s.Append("MARKER");
+			case GL_DEBUG_TYPE_OTHER: s.Append("OTHER");
+			case GL_DEBUG_TYPE_PERFORMANCE: s.Append("PEROFRMANCE");
+			case GL_DEBUG_TYPE_POP_GROUP: s.Append("POP GROUP");
+			case GL_DEBUG_TYPE_PORTABILITY: s.Append("PORTABILITY");
+			case GL_DEBUG_TYPE_PUSH_GROUP: s.Append("PUSH GROUP");
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: s.Append("UNDEFINED BEHAVIOR");
 			default: s.Append("UNKNOWN");
 			}
 
@@ -174,9 +181,9 @@ namespace Pile.Implementations
 
 			switch (severity)
 			{
-			case GL.GL_DEBUG_SEVERITY_HIGH: s.Append("HIGH");
-			case GL.GL_DEBUG_SEVERITY_MEDIUM: s.Append("MEDIUM");
-			case GL.GL_DEBUG_SEVERITY_LOW: s.Append("LOW");
+			case GL_DEBUG_SEVERITY_HIGH: s.Append("HIGH");
+			case GL_DEBUG_SEVERITY_MEDIUM: s.Append("MEDIUM");
+			case GL_DEBUG_SEVERITY_LOW: s.Append("LOW");
 			}
 
 			s.Append(": ");

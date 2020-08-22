@@ -62,8 +62,7 @@ namespace Pile
 				if (System != null)
 				{
 					System.[Friend]Initialize();
-					var ss = scope String("System: {0}");
-					Log.Message(Format(ss, System.ApiName));
+					Log.Message(scope String("System: {0}").Format(System.ApiName));
 					
 					Window = System.[Friend]CreateWindow(windowWidth, windowHeight);
 					Input = System.[Friend]CreateInput();
@@ -76,12 +75,10 @@ namespace Pile
 				if (Graphics != null)
 				{
 					Graphics.[Friend]Initialize();
-					var sg = scope String("Graphics: {0} {1}.{2} ({3})");
-					Log.Message(Format(sg, Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
+					Log.Message(scope String("Graphics: {0} {1}.{2} ({3})").Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
 				}
-	
-				var s = scope String("Pile started (took {0}ms)");
-				Log.Message(Format(s, w.Elapsed.Milliseconds));
+
+				Log.Message(scope String("Pile started (took {0}ms)").Format(w.Elapsed.Milliseconds));
 				w.Stop();
 			}
 
