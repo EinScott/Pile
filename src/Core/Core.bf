@@ -14,13 +14,11 @@ namespace Pile
 
 		static ~this()
 		{
-			if (running || exiting) Delete();
+			if (initialized) Delete();
 		}
 
 		static void Delete()
 		{
-			CondDelete!(Game);
-
 			CondDelete!(Window);
 			CondDelete!(Input);
 
@@ -31,6 +29,7 @@ namespace Pile
 
 		static bool running;
 		static bool exiting;
+		static bool initialized;
 
 		public static String Title { get; private set; }
 
@@ -41,46 +40,52 @@ namespace Pile
 		public static Input Input { get; private set; }
 		public static Window Window { get; private set; }
 
-		public static bool SaveLogOnExit;
-
 		static Game Game;
 
-		public static Result<void, String> Run(Game game, System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight, String title)
+		public static Result<void, String> Initialize(System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight, String title)
+		{
+			if (initialized) return .Err("Is already initialized");
+
+			var w = scope Stopwatch(true);
+			Title = title;
+			System = system;
+			Graphics = graphics;
+			Audio = audio;
+
+			// System init
+			if (System != null)
+			{
+				System.[Friend]Initialize();
+				Log.Message(scope String("System: {0}").Format(System.ApiName));
+				
+				Window = System.[Friend]CreateWindow(windowWidth, windowHeight);
+				Input = System.[Friend]CreateInput();
+				System.[Friend]DetermineDataPath();
+
+				Directory.SetCurrentDirectory(System.DataPath);
+			}
+
+			// Graphics init
+			if (Graphics != null)
+			{
+				Graphics.[Friend]Initialize();
+				Log.Message(scope String("Graphics: {0} {1}.{2} ({3})").Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
+			}
+
+			Log.Message(scope String("Pile initialized (took {0}ms)").Format(w.Elapsed.Milliseconds));
+			w.Stop();
+
+			initialized = true;
+			return .Ok;
+		}
+
+		public static Result<void, String> Start(Game game, bool deleteGameOnShutdown = true)
 		{
 			if (running || exiting) return .Err("Is already running");
+			else if (!initialized) return .Err("Core must be initialized first");
 			else if (game == null) return .Err("Game is null");
 
-			{
-				var w = scope Stopwatch(true);
-				Title = title;
-				Game = game;
-				System = system;
-				Graphics = graphics;
-				Audio = audio;
-	
-				// System init
-				if (System != null)
-				{
-					System.[Friend]Initialize();
-					Log.Message(scope String("System: {0}").Format(System.ApiName));
-					
-					Window = System.[Friend]CreateWindow(windowWidth, windowHeight);
-					Input = System.[Friend]CreateInput();
-					System.[Friend]DetermineDataPath();
-	
-					Directory.SetCurrentDirectory(System.DataPath);
-				}
-
-				// Graphics init
-				if (Graphics != null)
-				{
-					Graphics.[Friend]Initialize();
-					Log.Message(scope String("Graphics: {0} {1}.{2} ({3})").Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
-				}
-
-				Log.Message(scope String("Pile started (took {0}ms)").Format(w.Elapsed.Milliseconds));
-				w.Stop();
-			}
+			Game = game;
 
 			let timer = scope Stopwatch(true);
 			double sleepError = 0;
@@ -137,15 +142,12 @@ namespace Pile
 				}
 			}
 
-			if (SaveLogOnExit)
-			{
-				var s = scope String();
-				Path.InternalCombine(s, system.DataPath, @"log.txt");
-				Log.AppendToFile(s);
-			}
-
 			CallShutdown();
 
+			if (deleteGameOnShutdown) delete Game;
+			Game = null;
+
+			exiting = false;
 			return .Ok;
 		}
 
