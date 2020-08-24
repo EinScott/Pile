@@ -5,26 +5,39 @@ namespace Pile
 {
 	public class Bitmap
 	{
-		public readonly Color[] pixels;
-		public readonly int32 width;
-		public readonly int32 height;
+		public Color[] Pixels { get; private set; }
+		public int32 Width { get; private set; }
+		public int32 Height { get; private set; }
 
-		public this(int32 width, int32 height, Color[] colors)
+		bool initialized;
+
+		public this(int32 width, int32 height, Color[] pixels)
 		{
-			Runtime.Assert(width <= 0 || height <= 0 || width * height > colors.Count);
+			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Count);
 
-			this.pixels = pixels;
-			this.width = width;
-			this.height = height;
+			Pixels = new Color[width * height];
+			pixels.CopyTo(Pixels);
+
+			Width = width;
+			Height = height;
+
+			initialized = true;
 		}
 
 		public this(int32 width, int32 height) : this(width, height, new Color[width * height]) {}
 
+		public this() { } // Unitialized
+
+		public ~this()
+		{
+			if (Pixels != null) delete Pixels;
+		}
+
 		public void Premultiply()
 		{
-			uint8* rgba = (uint8*)&(void)pixels;
+			uint8* rgba = (uint8*)&(void)Pixels;
 
-			let len = pixels.Count * 4;
+			let len = Pixels.Count * 4;
 			for (int32 i = 0; i < len; i++)
 			{
 				rgba[i + 0] = rgba[i + 0] * rgba[i + 3] / 255;
@@ -33,21 +46,43 @@ namespace Pile
 			}
 		}
 
+		public void Clear()
+		{
+			if (!initialized) return;
+			Array.Clear(&Pixels, Pixels.Count);
+		}
+
+		/**Also clears pixel data!*/
+		public void Resize(int32 width, int32 height)
+		{
+			Width = width;
+			Height = height;
+
+			if (Pixels != null) delete Pixels;
+			Pixels = new Color[width * height];
+
+			initialized = true;
+		}
+
 		public void SetPixels(Span<Color> source)
 		{
-			source.CopyTo(pixels);
+			if (!initialized) return;
+
+			source.CopyTo(Pixels);
 		}
 
 		public void GetPixels(Span<Color> dest, Rect destRect, Rect sourceRect)
 		{
-			Span<Color> src = Span<Color>(pixels);
+			if (!initialized) return;
+
+			Span<Color> src = Span<Color>(Pixels);
 			var sr = sourceRect;
 
 			// can't be outside of the source image
 			if (sourceRect.Left < 0) sr.Left = 0;
 			if (sourceRect.Top < 0) sr.Top = 0;
-			if (sourceRect.Right > width) sr.Right = width;
-			if (sourceRect.Bottom > height) sr.Bottom = height;
+			if (sourceRect.Right > Width) sr.Right = Width;
+			if (sourceRect.Bottom > Height) sr.Bottom = Height;
 
 			// can't be larger than our destination
 			if (sourceRect.Width > destRect.Width - destRect.X)
@@ -57,25 +92,27 @@ namespace Pile
 
 			for (int y = 0; y < sr.Height; y++)
 			{
-			    var from = src.Slice(sr.X + (sr.Y + y) * width, sr.Width);
+			    var from = src.Slice(sr.X + (sr.Y + y) * Width, sr.Width);
 			    var to = dest.Slice(destRect.X + (destRect.Y + y) * destRect.Width, sr.Width);
 
 			    from.CopyTo(to);
 			}
 		}
 
-		public Bitmap GetSubBitmap(Rect source)
+		public void GetSubBitmap(Rect source, Bitmap sub)
 		{
-			var bmp = new Bitmap((int32)source.Width, (int32)source.Height);
-			GetPixels(bmp.pixels, Rect(0, 0, source.Width, source.Height), source);
-			return bmp;
+			if (!initialized) return;
+
+			sub.Resize((int32)source.Width, (int32)source.Height);
+			GetPixels(sub.Pixels, Rect(0, 0, source.Width, source.Height), source);
 		}
 
-		public Bitmap Clone()
+		public void CopyTo(Bitmap bitmap)
 		{
-			let pix = new Color[pixels.Count];
-			pixels.CopyTo(pix);
-			return new Bitmap(width, height, pixels);
+			if (!initialized) return;
+
+			bitmap.Resize(Width, Height);
+			bitmap.SetPixels(Pixels);
 		}
 	}
 }

@@ -6,9 +6,6 @@ namespace Pile
 {
 	public static class Log
 	{
-		// this is slightly dumb, because we cant really save the log when we crash
-		// maybe save to file 'per line' even though that sounds really dumb?
-
 		public enum Types
 		{
 			case Message;
@@ -82,7 +79,7 @@ namespace Pile
 			if (directory.Length != 0 && !Directory.Exists(directory))
 			{
 				var res = Platform.BfpFileResult.Ok;
-				Runtime.Assert(Directory.CreateDirectory(directory) != .Err(res), "Couldn't append log to file, couldn't create missing directory: {0}".Format(res));
+				Runtime.Assert(Directory.CreateDirectory(directory) != .Err(res), scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
 			}
 
 			let fileLog = scope String();
@@ -104,7 +101,7 @@ namespace Pile
 			{
 				var existingFile = scope String();
 				var res = FileError.FileOpenError(FileOpenError.Unknown);
-				Runtime.Assert(File.ReadAllText(filePath, existingFile, true) != .Err(res), "Couldn't append log to file, couldn't read existing file: {0}".Format(res));
+				Runtime.Assert(File.ReadAllText(filePath, existingFile, true) case .Err(res), scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
 
 				fileLog.Append(existingFile);
 			}

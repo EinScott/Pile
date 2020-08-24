@@ -20,8 +20,10 @@ namespace Pile.Implementations
 		static void* GetProcAddress(StringView procName) => system.GetGLProcAddress(procName);
 		static ISystemOpenGL system;
 
-		private delegate void DeleteResource(uint32* id);
-		readonly DeleteResource deleteTexture = new (id) => glDeleteTextures(1, id);
+		private delegate void DeleteResource(ref uint32 id);
+		readonly DeleteResource deleteTexture = new (id) => glDeleteTextures(1, &id);
+		readonly DeleteResource deleteBuffer = new (id) => glDeleteBuffers(1, &id);
+		readonly DeleteResource deleteProgram = new (id) => glDeleteProgram(id);
 
 		// These were in context's ContextMeta class before and can be put back if we ever need multiple contexts
 		bool context_forceScissorsUpdate;
@@ -30,12 +32,15 @@ namespace Pile.Implementations
 
 		List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
 		List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
+		List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
 		public ~this()
 		{
 			system = null;
 
 			delete deleteTexture;
+			delete deleteBuffer;
+			delete deleteProgram;
 			delete deviceName;
 		}
 
@@ -64,6 +69,8 @@ namespace Pile.Implementations
 		protected override void Update()
 		{
 			DeleteResources(deleteTexture, texturesToDelete);
+			DeleteResources(deleteBuffer, buffersToDelete);
+			DeleteResources(deleteProgram, programsToDelete);
 		}
 
 		private void DeleteResources(DeleteResource deleter, List<uint32> list)
@@ -71,7 +78,7 @@ namespace Pile.Implementations
 			if (list.Count > 0)
 			{
 				for (int i = list.Count - 1; i >= 0; i--)
-					deleter(&list[i]);
+					deleter(ref list[i]);
 				list.Clear();
 			}
 		}
@@ -155,6 +162,11 @@ namespace Pile.Implementations
 		protected override Mesh.Platform CreateMesh()
 		{
 			return new [Friend]GL_Mesh(this);
+		}
+
+		protected override Shader.Platform CreateShader(ShaderSource source)
+		{
+			return new [Friend]GL_Shader(this, source);
 		}
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)

@@ -20,6 +20,8 @@ namespace Pile
 			Path.GetDirectoryPath(exePath, exeDir);
 			DataPath = exeDir;
 
+			Directory.SetCurrentDirectory(DataPath);
+
 			//switch(Environment.OSVersion.Platform)
 		}
 

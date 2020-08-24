@@ -55,6 +55,7 @@ namespace Pile
 
 		protected abstract Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format);
 		protected abstract Mesh.Platform CreateMesh();
+		protected abstract Shader.Platform CreateShader(ShaderSource source);
 		// ...
 	}
 }

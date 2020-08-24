@@ -48,7 +48,7 @@ namespace Pile
 
 		public this(int32 width, int32 height, TextureFormat format = .Color)
 		{
-			Runtime.Assert(width > 0 || height > 0);
+			Runtime.Assert(width > 0 || height > 0, "Texture size must be larger than 0");
 
 			Width = width;
 			Height = height;
@@ -61,9 +61,9 @@ namespace Pile
 		}
 
 		public this(Bitmap bitmap)
-			: this(bitmap.height, bitmap.width, .Color)
+			: this(bitmap.Height, bitmap.Width, .Color)
 		{
-			platform.SetData(scope Span<Color>(bitmap.pixels));
+			platform.SetData(scope Span<Color>(bitmap.Pixels));
 		}
 
 		public ~this()
@@ -71,15 +71,22 @@ namespace Pile
 			delete platform;
 		}
 
-		public Bitmap AsNewBitmap()
+		public void CopyTo(Bitmap bitmap)
 		{
-			var bmp = new Bitmap(Width, Height);
+			bitmap.Resize(Width, Height);
 
-			var span = scope Span<Color>(bmp.pixels);
+			var span = scope Span<Color>(bitmap.Pixels);
 			platform.GetData(span);
-			span.CopyTo(bmp.pixels);
+		}
 
-			return bmp;
+		/** Resize also clears the texture! TextureFormat is preserved.*/
+		public Result<void, String> Resize(int32 width, int32 height)
+		{
+			if (width <= 0 || height <= 0)
+				return .Err("Texture size must be larger than 0");
+
+			platform.Resize(width, height);
+			return .Ok;
 		}
 
 		public Result<void, String> SetColor(ref Span<Color> buffer) => SetData<Color>(ref buffer);

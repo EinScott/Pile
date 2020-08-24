@@ -15,7 +15,7 @@ namespace Pile.Implementations
 		uint glFormat;
 		uint glType;
 
-		protected this(GL_Graphics graphics)
+		private this(GL_Graphics graphics)
 		{
 			this.graphics = graphics;
 		}

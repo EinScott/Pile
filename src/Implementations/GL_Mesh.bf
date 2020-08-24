@@ -15,7 +15,7 @@ namespace Pile.Implementations
 
 		readonly GL_Graphics graphics;
 
-		protected this(GL_Graphics graphics)
+		private this(GL_Graphics graphics)
 		{
 			this.graphics = graphics;
 		}
