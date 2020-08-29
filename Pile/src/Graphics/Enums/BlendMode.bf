@@ -45,7 +45,7 @@ namespace Pile
 	    RGBA    = Red | Green | Blue | Alpha
 	}
 
-	public struct BlendMode : IEquatable<BlendMode>, IOpEquals
+	public struct BlendMode : IEquatable<BlendMode>
 	{
 	    public BlendOperations colorOperation;
 	    public BlendFactors colorSource;

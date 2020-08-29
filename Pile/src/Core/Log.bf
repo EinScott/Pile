@@ -6,6 +6,12 @@ namespace Pile
 {
 	public static class Log
 	{
+#if PILE_LONG_LOG_RECORD
+		public const int32 LOG_RECORD_COUNT = 128;
+#else
+		public const int32 LOG_RECORD_COUNT = 16;
+#endif
+		
 		public enum Types
 		{
 			case Message;
@@ -40,17 +46,34 @@ namespace Pile
 		public static bool PrintToConsole = true;
 		public static bool SaveOnError = false;
 		static bool discontinued;
+		static int writeIndex = 0;
 
-		static readonly String buf = new String() ~ delete _;
-		static readonly String log = new String() ~ delete _;
+		static readonly String buf = new String(32) ~ delete _;
+		static readonly String logBuf = new String(64) ~ delete _;
+		static readonly String[] record = new String[LOG_RECORD_COUNT];
 
-		public static void Message(String message) => Line(Types.Message, message);
-		public static void Message(Object message) => Line(Types.Message, message);
-		public static void Warning(String message) => Line(Types.Warning, message);
-		public static void Warning(Object message) => Line(Types.Warning, message);
+		static this()
+		{
+			for (int i = 0; i < LOG_RECORD_COUNT; i++)
+				record[i] = new String(64);
+		}
+
+		static ~this()
+		{
+			for (int i = 0; i < LOG_RECORD_COUNT; i++)
+				delete record[i];
+			delete record;
+		}
+
+		// Logging shorthands
+
+		public static void Message(String message) => Log(Types.Message, message);
+		public static void Message(Object message) => Log(Types.Message, message);
+		public static void Warning(String message) => Log(Types.Warning, message);
+		public static void Warning(Object message) => Log(Types.Warning, message);
 		public static void Error(String message)
 		{
-			Line(Types.Error, message);
+			Log(Types.Error, message);
 			
 			if (SaveOnError)
 			{
@@ -61,7 +84,7 @@ namespace Pile
 		}
 		public static void Error(Object message)
 		{
-			Line(Types.Error, message);
+			Log(Types.Error, message);
 
 			if (SaveOnError)
 			{
@@ -71,45 +94,9 @@ namespace Pile
 			}
 		}
 
-		public static void AppendToFile(String filePath)
-		{
-			var directory = scope String();
-			Runtime.Assert(Path.GetDirectoryPath(filePath, directory) == .Ok, "Couldn't append log to file, invalid path");
+		// Actually log lines
 
-			if (directory.Length != 0 && !Directory.Exists(directory))
-			{
-				var res = Platform.BfpFileResult.Ok;
-				Runtime.Assert(Directory.CreateDirectory(directory) != .Err(res), scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
-			}
-
-			let fileLog = scope String();
-			if (discontinued) fileLog.Append("CONTINUES LOG FROM BELOW");
-			else fileLog.Append("START OF LOG OUTPUT");
-
-			fileLog.Append(Environment.NewLine);
-			DateTime.Now.ToString(fileLog);
-			fileLog.Append(Environment.NewLine);
-
-			// Save and empty log
-			fileLog.Append(log);
-			log.Clear();
-			discontinued = true;
-
-			fileLog.Append(Environment.NewLine);
-
-			if (File.Exists(filePath))
-			{
-				var existingFile = scope String();
-				var res = FileError.FileOpenError(FileOpenError.Unknown);
-				Runtime.Assert(File.ReadAllText(filePath, existingFile, true) case .Err(res), scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
-
-				fileLog.Append(existingFile);
-			}
-
-			Runtime.Assert(File.WriteAllText(filePath, fileLog) == .Ok, "Couldn't append log to file, couldn't write file");
-		}
-
-		static void Line(Types type, String message)
+		static void Log(Types type, String message)
 		{
 			// Write type
 			type.ToString(buf);
@@ -126,7 +113,7 @@ namespace Pile
 			OnLine(type, message);
 		}
 
-		static void Line(Types type, Object message)
+		static void Log(Types type, Object message)
 		{
 			// Write type
 			type.ToString(buf);
@@ -153,7 +140,7 @@ namespace Pile
 				Console.Write(text);
 			}
 
-			log.Append(text);
+			logBuf.Append(text);
 		}
 
 		static void AppendLineBreak()
@@ -161,7 +148,102 @@ namespace Pile
 			if (PrintToConsole)
 				Console.WriteLine();
 
-			log.Append(Environment.NewLine);
+			AppendRecord();
+		}
+
+		// Record stuff
+
+		static void AppendRecord()
+		{
+			// Take logBuf and put its contents into record array
+			record[writeIndex].Set(logBuf);
+			logBuf.Clear();
+
+			// Move writeIndex
+			if (writeIndex + 1 < LOG_RECORD_COUNT)
+				writeIndex++;
+			else writeIndex = 0;
+		}
+
+		static void ClearRecord()
+		{
+			// Indicate that is is not the full log record
+			discontinued = true;
+
+			// Clear
+			for (var string in record)
+				string.Clear();
+			writeIndex = 0;
+		}
+
+		// Save log record (and clear record)
+
+		public static void AppendToFile(String filePath)
+		{
+			var directory = scope String();
+			Runtime.Assert(Path.GetDirectoryPath(filePath, directory) == .Ok, "Couldn't append log to file, invalid path");
+
+			if (directory.Length != 0 && !Directory.Exists(directory))
+			{
+				var res = Platform.BfpFileResult.Ok;
+				Runtime.Assert(Directory.CreateDirectory(directory) != .Err(res), scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
+			}
+
+			let fileLog = scope String();
+			if (discontinued) fileLog.Append("CONTINUES LOG FROM BELOW");
+			else fileLog.Append("START OF LOG OUTPUT");
+
+			fileLog.Append(Environment.NewLine);
+			DateTime.Now.ToString(fileLog);
+			fileLog.Append(Environment.NewLine);
+
+			// Save and empty log
+
+			// writeIndex is where we *would* write next, and since the newest output (index before this)
+			// is printed last, we start here at the (if existant) oldest and go around once
+			int i = writeIndex;
+			while (true)
+			{
+				// Skip empty/cleared lines
+				if (record[i].Length == 0)
+				{
+					NextIndex();
+					continue;
+				}
+
+				// Append string
+				fileLog.Append(record[i]);
+				fileLog.Append(Environment.NewLine);
+
+				NextIndex();
+
+				// This means we've gone through everything
+				if (i == writeIndex) break;
+
+				void NextIndex()
+				{
+					// Since we start anywhere in the array, we will need to wrap this
+					if (i + 1 < LOG_RECORD_COUNT)
+						i++;
+					else i = 0;
+				}
+			}
+			ClearRecord();
+
+			fileLog.Append(Environment.NewLine);
+
+			// Append possibly existing file
+			if (File.Exists(filePath))
+			{
+				var existingFile = scope String();
+				var res = FileError.FileOpenError(FileOpenError.Unknown);
+				if (File.ReadAllText(filePath, existingFile, true) case .Err(res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
+
+				fileLog.Append(existingFile);
+			}
+
+			// Write
+			Runtime.Assert(File.WriteAllText(filePath, fileLog) == .Ok, "Couldn't append log to file, couldn't write file");
 		}
 	}
 }

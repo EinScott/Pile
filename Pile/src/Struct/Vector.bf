@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public struct Vector : IOpAddable, IOpSubtractable, IOpEquals, IOpNegatable, IEquatable<Vector>, IEquatable
+	public struct Vector : IEquatable<Vector>, IEquatable
 	{
 		public static readonly Vector Right = .(1, 0);
 		public static readonly Vector Left = .(-1, 0);

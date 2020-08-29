@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public struct Rect : IOpEquals
+	public struct Rect
 	{
 		public static Rect Zero = Rect();
 

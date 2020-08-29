@@ -3,6 +3,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.IO;
 
+/*
+ *
+ * DEFINES:
+ * PILE_LONG_LOG_RECORD - increases amount of output log lines Log remembers from 16 to 128
+ *
+ */
+
 namespace Pile
 {
 	public static class Core

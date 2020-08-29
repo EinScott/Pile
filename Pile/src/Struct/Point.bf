@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public struct Point : IOpAddable, IOpSubtractable, IOpEquals, IOpNegatable, IEquatable<Point>, IEquatable
+	public struct Point : IEquatable<Point>, IEquatable
 	{
 		public static readonly Point Right = .(1, 0);
 		public static readonly Point Left = .(-1, 0);
