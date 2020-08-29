@@ -72,7 +72,16 @@ namespace Pile.Implementations
 
 		private void Bind()
 		{
-			// do shader/(material) first
+			
+
+			// this binds the vertex array object and binds the vertex and index buffer to it
+			// if the materials shader changed, or the vertex format was changed when setupping, redo attrib pointers to the shader attributes
+			// here, we look through each attribute of the shader and find if the format has something to pass in
+			// if it does, we setup the pointer at the location to the attribute (look into glsl for this, how many components each needs etc)
+			// else that attribute is disabled? i dunno
+
+			// Anyways, when shader is used with material and mesh is bound with material (which is actually just used as a container for the shader here and could just take shader)
+			// we are ready and can draw elements!!
 		}
 	}
 }

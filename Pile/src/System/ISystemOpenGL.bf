@@ -21,6 +21,7 @@ namespace Pile
 			public abstract void MakeCurrent();
 		}
 
+		void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples);
 		void* GetGLProcAddress(StringView procName);
 		Context GetGLContext();
 	}

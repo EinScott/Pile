@@ -145,10 +145,5 @@ namespace Pile
 		{
 			return Color(color.R, color.G, color.B, (uint8)(color.A * b));
 		}
-
-		static public implicit operator SDL2.SDL.Color(Color color)
-		{
-			return SDL2.SDL.Color(color.R, color.G, color.B, color.A);
-		}
 	}
 }

@@ -1,0 +1,5 @@
+FileVersion = 1
+Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
+
+[Project]
+Name = "Pile_OpenGL"

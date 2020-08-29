@@ -47,7 +47,17 @@ namespace Pile.Implementations
 			}
 
 			// Get attributes
+			int32 attributeCount = 0;
+			GL.glGetProgramiv(programID, GL.GL_ACTIVE_ATTRIBUTES, &attributeCount);
+			for	(int i = 0; i < attributeCount; i++)
+			{
+				//--- ahhhh
+				// so mat stores shader uniforms => when rendering bind shader with the mat's uniforms
+				// and... attribs are set from mesh dynamically as shown by the vertex format
+				// Does this even garanteee everything fits together??
+			}
 
+			// same for uniforms
 
 			uint PrepareShader(String source, uint64 glShaderType)
 			{
@@ -80,6 +90,14 @@ namespace Pile.Implementations
 
 				return id;
 			}
+		}
+
+		public void Use()
+		{
+			GL.glUseProgram(programID);
+
+			// This goes through all parameters of a material (holds shader uniforms and values for them)
+			// and binds the stuff for each uniform at the uniform location
 		}
 
 		public ~this()

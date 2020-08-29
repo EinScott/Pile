@@ -5,8 +5,9 @@ namespace Pile
 	public abstract class Graphics
 	{
 		// These must return valid things even BEFORE this is initialized
-		public abstract int32 MajorVersion { get; }
-		public abstract int32 MinorVersion { get; }
+		// so either static or constructor set
+		public abstract uint32 MajorVersion { get; }
+		public abstract uint32 MinorVersion { get; }
 		public abstract String ApiName { get; }
 		public abstract String DeviceName { get; }
 

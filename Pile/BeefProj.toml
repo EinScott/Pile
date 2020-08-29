@@ -1,0 +1,7 @@
+FileVersion = 1
+Dependencies = {corlib = "*", corlib = "*"}
+
+[Project]
+Name = "Pile"
+TargetType = "BeefLib"
+StartupObject = ""

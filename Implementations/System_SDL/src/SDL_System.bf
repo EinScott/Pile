@@ -18,17 +18,6 @@ namespace Pile.Implementations
 			SDL_Init.[Friend]InitFlags |= .Video | .Joystick | .GameController | .Events;
 		}
 
-		[Hide]
-		public void* GetGLProcAddress(StringView procName)
-		{
-			return SDL.SDL_GL_GetProcAddress(procName.ToScopeCStr!());
-		}
-
-		public ISystemOpenGL.Context GetGLContext()
-		{
-			return window.[Friend]context;
-		}
-
 		protected override Input CreateInput()
 		{
 			// Only one input
@@ -54,11 +43,11 @@ namespace Pile.Implementations
 
 			if (Core.Graphics is IGraphicsOpenGL)
 			{
-				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_MAJOR_VERSION, Core.Graphics.MajorVersion);
-				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_MINOR_VERSION, Core.Graphics.MinorVersion);
-				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
-				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_CONTEXT_FLAGS, (int32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-				SDL.GL_SetAttribute(SDL.SDL_GLAttr.GL_DOUBLEBUFFER, 1);
+				SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, Core.Graphics.MajorVersion);
+				SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, Core.Graphics.MinorVersion);
+				SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, (uint32)(Core.Graphics as IGraphicsOpenGL).Profile);
+				SDL.GL_SetAttribute(.GL_CONTEXT_FLAGS, (uint32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+				SDL.GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
 				glGraphics = true;
 			}
 		}
@@ -138,6 +127,26 @@ namespace Pile.Implementations
 					SDL.ClearError();
 				}
 			}
+		}
+
+		[Hide]
+		public void* GetGLProcAddress(StringView procName)
+		{
+			return SDL.SDL_GL_GetProcAddress(procName.ToScopeCStr!());
+		}
+
+		[Hide]
+		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples)
+		{
+			SDL.GL_SetAttribute(.GL_DEPTH_SIZE, depthSize);
+			SDL.GL_SetAttribute(.GL_STENCIL_SIZE, stencilSize);
+			SDL.GL_SetAttribute(.GL_MULTISAMPLEBUFFERS, multisamplerBuffers);
+			SDL.GL_SetAttribute(.GL_MULTISAMPLESAMPLES, multisamplerSamples);
+		}
+
+		public ISystemOpenGL.Context GetGLContext()
+		{
+			return window.[Friend]context;
 		}
 	}
 }

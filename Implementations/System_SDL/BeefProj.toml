@@ -1,0 +1,13 @@
+FileVersion = 1
+Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
+
+[Project]
+Name = "Pile_SDL2"
+
+[Configs.Debug.Win64]
+LibPaths = ["$(ProjectDir)/dist/SDL2.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/SDL2.dll\")"]
+
+[Configs.Release.Win64]
+LibPaths = ["$(ProjectDir)/dist/SDL2.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/SDL2.dll\")"]

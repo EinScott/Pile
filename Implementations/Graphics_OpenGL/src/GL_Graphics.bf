@@ -13,8 +13,8 @@ namespace Pile.Implementations
 			get => deviceName;
 		}
 		public IGraphicsOpenGL.GLProfile Profile => IGraphicsOpenGL.GLProfile.Core;
-		public override int32 MajorVersion => 4;
-		public override int32 MinorVersion => 3;
+		public override uint32 MajorVersion => 4;
+		public override uint32 MinorVersion => 3;
 
 		// Method needs to be static, so work around it like this, since there should only be one instance at a time anyway
 		static void* GetProcAddress(StringView procName) => system.GetGLProcAddress(procName);
@@ -34,6 +34,14 @@ namespace Pile.Implementations
 		List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
 		List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
+		public this()
+		{
+			// MAKE VERSION VARIABLE HERE
+			// MAKE LOG OUTPUT FUNCTION CHECK IF ITS AVAILABLE FIRST, THEN EVERYTHING WILL BE COMPATIBLE DOWN TO 3.3
+
+			
+		}
+
 		public ~this()
 		{
 			system = null;
@@ -48,6 +56,9 @@ namespace Pile.Implementations
 		{
 			if (!(Core.System is ISystemOpenGL)) return .Err("System must be present and support openGL");
 			system = Core.System as ISystemOpenGL;
+
+			// Config gl on system
+			system.SetGLAttributes(24, 8, 1, 4);
 
 			// Init & Config GL
 			Init(=> GetProcAddress);
