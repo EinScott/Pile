@@ -201,32 +201,16 @@ namespace Pile
 
 			// writeIndex is where we *would* write next, and since the newest output (index before this)
 			// is printed last, we start here at the (if existant) oldest and go around once
-			int i = writeIndex;
-			while (true)
+			//int i = writeIndex;
+			for (int x = 0, int i = writeIndex; x < LOG_RECORD_COUNT; x++, i = 1 < LOG_RECORD_COUNT ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
 			{
 				// Skip empty/cleared lines
 				if (record[i].Length == 0)
-				{
-					NextIndex();
 					continue;
-				}
 
 				// Append string
 				fileLog.Append(record[i]);
 				fileLog.Append(Environment.NewLine);
-
-				NextIndex();
-
-				// This means we've gone through everything
-				if (i == writeIndex) break;
-
-				void NextIndex()
-				{
-					// Since we start anywhere in the array, we will need to wrap this
-					if (i + 1 < LOG_RECORD_COUNT)
-						i++;
-					else i = 0;
-				}
 			}
 			ClearRecord();
 
