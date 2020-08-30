@@ -122,7 +122,7 @@ namespace Pile.Implementations
 
 				if (*SDL.GetError() != '\0')
 				{
-					Log.Message(scope String("SDL error {0} while processing event {1}").Format(scope String(SDL.GetError()), event.type));
+					Log.Message(scope String("SDL error {0} while processing event {1}")..Format(scope String(SDL.GetError()), event.type));
 
 					SDL.ClearError();
 				}

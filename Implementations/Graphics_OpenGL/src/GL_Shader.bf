@@ -82,7 +82,7 @@ namespace Pile.Implementations
 	
 						GL.glGetShaderInfoLog(id, len, &len, &s[0]);
 
- 						Runtime.FatalError(scope String("Error compiling shader type {0}: {1}")..Format(glShaderType, scope String(&s[0], len))); // => ****2 = FRAGMENT SHADER, ****3 = VERTEX SHADER
+ 						Runtime.FatalError(scope String("Error compiling {0} shader: {1}")..Format(glShaderType == GL.GL_VERTEX_SHADER ? "vertex" : "fragment", scope String(&s[0], len)));
 					}
 				}
 

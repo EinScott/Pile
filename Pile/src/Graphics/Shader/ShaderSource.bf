@@ -9,7 +9,7 @@ namespace Pile
 		public String fragmentSource = new .() ~ delete _;
 		public String geometrySource = new .() ~ delete _;
 
-		public this(String vertexShaderPath, String fragmentShaderPath, String geomeryShaderPath = "")
+		public this(StringView vertexShaderPath, StringView fragmentShaderPath, StringView geomeryShaderPath = "")
 		{
 			// possibly integrate this with assets in the future, i mean the files need to be stored somewhere anyway
 
@@ -17,11 +17,12 @@ namespace Pile
 			Read(fragmentShaderPath, fragmentSource);
 			Read(geomeryShaderPath, geometrySource);
 
-			void Read(String path, String source)
+			void Read(StringView path, String source)
 			{
 				if (!Core.System.FileExists(path))
 				{
-					if (!String.IsNullOrEmpty(path)) Log.Warning(scope String("Shader source file at {0} does not exist").Format(path));
+					// Log this if it doesn't seem to be intentional (empty path). If thats also wrong someone else will complain
+					if (path.Length != 0) Log.Warning(scope String("Shader source file at {0} does not exist")..Format(path));
 					return;
 				}
 
