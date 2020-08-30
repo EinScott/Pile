@@ -43,8 +43,15 @@ namespace Pile
 
 		public delegate void LineCallback(Types type, String message);
 		public static Event<LineCallback> OnLine;
+
+#if DEBUG // Different defaults
 		public static bool PrintToConsole = true;
 		public static bool SaveOnError = false;
+#else
+		public static bool PrintToConsole = false;
+		public static bool SaveOnError = true;
+#endif
+
 		static bool discontinued;
 		static int writeIndex = 0;
 
@@ -185,8 +192,8 @@ namespace Pile
 
 			if (directory.Length != 0 && !Directory.Exists(directory))
 			{
-				var res = Platform.BfpFileResult.Ok;
-				Runtime.Assert(Directory.CreateDirectory(directory) != .Err(res), scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
+				FileResult res = default;
+				Runtime.Assert(Core.System.DirectoryCreate(directory) != .Err(res), scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
 			}
 
 			let fileLog = scope String();
@@ -220,14 +227,14 @@ namespace Pile
 			if (File.Exists(filePath))
 			{
 				var existingFile = scope String();
-				var res = FileError.FileOpenError(FileOpenError.Unknown);
-				if (File.ReadAllText(filePath, existingFile, true) case .Err(res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
+				FileError res = default;
+				if (Core.System.FileReadAllText(filePath, existingFile, true) case .Err(res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
 
 				fileLog.Append(existingFile);
 			}
 
 			// Write
-			Runtime.Assert(File.WriteAllText(filePath, fileLog) == .Ok, "Couldn't append log to file, couldn't write file");
+			Runtime.Assert(Core.System.FileWriteAllText(filePath, fileLog) == .Ok, "Couldn't append log to file, couldn't write file");
 		}
 	}
 }

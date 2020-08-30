@@ -19,19 +19,21 @@ namespace Pile
 
 			void Read(String path, String source)
 			{
-				if (!File.Exists(path))
+				if (!Core.System.FileExists(path))
 				{
 					if (!String.IsNullOrEmpty(path)) Log.Warning(scope String("Shader source file at {0} does not exist").Format(path));
 					return;
 				}
 
-				var sr = scope StreamReader();
-				if (sr.Open(path) case .Err(let err))
-					Runtime.FatalError(scope String("Error opening shader source file: {0}")..Format(err));
-				if (sr.ReadToEnd(source) case .Err)
-					Runtime.FatalError("Error reading shader source file");
-
-				sr.Dispose();
+				switch (Core.System.FileReadAllText(path, source, true))
+				{
+				case .Err(let err):
+					if (err case .FileOpenError(let openErr))
+						Runtime.FatalError(scope String("Error opening shader source file: {0}")..Format(err));
+					else
+						Runtime.FatalError("Error reading shader source file");
+				case .Ok:
+				}
 			}
 
 			Runtime.Assert(vertexSource.Length > 0 && fragmentSource.Length > 0, "At least vertex and fragment shader must be given");
