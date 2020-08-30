@@ -3,5 +3,3 @@ Dependencies = {corlib = "*", corlib = "*"}
 
 [Project]
 Name = "Pile"
-TargetType = "BeefLib"
-StartupObject = ""

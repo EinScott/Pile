@@ -5,9 +5,26 @@ Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
 Name = "Pile_SDL2"
 
 [Configs.Debug.Win64]
+BuildCommandsOnCompile = "IfFilesChanged"
+BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/SDL2.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/SDL2.dll\")"]
+
+[[Configs.Debug.Win64.DistinctOptions]]
+Filter = "SDL2.*"
+BfOptimizationLevel = "O3"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
 
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/SDL2.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/SDL2.dll\")"]
+
+[[Configs.Release.Win64.DistinctOptions]]
+Filter = "SDL2.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "No"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false

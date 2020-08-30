@@ -6,6 +6,9 @@ namespace Pile.Implementations
 {
 	public class GL_Graphics : Graphics, IGraphicsOpenGL
 	{
+		const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
+					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;
+
 		public override String ApiName => "OpenGL Core";
 		String deviceName;
 		public override String DeviceName
@@ -13,8 +16,9 @@ namespace Pile.Implementations
 			get => deviceName;
 		}
 		public IGraphicsOpenGL.GLProfile Profile => IGraphicsOpenGL.GLProfile.Core;
-		public override uint32 MajorVersion => 4;
-		public override uint32 MinorVersion => 3;
+		uint32 majorVersion, minorVersion;
+		public override uint32 MajorVersion => majorVersion;
+		public override uint32 MinorVersion => minorVersion;
 
 		// Method needs to be static, so work around it like this, since there should only be one instance at a time anyway
 		static void* GetProcAddress(StringView procName) => system.GetGLProcAddress(procName);
@@ -34,12 +38,11 @@ namespace Pile.Implementations
 		List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
 		List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
-		public this()
+		public this(uint32 majorVersion = 3, uint32 minorVersion = 3)
 		{
-			// MAKE VERSION VARIABLE HERE
-			// MAKE LOG OUTPUT FUNCTION CHECK IF ITS AVAILABLE FIRST, THEN EVERYTHING WILL BE COMPATIBLE DOWN TO 3.3
-
-			
+			// Keep version within the supported spectrum
+			this.majorVersion = Math.Min(MAX_VERSION_MAJOR, Math.Max(MIN_VERSION_MAJOR, majorVersion));
+			this.minorVersion = majorVersion == 3 ? VERSION_3_MINOR : Math.Min(MAX_VERSION_MINOR, Math.Max(MIN_VERSION_MINOR, minorVersion));
 		}
 
 		public ~this()
@@ -67,7 +70,7 @@ namespace Pile.Implementations
 			glEnable(GL_DEBUG_OUTPUT);
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
-			glDebugMessageCallback(=> DebugCallback, null);
+			if (glDebugMessageCallback != null) glDebugMessageCallback(=> DebugCallback, null); // This may be not be avaiable depending on the version
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
 			deviceName = new String(glGetString(GL_RENDERER));
 			OriginBottomLeft = true;

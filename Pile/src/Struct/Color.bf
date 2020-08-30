@@ -4,18 +4,18 @@ namespace Pile
 {
 	public struct Color
 	{
-		static public readonly Color White 			= 0xFFFFFFFF;
-		static public readonly Color Black 			= 0x000000FF;
-		static public readonly Color Transparent 	= 0x00000000;
-		static public readonly Color Red 			= 0xFF0000FF;
-		static public readonly Color Green 			= 0x00FF00FF;
-		static public readonly Color Blue 			= 0x0000FFFF;
-		static public readonly Color Cyan 			= 0xFF00FFFF;
-		static public readonly Color Magenta 		= 0xFFFF00FF;
-		static public readonly Color Yellow 		= 0x00FFFFFF;
-		static public readonly Color DarkGray		= 0x3F3F3FFF;
-		static public readonly Color Gray			= 0x7F7F7FFF;
-		static public readonly Color LightGray		= 0xBFBFBFFF;
+		public static readonly Color White 			= 0xFFFFFFFF;
+		public static readonly Color Black 			= 0x000000FF;
+		public static readonly Color Transparent 	= 0x00000000;
+		public static readonly Color Red 			= 0xFF0000FF;
+		public static readonly Color Green 			= 0x00FF00FF;
+		public static readonly Color Blue 			= 0x0000FFFF;
+		public static readonly Color Cyan 			= 0xFF00FFFF;
+		public static readonly Color Magenta 		= 0xFFFF00FF;
+		public static readonly Color Yellow 		= 0x00FFFFFF;
+		public static readonly Color DarkGray		= 0x3F3F3FFF;
+		public static readonly Color Gray			= 0x7F7F7FFF;
+		public static readonly Color LightGray		= 0xBFBFBFFF;
 
 		public uint8 R;
 		public uint8 G;
@@ -111,7 +111,7 @@ namespace Pile
 			strBuffer.Append(" ]");
 		}
 
-		static public Color Lerp(Color a, Color b, float t)
+		public static Color Lerp(Color a, Color b, float t)
 		{
 			return Color(
 				Math.Lerp(a.Rf, b.Rf, t),
@@ -121,7 +121,7 @@ namespace Pile
 			);
 		}
 
-		static public implicit operator Color(uint32 from)
+		public static implicit operator Color(uint32 from)
 		{
 			return Color(
 				(uint8)((from >> 24) & 0xFF),
@@ -131,17 +131,17 @@ namespace Pile
 			);
 		}
 
-		static public implicit operator uint32(Color from)
+		public static implicit operator uint32(Color from)
 		{
 			return (((uint32)from.R) << 24) | (((uint32)from.G) << 16) | (((uint32)from.B) << 8) | ((uint32)from.A);
 		}
 
-		static public Color operator/(Color a, Color b)
+		public static Color operator/(Color a, Color b)
 		{
 			return Lerp(a, b, 0.5f);
 		}
 
-		static public Color operator*(Color color, float b)
+		public static Color operator*(Color color, float b)
 		{
 			return Color(color.R, color.G, color.B, (uint8)(color.A * b));
 		}

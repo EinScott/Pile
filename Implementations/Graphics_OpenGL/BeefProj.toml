@@ -3,3 +3,19 @@ Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
 
 [Project]
 Name = "Pile_OpenGL"
+
+[[Configs.Debug.Win64.DistinctOptions]]
+Filter = "OpenGL43.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "LinesOnly"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
+[[Configs.Release.Win64.DistinctOptions]]
+Filter = "OpenGL43.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "LinesOnly"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false

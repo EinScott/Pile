@@ -5,18 +5,18 @@ namespace Pile
 {
 	public enum FileResult : int32
 	{
-		Ok						= (int)Platform.BfpFileResult.Ok,
-		NoResults				= (int)Platform.BfpFileResult.NoResults,
-		UnknownError			= (int)Platform.BfpFileResult.UnknownError,
-		InvalidParameter		= (int)Platform.BfpFileResult.InvalidParameter,
-		Locked					= (int)Platform.BfpFileResult.Locked,
-		AlreadyExists			= (int)Platform.BfpFileResult.AlreadyExists,
-		NotFound				= (int)Platform.BfpFileResult.NotFound,
-		ShareError				= (int)Platform.BfpFileResult.ShareError,
-		AccessError				= (int)Platform.BfpFileResult.AccessError,
-		PartialData				= (int)Platform.BfpFileResult.PartialData,
-		InsufficientBuffer		= (int)Platform.BfpFileResult.InsufficientBuffer,
-		NotEmpty				= (int)Platform.BfpFileResult.NotEmpty
+		Ok						= (int32)Platform.BfpFileResult.Ok,
+		NoResults				= (int32)Platform.BfpFileResult.NoResults,
+		UnknownError			= (int32)Platform.BfpFileResult.UnknownError,
+		InvalidParameter		= (int32)Platform.BfpFileResult.InvalidParameter,
+		Locked					= (int32)Platform.BfpFileResult.Locked,
+		AlreadyExists			= (int32)Platform.BfpFileResult.AlreadyExists,
+		NotFound				= (int32)Platform.BfpFileResult.NotFound,
+		ShareError				= (int32)Platform.BfpFileResult.ShareError,
+		AccessError				= (int32)Platform.BfpFileResult.AccessError,
+		PartialData				= (int32)Platform.BfpFileResult.PartialData,
+		InsufficientBuffer		= (int32)Platform.BfpFileResult.InsufficientBuffer,
+		NotEmpty				= (int32)Platform.BfpFileResult.NotEmpty
 	}
 
 	public enum EnumerateFlags
