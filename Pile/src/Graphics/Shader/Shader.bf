@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace Pile
 {
@@ -6,7 +7,8 @@ namespace Pile
 	{
 		public class Platform
 		{
-
+			public readonly List<ShaderAttribute> Attributes = new List<ShaderAttribute>() ~ DeleteContainerAndItems!(_);
+			public readonly List<ShaderUniform> Uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);
 		}
 
 		readonly Platform platform;

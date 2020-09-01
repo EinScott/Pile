@@ -46,18 +46,59 @@ namespace Pile.Implementations
 				}
 			}
 
-			// Get attributes
-			int32 attributeCount = 0;
-			GL.glGetProgramiv(programID, GL.GL_ACTIVE_ATTRIBUTES, &attributeCount);
-			for	(int i = 0; i < attributeCount; i++)
+			// Get program parameters
 			{
-				//--- ahhhh
-				// so mat stores shader uniforms => when rendering bind shader with the mat's uniforms
-				// and... attribs are set from mesh dynamically as shown by the vertex format
-				// Does this even garanteee everything fits together??
+				int32 trash1 = 0;
+
+				// Get attributes
+				int32 count = 0;
+				var buf = scope String(256);
+				GL.glGetProgramiv(programID, GL.GL_ACTIVE_ATTRIBUTES, &count);
+				for	(int i = 0; i < count; i++)
+				{
+					uint32 trash2 = 0;
+					GL.glGetActiveAttrib(programID, (uint)i, 256, &trash1, &trash1, &trash2, buf);
+	
+					int location = GL.glGetAttribLocation(programID, buf.CStr());
+					if (location >= 0)
+						Attributes.Add(new ShaderAttribute(buf, (uint)location));
+	
+					buf.Clear();
+				}
+	
+				// Get uniforms
+				GL.glGetProgramiv(programID, GL.GL_ACTIVE_UNIFORMS, &count);
+				for (int i = 0; i < count; i++)
+				{
+					int32 length = 0; // Not length of the string, but the uniform
+					uint32 type = 0;
+					GL.glGetActiveUniform(programID, (uint)i, 256, &trash1, &length, &type, buf);
+	
+					int location = GL.glGetUniformLocation(programID, buf.CStr());
+					if (location >= 0)
+					{
+						if (length > 1 && buf.EndsWith("[0]"))
+							buf.RemoveFromEnd(3);
+						Uniforms.Add(new ShaderUniform(buf, location, length, GlTypeToEnum(type)));
+					}	
+				}
 			}
 
-			// same for uniforms
+			UniformType GlTypeToEnum(uint type)
+			{
+				switch (type)
+				{
+				case GL.GL_INT: return .Int;
+				case GL.GL_FLOAT: return .Float;
+				case GL.GL_FLOAT_VEC2: return .Float2;
+				case GL.GL_FLOAT_VEC3: return .Float3;
+				case GL.GL_FLOAT_VEC4: return .Float4;
+				case GL.GL_FLOAT_MAT3x2: return .Matrix3x2;
+				case GL.GL_FLOAT_MAT4: return .Matrix4x4;
+				case GL.GL_SAMPLER_2D: return .Sampler;
+				default: return .Unknown;
+				}
+			}
 
 			uint PrepareShader(String source, uint64 glShaderType)
 			{
