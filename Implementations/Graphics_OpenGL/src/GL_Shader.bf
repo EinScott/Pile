@@ -70,16 +70,16 @@ namespace Pile.Implementations
 				GL.glGetProgramiv(programID, GL.GL_ACTIVE_UNIFORMS, &count);
 				for (int i = 0; i < count; i++)
 				{
-					int32 length = 0; // Not length of the string, but the uniform
+					int32 size = 0;
 					uint32 type = 0;
-					GL.glGetActiveUniform(programID, (uint)i, 256, &trash1, &length, &type, buf);
+					GL.glGetActiveUniform(programID, (uint)i, 256, &trash1, &size, &type, buf);
 	
 					int location = GL.glGetUniformLocation(programID, buf.CStr());
 					if (location >= 0)
 					{
-						if (length > 1 && buf.EndsWith("[0]"))
+						if (size > 1 && buf.EndsWith("[0]"))
 							buf.RemoveFromEnd(3);
-						Uniforms.Add(new ShaderUniform(buf, location, length, GlTypeToEnum(type)));
+						Uniforms.Add(new ShaderUniform(buf, location, size, GlTypeToEnum(type)));
 					}	
 				}
 			}
@@ -133,7 +133,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		public void Use()
+		public void Use(Material mat)
 		{
 			GL.glUseProgram(programID);
 

@@ -13,6 +13,8 @@ namespace Pile
 
 		readonly Platform platform;
 
+		public int UniformCount => platform.Uniforms.Count;
+
 		public this(ShaderSource source)
 		{
 			platform = Core.Graphics.[Friend]CreateShader(source);
@@ -23,5 +25,7 @@ namespace Pile
 		{
 			delete platform;
 		}
+
+		public ShaderUniform GetUniform(int index) => platform.Uniforms[index];
 	}
 }

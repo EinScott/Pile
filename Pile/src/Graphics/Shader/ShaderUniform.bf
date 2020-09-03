@@ -7,14 +7,14 @@ namespace Pile
 		readonly String name = new String() ~ CondDelete!(_);
 		public StringView Name => name;
 		public readonly int Location;
-		public readonly int Length;
+		public readonly int Size;
 		public readonly UniformType Type;
 
-		public this(StringView name, int location, int length, UniformType type)
+		public this(StringView name, int location, int size, UniformType type)
 		{
 			this.name.Set(name);
 			Location = location;
-			Length = length;
+			Size = size;
 			Type = type;
 		}
 	}
