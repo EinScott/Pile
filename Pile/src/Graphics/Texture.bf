@@ -46,6 +46,8 @@ namespace Pile
 			set => platform.SetWrap(wrapX, wrapY = value);
 		}
 
+		public bool IsFrameBuffer => platform.IsFrameBuffer();
+
 		public this(int32 width, int32 height, TextureFormat format = .Color)
 		{
 			Runtime.Assert(width > 0 || height > 0, "Texture size must be larger than 0");
@@ -85,7 +87,13 @@ namespace Pile
 			if (width <= 0 || height <= 0)
 				return .Err("Texture size must be larger than 0");
 
-			platform.Resize(width, height);
+			if (Width != width || Height != height)
+			{
+				Width = width;
+				Height = height;
+
+				platform.Resize(width, height);
+			}
 			return .Ok;
 		}
 

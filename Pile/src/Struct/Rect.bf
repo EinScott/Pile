@@ -2,6 +2,8 @@ using System;
 
 namespace Pile
 {
+	[Packed]
+	[Ordered]
 	public struct Rect
 	{
 		public static Rect Zero = Rect();

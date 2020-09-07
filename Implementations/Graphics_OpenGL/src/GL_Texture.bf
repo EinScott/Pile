@@ -84,7 +84,7 @@ namespace Pile.Implementations
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
 		}
 
-		private void Prepare()
+		void Prepare()
 		{
 			GL.glActiveTexture(GL.GL_TEXTURE0);
 			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);

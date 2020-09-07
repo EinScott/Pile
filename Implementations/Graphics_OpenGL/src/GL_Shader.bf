@@ -48,39 +48,52 @@ namespace Pile.Implementations
 
 			// Get program parameters
 			{
-				int32 trash1 = 0;
-
 				// Get attributes
 				int32 count = 0;
-				var buf = scope String(256);
+				var cBuf = scope char8[256];
+				let string = scope String();
+				int32 actualLength = 0;
 				GL.glGetProgramiv(programID, GL.GL_ACTIVE_ATTRIBUTES, &count);
 				for	(int i = 0; i < count; i++)
 				{
-					uint32 trash2 = 0;
-					GL.glGetActiveAttrib(programID, (uint)i, 256, &trash1, &trash1, &trash2, buf);
-	
-					int location = GL.glGetAttribLocation(programID, buf.CStr());
+					uint32 trash2 = 0; // We dont care about these
+					int32 trash1 = 0;
+					GL.glGetActiveAttrib(programID, (uint)i, 256, &actualLength, &trash1, &trash2, &cBuf[0]);
+					string.Append(&cBuf[0], actualLength);
+
+					int location = GL.glGetAttribLocation(programID, string.CStr());
 					if (location >= 0)
-						Attributes.Add(new ShaderAttribute(buf, (uint)location));
+						Attributes.Add(new [Friend]ShaderAttribute(string, (uint)location));
 	
-					buf.Clear();
+					string.Clear();
+
+					// Clear buf
+					for (int j = 0; j < cBuf.Count; j++)
+						cBuf[j] = 0;
 				}
 	
 				// Get uniforms
 				GL.glGetProgramiv(programID, GL.GL_ACTIVE_UNIFORMS, &count);
 				for (int i = 0; i < count; i++)
 				{
-					int32 size = 0;
+					int32 length = 0;
 					uint32 type = 0;
-					GL.glGetActiveUniform(programID, (uint)i, 256, &trash1, &size, &type, buf);
-	
-					int location = GL.glGetUniformLocation(programID, buf.CStr());
+					GL.glGetActiveUniform(programID, (uint)i, 256, &actualLength, &length, &type, &cBuf[0]);
+					string.Append(&cBuf[0], actualLength);
+
+					int location = GL.glGetUniformLocation(programID, string.CStr());
 					if (location >= 0)
 					{
-						if (size > 1 && buf.EndsWith("[0]"))
-							buf.RemoveFromEnd(3);
-						Uniforms.Add(new ShaderUniform(buf, location, size, GlTypeToEnum(type)));
-					}	
+						if (length > 1 && string.EndsWith("[0]"))
+							string.RemoveFromEnd(3);
+						Uniforms.Add(new [Friend]ShaderUniform(string, location, length, GlTypeToEnum(type)));
+					}
+
+					string.Clear();
+
+					// Clear buf
+					for (int j = 0; j < cBuf.Count; j++)
+						cBuf[j] = 0;
 				}
 			}
 
@@ -133,12 +146,57 @@ namespace Pile.Implementations
 			}
 		}
 
-		public void Use(Material mat)
+		public void Use(Material material)
 		{
 			GL.glUseProgram(programID);
 
 			// This goes through all parameters of a material (holds shader uniforms and values for them)
 			// and binds the stuff for each uniform at the uniform location
+
+			int32 textureSlot = 0;
+
+			for (int i = 0; i < material.ParameterCount; i++)
+			{
+				let parameter = material.[Friend]parameters[i];
+				let uniform = parameter.Uniform;
+
+				switch (uniform.Type)
+				{
+				case .Sampler:
+					{
+						int32[] n = scope int32[uniform.Length];
+
+						let textures = (parameter.Value as Texture[]);
+						for (int j = 0; j < uniform.Length; j++)
+						{
+						    let id = (textures[i]?.[Friend]platform as GL_Texture)?.[Friend]textureID ?? 0;
+
+						    GL.glActiveTexture(GL.GL_TEXTURE0 + (uint)textureSlot);
+						    GL.glBindTexture(GL.GL_TEXTURE_2D, id);
+
+						    n[i] = textureSlot;
+						    textureSlot++;
+						}
+
+						GL.glUniform1iv(uniform.Location, uniform.Length, &n[0]);
+					}
+				case .Int:
+					GL.glUniform1iv(uniform.Location, uniform.Length, &(parameter.Value as int32[])[0]);
+				case .Float:
+					GL.glUniform1fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+				case .Float2:
+					GL.glUniform2fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+				case .Float3:
+					GL.glUniform3fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+				case .Float4:
+					GL.glUniform4fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+				case .Matrix3x2:
+					GL.glUniformMatrix3x2fv(uniform.Location, uniform.Length, GL.GL_FALSE, &(parameter.Value as float[])[0]);
+				case .Matrix4x4:
+					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, &(parameter.Value as float[])[0]);
+				case .Unknown:
+				}
+			}
 		}
 
 		public ~this()

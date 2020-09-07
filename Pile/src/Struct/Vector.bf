@@ -2,6 +2,8 @@ using System;
 
 namespace Pile
 {
+	[Packed]
+	[Ordered]
 	public struct Vector : IEquatable<Vector>, IEquatable
 	{
 		public static readonly Vector Right = .(1, 0);
@@ -57,7 +59,13 @@ namespace Pile
 			return Point((int)Math.Round(X), (int)Math.Round(Y));
 		}
 
-		static public Vector Lerp(Vector a, Vector b, float t)
+		[Inline]
+		public Vector Normalized()
+		{
+			return this / Length;
+		}
+
+		public static Vector Lerp(Vector a, Vector b, float t)
 		{
 			if (t == 0)
 				return a;

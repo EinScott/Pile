@@ -4,7 +4,7 @@ namespace Pile
 {
 	static
 	{
-		public static void Format(this String format, params Object[] insertions) // THIS is missing here
+		public static void Format(this String format, params Object[] insertions)
 		{
 			var findString = scope String(4); // No one will probably ever exceed two digit numbers here... hopefully
 			var insertBuf = scope String();
@@ -25,6 +25,118 @@ namespace Pile
 				findString.Clear();
 				insertBuf.Clear();
 			}
+		}
+	}
+}
+
+using Pile;
+
+namespace System
+{
+	public extension Math
+	{
+		public const float HalfPI = (.)(Math.PI_d / 2);
+		public const float TAU = (.)(Math.PI_d * 2);
+
+		public const float DegToRad = (.)((Math.PI_d * 2) / 360d);
+		public const float RadToDeg = (.)(360d / (Math.PI_d * 2));
+
+		public static float Approach(float from, float target, float amount)
+		{
+		    if (from > target)
+		        return Math.Max(from - amount, target);
+		    else
+		        return Math.Min(from + amount, target);
+		}
+
+		public static Vector Approach(Vector from, Vector target, float amount)
+		{
+		    if (from == target)
+		        return target;
+		    else
+		    {
+		        var diff = target - from;
+		        if (diff.Length <= amount * amount)
+		            return target;
+		        else
+		            return from + diff.Normalized() * amount;
+		    }
+		}
+
+		public static float Lerp(float a, float b, float percent)
+		{
+		    return (a + (b - a) * percent);
+		}
+
+		public static int Clamp(int value, int min, int max)
+		{
+		    return Math.Min(Math.Max(value, min), max);
+		}
+
+		public static float Clamp(float value, float min, float max)
+		{
+		    return Math.Min(Math.Max(value, min), max);
+		}
+
+		public static float YoYo(float value)
+		{
+		    if (value <= 0.5f)
+		        return value * 2;
+		    else
+		        return 1 - ((value - 0.5f) * 2);
+		}
+
+		public static float Map(float val, float min, float max, float newMin = 0, float newMax = 1)
+		{
+		    return ((val - min) / (max - min)) * (newMax - newMin) + newMin;
+		}
+
+		public static float SineMap(float counter, float newMin, float newMax)
+		{
+		    return Map((float)Math.Sin(counter), 0, 1, newMin, newMax);
+		}
+
+		public static float ClampedMap(float val, float min, float max, float newMin = 0, float newMax = 1)
+		{
+		    return Clamp((val - min) / (max - min), 0, 1) * (newMax - newMin) + newMin;
+		}
+
+		public static float Angle(Vector vec)
+		{
+		    return Math.Atan2(vec.Y, vec.X);
+		}
+
+		public static float Angle(Vector from, Vector to)
+		{
+		    return Math.Atan2(to.Y - from.Y, to.X - from.X);
+		}
+
+		public static Vector AngleToVector(float angle, float length = 1)
+		{
+		    return Vector(Math.Cos(angle) * length, Math.Sin(angle) * length);
+		}
+
+		public static float AngleApproach(float val, float target, float maxMove)
+		{
+		    var diff = AngleDiff(val, target);
+		    if (Math.Abs(diff) < maxMove)
+		        return target;
+		    return val + Clamp(diff, -maxMove, maxMove);
+		}
+
+		public static float AngleLerp(float startAngle, float endAngle, float percent)
+		{
+		    return startAngle + AngleDiff(startAngle, endAngle) * percent;
+		}
+
+		public static float AngleDiff(float radiansA, float radiansB)
+		{
+		    return ((radiansB - radiansA - PI_f) % TAU + TAU) % TAU - PI_f;
+		}
+
+		public static float Snap(float value, float snapTo)
+		{
+		    return Math.Round(value / snapTo) * snapTo;
 		}
 	}
 }

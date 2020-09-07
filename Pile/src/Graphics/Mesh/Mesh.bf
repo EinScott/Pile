@@ -25,7 +25,7 @@ namespace Pile
 			delete platform;
 		}
 
-		public void Setup<T>(Span<T> vertices, Span<uint32> indices, VertexFormat format) where T : IVertex
+		public void Setup<T>(Span<T> vertices, Span<uint32> indices, VertexFormat format)
 		{
 			VertexFormat = format;
 			VertexCount = (uint32)vertices.Length;

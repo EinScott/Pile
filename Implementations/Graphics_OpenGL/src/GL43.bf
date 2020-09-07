@@ -1366,7 +1366,7 @@ namespace OpenGL43 {
         public function void GlStencilMask(uint mask);
         public static GlStencilMask glStencilMask;
 
-        public function void GlColorMask(uint8 red, uint8 green, uint8 blue, uint8 alpha);
+        public function void GlColorMask(bool red, bool green, bool blue, bool alpha); // @change changed these from uint8 to bool
         public static GlColorMask glColorMask;
 
         public function void GlDepthMask(uint8 flag);
@@ -1891,7 +1891,7 @@ namespace OpenGL43 {
         public function void GlVertexAttrib4usv(uint index, uint16* v);
         public static GlVertexAttrib4usv glVertexAttrib4usv;
 
-        public function void GlVertexAttribPointer(uint index, int size, uint type, uint8 normalized, int stride, void* pointer);
+        public function void GlVertexAttribPointer(uint index, int size, uint type, bool normalized, int stride, void* pointer); // @change normalized was uint8 before
         public static GlVertexAttribPointer glVertexAttribPointer;
 
         public function void GlUniformMatrix2x3fv(int location, int count, uint8 transpose, float* value);

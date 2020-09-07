@@ -5,23 +5,30 @@ namespace Pile
 		public RenderTarget target;
 		public Rect? viewport;
 
-		//public Material material; // Material is basically just a thing
-		// that holds a shader and all values for that shader, like setting texture, etc
-		public Mesh mesh; // is this just basically a buffer? what is vertexFormat, is it neccessary? can it be integrated into the mesh (should it -> size)?
+		public Material material;
+		public Mesh mesh;
+
+		public uint meshIndexStart;
+		public uint meshIndexCount;
 
 		public BlendMode blendMode;
 		public CullMode cullMode;
 		public Compare depthFunction;
 		public Rect? scissor;
 
-		public this(RenderTarget target, Mesh mesh)
+		public this(RenderTarget target, Mesh mesh, Material material)
 		{
-			this.mesh = mesh;
 			this.target = target;
 			viewport = null;
 
+			this.material = material;
+			this.mesh = mesh;
+
+			meshIndexStart = 0;
+			meshIndexCount = mesh.IndexCount;
+
 			scissor = null;
-			blendMode = BlendMode.Normal;
+			blendMode = .Normal;
 			depthFunction = .None;
 			cullMode = .None;
 		}

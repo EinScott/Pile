@@ -6,6 +6,8 @@ namespace Pile.Implementations
 {
 	public class GL_Graphics : Graphics, IGraphicsOpenGL
 	{
+		// Single context, simple openGL implementaion
+
 		const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
 					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;
 
@@ -28,10 +30,16 @@ namespace Pile.Implementations
 		readonly DeleteResource deleteTexture = new (id) => glDeleteTextures(1, &id);
 		readonly DeleteResource deleteBuffer = new (id) => glDeleteBuffers(1, &id);
 		readonly DeleteResource deleteProgram = new (id) => glDeleteProgram(id);
+		readonly DeleteResource deleteVertexArray = new (id) => glDeleteVertexArrays(1, &id);
+		readonly DeleteResource deleteFrameBuffer = new (id) => glDeleteFramebuffers(1, &id);
 
 		// These were in context's ContextMeta class before and can be put back if we ever need multiple contexts
-		bool context_forceScissorsUpdate;
-		Rect context_viewport;
+		bool forceScissorUpdate;
+		Rect viewport;
+		RenderPass? lastRenderState;
+		RenderTarget lastRenderTarget;
+		List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
+		List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
 		// --
 
 		List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
@@ -49,9 +57,14 @@ namespace Pile.Implementations
 		{
 			system = null;
 
+			RunDeleteLists();
+
 			delete deleteTexture;
 			delete deleteBuffer;
 			delete deleteProgram;
+			delete deleteVertexArray;
+			delete deleteFrameBuffer;
+
 			delete deviceName;
 		}
 
@@ -82,11 +95,21 @@ namespace Pile.Implementations
 
 		protected override void Update()
 		{
+			RunDeleteLists();
+		}
+
+		[DisableChecks]
+		void RunDeleteLists()
+		{
 			DeleteResources(deleteTexture, texturesToDelete);
 			DeleteResources(deleteBuffer, buffersToDelete);
 			DeleteResources(deleteProgram, programsToDelete);
+			DeleteResources(deleteVertexArray, vertexArraysToDelete);
+			DeleteResources(deleteFrameBuffer, frameBuffersToDelete);
 		}
 
+		[Unchecked]
+		[DisableObjectAccessChecks]
 		private void DeleteResources(DeleteResource deleter, List<uint32> list)
 		{
 			if (list.Count > 0)
@@ -102,20 +125,28 @@ namespace Pile.Implementations
 			glFlush();
 		}
 
+		[Unchecked]
+		[DisableChecks]
+		[DisableObjectAccessChecks]
 		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			if (target is Window)
 			{
-				// Assume context is set right since there is only one
+				// Assume context is set right since there is only one -- basically we assume this everywhere
 
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				Clear(this, system.GetGLContext(), target, flags, color, depth, stencil, viewport);
+				Clear(this, target, flags, color, depth, stencil, viewport);
 			}
-			// Else framebuffer
+			else if (let fb = target as FrameBuffer)
+			{
+				// Bind frame buffer
+				(fb.[Friend]platform as GL_FrameBuffer).Bind();
+				Clear(this, target, flags, color, depth, stencil, viewport);
+			}
 			
 		}
 
-		static void Clear(GL_Graphics graphics, ISystemOpenGL.Context context, RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect _viewport)
+		static void Clear(GL_Graphics graphics, RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect _viewport)
 		{
 			Rect viewport = _viewport;
 
@@ -123,15 +154,15 @@ namespace Pile.Implementations
 			{
 			    viewport.Y = target.RenderSize.Y - viewport.Y - viewport.Height;
 
-			    if (graphics.context_viewport != viewport)
+			    if (graphics.viewport != viewport)
 			    {
 			        glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
-			        graphics.context_viewport = viewport;
+			        graphics.viewport = viewport;
 			    }
 			}
 
 			// we disable the scissor for clearing
-			graphics.context_forceScissorsUpdate = true;
+			graphics.forceScissorUpdate = true;
 			glDisable(GL_SCISSOR_TEST);
 
 			// clear
@@ -159,12 +190,208 @@ namespace Pile.Implementations
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
+		[Unchecked]
+		[DisableChecks]
+		[DisableObjectAccessChecks]
 		protected override void RenderInternal(ref RenderPass pass)
 		{
+			// Get last state
+			RenderPass lastPass;
+			var updateAll = false;
+			if (lastRenderState == null)
+			{
+				updateAll = true;
+				lastPass = pass;
+			}
+			else lastPass = lastRenderState.Value;
 
-			// Set size
-			var size = Core.Window.RenderSize;
-			glViewport(0, 0, size.X, size.Y);
+			lastRenderState = pass;
+
+			// Bind target
+			if (updateAll || lastRenderTarget != pass.target)
+			{
+				if (pass.target is Window) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				else if (let fb = pass.target as FrameBuffer) (fb.[Friend]platform as GL_FrameBuffer).Bind();
+
+				lastRenderTarget = pass.target;
+			}
+
+			// Use shader
+			(pass.material.Shader.[Friend]platform as GL_Shader).Use(pass.material);
+
+			// Bind mesh
+			(pass.mesh.[Friend]platform as GL_Mesh).Bind(pass.material);
+
+			// Blend mode
+			{
+				glEnable(GL_BLEND);
+
+				if (updateAll ||
+				    lastPass.blendMode.colorOperation != pass.blendMode.colorOperation ||
+				    lastPass.blendMode.alphaOperation != pass.blendMode.alphaOperation)
+				{
+				    uint colorOp = GetBlendFunc(pass.blendMode.colorOperation);
+				    uint alphaOp = GetBlendFunc(pass.blendMode.alphaOperation);
+
+				    glBlendEquationSeparate(colorOp, alphaOp);
+				}
+
+				if (updateAll ||
+				    lastPass.blendMode.colorSource != pass.blendMode.colorSource ||
+				    lastPass.blendMode.colorDestination != pass.blendMode.colorDestination ||
+				    lastPass.blendMode.alphaSource != pass.blendMode.alphaSource ||
+				    lastPass.blendMode.alphaDestination != pass.blendMode.alphaDestination)
+				{
+				    uint colorSrc = GetBlendFactor(pass.blendMode.colorSource);
+				    uint colorDst = GetBlendFactor(pass.blendMode.colorDestination);
+				    uint alphaSrc = GetBlendFactor(pass.blendMode.alphaSource);
+				    uint alphaDst = GetBlendFactor(pass.blendMode.alphaDestination);
+
+				    glBlendFuncSeparate(colorSrc, colorDst, alphaSrc, alphaDst);
+				}
+
+				if (updateAll || lastPass.blendMode.mask != pass.blendMode.mask)
+				{
+				    glColorMask(
+				        (pass.blendMode.mask & .Red) != 0,
+				        (pass.blendMode.mask & .Green) != 0,
+				        (pass.blendMode.mask & .Blue) != 0,
+				        (pass.blendMode.mask & .Alpha) != 0);
+				}
+
+				if (updateAll || lastPass.blendMode.color != pass.blendMode.color)
+				{
+				    glBlendColor(
+				        pass.blendMode.color.Rf,
+				        pass.blendMode.color.Gf,
+				        pass.blendMode.color.Bf,
+				        pass.blendMode.color.Af);
+				}
+			}
+
+			// Depth function
+			if (updateAll || lastPass.depthFunction != pass.depthFunction)
+			{
+				if (pass.depthFunction == .None)
+					glDisable(GL_DEPTH_TEST);
+				else
+				{
+				    glEnable(GL_DEPTH_TEST);
+
+				    switch (pass.depthFunction)
+				    {
+			        case .Always: glDepthFunc(GL_ALWAYS);
+			        case .Equal: glDepthFunc(GL_EQUAL);
+			        case .Greater: glDepthFunc(GL_GREATER);
+			        case .GreaterOrEqual: glDepthFunc(GL_GEQUAL);
+			        case .Less: glDepthFunc(GL_LESS);
+			        case .LessOrEqual: glDepthFunc(GL_LEQUAL);
+				    case .Never: glDepthFunc(GL_NEVER);
+				    case .NotEqual: glDepthFunc(GL_NOTEQUAL);
+					case .None:
+				    }
+				}
+			}
+
+			// Cull mode
+			if (updateAll || lastPass.cullMode != pass.cullMode)
+			{
+				if (pass.cullMode == .None)
+					glDisable(GL_CULL_FACE);
+				else
+				{
+					glEnable(GL_CULL_FACE);
+
+					switch (pass.cullMode)
+					{
+					case .Back: glCullFace(GL_BACK);
+					case .Front: glCullFace(GL_FRONT);
+					default: glCullFace(GL_FRONT_AND_BACK);
+					}
+				}
+			}
+
+			let size = pass.target.RenderSize;
+
+			// Viewport
+			var viewport = pass.viewport ?? Rect(0, 0, size.Y, size.Y);
+			{
+				viewport.Top = size.Y - viewport.Y - viewport.Height;
+
+				if (updateAll || this.viewport != viewport)
+				{
+					glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+					this.viewport = viewport;
+				}
+			}
+
+			// Scissor
+			{
+				var scissor = pass.scissor ?? Rect(0, 0, size.X, size.Y);
+				scissor.Y = size.Y - scissor.Y - scissor.Height;
+				scissor.Width = Math.Max(0, scissor.Width);
+				scissor.Height = Math.Max(0, scissor.Height);
+
+				if (updateAll || lastPass.scissor != scissor || forceScissorUpdate)
+				{
+				    if (pass.scissor == null)
+				    {
+				        glDisable(GL_SCISSOR_TEST);
+				    }
+				    else
+				    {
+				        glEnable(GL_SCISSOR_TEST);
+				        glScissor(scissor.X, scissor.Y, scissor.Width, scissor.Height);
+				    }
+
+				    forceScissorUpdate = false;
+				    lastPass.scissor = scissor;
+				}
+			}
+
+			// Draw mesh
+			{
+				glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32) * pass.meshIndexStart));
+				glBindVertexArray(0);
+			}
+
+			uint GetBlendFunc(BlendOperations operation)
+			{
+				switch (operation)
+				{
+				case .Add: 				return GL_FUNC_ADD;
+				case .Subtract: 		return GL_FUNC_SUBTRACT;
+				case .ReverseSubtract: 	return GL_FUNC_REVERSE_SUBTRACT;
+				case .Min: 				return GL_MIN;
+				case .Max: 				return GL_MAX;
+				}
+			}
+
+			uint GetBlendFactor(BlendFactors factor)
+			{
+				switch (factor)
+				{
+				case .Zero: 					return GL_ZERO;
+				case .One: 						return GL_ONE;
+				case .SrcColor: 				return GL_SRC_COLOR;
+				case .OneMinusSrcColor:			return GL_ONE_MINUS_SRC_COLOR;
+				case .DstColor: 				return GL_DST_COLOR;
+				case .OneMinusDstColor: 		return GL_ONE_MINUS_DST_COLOR;
+				case .SrcAlpha: 				return GL_SRC_ALPHA;
+				case .OneMinusSrcAlpha: 		return GL_ONE_MINUS_SRC_ALPHA;
+				case .DstAlpha: 				return GL_DST_ALPHA;
+				case .OneMinusDstAlpha: 		return GL_ONE_MINUS_DST_ALPHA;
+				case .ConstantColor: 			return GL_CONSTANT_COLOR;
+				case .OneMinusConstantColor: 	return GL_ONE_MINUS_CONSTANT_COLOR;
+				case .ConstantAlpha: 			return GL_CONSTANT_ALPHA;
+				case .OneMinusConstantAlpha: 	return GL_ONE_MINUS_CONSTANT_ALPHA;
+				case .SrcAlphaSaturate: 		return GL_SRC_ALPHA_SATURATE;
+				case .Src1Color: 				return GL_SRC1_COLOR;
+				case .OneMinusSrc1Color: 		return GL_ONE_MINUS_SRC1_COLOR;
+				case .Src1Alpha: 				return GL_SRC1_ALPHA;
+				case .OneMinusSrc1Alpha: 		return GL_ONE_MINUS_SRC1_ALPHA;
+				}
+			}
 		}
 
 		protected override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
@@ -172,6 +399,10 @@ namespace Pile.Implementations
 			return new [Friend]GL_Texture(this);
 		}
 
+		protected override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
+		{
+			return new [Friend]GL_FrameBuffer(this, width, height, attachments);
+		}
 		
 		protected override Mesh.Platform CreateMesh()
 		{
@@ -217,7 +448,7 @@ namespace Pile.Implementations
 			// Add message
 			String.QuoteString(message, length, s);
 
-			Console.WriteLine(s);
+			Log.Warning(s);
 		}
 	}
 }

@@ -2,6 +2,8 @@ using System;
 
 namespace Pile
 {
+	[Packed]
+	[Ordered]
 	public struct Point : IEquatable<Point>, IEquatable
 	{
 		public static readonly Point Right = .(1, 0);

@@ -2,6 +2,8 @@ using System;
 
 namespace Pile
 {
+	[Packed]
+	[Ordered]
 	public struct Color
 	{
 		public static readonly Color White 			= 0xFFFFFFFF;

@@ -5,6 +5,10 @@ namespace Pile
 {
 	public class Shader
 	{
+		// Access lists directly
+		readonly List<ShaderAttribute> Attributes;
+		readonly List<ShaderUniform> Uniforms;
+
 		public class Platform
 		{
 			public readonly List<ShaderAttribute> Attributes = new List<ShaderAttribute>() ~ DeleteContainerAndItems!(_);
@@ -13,19 +17,19 @@ namespace Pile
 
 		readonly Platform platform;
 
-		public int UniformCount => platform.Uniforms.Count;
+		public int UniformCount => Uniforms.Count;
 
 		public this(ShaderSource source)
 		{
 			platform = Core.Graphics.[Friend]CreateShader(source);
 
+			Attributes = platform.Attributes;
+			Uniforms = platform.Uniforms;
 		}
 
 		public ~this()
 		{
 			delete platform;
 		}
-
-		public ShaderUniform GetUniform(int index) => platform.Uniforms[index];
 	}
 }
