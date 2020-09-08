@@ -146,6 +146,14 @@ namespace Pile.Implementations
 			}
 		}
 
+		public ~this()
+		{
+			if (programID != 0)
+			{
+				graphics.[Friend]programsToDelete.Add(programID);
+			}
+		}
+
 		public void Use(Material material)
 		{
 			GL.glUseProgram(programID);
@@ -169,12 +177,12 @@ namespace Pile.Implementations
 						let textures = (parameter.Value as Texture[]);
 						for (int j = 0; j < uniform.Length; j++)
 						{
-						    let id = (textures[i]?.[Friend]platform as GL_Texture)?.[Friend]textureID ?? 0;
+						    let id = (textures[j]?.[Friend]platform as GL_Texture)?.[Friend]textureID ?? 0;
 
 						    GL.glActiveTexture(GL.GL_TEXTURE0 + (uint)textureSlot);
 						    GL.glBindTexture(GL.GL_TEXTURE_2D, id);
 
-						    n[i] = textureSlot;
+						    n[j] = textureSlot;
 						    textureSlot++;
 						}
 
@@ -196,14 +204,6 @@ namespace Pile.Implementations
 					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, &(parameter.Value as float[])[0]);
 				case .Unknown:
 				}
-			}
-		}
-
-		public ~this()
-		{
-			if (programID != 0)
-			{
-				graphics.[Friend]programsToDelete.Add(programID);
 			}
 		}
 	}

@@ -2,7 +2,6 @@ using System;
 
 namespace Pile
 {
-	[Packed]
 	[Ordered]
 	public struct Vector : IEquatable<Vector>, IEquatable
 	{

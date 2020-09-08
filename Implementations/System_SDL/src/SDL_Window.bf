@@ -183,7 +183,12 @@ namespace Pile.Implementations
 		public override bool VSync
 		{
 			get => vSync;
-			set => vSync = value;
+			set
+			{
+				vSync = value;
+
+				if (system.[Friend]glGraphics) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
+			}
 		}
 
 		bool focus;
@@ -207,7 +212,6 @@ namespace Pile.Implementations
 		{
 			if (system.[Friend]glGraphics)
 			{
-				//SDL.GL_SetSwapInterval(vSync ? 1 : 0);
 				SDL.GL_SwapWindow(window);
 			}
 		}

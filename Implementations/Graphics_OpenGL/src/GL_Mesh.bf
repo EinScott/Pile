@@ -66,17 +66,13 @@ namespace Pile.Implementations
 
 				GL.glBindBuffer(glBufferType, bufferID);
 				GL.glBufferData(glBufferType, length, data, GL.GL_STATIC_DRAW);
+
+				GL.glBindBuffer(glBufferType, 0);
 			}
 		}
 
 		public void Bind(Material material)
 		{
-			// this binds the vertex array object and binds the vertex and index buffer to it
-			// if the materials shader changed, or the vertex format was changed when setupping, redo attrib pointers to the shader attributes
-			// here, we look through each attribute of the shader and find if the format has something to pass in
-			// if it does, we setup the pointer at the location to the attribute (look into glsl for this, how many components each needs etc)
-			// else that attribute is disabled? i dunno
-
 			if (vertexArrayID == 0) GL.glGenVertexArrays(1, &vertexArrayID);
 
 			GL.glBindVertexArray(vertexArrayID);

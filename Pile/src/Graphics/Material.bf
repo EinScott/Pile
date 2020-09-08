@@ -88,7 +88,7 @@ namespace Pile
 			public void SetFloat2((float, float) value, int index = 0)
 			{
 				let offset = index * 2;
-				AssertParameters(.Float2, offset + 1);
+				AssertParameters(.Float2, index);
 
 				if (let val = Value as float[])
 				{
@@ -100,7 +100,7 @@ namespace Pile
 			public void SetFloat2(Vector value, int index = 0)
 			{
 				let offset = index * 2;
-				AssertParameters(.Float2, offset + 1);
+				AssertParameters(.Float2, index);
 
 				if (let val = Value as float[])
 				{
@@ -112,7 +112,7 @@ namespace Pile
 			public Vector GetFloat2(int index = 0)
 			{
 				let offset = index * 2;
-				AssertParameters(.Float2, offset + 1);
+				AssertParameters(.Float2, index);
 
 				if (let val = Value as float[])
 				{
@@ -124,7 +124,7 @@ namespace Pile
 			public void SetFloat3((float, float, float) value, int index = 0)
 			{
 				let offset = index * 3;
-				AssertParameters(.Float3, offset + 2);
+				AssertParameters(.Float3, index);
 
 				if (let val = Value as float[])
 				{
@@ -137,7 +137,7 @@ namespace Pile
 			public (float, float, float) GetFloat3(int index = 0)
 			{
 				let offset = index * 3;
-				AssertParameters(.Float3, offset + 2);
+				AssertParameters(.Float3, index);
 
 				if (let val = Value as float[])
 				{
@@ -149,7 +149,7 @@ namespace Pile
 			public void SetFloat4((float, float, float, float) value, int index = 0)
 			{
 				let offset = index * 4;
-				AssertParameters(.Float4, offset + 3);
+				AssertParameters(.Float4, index);
 
 				if (let val = Value as float[])
 				{
@@ -163,7 +163,7 @@ namespace Pile
 			public (float, float, float, float) GetFloat4(int index = 0)
 			{
 				let offset = index * 4;
-				AssertParameters(.Float4, offset + 3);
+				AssertParameters(.Float4, index);
 
 				if (let val = Value as float[])
 				{
@@ -175,7 +175,7 @@ namespace Pile
 			public void SetMat3x2(Matrix3x2 value, int index = 0)
 			{
 				let offset = index * 6;
-				AssertParameters(.Matrix3x2, offset + 5);
+				AssertParameters(.Matrix3x2, index);
 
 				if (let val = Value as float[])
 				{
@@ -191,7 +191,7 @@ namespace Pile
 			public Matrix3x2 GetMat3x2(int index = 0)
 			{
 				let offset = index * 6;
-				AssertParameters(.Matrix3x2, offset + 5);
+				AssertParameters(.Matrix3x2, index);
 
 				if (let val = Value as float[])
 				{
@@ -203,7 +203,7 @@ namespace Pile
 			public void SetMatrix4x4(Matrix4x4 value, int index = 0)
 			{
 				let offset = index * 16;
-				AssertParameters(.Matrix3x2, offset + 15);
+				AssertParameters(.Matrix4x4, index);
 
 				if (let val = Value as float[])
 				{
@@ -229,7 +229,7 @@ namespace Pile
 			public Matrix4x4 GetMatrix4x4(int index = 0)
 			{
 				let offset = index * 16;
-				AssertParameters(.Matrix3x2, offset + 15);
+				AssertParameters(.Matrix4x4, index);
 
 				if (let val = Value as float[])
 				{
@@ -245,14 +245,14 @@ namespace Pile
 			{
 				// Assure valid access
 				Runtime.Assert(Uniform.Type == expected, scope String("Material Parameter {0} was expected to be of UniformType {1} instead of {2}")..Format(Uniform.Name, expected, Uniform.Type));
-				Runtime.Assert(index > 0 && index < Uniform.Length, scope String("The Size of Material Parameter {0} is {1}, but was trying to access index {2}")..Format(Uniform.Name, Uniform.Length, index));
+				Runtime.Assert(index >= 0 && index < Uniform.Length, scope String("The Size of Material Parameter {0} is {1}, but was trying to access index {2}")..Format(Uniform.Name, Uniform.Length, index));
 			}
 		}
 
 		public readonly Shader Shader;
 
 		public int ParameterCount => parameters.Count;
-		readonly Parameter[] parameters ~ delete _;
+		readonly Parameter[] parameters ~ DeleteContainerAndItems!(_);
 
 		public this(Shader shader)
 		{

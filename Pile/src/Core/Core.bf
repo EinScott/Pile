@@ -7,7 +7,8 @@ using System.IO;
  *
  * DEFINES:
  * PILE_LONG_LOG_RECORD - increases amount of output log lines Log remembers from 16 to 128
- *
+ * PILE_DISABLE_LOG_MESSAGES - adds [SkipCall] attribute to Log.Message functions
+ * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
 namespace Pile

@@ -73,10 +73,21 @@ namespace Pile
 		}
 
 		// Logging shorthands
-
+#if PILE_DISABLE_LOG_MESSAGES
+		[SkipCall]
+#endif
 		public static void Message(String message) => Log(Types.Message, message);
+#if PILE_DISABLE_LOG_MESSAGES
+		[SkipCall]
+#endif
 		public static void Message(Object message) => Log(Types.Message, message);
+#if PILE_DISABLE_LOG_WARNINGS
+		[SkipCall]
+#endif
 		public static void Warning(String message) => Log(Types.Warning, message);
+#if PILE_DISABLE_LOG_WARNINGS
+		[SkipCall]
+#endif
 		public static void Warning(Object message) => Log(Types.Warning, message);
 		public static void Error(String message)
 		{

@@ -88,10 +88,11 @@ namespace Pile.Implementations
 			deviceName = new String(glGetString(GL_RENDERER));
 			OriginBottomLeft = true;
 
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 			return .Ok;
 		}
-
-		// Debug opion wirframe glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) / default => glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 		protected override void Update()
 		{
@@ -314,7 +315,7 @@ namespace Pile.Implementations
 			let size = pass.target.RenderSize;
 
 			// Viewport
-			var viewport = pass.viewport ?? Rect(0, 0, size.Y, size.Y);
+			var viewport = pass.viewport ?? Rect(0, 0, size.X, size.Y);
 			{
 				viewport.Top = size.Y - viewport.Y - viewport.Height;
 

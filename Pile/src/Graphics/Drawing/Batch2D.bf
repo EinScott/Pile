@@ -14,6 +14,7 @@ namespace Pile
 
 		[Packed]
 		[Ordered]
+		[CRepr]
 		public struct Vertex
 		{
 			public Vector position;
@@ -62,14 +63,11 @@ namespace Pile
 			}
 		}
 
-		public readonly Shader DefaultShader;
 		public readonly Material DefaultMaterial;
+		public readonly Mesh Mesh ~ delete _;
 
-		public readonly Mesh Mesh;
-
-		const String TextureUniformName = "u_texture"; // This shouldnt be const and probably also be needed to be passed in when setting shader/material
-		const String MatrixUniformName = "u_matrix";
-		//public readonly List
+		readonly String TextureUniformName ~ delete _;
+		readonly String MatrixUniformName ~ delete _;
 
 		public Matrix3x2 MatrixStack = Matrix3x2.Identity;
 		readonly List<Matrix3x2> matrixStack = new List<Matrix3x2>() ~ delete _;
@@ -89,8 +87,13 @@ namespace Pile
 		public int TriangleCount => IndexCount / 3;
 		public int BatchCount => batches.Count + (currentBatch.elements > 0 ? 1 : 0);
 
-		public this(/*make it so shader, what texture/matrix uniform names are passed in here and then tested if they are compatible with the format, or something, idk; default stuff would be good as well*/)
+		public this(Material defaultMaterial, StringView textureUniformName = "u_texture", StringView matrixUniformName = "u_matrix")
 		{
+			DefaultMaterial = defaultMaterial;
+
+			TextureUniformName = new String(textureUniformName);
+			MatrixUniformName = new String(matrixUniformName);
+
 			Mesh = new Mesh();
 
 			Clear();
@@ -112,7 +115,7 @@ namespace Pile
 		public void Render(RenderTarget target)
 		{
 			let size = target.RenderSize;
-			let matrix = Matrix4x4.FromOrthographic(0, size.X, size.Y, 0, 0, float.MaxValue);
+			let matrix = Matrix4x4.FromOrthographic(0, size.X, 0, size.Y, 0, float.MaxValue);
 			Render(target, matrix);
 		}
 
@@ -1133,7 +1136,7 @@ namespace Pile
 		{
 			// Get required size
 			var currSize = array.Count;
-			while (requiredSize >= array.Count) // This may be a stupid way of computing the required size
+			while (requiredSize >= currSize) // This may be a stupid way of computing the required size
 				currSize *= 2;
 
 			let newArray = new T[currSize];

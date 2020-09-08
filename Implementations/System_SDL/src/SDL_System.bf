@@ -68,7 +68,8 @@ namespace Pile.Implementations
 						switch (event.window.windowEvent)
 						{
 						case .Close:
-							window.OnCloseRequested();
+							window.OnClose();
+							window.[Friend]Closed = true;
 							return;
 
 						case .SizeChanged: // Preceeds .Resize, is always triggered when size changes

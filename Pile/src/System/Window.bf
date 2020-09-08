@@ -6,11 +6,6 @@ namespace Pile
 	{
 		public bool Closed { get; private set; }
 
-		protected this()
-		{
-			OnCloseRequested.Add(new => Close); // Default to closing
-		}
-
 		public ~this()
 		{
 			OnResized.Dispose();
@@ -18,7 +13,7 @@ namespace Pile
 			OnFocusChanged.Dispose();
 			OnMoved.Dispose();
 			OnVisibilityChanged.Dispose();
-			OnCloseRequested.Dispose();
+			OnClose.Dispose();
 		}
 
 		public abstract void SetTitle(String title);
@@ -53,7 +48,7 @@ namespace Pile
 		public Event<Action> OnFocusChanged;
 		public Event<Action> OnMoved;
 		public Event<Action> OnVisibilityChanged;
-		public Event<Action> OnCloseRequested;
+		public Event<Action> OnClose;
 
 		// Rendering
 		private void Render()

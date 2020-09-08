@@ -62,7 +62,7 @@ namespace Pile
 			{
 				let size = pass.target.RenderSize;
 				let bounds = Rect(0, 0, size.X, size.Y);
-				pass.viewport = pass.viewport.Value.OverlapRect(bounds); // Than can be Rect.Zero, should this return or something?
+				pass.viewport = pass.viewport.Value.OverlapRect(bounds);
 			}
 
 			[Unchecked]RenderInternal(ref pass);
