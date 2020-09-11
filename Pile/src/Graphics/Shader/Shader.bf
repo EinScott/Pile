@@ -15,7 +15,7 @@ namespace Pile
 			public readonly List<ShaderUniform> Uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);
 		}
 
-		readonly Platform platform;
+		readonly Platform platform ~ delete _;
 
 		public int UniformCount => Uniforms.Count;
 
@@ -25,11 +25,6 @@ namespace Pile
 
 			Attributes = platform.Attributes;
 			Uniforms = platform.Uniforms;
-		}
-
-		public ~this()
-		{
-			delete platform;
 		}
 	}
 }

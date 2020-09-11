@@ -9,7 +9,7 @@ namespace Pile
 			public abstract void Setup(ref Span<uint8> vertices, ref Span<uint32> indices, VertexFormat format);
 		}
 
-		Platform platform;
+		readonly Platform platform ~ delete _;
 
 		public uint32 VertexCount { get; private set; }
 		public uint32 IndexCount { get; private set; }
@@ -18,11 +18,6 @@ namespace Pile
 		public this()
 		{
 			platform = Core.Graphics.[Friend]CreateMesh();
-		}
-
-		public ~this()
-		{
-			delete platform;
 		}
 
 		public void Setup<T>(Span<T> vertices, Span<uint32> indices, VertexFormat format)

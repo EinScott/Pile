@@ -17,7 +17,7 @@ namespace Pile
 
 		public static TextureFilter DefaultTextureFilter = TextureFilter.Nearest;
 
-		readonly Platform platform;
+		readonly Platform platform ~ delete _;
 		public readonly TextureFormat format;
 
 		public int32 Width { get; private set; }
@@ -66,11 +66,6 @@ namespace Pile
 			: this(bitmap.Height, bitmap.Width, .Color)
 		{
 			platform.SetData(scope Span<Color>(bitmap.Pixels));
-		}
-
-		public ~this()
-		{
-			delete platform;
 		}
 
 		public void CopyTo(Bitmap bitmap)

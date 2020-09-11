@@ -642,6 +642,7 @@ namespace Pile
 		    RoundedRect(rect.X, rect.Y, rect.Width, rect.Height, radius, radius, radius, radius, color);
 		}
 
+		// TODO: This doesnt work
 		public void RoundedRect(float x, float y, float width, float height, float r0, float r1, float r2, float r3, Color color)
 		{
 		    // clamp
@@ -767,37 +768,36 @@ namespace Pile
 		            VertexCount += 12;
 		        }
 
-		        // TODO: replace with hard-coded values
-		        let left = Math.Atan2(-1, 0);
-		        let right = Math.Atan2(1, 0);
-		        let up = Math.Atan2(0, -1);
-		        let down = Math.Atan2(0, 1);
-
 		        // top-left corner
 		        if (vr0 > 0)
-		            SemiCircle(r0_br, up, -left, vr0, Math.Max(3, (int)(vr0 / 4)), color);
+		            SemiCircle(r0_br, RoundedRectUp, -RoundedRectLeft, vr0, Math.Max(3, (int)(vr0 / 4)), color);
 		        else
 		            Quad(r0_tl, r0_tr, r0_br, r0_bl, color);
 
 		        // top-right corner
 		        if (vr1 > 0)
-		            SemiCircle(r1_bl, up, right, vr1, Math.Max(3, (int)(vr1 / 4)), color);
+		            SemiCircle(r1_bl, RoundedRectUp, RoundedRectRight, vr1, Math.Max(3, (int)(vr1 / 4)), color);
 		        else
 		            Quad(r1_tl, r1_tr, r1_br, r1_bl, color);
 
 		        // bottom-right corner
 		        if (vr2 > 0)
-		            SemiCircle(r2_tl, right, down, vr2, Math.Max(3, (int)(vr2 / 4)), color);
+		            SemiCircle(r2_tl, RoundedRectRight, RoundedRectDown, vr2, Math.Max(3, (int)(vr2 / 4)), color);
 		        else
 		            Quad(r2_tl, r2_tr, r2_br, r2_bl, color);
 
 		        // bottom-left corner
 		        if (vr3 > 0)
-		            SemiCircle(r3_tr, down, left, vr3, Math.Max(3, (int)(vr3 / 4)), color);
+		            SemiCircle(r3_tr, RoundedRectDown, RoundedRectLeft, vr3, Math.Max(3, (int)(vr3 / 4)), color);
 		        else
 		            Quad(r3_tl, r3_tr, r3_br, r3_bl, color);
 		    }
 		}
+
+		static readonly float RoundedRectLeft = Math.Atan2(-1, 0);
+		static readonly float RoundedRectRight = Math.Atan2(1, 0);
+		static readonly float RoundedRectUp = Math.Atan2(0, -1);
+		static readonly float RoundedRectDown = Math.Atan2(0, 1);
 
 		public void SemiCircle(Vector center, float startRadians, float endRadians, float radius, int steps, Color color)
 		{
