@@ -418,7 +418,7 @@ namespace Pile.Implementations
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)
 		{
-			//if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM && severity != GL_DEBUG_SEVERITY_LOW) return;
+			if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM && severity != GL_DEBUG_SEVERITY_LOW) return;
 
 			var s = scope String("OpenGL ");
 

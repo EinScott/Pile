@@ -56,8 +56,8 @@ namespace Pile.Implementations
 				vertexFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, &vertices[0], vertices.Length);
-			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, &indices[0], sizeof(uint32) * indices.Length);
+			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, vertices.Ptr, vertices.Length);
+			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, indices.Ptr, sizeof(uint32) * indices.Length);
 
 			void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
 			{

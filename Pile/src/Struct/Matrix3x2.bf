@@ -69,13 +69,13 @@ namespace Pile
 				mat = .Identity;
 
 			if (scale != .One)
-				mat *= FromScale(scale);
+				mat = mat * FromScale(scale);
 
 			if (rotation != 0)
-				mat *= FromRotation(rotation);
+				mat = mat * FromRotation(rotation);
 
 			if (position != .Zero)
-				mat *= FromPosition(position);
+				mat = mat * FromPosition(position);
 
 			return mat;
 		}

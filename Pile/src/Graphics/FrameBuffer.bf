@@ -12,9 +12,9 @@ namespace Pile
 			public abstract void Resize(int32 width, int32 height);
 		}
 
-		readonly Platform platform;
+		readonly Platform platform ~ delete _;
 
-		public int AttachmentCount = platform.Attachments.Count;
+		public int AttachmentCount => platform.Attachments.Count;
 
 		public override Point RenderSize => renderSize;
 		Point renderSize;
@@ -30,14 +30,6 @@ namespace Pile
 			
 			platform = Core.Graphics.[Friend]CreateFrameBuffer(width, height, attachments);
 			Renderable = true;
-		}
-
-		public ~this()
-		{
-			for (let texture in platform.Attachments)
-				delete texture;
-
-			delete platform;
 		}
 
 		public Texture this[int index]
