@@ -7,6 +7,7 @@ namespace Pile.Implementations
 	public class GL_Graphics : Graphics, IGraphicsOpenGL
 	{
 		// Single context, simple openGL implementaion
+		// Most things could be moved around a bit or optimized, i just want it to run right now (TODO)
 
 		const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
 					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;
@@ -84,8 +85,9 @@ namespace Pile.Implementations
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
 			if (glDebugMessageCallback != null) glDebugMessageCallback(=> DebugCallback, null); // This may be not be avaiable depending on the version
-			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
+
 			deviceName = new String(glGetString(GL_RENDERER));
+			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
 			OriginBottomLeft = true;
 
 			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -144,7 +146,6 @@ namespace Pile.Implementations
 				(fb.[Friend]platform as GL_FrameBuffer).Bind();
 				Clear(this, target, flags, color, depth, stencil, viewport);
 			}
-			
 		}
 
 		static void Clear(GL_Graphics graphics, RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect _viewport)
@@ -205,7 +206,7 @@ namespace Pile.Implementations
 				lastPass = pass;
 			}
 			else lastPass = lastRenderState.Value;
-
+			 
 			lastRenderState = pass;
 
 			// Bind target
@@ -352,7 +353,7 @@ namespace Pile.Implementations
 
 			// Draw mesh
 			{
-				glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32) * pass.meshIndexStart));
+				glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32) * pass.meshIndexStart)); // TODO: Allow for different index types here and when setting them in mesh
 				glBindVertexArray(0);
 			}
 
@@ -410,14 +411,14 @@ namespace Pile.Implementations
 			return new [Friend]GL_Mesh(this);
 		}
 
-		protected override Shader.Platform CreateShader(ShaderSource source)
+		protected override Shader.Platform CreateShader(ShaderData source)
 		{
 			return new [Friend]GL_Shader(this, source);
 		}
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)
 		{
-			if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM && severity != GL_DEBUG_SEVERITY_LOW) return;
+			//if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM && severity != GL_DEBUG_SEVERITY_LOW) return;
 
 			var s = scope String("OpenGL ");
 

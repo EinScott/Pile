@@ -156,11 +156,22 @@ namespace Pile
 	
 	    public static Matrix4x4 FromOrthographic(float left, float right, float top, float bottom, float znear, float zfar)
 		{
-	        return Matrix4x4(
-	            2/(right-left), 0, 0, 0,
-	            0, 2/(top-bottom), 0, 0,
-	            0, 0, -2/(zfar-znear), 0,
-	            -(right+left)/(right-left), -(top+bottom)/(top-bottom), -(zfar+znear)/(zfar-znear), 0 );
+			var result = Matrix4x4.Identity;
+
+			float invRL = 1 / (right - left);
+			float invTB = 1 / (top - bottom);
+			float invFN = 1 / (zfar - znear);
+
+			result.m11 = 2 * invRL;
+			result.m22 = 2 * invTB;
+			result.m33 = -2 * invFN;
+
+			result.m41 = -(right + left) * invRL;
+			result.m42 = -(top + bottom) * invTB;
+			result.m43 = -(zfar + znear) * invFN;
+			result.m44 = 1;
+
+	        return result;
 	    }
 	
 	    // https://www.mathsisfun.com/algebra/matrix-inverse-minors-cofactors-adjugate.html

@@ -115,7 +115,7 @@ namespace Pile
 		public void Render(RenderTarget target)
 		{
 			let size = target.RenderSize;
-			let matrix = Matrix4x4.FromOrthographic(0, size.X, 0, size.Y, 0, float.MaxValue);
+			let matrix = Matrix4x4.FromOrthographic(0, size.X, 0, size.Y, 0, 100);
 			Render(target, matrix);
 		}
 

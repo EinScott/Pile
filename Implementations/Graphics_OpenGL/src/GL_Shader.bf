@@ -9,7 +9,7 @@ namespace Pile.Implementations
 
 		readonly GL_Graphics graphics;
 
-		private this(GL_Graphics graphics, ShaderSource source)
+		private this(GL_Graphics graphics, ShaderData source)
 		{
 			this.graphics = graphics;
 

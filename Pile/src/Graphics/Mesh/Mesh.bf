@@ -6,7 +6,7 @@ namespace Pile
 	{
 		public abstract class Platform
 		{
-			public abstract void Setup(ref Span<uint8> vertices, uint32 vertexSize, ref Span<uint32> indices, VertexFormat format);
+			public abstract void Setup(ref Span<uint8> vertices, ref Span<uint32> indices, VertexFormat format);
 		}
 
 		Platform platform;
@@ -31,9 +31,12 @@ namespace Pile
 			VertexCount = (uint32)vertices.Length;
 			IndexCount = (uint32)indices.Length;
 
-			var _vertices = vertices.ToRawData(); // i'm not sure i like this
+			let copyverts = scope T[vertices.Length]; // i'm not sure i like this
+			vertices.CopyTo(Span<T>(copyverts));
+			var _vertices = Span<T>(copyverts).ToRawData();
+
 			var _indices = indices;
-			platform.Setup(ref _vertices, (uint32)sizeof(T), ref _indices, format);
+			platform.Setup(ref _vertices, ref _indices, format);
 		}
 	}
 }

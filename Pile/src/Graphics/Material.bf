@@ -243,6 +243,7 @@ namespace Pile
 
 			void AssertParameters(UniformType expected, int index)
 			{
+				// TODO: Make these errors handelable (Result<T>)
 				// Assure valid access
 				Runtime.Assert(Uniform.Type == expected, scope String("Material Parameter {0} was expected to be of UniformType {1} instead of {2}")..Format(Uniform.Name, expected, Uniform.Type));
 				Runtime.Assert(index >= 0 && index < Uniform.Length, scope String("The Size of Material Parameter {0} is {1}, but was trying to access index {2}")..Format(Uniform.Name, Uniform.Length, index));

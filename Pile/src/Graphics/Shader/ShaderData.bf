@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Pile
 {
-	public class ShaderSource
+	public class ShaderData
 	{
 		public String vertexSource = new .() ~ delete _;
 		public String fragmentSource = new .() ~ delete _;

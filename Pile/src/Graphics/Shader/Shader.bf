@@ -19,7 +19,7 @@ namespace Pile
 
 		public int UniformCount => Uniforms.Count;
 
-		public this(ShaderSource source)
+		public this(ShaderData source)
 		{
 			platform = Core.Graphics.[Friend]CreateShader(source);
 

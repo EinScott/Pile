@@ -48,7 +48,7 @@ namespace Pile.Implementations
 			bound = false;
 		}
 
-		public override void Setup(ref Span<uint8> vertices, uint32 vertexSize, ref Span<uint32> indices, VertexFormat format)
+		public override void Setup(ref Span<uint8> vertices, ref Span<uint32> indices, VertexFormat format)
 		{
 			if (vertexFormat != format)
 			{
@@ -56,16 +56,15 @@ namespace Pile.Implementations
 				vertexFormat = format;
 			}
 
-			Delete();
-			SetBuffer(ref vertexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, &vertices, vertexSize);
-			SetBuffer(ref indexBufferID, GL.GL_ARRAY_BUFFER, &indices, sizeof(uint32));
+			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, &vertices[0], vertices.Length);
+			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, &indices[0], sizeof(uint32) * indices.Length);
 
 			void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
 			{
-				GL.glGenBuffers(1, &bufferID);
+				if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
 
 				GL.glBindBuffer(glBufferType, bufferID);
-				GL.glBufferData(glBufferType, length, data, GL.GL_STATIC_DRAW);
+				GL.glBufferData(glBufferType, length, data, GL.GL_DYNAMIC_DRAW); // TODO: This could probably be better
 
 				GL.glBindBuffer(glBufferType, 0);
 			}
@@ -83,14 +82,17 @@ namespace Pile.Implementations
 			{
 				bound = true;
 
+
 				// Bind vertex buffer
 				GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBufferID);
 
 				// Determine active attributes
 				if (vertexFormat != null)
 					for (let attribute in material.Shader.[Friend]Attributes)
+					{
 						if (!SetupAttributePointer(attribute, vertexFormat))
 							GL.glDisableVertexAttribArray(attribute.Location);
+					}
 
 				// Bind index buffer
 				GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
@@ -107,8 +109,8 @@ namespace Pile.Implementations
 						let componentsInLoc = Math.Min((int)vertexAttr.Components - i, 4);
 						let location = (uint)(attribute.Location + loc);
 
-						GL.glEnableVertexAttribArray(location);
 						GL.glVertexAttribPointer(location, componentsInLoc, ToVertexType(vertexAttr.Type), vertexAttr.Normalized, format.Stride, (void*)offset);
+						GL.glEnableVertexAttribArray(location);
 
 						offset += componentsInLoc * vertexAttr.ComponentSize;
 					}

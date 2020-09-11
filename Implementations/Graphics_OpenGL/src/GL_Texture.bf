@@ -82,6 +82,8 @@ namespace Pile.Implementations
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, glTexFilter);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
+
+			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		void Prepare()
@@ -103,6 +105,8 @@ namespace Pile.Implementations
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, glTexFilter);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, glTexFilter);
 
+			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
+
 		}
 
 		public override void SetWrap(TextureWrap x, TextureWrap y)
@@ -112,18 +116,24 @@ namespace Pile.Implementations
 			int glTexWrapY = (int)(texture.WrapY == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
+
+			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		public override void SetData(void* buffer)
 		{
 			Prepare();
 			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, texture.Width, texture.Height, 0, glFormat, glType, buffer);
+
+			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		public override void GetData(void* buffer)
 		{
 			Prepare();
 			GL.glGetTexImage(GL.GL_TEXTURE_2D, 0, glInternalFormat, glType, buffer);
+
+			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		public override bool IsFrameBuffer() => isFrameBuffer;
