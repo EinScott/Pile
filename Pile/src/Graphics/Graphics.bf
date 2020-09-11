@@ -14,6 +14,9 @@ namespace Pile
 		public int32 MaxTextureSize { get; protected set; }
 		public bool OriginBottomLeft { get; protected set; }
 
+		public enum DebugDrawMode { Disabled, WireFrame }
+		public abstract DebugDrawMode DebugDraw { get; set; }
+
 		protected abstract Result<void, String> Initialize();
 		protected abstract void Update();
 		protected abstract void AfterRender();

@@ -96,6 +96,25 @@ namespace Pile.Implementations
 			return .Ok;
 		}
 
+		DebugDrawMode mode;
+		public override DebugDrawMode DebugDraw
+		{
+			get => mode;
+
+			set
+			{
+				mode = value;
+
+				switch(mode)
+				{
+				case .WireFrame:
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				case .Disabled:
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				}
+			}
+		}
+
 		protected override void Update()
 		{
 			RunDeleteLists();
