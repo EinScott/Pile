@@ -115,7 +115,7 @@ namespace Pile
 		    return (Left < rect.Left && Top < rect.Top && Bottom > rect.Bottom && Right > rect.Right);
 		}
 
-		public bool Contains(Point point)
+		public bool Contains(Point2 point)
 		{
 			return point.X >= X && point.X < X + Width && point.Y >= Y && point.Y < Y + Height;
 		}
@@ -195,7 +195,7 @@ namespace Pile
 			strBuffer.Append(" ]");
 		}
 
-		public static Rect Between(Point a, Point b)
+		public static Rect Between(Point2 a, Point2 b)
 		{
 		    Rect rect;
 
@@ -209,7 +209,7 @@ namespace Pile
 
 		public static bool operator==(Rect a, Rect b) => a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
 
-		public static Rect operator+(Rect a, Point b) => Rect(a.X + b.X, a.Y + b.Y, a.Width, a.Height);
-		public static Rect operator-(Rect a, Point b) => Rect(a.X - b.X, a.Y - b.Y, a.Width, a.Height);
+		public static Rect operator+(Rect a, Point2 b) => Rect(a.X + b.X, a.Y + b.Y, a.Width, a.Height);
+		public static Rect operator-(Rect a, Point2 b) => Rect(a.X - b.X, a.Y - b.Y, a.Width, a.Height);
 	}
 }

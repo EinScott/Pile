@@ -17,15 +17,15 @@ namespace Pile
 		[CRepr]
 		public struct Vertex
 		{
-			public Vector position;
-			public Vector texcoord;
+			public Vector2 position;
+			public Vector2 texcoord;
 			public Color color;
 
 			public uint8 mult;
 			public uint8 wash;
 			public uint8 fill;
 
-			public this(Vector position, Vector texcoord, Color color, uint8 mult, uint8 wash, uint8 fill)
+			public this(Vector2 position, Vector2 texcoord, Color color, uint8 mult, uint8 wash, uint8 fill)
 			{
 				this.position = position;
 				this.texcoord = texcoord;
@@ -318,14 +318,14 @@ namespace Pile
 
 		// DRAW
 
-		public void Line(Vector from, Vector to, float thickness, Color color)
+		public void Line(Vector2 from, Vector2 to, float thickness, Color color)
 		{
 			let normal = (to - from).Normalized();
-			let perp = Vector(-normal.Y, normal.X) * thickness * 0.5f;
+			let perp = Vector2(-normal.Y, normal.X) * thickness * 0.5f;
 			Quad(from + perp, from - perp, to - perp, to + perp, color);
 		}
 
-		public void Quad(Vector v0, Vector v1, Vector v2, Vector v3, Color color)
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
 		{
 		    PushQuad();
 		    ExpandVertices(VertexCount + 4);
@@ -363,7 +363,7 @@ namespace Pile
 		    VertexCount += 4;
 		}
 
-		public void Quad(Vector v0, Vector v1, Vector v2, Vector v3, Vector t0, Vector t1, Vector t2, Vector t3, Color color, bool washed = false)
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Vector2 t0, Vector2 t1, Vector2 t2, Vector2 t3, Color color, bool washed = false)
 		{
 		    PushQuad();
 		    ExpandVertices(VertexCount + 4);
@@ -413,7 +413,7 @@ namespace Pile
 		    VertexCount += 4;
 		}
 
-		public void Quad(Vector v0, Vector v1, Vector v2, Vector v3, Color c0, Color c1, Color c2, Color c3)
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Color c0, Color c1, Color c2, Color c3)
 		{
 		    PushQuad();
 		    ExpandVertices(VertexCount + 4);
@@ -451,7 +451,7 @@ namespace Pile
 		    VertexCount += 4;
 		}
 
-		public void Quad(Vector v0, Vector v1, Vector v2, Vector v3, Vector t0, Vector t1, Vector t2, Vector t3, Color c0, Color c1, Color c2, Color c3, bool washed = false)
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Vector2 t0, Vector2 t1, Vector2 t2, Vector2 t3, Color c0, Color c1, Color c2, Color c3, bool washed = false)
 		{
 		    PushQuad();
 		    ExpandVertices(VertexCount + 4);
@@ -501,7 +501,7 @@ namespace Pile
 		    VertexCount += 4;
 		}
 
-		public void Triangle(Vector v0, Vector v1, Vector v2, Color color)
+		public void Triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color color)
 		{
 		    PushTriangle();
 		    ExpandVertices(VertexCount + 3);
@@ -537,7 +537,7 @@ namespace Pile
 		    VertexCount += 3;
 		}
 
-		public void Triangle(Vector v0, Vector v1, Vector v2, Color c0, Color c1, Color c2)
+		public void Triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c0, Color c1, Color c2)
 		{
 		    PushTriangle();
 		    ExpandVertices(VertexCount + 3);
@@ -576,59 +576,59 @@ namespace Pile
 		public void Rect(Rect rect, Color color)
 		{
 		    Quad(
-		        Vector(rect.X, rect.Y),
-		        Vector(rect.X + rect.Width, rect.Y),
-		        Vector(rect.X + rect.Width, rect.Y + rect.Height),
-		        Vector(rect.X, rect.Y + rect.Height),
+		        Vector2(rect.X, rect.Y),
+		        Vector2(rect.X + rect.Width, rect.Y),
+		        Vector2(rect.X + rect.Width, rect.Y + rect.Height),
+		        Vector2(rect.X, rect.Y + rect.Height),
 		        color);
 		}
 
-		public void Rect(Vector position, Vector size, Color color)
+		public void Rect(Vector2 position, Vector2 size, Color color)
 		{
 		    Quad(
 		        position,
-		        position + Vector(size.X, 0),
-		        position + Vector(size.X, size.Y),
-		        position + Vector(0, size.Y),
+		        position + Vector2(size.X, 0),
+		        position + Vector2(size.X, size.Y),
+		        position + Vector2(0, size.Y),
 		        color);
 		}
 
 		public void Rect(float x, float y, float width, float height, Color color)
 		{
 		    Quad(
-		        Vector(x, y),
-		        Vector(x + width, y),
-		        Vector(x + width, y + height),
-		        Vector(x, y + height), color);
+		        Vector2(x, y),
+		        Vector2(x + width, y),
+		        Vector2(x + width, y + height),
+		        Vector2(x, y + height), color);
 		}
 
 		public void Rect(Rect rect, Color c0, Color c1, Color c2, Color c3)
 		{
 		    Quad(
-		    	Vector(rect.X, rect.Y),
-		        Vector(rect.X + rect.Width, rect.Y),
-		        Vector(rect.X + rect.Width, rect.Y + rect.Height),
-		        Vector(rect.X, rect.Y + rect.Height),
+		    	Vector2(rect.X, rect.Y),
+		        Vector2(rect.X + rect.Width, rect.Y),
+		        Vector2(rect.X + rect.Width, rect.Y + rect.Height),
+		        Vector2(rect.X, rect.Y + rect.Height),
 		        c0, c1, c2, c3);
 		}
 
-		public void Rect(Vector position, Vector size, Color c0, Color c1, Color c2, Color c3)
+		public void Rect(Vector2 position, Vector2 size, Color c0, Color c1, Color c2, Color c3)
 		{
 		    Quad(
 		        position,
-		        position + Vector(size.X, 0),
-		        position + Vector(size.X, size.Y),
-		        position + Vector(0, size.Y),
+		        position + Vector2(size.X, 0),
+		        position + Vector2(size.X, size.Y),
+		        position + Vector2(0, size.Y),
 		        c0, c1, c2, c3);
 		}
 
 		public void Rect(float x, float y, float width, float height, Color c0, Color c1, Color c2, Color c3)
 		{
 		    Quad(
-		        Vector(x, y),
-		        Vector(x + width, y),
-		        Vector(x + width, y + height),
-		        Vector(x, y + height),
+		        Vector2(x, y),
+		        Vector2(x + width, y),
+		        Vector2(x + width, y + height),
+		        Vector2(x, y + height),
 		        c0, c1, c2, c3);
 		}
 
@@ -658,25 +658,25 @@ namespace Pile
 		    else
 		    {
 		        // get corners
-		        let r0_tl = Vector(x, y);
-		        let r0_tr = r0_tl + Vector(vr0, 0);
-		        let r0_br = r0_tl + Vector(vr0, vr0);
-		        let r0_bl = r0_tl + Vector(0, vr0);
+		        let r0_tl = Vector2(x, y);
+		        let r0_tr = r0_tl + Vector2(vr0, 0);
+		        let r0_br = r0_tl + Vector2(vr0, vr0);
+		        let r0_bl = r0_tl + Vector2(0, vr0);
 
-		        let r1_tl = Vector(x + width, y) + Vector(-vr1, 0);
-		        let r1_tr = r1_tl + Vector(vr1, 0);
-		        let r1_br = r1_tl + Vector(vr1, vr1);
-		        let r1_bl = r1_tl + Vector(0, vr1);
+		        let r1_tl = Vector2(x + width, y) + Vector2(-vr1, 0);
+		        let r1_tr = r1_tl + Vector2(vr1, 0);
+		        let r1_br = r1_tl + Vector2(vr1, vr1);
+		        let r1_bl = r1_tl + Vector2(0, vr1);
 
-		        let r2_tl = Vector(x + width, y + height) + Vector(-vr2, -vr2);
-		        let r2_tr = r2_tl + Vector(vr2, 0);
-		        let r2_bl = r2_tl + Vector(0, vr2);
-		        let r2_br = r2_tl + Vector(vr2, vr2);
+		        let r2_tl = Vector2(x + width, y + height) + Vector2(-vr2, -vr2);
+		        let r2_tr = r2_tl + Vector2(vr2, 0);
+		        let r2_bl = r2_tl + Vector2(0, vr2);
+		        let r2_br = r2_tl + Vector2(vr2, vr2);
 
-		        let r3_tl = Vector(x, y + height) + Vector(0, -vr3);
-		        let r3_tr = r3_tl + Vector(vr3, 0);
-		        let r3_bl = r3_tl + Vector(0, vr3);
-		        let r3_br = r3_tl + Vector(vr3, vr3);
+		        let r3_tl = Vector2(x, y + height) + Vector2(0, -vr3);
+		        let r3_tr = r3_tl + Vector2(vr3, 0);
+		        let r3_bl = r3_tl + Vector2(0, vr3);
+		        let r3_br = r3_tl + Vector2(vr3, vr3);
 
 		        // set tris
 		        {
@@ -799,12 +799,12 @@ namespace Pile
 		static readonly float RoundedRectUp = Math.Atan2(0, -1);
 		static readonly float RoundedRectDown = Math.Atan2(0, 1);
 
-		public void SemiCircle(Vector center, float startRadians, float endRadians, float radius, int steps, Color color)
+		public void SemiCircle(Vector2 center, float startRadians, float endRadians, float radius, int steps, Color color)
 		{
 		    SemiCircle(center, startRadians, endRadians, radius, steps, color, color);
 		}
 
-		public void SemiCircle(Vector center, float startRadians, float endRadians, float radius, int steps, Color centerColor, Color edgeColor)
+		public void SemiCircle(Vector2 center, float startRadians, float endRadians, float radius, int steps, Color centerColor, Color edgeColor)
 		{
 		    var last = Math.AngleToVector(startRadians, radius);
 
@@ -816,12 +816,12 @@ namespace Pile
 		    }
 		}
 
-		public void Circle(Vector center, float radius, int steps, Color color)
+		public void Circle(Vector2 center, float radius, int steps, Color color)
 		{
 		    Circle(center, radius, steps, color, color);
 		}
 
-		public void Circle(Vector center, float radius, int steps, Color centerColor, Color edgeColor)
+		public void Circle(Vector2 center, float radius, int steps, Color centerColor, Color edgeColor)
 		{
 		    var last = Math.AngleToVector(0, radius);
 
@@ -833,7 +833,7 @@ namespace Pile
 		    }
 		}
 
-		public void HollowCircle(Vector center, float radius, float thickness, int steps, Color color)
+		public void HollowCircle(Vector2 center, float radius, float thickness, int steps, Color color)
 		{
 		    var last = Math.AngleToVector(0, radius);
 
@@ -874,8 +874,8 @@ namespace Pile
 		}
 
 		public void Image(Texture texture,
-		    Vector pos0, Vector pos1, Vector pos2, Vector pos3,
-		    Vector uv0, Vector uv1, Vector uv2, Vector uv3,
+		    Vector2 pos0, Vector2 pos1, Vector2 pos2, Vector2 pos3,
+		    Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector2 uv3,
 		    Color col0, Color col1, Color col2, Color col3, bool washed = false)
 		{
 		    SetTexture(texture);
@@ -883,8 +883,8 @@ namespace Pile
 		}
 
 		public void Image(Texture texture,
-		    Vector pos0, Vector pos1, Vector pos2, Vector pos3,
-		    Vector uv0, Vector uv1, Vector uv2, Vector uv3,
+		    Vector2 pos0, Vector2 pos1, Vector2 pos2, Vector2 pos3,
+		    Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector2 uv3,
 		    Color color, bool washed)
 		{
 		    SetTexture(texture);
@@ -896,24 +896,24 @@ namespace Pile
 		    SetTexture(texture);
 		    Quad(
 		        .Zero,
-		        Vector(texture.Width, 0),
-		        Vector(texture.Width, texture.Height),
-		        Vector(0, texture.Height),
-		        Vector(0, 0),
+		        Vector2(texture.Width, 0),
+		        Vector2(texture.Width, texture.Height),
+		        Vector2(0, texture.Height),
+		        Vector2(0, 0),
 		        .UnitX,
 		        .One,
 		        .UnitY,
 		        color, washed);
 		}
 
-		public void Image(Texture texture, Vector position, Color color, bool washed = false)
+		public void Image(Texture texture, Vector2 position, Color color, bool washed = false)
 		{
 		    SetTexture(texture);
 		    Quad(
 		        position,
-		        position + Vector(texture.Width, 0),
-		        position + Vector(texture.Width, texture.Height),
-		        position + Vector(0, texture.Height),
+		        position + Vector2(texture.Width, 0),
+		        position + Vector2(texture.Width, texture.Height),
+		        position + Vector2(0, texture.Height),
 		        .Zero,
 		        .UnitX,
 		        .One,
@@ -921,7 +921,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Texture texture, Vector position, Vector scale, Vector origin, float rotation, Color color, bool washed = false)
+		public void Image(Texture texture, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
 		{
 		    let was = MatrixStack;
 
@@ -930,9 +930,9 @@ namespace Pile
 		    SetTexture(texture);
 		    Quad(
 		        .Zero,
-		        Vector(texture.Width, 0),
-		        Vector(texture.Width, texture.Height),
-		        Vector(0, texture.Height),
+		        Vector2(texture.Width, 0),
+		        Vector2(texture.Width, texture.Height),
+		        Vector2(0, texture.Height),
 		        .Zero,
 		        .UnitX,
 		        .One,
@@ -942,7 +942,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector position, Color color, bool washed = false)
+		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector2 position, Color color, bool washed = false)
 		{
 		    let tx0 = cx / texture.Width;
 		    let ty0 = cy / texture.Height;
@@ -952,17 +952,17 @@ namespace Pile
 		    SetTexture(texture);
 		    Quad(
 		        position,
-		        position + Vector(cwidth, 0),
-		        position + Vector(cwidth, cheight),
-		        position + Vector(0, cheight),
-		        Vector(tx0, ty0),
-		        Vector(tx1, ty0),
-		        Vector(tx1, ty1),
-		        Vector(tx0, ty1),
+		        position + Vector2(cwidth, 0),
+		        position + Vector2(cwidth, cheight),
+		        position + Vector2(0, cheight),
+		        Vector2(tx0, ty0),
+		        Vector2(tx1, ty0),
+		        Vector2(tx1, ty1),
+		        Vector2(tx0, ty1),
 				color, washed);
 		}
 
-		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector position, Vector scale, Vector origin, float rotation, Color color, bool washed = false)
+		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
 		{
 		    let was = MatrixStack;
 
@@ -976,13 +976,13 @@ namespace Pile
 		    SetTexture(texture);
 		    Quad(
 				position,
-				position + Vector(cwidth, 0),
-				position + Vector(cwidth, cheight),
-				position + Vector(0, cheight),
-				Vector(tx0, ty0),
-				Vector(tx1, ty0),
-				Vector(tx1, ty1),
-				Vector(tx0, ty1),
+				position + Vector2(cwidth, 0),
+				position + Vector2(cwidth, cheight),
+				position + Vector2(0, cheight),
+				Vector2(tx0, ty0),
+				Vector2(tx1, ty0),
+				Vector2(tx1, ty1),
+				Vector2(tx0, ty1),
 				color, washed);
 
 		    MatrixStack = was;
@@ -997,7 +997,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Subtexture subtex, Vector position, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Vector2 position, Color color, bool washed = false)
 		{
 		    SetTexture(subtex.Texture);
 		    Quad(position + subtex.DrawCoords[0], position + subtex.DrawCoords[1], position + subtex.DrawCoords[2], position + subtex.DrawCoords[3],
@@ -1005,7 +1005,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Subtexture subtex, Vector position, Vector scale, Vector origin, float rotation, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
 		{
 		    var was = MatrixStack;
 
@@ -1020,7 +1020,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		public void Image(Subtexture subtex, Rect clip, Vector position, Vector scale, Vector origin, float rotation, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Rect clip, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
 		{
 		    var (source, frame) = subtex.GetClip(clip);
 		    var tex = subtex.Texture;
@@ -1048,8 +1048,8 @@ namespace Pile
 
 		    SetTexture(subtex.Texture);
 		    Quad(
-		        Vector(px0, py0), Vector(px1, py0), Vector(px1, py1), Vector(px0, py1),
-		        Vector(tx0, ty0), Vector(tx1, ty0), Vector(tx1, ty1), Vector(tx0, ty1),
+		        Vector2(px0, py0), Vector2(px1, py0), Vector2(px1, py1), Vector2(px0, py1),
+		        Vector2(tx0, ty0), Vector2(tx1, ty0), Vector2(tx1, ty1), Vector2(tx0, ty1),
 		        color, washed);
 
 		    MatrixStack = was;
@@ -1118,13 +1118,13 @@ namespace Pile
 			Resize(ref vertices, index);
 		}
 
-		void Transform(ref Vector to, Vector position, Matrix3x2 matrix)
+		void Transform(ref Vector2 to, Vector2 position, Matrix3x2 matrix)
 		{
 		    to.X = (position.X * matrix.m11) + (position.Y * matrix.m21) + matrix.m31;
 		    to.Y = (position.X * matrix.m12) + (position.Y * matrix.m22) + matrix.m32;
 		}
 
-		void VerticalFlip(ref Vector uv0, ref Vector uv1, ref Vector uv2, ref Vector uv3)
+		void VerticalFlip(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)
 		{
 		    uv0.Y = 1 - uv0.Y;
 		    uv1.Y = 1 - uv1.Y;
