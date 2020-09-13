@@ -10,7 +10,7 @@ namespace Pile
 		readonly bool[] down = new bool[MaxButtons] ~ delete _;
 		readonly bool[] released = new bool[MaxButtons] ~ delete _;
 		readonly int64[] timestamp = new int64[MaxButtons] ~ delete _;
-		Vector wheelValue;
+		Vector2 wheelValue;
 
 		void Step()
 		{
@@ -70,6 +70,6 @@ namespace Pile
 		public bool MiddleDown => down[(int)MouseButtons.Middle];
 		public bool MiddleReleased => released[(int)MouseButtons.Middle];
 
-		public Vector Wheel => wheelValue;
+		public Vector2 Wheel => wheelValue;
 	}
 }

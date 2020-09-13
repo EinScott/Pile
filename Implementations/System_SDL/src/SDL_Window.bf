@@ -55,8 +55,8 @@ namespace Pile.Implementations
 		public override void SetTitle(String title) => SDL.SetWindowTitle(window, title);
 		public override void GetTitle(String buffer) => buffer.Append(SDL.GetWindowTitle(window));
 
-		Point position;
-		public override Point Position
+		Point2 position;
+		public override Point2 Position
 		{
 			get => position;
 
@@ -70,8 +70,8 @@ namespace Pile.Implementations
 			}
 		}
 
-		Point size;
-		public override Point Size
+		Point2 size;
+		public override Point2 Size
 		{
 			get => size;
 
@@ -85,7 +85,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		public override Point RenderSize
+		public override Point2 RenderSize
 		{
 			get
 			{
@@ -96,11 +96,11 @@ namespace Pile.Implementations
 				else
 					SDL.GetWindowSize(window, out w, out h);
 
-				return Point(w, h);
+				return Point2(w, h);
 			}
 		}
 
-		public override Vector ContentScale
+		public override Vector2 ContentScale
 		{
 			get
 			{
@@ -110,7 +110,7 @@ namespace Pile.Implementations
 
 				int32 index = (int32)SDL.SDL_GetWindowDisplayIndex(window);
 				SDL.GetDisplayDPI(index, let ddpi, let _hdpi, let _vdpi);
-				return Vector.One * (ddpi / hidpiRes);
+				return Vector2.One * (ddpi / hidpiRes);
 			}
 		}
 

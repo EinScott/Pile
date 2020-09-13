@@ -65,14 +65,14 @@ namespace Pile.Implementations
 				buffer.Append(SDL.GetClipboardText());
 		}
 
-		public override Point MousePosition
+		public override Point2 MousePosition
 		{
 			get
 			{
 				SDL.GetWindowPosition(window.[Friend]window, let winX, let winY);
 				int32 x = 0, y = 0;
 				SDL.GetGlobalMouseState(&x, &y);
-				return Point(x - winX, y - winY);
+				return Point2(x - winX, y - winY);
 			}
 
 			set =>SDL.WarpMouseInWindow(window.[Friend]window, (int32)value.X, (int32)value.Y);

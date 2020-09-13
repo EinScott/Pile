@@ -19,9 +19,9 @@ namespace Pile
 		public abstract void SetTitle(String title);
 		public abstract void GetTitle(String buffer);
 		
-		public abstract Point Position { get; set; }
-		public abstract Point Size { get; set; }
-		public abstract Vector ContentScale { get; }
+		public abstract Point2 Position { get; set; }
+		public abstract Point2 Size { get; set; }
+		public abstract Vector2 ContentScale { get; }
 
 		public abstract bool Resizable { get; set; }
 		public abstract bool Transparent { get; set; }

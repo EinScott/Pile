@@ -55,7 +55,7 @@ namespace Pile
 	            m14, m24, m34, m44 );
 	    }
 	
-	    public static Matrix4x4 FromPosition(Vector position)
+	    public static Matrix4x4 FromPosition(Vector2 position)
 		{
 	        return Matrix4x4(
 	            1, 0, 0, 0,
@@ -73,7 +73,7 @@ namespace Pile
 		        x, y, z, 1 );
 		}
 
-	    public static Matrix4x4 FromScale(Vector scale)
+	    public static Matrix4x4 FromScale(Vector2 scale)
 		{
 	        return Matrix4x4(
 	            scale.X, 0, 0, 0,
@@ -137,7 +137,7 @@ namespace Pile
 		    return FromPosition(px, py, pz) * FromScale(sx, sy, sz) * FromRotation(rx, ry, rz);
 		}
 
-		public static Matrix4x4 FromTransform(Vector position, Vector scale, float rotation)
+		public static Matrix4x4 FromTransform(Vector2 position, Vector2 scale, float rotation)
 		{
 		    return FromPosition(position) * FromScale(scale) * FromRotationZ(rotation);
 		}

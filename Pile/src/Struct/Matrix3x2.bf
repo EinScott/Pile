@@ -27,7 +27,7 @@ namespace Pile
 			this.m32 = m32;
 		}
 
-		public static Matrix3x2 FromPosition(Vector position)
+		public static Matrix3x2 FromPosition(Vector2 position)
 		{
 			return Matrix3x2(
 				1, 0,
@@ -35,7 +35,7 @@ namespace Pile
 				position.X, position.Y);
 		}
 
-		public static Matrix3x2 FromScale(Vector scale)
+		public static Matrix3x2 FromScale(Vector2 scale)
 		{
 			return Matrix3x2(
 				scale.X, 0,
@@ -54,12 +54,12 @@ namespace Pile
 				0, 0);
 		}
 
-		public static Matrix3x2 FromTransform(Vector position, Vector scale, float rotation)
+		public static Matrix3x2 FromTransform(Vector2 position, Vector2 scale, float rotation)
 		{
 			return FromPosition(position) * FromScale(scale) * FromRotation(rotation);
 		}
 
-		public static Matrix3x2 FromTransform(Vector position, Vector origin, Vector scale, float rotation)
+		public static Matrix3x2 FromTransform(Vector2 position, Vector2 origin, Vector2 scale, float rotation)
 		{
 			var mat = Matrix3x2.Identity;
 

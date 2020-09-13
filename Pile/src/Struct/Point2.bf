@@ -10,6 +10,7 @@ namespace Pile
 		public static readonly Point2 Left = .(-1, 0);
 		public static readonly Point2 Up = .(0, -1);
 		public static readonly Point2 Down = .(0, 1);
+
 		public static readonly Point2 UnitX = .(1, 0);
 		public static readonly Point2 UnitY = .(0, 1);
 		public static readonly Point2 Zero = .(0, 0);

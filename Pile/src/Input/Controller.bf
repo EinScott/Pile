@@ -96,11 +96,11 @@ namespace Pile
 		public float Axis(int axisIndex) => (axisIndex >= 0 && axisIndex < MaxAxis) ? axis[axisIndex] : 0f;
 		public float Axis(Axes axis) => Axis((int)axis);
 
-		public Vector Axis(int axisX, int axisY) => Vector(Axis(axisX), Axis(axisY));
-		public Vector Axis(Axes axisX, Axes axisY) => Vector(Axis(axisX), Axis(axisY));
+		public Vector2 Axis(int axisX, int axisY) => Vector2(Axis(axisX), Axis(axisY));
+		public Vector2 Axis(Axes axisX, Axes axisY) => Vector2(Axis(axisX), Axis(axisY));
 
-		public Vector LeftStick => Axis(Pile.Axes.LeftX, Pile.Axes.LeftY);
-		public Vector RightStick => Axis(Pile.Axes.RightX, Pile.Axes.RightY);
+		public Vector2 LeftStick => Axis(Pile.Axes.LeftX, Pile.Axes.LeftY);
+		public Vector2 RightStick => Axis(Pile.Axes.RightX, Pile.Axes.RightY);
 
 		public bool Repeated(Buttons button)
 		{

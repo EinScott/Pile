@@ -97,7 +97,7 @@ namespace Pile
 				}
 			}
 
-			public void SetFloat2(Vector value, int index = 0)
+			public void SetFloat2(Vector2 value, int index = 0)
 			{
 				let offset = index * 2;
 				AssertParameters(.Float2, index);
@@ -109,14 +109,14 @@ namespace Pile
 				}
 			}
 
-			public Vector GetFloat2(int index = 0)
+			public Vector2 GetFloat2(int index = 0)
 			{
 				let offset = index * 2;
 				AssertParameters(.Float2, index);
 
 				if (let val = Value as float[])
 				{
-					return Vector(val[offset], val[offset + 1]);
+					return Vector2(val[offset], val[offset + 1]);
 				}
 				return .Zero;
 			}
@@ -134,16 +134,29 @@ namespace Pile
 				}
 			}
 
-			public (float, float, float) GetFloat3(int index = 0)
+			public void SetFloat3(Vector3 value, int index = 0)
 			{
 				let offset = index * 3;
 				AssertParameters(.Float3, index);
 
 				if (let val = Value as float[])
 				{
-					return (val[offset], val[offset + 1], val[offset + 2]);
+					val[offset] = value.X;
+					val[offset + 1] = value.Y;
+					val[offset + 2] = value.Z;
 				}
-				return (0, 0, 0);
+			}
+
+			public Vector3 GetFloat3(int index = 0)
+			{
+				let offset = index * 3;
+				AssertParameters(.Float3, index);
+
+				if (let val = Value as float[])
+				{
+					return Vector3(val[offset], val[offset + 1], val[offset + 2]);
+				}
+				return .Zero;
 			}
 
 			public void SetFloat4((float, float, float, float) value, int index = 0)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using JetFistGames.Toml;
 
 namespace Pile
 {
@@ -14,15 +15,10 @@ namespace Pile
 
 		// need packer and data file format to continue
 
-		public abstract class Importer<Tasset>
+		public abstract class Importer
 		{
-			public Type AssetType = typeof(Tasset);
-
-			// look at old importer
-			// this somehow needs to convert some data into a datafile and 
-
 			public abstract bool Accepts(uint8[] data);
-			public abstract Tasset Import(uint8[] data /*, DATAFILE*/); // This also needs to have some way to access a texture/bitmap list???
+			public abstract Object Import(uint8[] data /*, DATAFILE*/); // This also needs to have some way to access a texture/bitmap list???
 			public abstract Result<void, String> Build(uint8[] data, ref uint8[] outdata /*, ref DATAFILEFORMAT, PACKER (put texture data in here)*/);
 		}
 
@@ -36,26 +32,55 @@ namespace Pile
 			public StringView Name => name;
 		}
 
+		class PackageData
+		{
+			public List<ImportData> imports = new List<ImportData>() ~ DeleteContainerAndItems!(_);
+
+			public class ImportData
+			{
+				public String path ~ delete _;
+				public String importer ~ delete _;
+
+				public this(StringView path, StringView importer)
+				{
+					this.path = new String(path);
+					this.importer = new String(importer);
+				}
+			}
+		}
+
 		static class AssetLookup<T> where T : class, delete
 		{
 			static Dictionary<String, T> L = new Dictionary<String, T>() ~ DeleteDictionaryAndKeysAndItems!(_);
 		}
 
-		static class ImporterLookup<T, Tasset> where T : Importer<Tasset> // I DONT KNOW IF THIS EVEN WORKS
+		static Dictionary<String, Importer> importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndItems!(_);
+		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
+
+		public static void RegisterImporter(StringView name, Importer importer)
 		{
-			static List<Importer<Tasset>> L = new List<Importer<Tasset>>() ~ DeleteContainerAndItems!(_); 
+			for (let s in importers.Keys)
+				if (s == name)
+				{
+					Log.Error(scope String("Couldn't register importer as {0}, because another importer was already registered for under that name")..Format(name));
+					return;
+				}
+
+			importers.Add(new String(name), importer);
 		}
 
-		public static Event<Action> RegisterImporters ~ RegisterImporters.Dispose();
-
-		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_); // have public functions to access this
-
-		static void Startup()
+		public static void UnregisterImporter(StringView name)
 		{
-			// handle registering importers here
+			let res = importers.GetAndRemove(scope String(name));
 
-			// do master file that lists all packages?? no, just load by path
-			// in any case, the packages all have their data file listing the path of all assets and a string of their importers
+			// Delete
+			if (res != .Err)
+			{
+				let val = res.Get();
+
+				delete val.key;
+				delete val.value;
+			}
 		}
 
 		public static Result<void, String> LoadPackage(StringView packageName)
@@ -68,8 +93,72 @@ namespace Pile
 			
 		}
 
+		public static bool PackageLoaded(StringView packageName, out Package package)
+		{
+			for (let p in loadedPackages)
+				if (p.Name == packageName)
+				{
+					package = p;
+					return true;
+				}
+
+			package = null;
+			return false;
+		}
+
 		public static Result<void, String> BuildPackage(StringView packagePath)
 		{
+			PackageData packageData = scope PackageData();
+
+			{
+				// Read package file
+				String tomlFile = scope String();
+				if (Core.System.FileReadAllText(packagePath, tomlFile) case .Err(let err))
+				{
+					return .Err(scope String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
+				}
+	
+				// Read toml
+				let res = TomlSerializer.Read(tomlFile);
+	
+				TomlTableNode baseNode;
+				switch (res)
+				{
+				case .Ok(let val):
+					 baseNode = val.GetTable().Get();
+				case .Err(let err):
+					return .Err(scope String("Couldn't build package at {0}. Error while reading toml: {1}")..Format(packagePath, err));
+				}
+
+				if (baseNode.FindChild("import") != null)
+					return .Err(scope String("Couldn't build package at {0}. Import data file must include and 'import' array of tables")..Format(packagePath));
+
+				let tableArray = baseNode.FindChild("import").GetArray().Get();
+				for (int i = 0; i < tableArray.Count; i++)
+				{
+					let entry = tableArray[i].GetTable().Get();
+
+					if (entry.FindChild("path") != null || entry.FindChild("importer") != null)
+						return .Err(scope String("Couldn't build package at {0}. Every import table in package data needs to include a 'path' and 'importer' string key")..Format(packagePath));
+
+					if (entry.FindChild("path").GetString() == .Err || entry.FindChild("importer").GetString() == .Err)
+						return .Err(scope String("Couldn't build package at {0}. 'path' and 'import' keys need to have values of type String")..Format(packagePath));
+
+					packageData.imports.Add(new PackageData.ImportData(entry.FindChild("path").GetString().Get(), entry.FindChild("importer").GetString().Get()));
+				}
+	
+				delete baseNode;
+			}
+
+			// Resolve imports
+			for (let import in packageData.imports)
+			{
+
+			}
+
+			// THIS ALSO NEEDS TO ACCEPT FULL FOLDERS & IMPORTERS, otherwise this will be very tedious
+			// SO EITHER FILE OR FOLDER PATH
+
 			return .Ok;
 		}
 	}

@@ -10,6 +10,7 @@ namespace Pile
 		public static readonly Vector2 Left = .(-1, 0);
 		public static readonly Vector2 Up = .(0, -1);
 		public static readonly Vector2 Down = .(0, 1);
+
 		public static readonly Vector2 UnitX = .(1, 0);
 		public static readonly Vector2 UnitY = .(0, 1);
 		public static readonly Vector2 Zero = .(0, 0);

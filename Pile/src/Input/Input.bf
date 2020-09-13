@@ -55,7 +55,7 @@ namespace Pile
 		public abstract void SetClipboardString(String value);
 		public abstract void GetClipboardString(String buffer);
 
-		public abstract Point MousePosition { get; set; }
+		public abstract Point2 MousePosition { get; set; }
 
 		public Event<Action<char16>> OnTextTyped;
 
@@ -101,7 +101,7 @@ namespace Pile
 
 		protected void OnMouseWheel(float offsetX, float offsetY)
 		{
-		    nextState.mouse.[Friend]wheelValue = Vector(offsetX, offsetY);
+		    nextState.mouse.[Friend]wheelValue = Vector2(offsetX, offsetY);
 		}
 
 		protected void OnJoystickConnect(uint index, uint buttonCount, uint axisCount, bool isGamepad)

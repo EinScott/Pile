@@ -11,26 +11,26 @@ namespace Pile
 
 		    public float circularDeadzone = 0f;
 
-		    public Vector Value
+		    public Vector2 Value
 		    {
 		        get
 		        {
-		            var result = Vector(horizontal.Value, vertical.Value);
+		            var result = Vector2(horizontal.Value, vertical.Value);
 		            if (circularDeadzone != 0 && result.Length < circularDeadzone)
-		                return Vector.Zero;
+		                return Vector2.Zero;
 		            return result;
 		        }
 		    }
-		    public Vector ValueNoDeadzone => Vector(horizontal.ValueNoDeadzone, vertical.ValueNoDeadzone);
-		    public Point IntValue
+		    public Vector2 ValueNoDeadzone => Vector2(horizontal.ValueNoDeadzone, vertical.ValueNoDeadzone);
+		    public Point2 IntValue
 		    {
 		        get
 		        {
 		            var result = Value;
-		            return Point(Math.Sign(result.X), Math.Sign(result.Y));
+		            return Point2(Math.Sign(result.X), Math.Sign(result.Y));
 		        }
 		    }
-		    public Point IntValueNoDeadzone => Point(horizontal.IntValueNoDeadzone, vertical.IntValueNoDeadzone);
+		    public Point2 IntValueNoDeadzone => Point2(horizontal.IntValueNoDeadzone, vertical.IntValueNoDeadzone);
 
 		    public this(float circularDeadzone = 0f)
 		    {

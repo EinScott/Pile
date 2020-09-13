@@ -49,7 +49,7 @@ namespace System
 		        return Math.Min(from + amount, target);
 		}
 
-		public static Vector Approach(Vector from, Vector target, float amount)
+		public static Vector2 Approach(Vector2 from, Vector2 target, float amount)
 		{
 		    if (from == target)
 		        return target;
@@ -101,19 +101,19 @@ namespace System
 		    return Clamp((val - min) / (max - min), 0, 1) * (newMax - newMin) + newMin;
 		}
 
-		public static float Angle(Vector vec)
+		public static float Angle(Vector2 vec)
 		{
 		    return Math.Atan2(vec.Y, vec.X);
 		}
 
-		public static float Angle(Vector from, Vector to)
+		public static float Angle(Vector2 from, Vector2 to)
 		{
 		    return Math.Atan2(to.Y - from.Y, to.X - from.X);
 		}
 
-		public static Vector AngleToVector(float angle, float length = 1)
+		public static Vector2 AngleToVector(float angle, float length = 1)
 		{
-		    return Vector(Math.Cos(angle) * length, Math.Sin(angle) * length);
+		    return Vector2(Math.Cos(angle) * length, Math.Sin(angle) * length);
 		}
 
 		public static float AngleApproach(float val, float target, float maxMove)

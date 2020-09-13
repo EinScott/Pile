@@ -199,12 +199,12 @@ namespace Pile
 		public static void AppendToFile(String filePath)
 		{
 			var directory = scope String();
-			Runtime.Assert(Path.GetDirectoryPath(filePath, directory) == .Ok, "Couldn't append log to file, invalid path");
+			Runtime.Assert(Path.GetDirectoryPath(filePath, directory) case .Ok, "Couldn't append log to file, invalid path");
 
 			if (directory.Length != 0 && !Directory.Exists(directory))
 			{
 				FileResult res = default;
-				Runtime.Assert(Core.System.DirectoryCreate(directory) != .Err(res), scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
+				if (Core.System.DirectoryCreate(directory) case .Err(res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
 			}
 
 			let fileLog = scope String();
@@ -245,7 +245,7 @@ namespace Pile
 			}
 
 			// Write
-			Runtime.Assert(Core.System.FileWriteAllText(filePath, fileLog) == .Ok, "Couldn't append log to file, couldn't write file");
+			Runtime.Assert(Core.System.FileWriteAllText(filePath, fileLog) case .Ok, "Couldn't append log to file, couldn't write file");
 		}
 	}
 }

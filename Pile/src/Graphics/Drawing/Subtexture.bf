@@ -4,8 +4,8 @@ namespace Pile
 {
 	public class Subtexture
 	{
-		public Point[4] TexCoords { get; private set; }
- 		public Point[4] DrawCoords { get; private set; }
+		public Point2[4] TexCoords { get; private set; }
+ 		public Point2[4] DrawCoords { get; private set; }
 
 		public Texture Texture
 		{
@@ -70,7 +70,7 @@ namespace Pile
 		{
 			(Rect Source, Rect Frame) result;
 
-			result.Source = (clip + Point(Source.Left, Source.Top) + Point(Frame.Left, Frame.Top)).OverlapRect(Source);
+			result.Source = (clip + Point2(Source.Left, Source.Top) + Point2(Frame.Left, Frame.Top)).OverlapRect(Source);
 
 			result.Frame.X = Math.Min(0, Frame.X + clip.X);
 			result.Frame.Y = Math.Min(0, Frame.Y + clip.Y);

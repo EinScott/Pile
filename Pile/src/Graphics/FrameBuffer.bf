@@ -16,8 +16,8 @@ namespace Pile
 
 		public int AttachmentCount => platform.Attachments.Count;
 
-		public override Point RenderSize => renderSize;
-		Point renderSize;
+		public override Point2 RenderSize => renderSize;
+		Point2 renderSize;
 
 		public this(int32 width, int32 height)
 			: this(width, height, .Color) {}
@@ -26,7 +26,7 @@ namespace Pile
 		{
 			Runtime.Assert(width > 0 || height > 0, "FrameBuffer size must be larger than 0");
 			Runtime.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");
-			renderSize = Point(width, height);
+			renderSize = Point2(width, height);
 			
 			platform = Core.Graphics.[Friend]CreateFrameBuffer(width, height, attachments);
 			Renderable = true;
