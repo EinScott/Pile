@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections;
 using JetFistGames.Toml;
 
@@ -115,7 +116,7 @@ namespace Pile
 				String tomlFile = scope String();
 				if (Core.System.FileReadAllText(packagePath, tomlFile) case .Err(let err))
 				{
-					return .Err(scope String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
+					return .Err(new String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
 				}
 	
 				// Read toml
@@ -127,22 +128,22 @@ namespace Pile
 				case .Ok(let val):
 					 baseNode = val.GetTable().Get();
 				case .Err(let err):
-					return .Err(scope String("Couldn't build package at {0}. Error while reading toml: {1}")..Format(packagePath, err));
+					return .Err(new String("Couldn't build package at {0}. Error while reading toml: {1}")..Format(packagePath, err));
 				}
 
-				if (baseNode.FindChild("import") != null)
-					return .Err(scope String("Couldn't build package at {0}. Import data file must include and 'import' array of tables")..Format(packagePath));
+				if (baseNode.FindChild("import") == null)
+					return .Err(new String("Couldn't build package at {0}. Import data file must include and 'import' array of tables")..Format(packagePath));
 
 				let tableArray = baseNode.FindChild("import").GetArray().Get();
 				for (int i = 0; i < tableArray.Count; i++)
 				{
 					let entry = tableArray[i].GetTable().Get();
 
-					if (entry.FindChild("path") != null || entry.FindChild("importer") != null)
-						return .Err(scope String("Couldn't build package at {0}. Every import table in package data needs to include a 'path' and 'importer' string key")..Format(packagePath));
+					if (entry.FindChild("path") == null || entry.FindChild("importer") == null)
+						return .Err(new String("Couldn't build package at {0}. Every import table in package data needs to include a 'path' and 'importer' string key")..Format(packagePath));
 
 					if (entry.FindChild("path").GetString() == .Err || entry.FindChild("importer").GetString() == .Err)
-						return .Err(scope String("Couldn't build package at {0}. 'path' and 'import' keys need to have values of type String")..Format(packagePath));
+						return .Err(new String("Couldn't build package at {0}. 'path' and 'import' keys need to have values of type String")..Format(packagePath));
 
 					packageData.imports.Add(new PackageData.ImportData(entry.FindChild("path").GetString().Get(), entry.FindChild("importer").GetString().Get()));
 				}
@@ -151,13 +152,42 @@ namespace Pile
 			}
 
 			// Resolve imports
+			List<String> importPaths = new List<String>(); // All of these paths exist
+			let rootPath = scope String();
+			Path.GetDirectoryPath(packagePath, rootPath);
 			for (let import in packageData.imports)
 			{
+				// Interpret path string
+				for (var path in import.path.Split(';'))
+				{
+					path.Trim();
 
+					let fullPath = new String();
+					Path.InternalCombine(fullPath, rootPath, scope String(path));
+
+					// Check if folder exists
+					{
+						let dirPath = scope String();
+						Path.GetDirectoryPath(fullPath, dirPath);
+	
+						if (!Core.System.DirectoryExists(dirPath))
+						{
+							Log.Warning(scope String("Skipped import path while building package at {0}. Failed to find containing directory if {1} at {2}")..Format(packagePath, path, dirPath));
+							continue;
+						}
+					}
+
+					// Determine if it is a wildcare or a file??, get all paths that match wildcare if it is one and add those
+
+					// Is it a file or a folder? --- no wildcares
+					//if (Core.System.FileExists(path) || Core.System.DirectoryExists(path)) importPaths.Add(StringView(path));
+					//else Log.Warning(scope String("Failed to find file or directory at {0}"));
+
+					delete fullPath; // TEMPORARY
+				}
 			}
 
-			// THIS ALSO NEEDS TO ACCEPT FULL FOLDERS & IMPORTERS, otherwise this will be very tedious
-			// SO EITHER FILE OR FOLDER PATH
+			delete importPaths;
 
 			return .Ok;
 		}
