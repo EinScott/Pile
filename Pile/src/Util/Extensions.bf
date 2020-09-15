@@ -139,4 +139,29 @@ namespace System
 		    return Math.Round(value / snapTo) * snapTo;
 		}
 	}
+
+	namespace IO
+	{
+		public extension Path
+		{
+			public static bool SamePath(StringView filePathA, StringView filePathB)
+			{
+				if (filePathA.Length != filePathB.Length) return false;
+
+				bool matches = true;
+				char8* a = filePathA.Ptr;
+				char8* b = filePathB.Ptr;
+
+				while (a != filePathA.EndPtr)
+				{
+					if (*a != *b && !(*a == Path.DirectorySeparatorChar && *b == Path.AltDirectorySeparatorChar || *a == Path.AltDirectorySeparatorChar && *b == Path.DirectorySeparatorChar))
+						matches = false;
+					a++;
+					b++;
+				}
+
+				return matches;
+			}
+		}
+	}
 }

@@ -18,9 +18,8 @@ namespace Pile
 
 		public abstract class Importer
 		{
-			public abstract bool Accepts(uint8[] data);
-			public abstract Object Import(uint8[] data /*, DATAFILE*/); // This also needs to have some way to access a texture/bitmap list???
-			public abstract Result<void, String> Build(uint8[] data, ref uint8[] outdata /*, ref DATAFILEFORMAT, PACKER (put texture data in here)*/);
+			public abstract Object Load(uint8[] data, TomlNode dataNode); // This also needs to have some way to access a texture/bitmap list???
+			public abstract Result<void, String> Import(uint8[] data, uint8[] outData, TomlNode outDataNode/*, PACKER (put texture data in here)*/);
 		}
 
 		// Do simple text and copy importer
@@ -109,6 +108,8 @@ namespace Pile
 
 		public static Result<void, String> BuildPackage(StringView packagePath)
 		{
+			// BREAK THIS DOWN INTO SMALLER PIECES AND MAKE TESTS FOR THEM (if possible, at least, cant really make tests for file access easily??, wait you can)
+
 			PackageData packageData = scope PackageData();
 
 			{
@@ -152,42 +153,116 @@ namespace Pile
 			}
 
 			// Resolve imports
-			List<String> importPaths = new List<String>(); // All of these paths exist
+			List<String> importPaths = scope List<String>(); // All of these paths exist
 			let rootPath = scope String();
 			Path.GetDirectoryPath(packagePath, rootPath);
 			for (let import in packageData.imports)
 			{
-				// Interpret path string
+				Importer importer;
+
+				// Try to find importer
+				if (importers.ContainsKey(import.importer)) importer = importers[import.importer];
+				else return .Err(new String("Couldn't build package at {0}. Couln't find importer '{1}'")..Format(packagePath, import.importer));
+
+				// Interpret path string (put all final paths in importPaths)
 				for (var path in import.path.Split(';'))
 				{
 					path.Trim();
 
-					let fullPath = new String();
+					let fullPath = scope String();
 					Path.InternalCombine(fullPath, rootPath, scope String(path));
 
-					// Check if folder exists
+					// Check if containing folder exists
+					let dirPath = scope String();
+					Path.GetDirectoryPath(fullPath, dirPath);
+
+					if (!Core.System.DirectoryExists(dirPath))
+						return .Err(new String("Couldn't build package at {0}. Failed to find containing directory of {1} at {2}")..Format(packagePath, path, dirPath));
+
+					// Import everything - recursively
+					if (Path.SamePath(fullPath, dirPath))
 					{
-						let dirPath = scope String();
-						Path.GetDirectoryPath(fullPath, dirPath);
-	
-						if (!Core.System.DirectoryExists(dirPath))
+						let importDirs = scope List<String>();
+						importDirs.Add(new String(dirPath));
+
+						String currImportPath;
+						repeat // For each entry in import dirs
 						{
-							Log.Warning(scope String("Skipped import path while building package at {0}. Failed to find containing directory if {1} at {2}")..Format(packagePath, path, dirPath));
-							continue;
+							currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
+
+							for (let entry in Core.System.DirectoryEnumerate(currImportPath, .Files | .Directories))
+							{
+								let path = new String();
+								entry.GetFilePath(path);
+
+								// Add matching files in this directory to import list
+								if (!entry.IsDirectory)
+									importPaths.Add(path);
+								// Look for matching sub dirs and add to importDirs list
+								else
+									importDirs.Add(path);
+							}
+
+							// Tidy up
+							importDirs.RemoveAt(importDirs.Count - 1);
+							delete currImportPath;
 						}
+						while (importDirs.Count > 0);
 					}
+					// Import everything that matches - recursively
+					else
+					{
+						let wildCard = scope String();
+						Path.GetFileName(fullPath, wildCard);
 
-					// Determine if it is a wildcare or a file??, get all paths that match wildcare if it is one and add those
+						let importDirs = scope List<String>();
+						importDirs.Add(new String(dirPath));
 
-					// Is it a file or a folder? --- no wildcares
-					//if (Core.System.FileExists(path) || Core.System.DirectoryExists(path)) importPaths.Add(StringView(path));
-					//else Log.Warning(scope String("Failed to find file or directory at {0}"));
+						String currImportPath;
+						let wildCardPath = scope String();
+						repeat // For each entry in import dirs
+						{
+							currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
 
-					delete fullPath; // TEMPORARY
+							wildCardPath..Append(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
+
+							bool match = false;
+							for (let entry in Core.System.DirectoryEnumerate(currImportPath, .Files | .Directories))
+								if (Path.WildcareCompare(currImportPath, wildCardPath))
+								{
+									let path = new String();
+									entry.GetFilePath(path);
+									match = true;
+
+									// Add matching files in this directory to import list
+									if (!entry.IsDirectory)
+										importPaths.Add(path);
+									// Look for matching sub dirs and add to importDirs list
+									else
+										importDirs.Add(path);
+								}
+
+							if (!match)
+								Log.Warning(scope String("Couldn't find any matches for {1} in {2}")..Format(packagePath, wildCardPath, currImportPath));
+
+							// Tidy up
+							importDirs.RemoveAt(importDirs.Count - 1);
+							delete currImportPath;
+							
+							wildCardPath.Clear();
+						}
+						while (importDirs.Count > 0);
+					}
+				}
+
+				// Import all files
+				for (var filePath in importPaths)
+				{
+					Log.Message(scope String("Importing {0}")..Format(filePath));
+
+					delete filePath;
 				}
 			}
-
-			delete importPaths;
 
 			return .Ok;
 		}

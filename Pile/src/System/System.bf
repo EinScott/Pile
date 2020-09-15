@@ -91,15 +91,14 @@ namespace Pile
 		public virtual Result<void, FileResult> DirectoryMove(StringView fromPath, StringView toPath) => HandleBfpFileOperation(Directory.Move(fromPath, toPath));
 		public virtual Result<void, FileResult> DirectoryCreate(StringView path) => HandleBfpFileOperation(Directory.CreateDirectory(path));
 
-		public virtual FileEnumerator DirectoryEnumerate(StringView path, EnumerateFlags flags, StringView wildcard = "*")
+		public virtual FileEnumerator DirectoryEnumerate(StringView searchPath, EnumerateFlags flags)
 		{
 			// Combine
-			let searchStr = scope String(path);
+			let searchStr = scope String(searchPath);
 
-			// -Stolen from Path.InternalCombine
-			if (searchStr.Length > 0 && !searchStr.EndsWith("\\") && !searchStr.EndsWith("/") && !wildcard.StartsWith("/") && !wildcard.StartsWith("\\"))
-				searchStr.Append(Path.DirectorySeparatorChar);
-			searchStr.Append(wildcard);
+			// Make sure its actually searching for something
+			if (searchStr.EndsWith(Path.DirectorySeparatorChar) || searchStr.EndsWith(Path.AltDirectorySeparatorChar))
+				searchStr.Append("*");
 
 			// This is slightly ugly, but Directory.EnumerateFlags is not public and thus i can't cast it
 			if (!flags.HasFlag(.Directories))
