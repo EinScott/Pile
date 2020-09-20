@@ -64,15 +64,16 @@ namespace Pile
 		public virtual Result<void> FileWriteAllText(StringView path, StringView text, bool doAppend = false) => File.WriteAllText(path, text, doAppend);
 		public virtual Result<void> FileWriteAllText(StringView path, StringView text, System.Text.Encoding encoding) => File.WriteAllText(path, text, encoding);
 
-		public virtual Result<void, FileError> FileReadAllBytes(StringView path, Span<uint8> outData)
+		public virtual Result<uint8[], FileError> FileReadAllBytes(StringView path)
 		{
 			FileStream s = scope FileStream();
 			if (s.Open(path) case .Err(let err))
 				return .Err(.FileOpenError(err));
+			let outData = new uint8[s.Length];
 			if (s.TryRead(outData) case .Err)
 				return .Err(.FileReadError(.Unknown));
 
-			return .Ok;
+			return .Ok(outData);
 		}
 		public virtual Result<void> FileWriteAllBytes(StringView path, Span<uint8> data)
 		{

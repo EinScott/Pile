@@ -76,6 +76,16 @@ namespace Pile
 			platform.GetData(span);
 		}
 
+		public Result<void, String> Set(Bitmap bitmap)
+		{
+			if (!bitmap.[Friend]initialized) return .Err("Bitmap is empty");
+
+			if (Resize(bitmap.Width, bitmap.Height) case .Err(let err)) return .Err(err);
+			platform.SetData(scope Span<Color>(bitmap.Pixels));
+
+			return .Ok;
+		}
+
 		/** Resize also clears the texture! TextureFormat is preserved.*/
 		public Result<void, String> Resize(int32 width, int32 height)
 		{

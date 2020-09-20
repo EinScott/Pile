@@ -71,6 +71,21 @@ namespace Pile
 			source.CopyTo(Pixels);
 		}
 
+		public void SetPixels(Rect destination, Span<Color> source)
+		{
+			if (!initialized) return;
+
+			let dst = Span<Color>(Pixels);
+
+			for (int y = 0; y < destination.Height; y++)
+			{
+			    let from = source.Slice(y * destination.Width, destination.Width);
+			    let to = dst.Slice(destination.X + (destination.Y + y) * Width, destination.Width);
+
+			    from.CopyTo(to);
+			}
+		}
+
 		public void GetPixels(Span<Color> dest, Rect destRect, Rect sourceRect)
 		{
 			if (!initialized) return;
