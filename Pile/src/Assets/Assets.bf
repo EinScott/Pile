@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 using JSON_Beef.Serialization;
 using JSON_Beef.Types;
 
@@ -18,11 +19,13 @@ namespace Pile
 		public abstract class Importer
 		{
 			public abstract Object Load(uint8[] data, JSONObject dataNode);
-			public abstract Result<uint8[], String> Import(uint8[] data, out JSONObject dataNode);
+			public abstract Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode);
 		}
 
 		public class Package
 		{
+			private this() {}
+
 			List<String> ownedAssets = new List<String>() ~ delete _;
 
 			readonly String name = new String() ~ delete _;
@@ -47,11 +50,13 @@ namespace Pile
 		class PackageNode
 		{
 			// Node of data for one file
+			public readonly uint32 Importer;
 			public readonly uint8[] Data ~ delete _;
 			public readonly uint8[] DataNode ~ delete _;
 
-			public this(uint8[] data, uint8[] dataNode)
+			public this(uint32 importer, uint8[] data, uint8[] dataNode)
 			{
+				Importer = importer;
 				Data = data;
 				DataNode = dataNode;
 			}
@@ -108,12 +113,68 @@ namespace Pile
 			}
 		}
 
-		public static Result<void, String> LoadPackage(StringView packageName)
+		public static Result<Package, String> LoadPackage(StringView packageName)
 		{
-			// load from packages subfolder with this name, no lookup file
-			// (.../Game/Packages/packageFile)
+			List<PackageNode> nodes = scope List<PackageNode>();
+			List<String> importerNames = scope List<String>();
 
-			return .Ok;
+			// Read file
+			{
+				let packagePath = scope String();
+				Path.InternalCombineViews(packagePath, packagesPath, packageName);
+				if (!packageName.EndsWith(".bin")) Path.ChangeExtension(scope String(packagePath), ".bin", packagePath);
+				let res = Core.System.FileReadAllBytes(packagePath);
+				if (res case .Err)
+					return .Err(new String("Couldn't loat package {0}. Error reading file from {1}")..Format(packageName, packagePath));
+	
+				let file = res.Value;
+	
+				// HEADER (3 bytes + one reserved)
+				// FILESIZE (4 bytes, uint32)
+	
+				// IMPORTERNAMECOUNT (uint32)
+				// -IMPORTERNAME ARRAY
+				// 		ELEMENT:
+				// 		STRINGSIZE (uint32)
+				// 		STRING
+	
+				// NODESCOUNT (uint32)
+	
+				// NODEDATALENGTHARRAY
+				// 		ELEMENT:
+				// 		DATALENGTH (uint32)
+				// 		DATANODELENGTH (uint32)
+	
+				// NODEDATAARRAY
+				//		ELEMENT:
+				// 		IMPORTERNAMEINDEX (uint32)
+				// 		DATAARRAY (of bytes)
+				// 		DATANODEARRAY (of bytes)
+
+				uint readByte = 4; // Start at header
+
+				if (file.Count < 16 // Check min file size
+					|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
+					|| file[3] != 0x00 // Check version
+					|| UInt(4) != (uint32)file.Count) // Check file size
+					return .Err(new String("Couldn't loat package {0}. Invalid file format")..Format(packageName));
+
+				let importerNameCount = UInt();
+				for (uint i = 0; i < importerNameCount; i++)
+				{
+					let importerNameLength = UInt();
+					importerNames.Add(file[readByte + i]);
+					//file[readByte + i];
+				}
+
+				uint UInt()
+				{
+					let startIndex = readByte;
+					readByte += 4;
+					return (((uint32)file[startIndex]) << 24) | (((uint32)file[startIndex + 1]) << 16) | (((uint32)file[startIndex + 2]) << 8) | ((uint32)file[startIndex + 3]);
+				}
+			}
+			return .Ok(null);
 		}
 
 		public static void UnloadPackage(StringView packageName)
@@ -136,8 +197,7 @@ namespace Pile
 
 		public static Result<void, String> BuildPackage(StringView packagePath)
 		{
-			// BREAK THIS DOWN INTO SMALLER PIECES AND MAKE TESTS FOR THEM (if possible, at least, cant really make tests for file access easily??, wait you can)
-
+			let t = scope Stopwatch(true);
 			PackageData packageData = scope PackageData();
 
 			{
@@ -152,6 +212,8 @@ namespace Pile
 
 			// Resolve imports
 			List<PackageNode> nodes = scope List<PackageNode>();
+			List<String> importerNames = scope List<String>();
+
 			List<String> importPaths = scope List<String>(); // All of these paths exist
 			let rootPath = scope String();
 			Path.GetDirectoryPath(packagePath, rootPath);
@@ -163,13 +225,15 @@ namespace Pile
 				if (importers.ContainsKey(import.importer)) importer = importers[import.importer];
 				else return .Err(new String("Couldn't build package at {0}. Couln't find importer '{1}'")..Format(packagePath, import.importer));
 
+				bool importerUsed = false;
+
 				// Interpret path string (put all final paths in importPaths)
 				for (var path in import.path.Split(';'))
 				{
 					path.Trim();
 
 					let fullPath = scope String();
-					Path.InternalCombine(fullPath, rootPath, scope String(path));
+					Path.InternalCombineViews(fullPath, rootPath, path);
 
 					// Check if containing folder exists
 					let dirPath = scope String();
@@ -268,9 +332,6 @@ namespace Pile
 				{
 					Log.Message(scope String("Importing {0}")..Format(filePath));
 
-					// we give it files data, it outputs data and a data node
-					// so textures are just kept as seperate data blobs?
-
 					// Read file
 					let res = Core.System.FileReadAllBytes(filePath);
 					if (res case .Err(let err))
@@ -278,7 +339,7 @@ namespace Pile
 					uint8[] data = res;
 
 					// Run through importer
-					let ress = importer.Import(data, let node);
+					let ress = importer.Build(data, let node);
 					if (ress case .Err(let err))
 						return .Err(new String("Couldn't build package at {0}. Error importing file at {1}: {2}")..Format(packagePath, filePath, err));
 					uint8[] importedData = ress;
@@ -294,54 +355,106 @@ namespace Pile
 					delete node;
 
 					// Add data
-					nodes.Add(new PackageNode(importedData, nodeData));
+					importerUsed = true;
+					nodes.Add(new PackageNode((uint32)importerNames.Count, importedData, nodeData));
 
 					delete filePath;
 				}
 				importPaths.Clear();
+
+				if (importerUsed)
+					importerNames.Add(new String(import.importer));
 			}
 			
 			// Put it all in a file
 			{
+				// HEADER (3 bytes + one reserved)
+				// FILESIZE (4 bytes, uint32)
+
+				// IMPORTERNAMECOUNT (uint32)
+				// -IMPORTERNAME ARRAY
+				// 		ELEMENT:
+				// 		STRINGSIZE (uint32)
+				// 		STRING
+
+				// NODESCOUNT (uint32)
+
+				// NODEDATALENGTHARRAY
+				// 		ELEMENT:
+				// 		DATALENGTH (uint32)
+				// 		DATANODELENGTH (uint32)
+
+				// NODEDATAARRAY
+				//		ELEMENT:
+				// 		IMPORTERNAMEINDEX (uint32)
+				// 		DATAARRAY (of bytes)
+				// 		DATANODEARRAY (of bytes)
+
 				List<uint8> file = scope List<uint8>();
 				file.Add(0x50); // Head
 				file.Add(0x4C);
 				file.Add(0x50);
 				file.Add(0x00); // Empty
-	
+				UInt(0); // Size placeholder
+
+				// All importer strings
+				UInt((uint32)importerNames.Count);
+				for (let s in importerNames)
+				{
+					UInt((uint32)s.Length);
+					let span = Span<uint8>((uint8*)s.Ptr, s.Length);
+					file.AddRange(span);
+
+					delete s;
+				}
+
+				// All sizes in order
+				UInt((uint32)nodes.Count);
 				for (let node in nodes)
 				{
 					// Put length
-					UInt((uint)node.Data.Count);
-					UInt((uint)node.DataNode.Count);
+					UInt((uint32)node.Data.Count);
+					UInt((uint32)node.DataNode.Count);
 				}
-	
-				void UInt(uint uint)
+
+				// All data in order
+				for (let node in nodes)
 				{
-					file.Add((uint8)((uint >> 24) & 0xFF));
-					file.Add((uint8)((uint >> 16) & 0xFF));
-					file.Add((uint8)((uint >> 8) & 0xFF));
-					file.Add((uint8)(uint & 0xFF));
-				}
-	
-				for (var node in nodes)
-				{
+					UInt(node.Importer);
 					file.AddRange(node.Data);
 					file.AddRange(node.DataNode);
 	
 					delete node;
 				}
 				nodes.Clear();
+				
+				void UInt(uint32 uint)
+				{
+					file.Add((uint8)((uint >> 24) & 0xFF));
+					file.Add((uint8)((uint >> 16) & 0xFF));
+					file.Add((uint8)((uint >> 8) & 0xFF));
+					file.Add((uint8)(uint & 0xFF));
+				}
+
+				// Fill in size
+				file[4] = (uint8)((file.Count >> 24) & 0xFF);
+				file[5] = (uint8)((file.Count >> 16) & 0xFF);
+				file[6] = (uint8)((file.Count >> 8) & 0xFF);
+				file[7] = (uint8)(file.Count & 0xFF);
 
 				let outPath = scope String();
 				let packageName = scope String();
 				Path.GetFileNameWithoutExtension(scope String(packagePath), packageName);
 				Path.InternalCombine(outPath, packagesPath, packageName);
+				Path.ChangeExtension(scope String(outPath), ".bin", outPath);
 				let res = Core.System.FileWriteAllBytes(outPath, file);
 				if (res case .Err)
 					return .Err(new String("Couldn't build package at {0}. Error writing file to {1}")..Format(packagePath, outPath));
+
+				t.Stop();
+				Log.Message(scope String("Built package {0} in {1}ms")..Format(packageName, t.ElapsedMilliseconds));
 			}
-			
+
 			return .Ok;
 		}
 	}

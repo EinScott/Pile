@@ -10,7 +10,7 @@ namespace Pile
 			return default;
 		}
 
-		public override Result<uint8[], String> Import(uint8[] data, out JSONObject dataNode)
+		public override Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode)
 		{
 			dataNode = new JSONObject();
 			dataNode.Add<int>("testEntry", 42);

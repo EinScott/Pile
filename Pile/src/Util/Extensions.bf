@@ -162,6 +162,16 @@ namespace System
 
 				return matches;
 			}
+
+			public static void InternalCombineViews(String target, params StringView[] components)
+			{
+				for (var component in components)
+				{
+					if ((target.Length > 0) && (!target.EndsWith("\\")) && (!target.EndsWith("/")))
+						target.Append(Path.DirectorySeparatorChar);
+					target.Append(component);
+				}
+			}
 		}
 	}
 }
