@@ -125,55 +125,93 @@ namespace Pile
 				if (!packageName.EndsWith(".bin")) Path.ChangeExtension(scope String(packagePath), ".bin", packagePath);
 				let res = Core.System.FileReadAllBytes(packagePath);
 				if (res case .Err)
-					return .Err(new String("Couldn't loat package {0}. Error reading file from {1}")..Format(packageName, packagePath));
-	
+				  return .Err(new String("Couldn't loat package {0}. Error reading file from {1}")..Format(packageName, packagePath));
+
 				let file = res.Value;
-	
+
 				// HEADER (3 bytes + one reserved)
 				// FILESIZE (4 bytes, uint32)
-	
+
 				// IMPORTERNAMECOUNT (uint32)
 				// -IMPORTERNAME ARRAY
 				// 		ELEMENT:
 				// 		STRINGSIZE (uint32)
 				// 		STRING
-	
+
 				// NODESCOUNT (uint32)
-	
-				// NODEDATALENGTHARRAY
-				// 		ELEMENT:
-				// 		DATALENGTH (uint32)
-				// 		DATANODELENGTH (uint32)
-	
+
 				// NODEDATAARRAY
 				//		ELEMENT:
 				// 		IMPORTERNAMEINDEX (uint32)
+				// 		DATAARRAYLENGTH (uint32)
 				// 		DATAARRAY (of bytes)
+				// 		DATANODEARRAYLENGTH (uint32)
 				// 		DATANODEARRAY (of bytes)
 
-				uint readByte = 4; // Start at header
+				int readByte = 4; // Start at header
 
 				if (file.Count < 16 // Check min file size
 					|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
 					|| file[3] != 0x00 // Check version
-					|| UInt(4) != (uint32)file.Count) // Check file size
+					|| UInt() != (uint32)file.Count) // Check file size
 					return .Err(new String("Couldn't loat package {0}. Invalid file format")..Format(packageName));
 
-				let importerNameCount = UInt();
-				for (uint i = 0; i < importerNameCount; i++)
 				{
-					let importerNameLength = UInt();
-					importerNames.Add(file[readByte + i]);
-					//file[readByte + i];
+					let importerNameCount = UInt();
+					for (int i = 0; i < importerNameCount; i++)
+					{
+						let importerNameLength = UInt();
+						importerNames.Add(new String((char8*)&file[readByte], importerNameLength));
+						readByte += importerNameLength;
+					}
+
+					let nodeCount = UInt();
+					for (int i = 0; i < nodeCount; i++)
+					{
+						let importerIndex = UInt();
+
+						let dataLength = UInt();
+						let data = new uint8[dataLength];
+						Span<uint8>(&file[readByte], dataLength).CopyTo(data);
+						readByte += dataLength;
+
+						let nodeDataLength = UInt();
+						let nodeData = new uint8[nodeDataLength];
+						Span<uint8>(&file[readByte], nodeDataLength).CopyTo(nodeData);
+						readByte += nodeDataLength;
+
+						nodes.Add(new PackageNode(importerIndex, data, nodeData));
+					}
 				}
 
-				uint UInt()
+				if (readByte != file.Count)
+					return .Err(new String("Couldn't loat package {0}. The file contains {1} bytes, but the end of data was at {2}")..Format(packageName, file.Count, readByte));
+
+				uint32 UInt()
 				{
 					let startIndex = readByte;
 					readByte += 4;
-					return (((uint32)file[startIndex]) << 24) | (((uint32)file[startIndex + 1]) << 16) | (((uint32)file[startIndex + 2]) << 8) | ((uint32)file[startIndex + 3]);
+					return (((uint32)file[startIndex] << 24) | (((uint32)file[startIndex + 1]) << 16) | (((uint32)file[startIndex + 2]) << 8) | (uint32)file[startIndex + 3]);
 				}
 			}
+
+			// Import each package node
+			for (let node in nodes)
+			{
+				Importer importer;
+
+				if (node.Importer < importers.Count && importers.ContainsKey(importerNames[(int)node.Importer]))
+					importer = importers.GetValue(importerNames[(int)node.Importer]);
+				else if (node.Importer >= importers.Count) return .Err(new String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
+				else return .Err(new String("Couldn't loat package {0}. Couldn't find importer at index {1} of file's importer name array")..Format(packageName, node.Importer));
+
+				
+			}
+
+			// Clear up
+			for (let s in importerNames)
+				delete s;
+
 			return .Ok(null);
 		}
 
@@ -320,7 +358,7 @@ namespace Pile
 							// Tidy up
 							importDirs.RemoveAt(importDirs.Count - 1);
 							delete currImportPath;
-							
+
 							wildCardPath.Clear();
 						}
 						while (importDirs.Count > 0);
@@ -365,7 +403,7 @@ namespace Pile
 				if (importerUsed)
 					importerNames.Add(new String(import.importer));
 			}
-			
+
 			// Put it all in a file
 			{
 				// HEADER (3 bytes + one reserved)
@@ -379,15 +417,12 @@ namespace Pile
 
 				// NODESCOUNT (uint32)
 
-				// NODEDATALENGTHARRAY
-				// 		ELEMENT:
-				// 		DATALENGTH (uint32)
-				// 		DATANODELENGTH (uint32)
-
 				// NODEDATAARRAY
 				//		ELEMENT:
 				// 		IMPORTERNAMEINDEX (uint32)
+				// 		DATAARRAYLENGTH (uint32)
 				// 		DATAARRAY (of bytes)
+				// 		DATANODEARRAYLENGTH (uint32)
 				// 		DATANODEARRAY (of bytes)
 
 				List<uint8> file = scope List<uint8>();
@@ -408,26 +443,19 @@ namespace Pile
 					delete s;
 				}
 
-				// All sizes in order
-				UInt((uint32)nodes.Count);
-				for (let node in nodes)
-				{
-					// Put length
-					UInt((uint32)node.Data.Count);
-					UInt((uint32)node.DataNode.Count);
-				}
-
 				// All data in order
 				for (let node in nodes)
 				{
 					UInt(node.Importer);
+					UInt((uint32)node.Data.Count);
 					file.AddRange(node.Data);
+					UInt((uint32)node.DataNode.Count);
 					file.AddRange(node.DataNode);
-	
+
 					delete node;
 				}
 				nodes.Clear();
-				
+
 				void UInt(uint32 uint)
 				{
 					file.Add((uint8)((uint >> 24) & 0xFF));
