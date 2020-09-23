@@ -3,11 +3,11 @@ using JSON_Beef.Types;
 
 namespace Pile
 {
-	public class TestImporter : Assets.Importer
+	public class TestImporter : Packages.Importer
 	{
-		public override Object Load(uint8[] data, JSONObject dataNode)
+		public override void Load(Packages.Package package, uint8[] data, JSONObject dataNode)
 		{
-			return default;
+
 		}
 
 		public override Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode)

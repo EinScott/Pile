@@ -80,7 +80,7 @@ namespace Pile
 				Log.Message(scope String("Graphics: {0} {1}.{2} ({3})")..Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
 			}
 
-			Assets.[Friend]Initialize();
+			Packages.[Friend]Initialize();
 
 			Log.Message(scope String("Pile initialized (took {0}ms)")..Format(w.Elapsed.Milliseconds));
 			w.Stop();
