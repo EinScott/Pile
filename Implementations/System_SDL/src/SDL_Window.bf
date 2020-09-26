@@ -52,7 +52,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		public override void SetTitle(String title) => SDL.SetWindowTitle(window, title);
+		public override void SetTitle(StringView title) => SDL.SetWindowTitle(window, scope String(title));
 		public override void GetTitle(String buffer) => buffer.Append(SDL.GetWindowTitle(window));
 
 		Point2 position;

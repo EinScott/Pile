@@ -48,7 +48,7 @@ namespace Pile.Implementations
 			bound = false;
 		}
 
-		public override void Setup(ref Span<uint8> vertices, ref Span<uint32> indices, VertexFormat format)
+		public override void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format)
 		{
 			if (vertexFormat != format)
 			{

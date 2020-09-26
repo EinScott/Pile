@@ -16,7 +16,7 @@ namespace Pile
 			OnClose.Dispose();
 		}
 
-		public abstract void SetTitle(String title);
+		public abstract void SetTitle(StringView title);
 		public abstract void GetTitle(String buffer);
 		
 		public abstract Point2 Position { get; set; }

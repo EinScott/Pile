@@ -92,6 +92,7 @@ namespace Pile
 		public virtual Result<void, FileResult> DirectoryMove(StringView fromPath, StringView toPath) => HandleBfpFileOperation(Directory.Move(fromPath, toPath));
 		public virtual Result<void, FileResult> DirectoryCreate(StringView path) => HandleBfpFileOperation(Directory.CreateDirectory(path));
 
+		// TODO: File enumerator abstraction, is currently tied to beefplatform
 		public virtual FileEnumerator DirectoryEnumerate(StringView searchPath, EnumerateFlags flags)
 		{
 			// Combine

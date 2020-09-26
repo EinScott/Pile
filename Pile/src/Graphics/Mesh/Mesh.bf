@@ -6,7 +6,7 @@ namespace Pile
 	{
 		public abstract class Platform
 		{
-			public abstract void Setup(ref Span<uint8> vertices, ref Span<uint32> indices, VertexFormat format);
+			public abstract void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format);
 		}
 
 		readonly Platform platform ~ delete _;
@@ -27,9 +27,7 @@ namespace Pile
 			IndexCount = (uint32)indices.Length;
 
 			var _vertices = vertices.ToRawData();
-
-			var _indices = indices;
-			platform.Setup(ref _vertices, ref _indices, format);
+			platform.Setup(_vertices, indices, format);
 		}
 	}
 }
