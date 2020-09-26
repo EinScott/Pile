@@ -26,5 +26,32 @@ namespace Pile
 
 			DeleteDictionaryAndKeys!(assets);
 		}
+
+		public static bool Has<T>(StringView name)
+		{
+			return true;
+		}
+
+		public static bool Has(Type type, StringView name)
+		{
+			return true;
+		}
+
+		public static T Get<T>(StringView name) where T : Object
+ 		{
+			 return null;
+		}
+
+		public static Object Get(Type type, StringView name)
+		{
+			return null;
+		}
+
+		private static void AddAsset(Type type, String name, Object object)
+		{
+
+		}
+
+		// IF you do removing methods, think about how a package own list might still have a reference to a string of an asset here. How do you handle that?
 	}
 }

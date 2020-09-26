@@ -11,27 +11,48 @@ namespace Pile
 	{
 		public class Package
 		{
+			Dictionary<Type,List<String>> ownedAssets = new Dictionary<Type,List<String>>();
+			
 			private this() {}
 
-			Dictionary<Type,List<String>> ownedAssets = new Dictionary<Type,List<String>>() ~ delete _;
-			
+			public ~this()
+			{
+				// Manages dictionary and lists, but not strings, which are taken care of by assets and might already be deleted
+				for (let entry in ownedAssets)
+					delete entry.value;
+
+				delete ownedAssets;
+			}
+
 			readonly String name = new String() ~ delete _;
 			public StringView Name => name;
 		}
 
 		public abstract class Importer
 		{
-			public abstract void Load(Package package, uint8[] data, JSONObject dataNode);
+			public abstract void Load(Package package, StringView name, uint8[] data, JSONObject dataNode);
 			public abstract Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode);
 
-			protected void SubmitObject(Package package, Object add)
+			protected void SubmitAsset(Package package, StringView name, Object add)
 			{
-				// Add object in package...
+				let type = add.GetType();
+				
+				// Check if assets contains this name already
+				if (Assets.Has(type, name)) return;
 
-				// Add object in assets...
+				let nameString = new String(name);
+
+				// Add object in package
+				if (package.[Friend]ownedAssets.ContainsKey(type))
+					package.[Friend]ownedAssets.Add(type, new List<String>());
+
+				package.[Friend]ownedAssets.GetValue(type).Get().Add(nameString);
+
+				// Add object in assets
+				Assets.[Friend]AddAsset(type, nameString, add);
 			}
 
-			protected void SubmitPackerBitmap(Package package, Bitmap bitmap)
+			protected void SubmitPackerBitmap(Package package, StringView name, Bitmap bitmap)
 			{
 				// Add bitmap in package...
 
@@ -39,30 +60,37 @@ namespace Pile
 			}
 		}
 
-		[AlwaysInclude(AssumeInstantiated = true, IncludeAllMethods = true)]
-		[Reflect]
+		// Represents the json data in the package import file
 		class PackageData
 		{
 			public List<ImportData> imports = new List<ImportData>() ~ DeleteContainerAndItems!(_);
 
-			[AlwaysInclude(AssumeInstantiated = true, IncludeAllMethods = true)]
-			[Reflect]
 			public class ImportData
 			{
-				public String path ~ delete _;
-				public String importer ~ delete _;
+				public readonly String path ~ delete _;
+				public readonly String importer ~ delete _;
+				public readonly String namePrefix ~ CondDelete!(_);
+
+				public this(StringView path, StringView importer, StringView? namePrefix)
+				{
+					this.path = new String(path);
+					this.importer = new String(importer);
+					if (namePrefix != null) this.namePrefix = new String(namePrefix.Value);
+				}
 			}
 		}
-
+		
+		// Node of data for one imported file
 		class PackageNode
 		{
-			// Node of data for one imported file
 			public readonly uint32 Importer;
+			public readonly uint8[] Name ~ delete _;
 			public readonly uint8[] Data ~ delete _;
 			public readonly uint8[] DataNode ~ delete _;
 
-			public this(uint32 importer, uint8[] data, uint8[] dataNode)
+			public this(uint32 importer, uint8[] name, uint8[] data, uint8[] dataNode)
 			{
+				Name = name;
 				Importer = importer;
 				Data = data;
 				DataNode = dataNode;
@@ -139,6 +167,8 @@ namespace Pile
 				// NODEDATAARRAY
 				//		ELEMENT:
 				// 		IMPORTERNAMEINDEX (uint32)
+				// 		NAME (uint32)
+				// 		NAMEDATA
 				// 		DATAARRAYLENGTH (uint32)
 				// 		DATAARRAY (of bytes)
 				// 		DATANODEARRAYLENGTH (uint32)
@@ -149,41 +179,48 @@ namespace Pile
 				if (file.Count < 16 // Check min file size
 					|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
 					|| file[3] != 0x00 // Check version
-					|| UInt() != (uint32)file.Count) // Check file size
+					|| ReadUInt() != (uint32)file.Count) // Check file size
 					return .Err(new String("Couldn't loat package {0}. Invalid file format")..Format(packageName));
 
 				{
-					let importerNameCount = UInt();
+					let importerNameCount = ReadUInt();
 					for (int i = 0; i < importerNameCount; i++)
 					{
-						let importerNameLength = UInt();
+						let importerNameLength = ReadUInt();
 						importerNames.Add(new String((char8*)&file[readByte], importerNameLength));
 						readByte += importerNameLength;
 					}
 
-					let nodeCount = UInt();
+					let nodeCount = ReadUInt();
 					for (int i = 0; i < nodeCount; i++)
 					{
-						let importerIndex = UInt();
+						let importerIndex = ReadUInt();
 
-						let dataLength = UInt();
+						let nameLength = ReadUInt();
+						let name = new uint8[nameLength];
+						Span<uint8>(&file[readByte], nameLength).CopyTo(name);
+						readByte += nameLength;
+
+						let dataLength = ReadUInt();
 						let data = new uint8[dataLength];
 						Span<uint8>(&file[readByte], dataLength).CopyTo(data);
 						readByte += dataLength;
 
-						let nodeDataLength = UInt();
+						let nodeDataLength = ReadUInt();
 						let nodeData = new uint8[nodeDataLength];
 						Span<uint8>(&file[readByte], nodeDataLength).CopyTo(nodeData);
 						readByte += nodeDataLength;
 
-						nodes.Add(new PackageNode(importerIndex, data, nodeData));
+						nodes.Add(new PackageNode(importerIndex, name, data, nodeData));
 					}
 				}
 
 				if (readByte != file.Count)
 					return .Err(new String("Couldn't loat package {0}. The file contains {1} bytes, but the end of data was at {2}")..Format(packageName, file.Count, readByte));
 
-				uint32 UInt()
+				delete file;
+
+				uint32 ReadUInt()
 				{
 					let startIndex = readByte;
 					readByte += 4;
@@ -202,17 +239,23 @@ namespace Pile
 
 				if (node.Importer < importers.Count && importers.ContainsKey(importerNames[(int)node.Importer]))
 					importer = importers.GetValue(importerNames[(int)node.Importer]);
-				else if (node.Importer >= importers.Count) return .Err(new String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
-				else return .Err(new String("Couldn't loat package {0}. Couldn't find importer at index {1} of file's importer name array")..Format(packageName, node.Importer));
+				else if (node.Importer < importers.Count) return .Err(new String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
+				else return .Err(new String("Couldn't loat package {0}. Couldn't find importer name at index {1} of file's importer name array; index out of range")..Format(packageName, node.Importer));
+				
+				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
 
 				let json = scope String((char8*)node.DataNode.CArray(), node.DataNode.Count);
-				let doc = scope JSONDocument().ParseObject(json);
-				if (doc case .Err(let err)) return .Err(new String("Couldn't loat package {0}. Couldn't find importer at index {1} of file's importer name array")..Format(packageName, node.Importer));
-				let dataNode = doc.Get();
+				let res = JSONParser.ParseObject(json);
+				if (res case .Err(let err)) return .Err(new String("Couldn't loat package {0}. Error parsing json data for asset {1}: {2} ({3})")..Format(packageName, name, err, json));
+				let dataNode = res.Get();
 
-				importer.Load(package, node.Data, dataNode);
+				importer.Load(package, name, node.Data, dataNode);
 				delete dataNode;
+
+				delete node;
 			}
+
+			loadedPackages.Add(package);
 
 			// Clear up
 			for (let s in importerNames)
@@ -223,7 +266,7 @@ namespace Pile
 
 		public static void UnloadPackage(StringView packageName)
 		{
-			
+			// If assets can be deleted by methods there, the strings referenced in package might be deleted, solve this first!
 		}
 
 		public static bool PackageLoaded(StringView packageName, out Package package)
@@ -250,14 +293,70 @@ namespace Pile
 				if (Core.System.FileReadAllText(packagePath, jsonFile) case .Err(let err))
 					return .Err(new String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
 
-				if (JSONDeserializer.Deserialize(jsonFile, packageData) case .Err(let err))
-					return .Err(new String("Couldn't build package at {0}. Error while deserializing json: {1}")..Format(packagePath, err));
+				if (!JSONParser.IsValidJson(jsonFile))
+					return .Err(new String("Couldn't build package at {0}. Invalid json file")..Format(packagePath));
+
+				let res = JSONParser.ParseObject(jsonFile);
+				if (res case .Err(let err))
+					return .Err(new String("Couldn't build package at {0}. Error parsing json: {1}")..Format(packagePath, err));
+
+				let root = res.Get();
+				if (!root.ContainsKey("imports"))
+					return .Err(new String("Couldn't build package at {0}. The root json object must include a 'imports' json array of objects")..Format(packagePath));
+
+				JSONArray array = null;
+				var ress = root.Get("imports", ref array);
+				if (ress case .Err(let err))
+					return .Err(new String("Couldn't build package at {0}. Error getting 'imports' array from root object: {1}")..Format(packagePath, err));
+				if (array == null)
+					return .Err(new String("Couldn't build package at {0}. Error getting 'imports' array from root object")..Format(packagePath));
+
+				JSONObject entry = null;
+				for (int i = 0; i < array.Count; i++)
+				{
+					ress = array.Get(i, ref entry);
+					if (ress case .Err(let err))
+						return .Err(new String("Couldn't build package at {0}. Error getting object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+					if (entry == null) continue; // This can probably not happen anyways
+
+					// Mandatory parameters
+					if (!entry.ContainsKey("path") || !entry.ContainsKey("importer"))
+						return .Err(new String("Couldn't build package at {0}. Error processing object at position {1} of 'imports' array: Object must include a path and importer string")..Format(packagePath, i));
+					if (entry.GetValueType("path") != .STRING || entry.GetValueType("importer") != .STRING)
+						return .Err(new String("Couldn't build package at {0}. Error processing object at position {1} of 'imports' array: Object must include a path and importer entry, both of json type string")..Format(packagePath, i));
+
+					String path = null;
+					ress = entry.Get("path", ref path);
+					if (ress case .Err(let err))
+						return .Err(new String("Couldn't build package at {0}. Error getting object 'path' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+
+					String importer = null;
+					ress = entry.Get("importer", ref importer);
+					if (ress case .Err(let err))
+						return .Err(new String("Couldn't build package at {0}. Error getting object 'importer' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+
+					// Option parameters
+					String namePrefix = null;
+					if (entry.ContainsKey("namePrefix") && entry.GetValueType("namePrefix") == .STRING)
+					{
+						ress = entry.Get("namePrefix", ref namePrefix);
+						if (ress case .Err(let err))
+ 							return .Err(new String("Couldn't build package at {0}. Error getting object 'namePrefix' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+					}
+
+					packageData.imports.Add(new PackageData.ImportData(path, importer, namePrefix == null ? null : StringView(namePrefix)));
+
+					entry = null;
+				}
+
+				delete root;
 			}
 
 			// Resolve imports
 			List<PackageNode> nodes = scope List<PackageNode>();
 			List<String> importerNames = scope List<String>();
 
+			List<StringView> duplicateNameLookup = scope List<StringView>();
 			List<String> importPaths = scope List<String>(); // All of these paths exist
 			let rootPath = scope String();
 			Path.GetDirectoryPath(packagePath, rootPath);
@@ -371,7 +470,7 @@ namespace Pile
 					}
 				}
 
-				// Import all files
+				// Import all files found for this import statement with this importer
 				for (var filePath in importPaths)
 				{
 					Log.Message(scope String("Importing {0}")..Format(filePath));
@@ -398,9 +497,23 @@ namespace Pile
 
 					delete node;
 
+					// Make name
+					s.Clear();
+					if (import.namePrefix != null) s.Append(import.namePrefix);
+					Path.GetFileNameWithoutExtension(filePath, s);
+
+					// Check if name exists
+					if (duplicateNameLookup.Contains(s))
+						return .Err(new String("Couldn't build package at {0}. Error importing file at {1}: Entry with name {2} has already been imported")..Format(packagePath, filePath, s));
+
+					// Add to node and duplicate lookup
+					let name = new uint8[s.Length];
+					Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(name);
+					duplicateNameLookup.Add(StringView((char8*)name.CArray(), name.Count)); // Add name data interpreted as string back to duplicate lookup
+
 					// Add data
 					importerUsed = true;
-					nodes.Add(new PackageNode((uint32)importerNames.Count, importedData, nodeData));
+					nodes.Add(new PackageNode((uint32)importerNames.Count, name, importedData, nodeData));
 
 					delete filePath;
 				}
@@ -409,6 +522,7 @@ namespace Pile
 				if (importerUsed)
 					importerNames.Add(new String(import.importer));
 			}
+			duplicateNameLookup.Clear();
 
 			// Put it all in a file
 			{
@@ -426,6 +540,8 @@ namespace Pile
 				// NODEDATAARRAY
 				//		ELEMENT:
 				// 		IMPORTERNAMEINDEX (uint32)
+				// 		NAME (uint32)
+				// 		NAMEDATA
 				// 		DATAARRAYLENGTH (uint32)
 				// 		DATAARRAY (of bytes)
 				// 		DATANODEARRAYLENGTH (uint32)
@@ -436,13 +552,13 @@ namespace Pile
 				file.Add(0x4C);
 				file.Add(0x50);
 				file.Add(0x00); // Empty
-				UInt(0); // Size placeholder
+				WriteUInt(0); // Size placeholder
 
 				// All importer strings
-				UInt((uint32)importerNames.Count);
+				WriteUInt((uint32)importerNames.Count);
 				for (let s in importerNames)
 				{
-					UInt((uint32)s.Length);
+					WriteUInt((uint32)s.Length);
 					let span = Span<uint8>((uint8*)s.Ptr, s.Length);
 					file.AddRange(span);
 
@@ -450,19 +566,22 @@ namespace Pile
 				}
 
 				// All data in order
+				WriteUInt((uint32)nodes.Count);
 				for (let node in nodes)
 				{
-					UInt(node.Importer);
-					UInt((uint32)node.Data.Count);
+					WriteUInt(node.Importer);
+					WriteUInt((uint32)node.Name.Count);
+					file.AddRange(node.Name);
+					WriteUInt((uint32)node.Data.Count);
 					file.AddRange(node.Data);
-					UInt((uint32)node.DataNode.Count);
+					WriteUInt((uint32)node.DataNode.Count);
 					file.AddRange(node.DataNode);
 
 					delete node;
 				}
 				nodes.Clear();
 
-				void UInt(uint32 uint)
+				void WriteUInt(uint32 uint)
 				{
 					file.Add((uint8)((uint >> 24) & 0xFF));
 					file.Add((uint8)((uint >> 16) & 0xFF));

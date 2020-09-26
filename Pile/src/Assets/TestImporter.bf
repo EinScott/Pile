@@ -5,7 +5,7 @@ namespace Pile
 {
 	public class TestImporter : Packages.Importer
 	{
-		public override void Load(Packages.Package package, uint8[] data, JSONObject dataNode)
+		public override void Load(Packages.Package package, StringView name, uint8[] data, JSONObject dataNode)
 		{
 
 		}
