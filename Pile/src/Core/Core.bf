@@ -11,6 +11,8 @@ using System.IO;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
+// TODO: asset importers, font support/spritefonts/batcher font drawing, audio, package unloading
+
 namespace Pile
 {
 	public static class Core
@@ -78,6 +80,13 @@ namespace Pile
 			{
 				Graphics.[Friend]Initialize();
 				Log.Message(scope String("Graphics: {0} {1}.{2} ({3})")..Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
+			}
+
+			// Audio init
+			if (Audio != null)
+			{
+				Audio.[Friend]Initialize();
+				Log.Message(scope String("Graphics: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
 			}
 
 			Packages.[Friend]Initialize();

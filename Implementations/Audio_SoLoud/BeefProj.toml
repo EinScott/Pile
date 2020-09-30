@@ -1,0 +1,59 @@
+FileVersion = 1
+Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
+
+[Project]
+Name = "Pile_SoLoud"
+
+# SOLOUD --with-common-backends
+
+#64 BIT WIN
+[Configs.Debug.Win64]
+BuildCommandsOnCompile = "IfFilesChanged"
+BuildCommandsOnRun = "IfFilesChanged"
+LibPaths = ["$(ProjectDir)/dist64/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist64/soloud.dll\")"]
+
+[[Configs.Debug.Win64.DistinctOptions]]
+Filter = "SoLoud.*"
+BfOptimizationLevel = "O3"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
+[Configs.Release.Win64]
+LibPaths = ["$(ProjectDir)/dist64/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist64/soloud.dll\")"]
+
+[[Configs.Release.Win64.DistinctOptions]]
+Filter = "SDL2.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "No"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
+#32 BIT WIN
+[Configs.Debug.Win32]
+BuildCommandsOnCompile = "IfFilesChanged"
+BuildCommandsOnRun = "IfFilesChanged"
+LibPaths = ["$(ProjectDir)/dist32/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist32/soloud.dll\")"]
+
+[[Configs.Debug.Win32.DistinctOptions]]
+Filter = "SoLoud.*"
+BfOptimizationLevel = "O3"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
+[Configs.Release.Win32]
+LibPaths = ["$(ProjectDir)/dist32/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist32/soloud.dll\")"]
+
+[[Configs.Release.Win32.DistinctOptions]]
+Filter = "SDL2.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "No"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false

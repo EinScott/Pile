@@ -194,7 +194,7 @@ namespace Pile
 			if (sources[0].packed.Width > maxSize || sources[0].packed.Height > maxSize)
 			    return .Err("Source image is larger than max atlas size");
 
-			// TODO: why do we sometimes need more than source images * 3?
+			// TODO: why do we sometimes need more than source images * 3? [FOSTERCOMMENT]
 			// for safety I've just made it 4 ... but it should really only be 3?
 
 			int nodeCount = sources.Count * 4;

@@ -24,32 +24,68 @@ namespace Pile
 			for (let dic in assets.Values)
 				DeleteDictionaryAndKeysAndItems!(dic);
 
-			DeleteDictionaryAndKeys!(assets);
+			delete assets;
 		}
 
-		public static bool Has<T>(StringView name)
+		public static bool Has<T>(String name) where T : Object
 		{
+			let type = typeof(T);
+
+			if (!assets.ContainsKey(type))
+				return false;
+
+			if (!assets.GetValue(type).Get().ContainsKey(name))
+				return false;
+
 			return true;
 		}
 
-		public static bool Has(Type type, StringView name)
+		public static bool Has(Type type, String name)
 		{
+			if (!type.IsObject)
+				return false;
+
+			if (!assets.ContainsKey(type))
+				return false;
+
+			if (!assets.GetValue(type).Get().ContainsKey(name))
+				return false;
+
 			return true;
 		}
 
-		public static T Get<T>(StringView name) where T : Object
+		public static T Get<T>(String name) where T : Object
  		{
-			 return null;
+			 if (!Has<T>(name))
+				 return null;
+
+			 return assets.GetValue(typeof(T)).Get().GetValue(name).Get();
 		}
 
-		public static Object Get(Type type, StringView name)
+		public static Object Get(Type type, String name)
 		{
-			return null;
+			if (!Has(type, name))
+				return false;
+
+			return assets.GetValue(type).Get().GetValue(name).Get();
 		}
 
-		private static void AddAsset(Type type, String name, Object object)
+		/** The name string passed here will be directly referenced in the dictionary, so take a fresh one, ideally the same that is also referenced in package owned assets.
+		*/
+		private static Result<void, String> AddAsset(Type type, String name, Object object)
 		{
+			if (!object.GetType().IsSubtypeOf(type))
+				return .Err(new String("Couldn't add asset {0} of type {1}, because it is not assignable to given type {2}")..Format(name, object.GetType(), type));
 
+			if (!assets.ContainsKey(type))
+				assets.Add(type, new Dictionary<String, Object>());
+
+			else if (assets.GetValue(type).Get().ContainsKey(name))
+				return .Err(new String("Couldn't add asset {0} to dictionary for type {1}, because the name is already taken for this type")..Format(name, type));
+
+			assets.GetValue(type).Get().Add(name, object);
+
+			return .Ok;
 		}
 
 		// IF you do removing methods, think about how a package own list might still have a reference to a string of an asset here. How do you handle that?

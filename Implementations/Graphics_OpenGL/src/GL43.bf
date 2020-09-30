@@ -783,7 +783,7 @@ namespace OpenGL43 {
         public const uint GL_TIMEOUT_EXPIRED = 0x911B;
         public const uint GL_CONDITION_SATISFIED = 0x911C;
         public const uint GL_WAIT_FAILED = 0x911D;
-        public const uint GL_TIMEOUT_IGNORED = 0xFFFFFFFFFFFFFFFF;
+        public const uint64 GL_TIMEOUT_IGNORED = 0xFFFFFFFFFFFFFFFF;
         public const uint GL_SYNC_FLUSH_COMMANDS_BIT = 0x00000001;
         public const uint GL_SAMPLE_POSITION = 0x8E50;
         public const uint GL_SAMPLE_MASK = 0x8E51;

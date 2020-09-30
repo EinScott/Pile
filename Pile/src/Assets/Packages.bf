@@ -30,33 +30,47 @@ namespace Pile
 
 		public abstract class Importer
 		{
-			public abstract void Load(Package package, StringView name, uint8[] data, JSONObject dataNode);
+			public abstract void Load(StringView name, uint8[] data, JSONObject dataNode);
 			public abstract Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode);
 
-			protected void SubmitAsset(Package package, StringView name, Object add)
+			private Package package;
+			protected Result<void, String> SubmitAsset(StringView name, Object asset)
 			{
-				let type = add.GetType();
-				
-				// Check if assets contains this name already
-				if (Assets.Has(type, name)) return;
+				if (package == null)
+					return .Err("Importers can only submit assets when called from load package function");
+
+				let type = asset.GetType();
 
 				let nameString = new String(name);
 
-				// Add object in package
-				if (package.[Friend]ownedAssets.ContainsKey(type))
+				// Check if assets contains this name already
+				if (Assets.Has(type, nameString))
+				{
+					delete nameString;
+					return .Err(new String("Couldn't submit asset {0}: An object of this type ({1}) is already registered under this name")..Format(name, type));
+				}
+
+				// Add object location in package
+				if (!package.[Friend]ownedAssets.ContainsKey(type))
 					package.[Friend]ownedAssets.Add(type, new List<String>());
 
 				package.[Friend]ownedAssets.GetValue(type).Get().Add(nameString);
 
 				// Add object in assets
-				Assets.[Friend]AddAsset(type, nameString, add);
+				Assets.[Friend]AddAsset(type, nameString, asset);
+
+				return .Ok;
 			}
 
-			protected void SubmitPackerBitmap(Package package, StringView name, Bitmap bitmap)
+			protected Result<Subtexture, String> SubmitPackerBitmap(Package package, StringView name, Bitmap bitmap)
 			{
+				// TODO: submit packer bitmaps from importers... prob needs some additions to assets and runtimePacker as well
+
 				// Add bitmap in package...
 
 				// Add bitmap in assets...
+
+				return .Ok(null);
 			}
 		}
 
@@ -174,7 +188,7 @@ namespace Pile
 				// 		DATANODEARRAYLENGTH (uint32)
 				// 		DATANODEARRAY (of bytes)
 
-				int readByte = 4; // Start at header
+				int32 readByte = 4; // Start at header
 
 				if (file.Count < 16 // Check min file size
 					|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
@@ -184,32 +198,32 @@ namespace Pile
 
 				{
 					let importerNameCount = ReadUInt();
-					for (int i = 0; i < importerNameCount; i++)
+					for (uint32 i = 0; i < importerNameCount; i++)
 					{
 						let importerNameLength = ReadUInt();
-						importerNames.Add(new String((char8*)&file[readByte], importerNameLength));
-						readByte += importerNameLength;
+						importerNames.Add(new String((char8*)&file[readByte], (.)importerNameLength));
+						readByte += (.)importerNameLength;
 					}
 
 					let nodeCount = ReadUInt();
-					for (int i = 0; i < nodeCount; i++)
+					for (uint32 i = 0; i < nodeCount; i++)
 					{
 						let importerIndex = ReadUInt();
 
 						let nameLength = ReadUInt();
 						let name = new uint8[nameLength];
-						Span<uint8>(&file[readByte], nameLength).CopyTo(name);
-						readByte += nameLength;
+						Span<uint8>(&file[readByte], (.)nameLength).CopyTo(name);
+						readByte += (.)nameLength;
 
 						let dataLength = ReadUInt();
 						let data = new uint8[dataLength];
-						Span<uint8>(&file[readByte], dataLength).CopyTo(data);
-						readByte += dataLength;
+						Span<uint8>(&file[readByte], (.)dataLength).CopyTo(data);
+						readByte += (.)dataLength;
 
 						let nodeDataLength = ReadUInt();
 						let nodeData = new uint8[nodeDataLength];
-						Span<uint8>(&file[readByte], nodeDataLength).CopyTo(nodeData);
-						readByte += nodeDataLength;
+						Span<uint8>(&file[readByte], (.)nodeDataLength).CopyTo(nodeData);
+						readByte += (.)nodeDataLength;
 
 						nodes.Add(new PackageNode(importerIndex, name, data, nodeData));
 					}
@@ -237,9 +251,9 @@ namespace Pile
 			{
 				Importer importer;
 
-				if (node.Importer < importers.Count && importers.ContainsKey(importerNames[(int)node.Importer]))
+				if (node.Importer < (uint32)importers.Count && importers.ContainsKey(importerNames[(int)node.Importer]))
 					importer = importers.GetValue(importerNames[(int)node.Importer]);
-				else if (node.Importer < importers.Count) return .Err(new String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
+				else if (node.Importer < (uint32)importers.Count) return .Err(new String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
 				else return .Err(new String("Couldn't loat package {0}. Couldn't find importer name at index {1} of file's importer name array; index out of range")..Format(packageName, node.Importer));
 				
 				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
@@ -249,7 +263,9 @@ namespace Pile
 				if (res case .Err(let err)) return .Err(new String("Couldn't loat package {0}. Error parsing json data for asset {1}: {2} ({3})")..Format(packageName, name, err, json));
 				let dataNode = res.Get();
 
-				importer.Load(package, name, node.Data, dataNode);
+				importer.[Friend]package = package;
+				importer.Load(name, node.Data, dataNode);
+				importer.[Friend]package = null;
 				delete dataNode;
 
 				delete node;
@@ -266,7 +282,11 @@ namespace Pile
 
 		public static void UnloadPackage(StringView packageName)
 		{
+			// TODO: unloading of packages
 			// If assets can be deleted by methods there, the strings referenced in package might be deleted, solve this first!
+
+			// Also fire some unload event here and when loading
+			// This event should probably pass somethings that lets others access the list of assets included
 		}
 
 		public static bool PackageLoaded(StringView packageName, out Package package)
@@ -296,11 +316,11 @@ namespace Pile
 				if (!JSONParser.IsValidJson(jsonFile))
 					return .Err(new String("Couldn't build package at {0}. Invalid json file")..Format(packagePath));
 
-				let res = JSONParser.ParseObject(jsonFile);
+				JSONObject root = scope JSONObject();
+				let res = JSONParser.ParseObject(jsonFile, ref root);
 				if (res case .Err(let err))
 					return .Err(new String("Couldn't build package at {0}. Error parsing json: {1}")..Format(packagePath, err));
 
-				let root = res.Get();
 				if (!root.ContainsKey("imports"))
 					return .Err(new String("Couldn't build package at {0}. The root json object must include a 'imports' json array of objects")..Format(packagePath));
 
@@ -348,8 +368,6 @@ namespace Pile
 
 					entry = null;
 				}
-
-				delete root;
 			}
 
 			// Resolve imports
@@ -386,7 +404,7 @@ namespace Pile
 						return .Err(new String("Couldn't build package at {0}. Failed to find containing directory of {1} at {2}")..Format(packagePath, path, dirPath));
 
 					// Import everything - recursively
-					if (Path.SamePath(fullPath, dirPath)) // Are dd/ddd/ and dd/ddd the same?? currently not, but should they?
+					if (Path.SamePath(fullPath, dirPath))
 					{
 						let importDirs = scope List<String>();
 						importDirs.Add(new String(dirPath));

@@ -113,7 +113,7 @@ namespace Pile.Implementations
 				}
 			}
 
-			uint PrepareShader(String source, uint64 glShaderType)
+			uint PrepareShader(String source, uint glShaderType)
 			{
 				uint id = GL.glCreateShader(glShaderType);
 

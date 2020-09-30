@@ -69,7 +69,7 @@ namespace Pile
 			FileStream s = scope FileStream();
 			if (s.Open(path) case .Err(let err))
 				return .Err(.FileOpenError(err));
-			let outData = new uint8[s.Length];
+			let outData = new uint8[(.)s.Length];
 			if (s.TryRead(outData) case .Err)
 				return .Err(.FileReadError(.Unknown));
 
