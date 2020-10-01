@@ -11,7 +11,7 @@ using System.IO;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
-// TODO: asset importers, font support/spritefonts/batcher font drawing, audio, package unloading
+// TODO: asset importers, font support/spritefonts/batcher font drawing, audio, package unloading, (networking??)
 
 namespace Pile
 {

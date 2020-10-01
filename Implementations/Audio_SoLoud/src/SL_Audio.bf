@@ -27,7 +27,20 @@ namespace Pile.Implementations
 			version = SL_Soloud.GetVersion(slPtr);
 			SL_Soloud.GetBackendId(slPtr).ToString(api);
 
+			// try to play sound manually here ..
+			//SL_Openmpt.LoadMem()
+
 			return .Ok;
+		}
+
+		public override void PlayInternal(AudioClip clip, float volume = 1, float pan = 0, bool paused = false, AudioBus bus = null)
+		{
+
+		}
+
+		public override void StopInternal(params AudioInstance[] instances)
+		{
+
 		}
 	}
 }

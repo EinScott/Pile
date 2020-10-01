@@ -27,24 +27,6 @@ namespace Pile
 			}
 		}
 	}
-
-	using JSON_Beef.Types;
-
-	// JSONDocument really should be a static thing, but for some reason it isn't
-	static class JSONParser
-	{
-		public static JSONDocument parse = new JSONDocument() ~ delete _;
-
-		public static bool IsValidJson(String json) => parse.IsValidJson(json);
-
-		public static Result<JSONObject, JSON_ERRORS> ParseObject(String json) => parse.ParseObject(json);
-		public static Result<void, JSON_ERRORS> ParseObject(String json, ref JSONObject object) => parse.ParseObject(json, ref object);
-
-		public static Result<JSONArray, JSON_ERRORS> ParseArray(String json) => parse.ParseArray(json);
-		public static Result<void, JSON_ERRORS> ParseArray(String json, ref JSONArray array) => parse.ParseArray(json, ref array);
-
-		public static JSON_DOCUMENT_TYPE GetJsonType(String json) => parse.GetJsonType(json);
-	}
 }
 
 using Pile;

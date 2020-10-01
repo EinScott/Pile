@@ -96,6 +96,7 @@ namespace SoLoud
 
 		public enum Channels : uint32
 		{
+			ONE = 1,
 			TWO = 2,
 			FOUR = 4,
 			SIX = 6,
@@ -150,7 +151,7 @@ namespace SoLoud
 		public static extern uint32 Play(Soloud* soloud, void* sound);
 
 		[LinkName("Soloud_playEx")]
-		public static extern uint32 Play(Soloud* soloud, void* sound, float volume, float pan, int32 paused, uint32 bus);
+		public static extern uint32 Play(Soloud* soloud, void* sound, float volume, float pan, bool paused, uint32 bus);
 
 		[LinkName("Soloud_playClocked")]
 		public static extern uint32 PlayClocked(Soloud* soloud, double soundTime, void* sound);
@@ -162,7 +163,7 @@ namespace SoLoud
 		public static extern uint32 Play3d(Soloud* soloud, void* sound, float posX, float posY, float posZ);
 
 		[LinkName("Soloud_play3dEx")]
-		public static extern uint32 Play3d(Soloud* soloud, void* sound, float posX, float posY, float posZ, float velX, float velY, float velZ, float volume, int32 paused, uint32 bus);
+		public static extern uint32 Play3d(Soloud* soloud, void* sound, float posX, float posY, float posZ, float velX, float velY, float velZ, float volume, bool paused, uint32 bus);
 
 		[LinkName("Soloud_play3dClocked")]
 		public static extern uint32 Play3dClocked(Soloud* soloud, double soundTime, void* sound, float posX, float posY, float posZ);
@@ -174,7 +175,7 @@ namespace SoLoud
 		public static extern uint32 PlayBackground(Soloud* soloud, void* sound);
 
 		[LinkName("Soloud_playBackgroundEx")]
-		public static extern uint32 PlayBackground(Soloud* soloud, void* sound, float volume, int32 paused, uint32 bus);
+		public static extern uint32 PlayBackground(Soloud* soloud, void* sound, float volume, bool paused, uint32 bus);
 
 		[LinkName("Soloud_seek")]
 		public static extern SoLoudResult Seek(Soloud* soloud, uint32 voiceHandle, double seconds);
