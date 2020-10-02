@@ -2,7 +2,6 @@ using System;
 
 namespace Pile
 {
-	[Packed]
 	[Ordered]
 	public struct Color
 	{

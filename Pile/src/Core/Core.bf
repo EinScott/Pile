@@ -17,10 +17,10 @@ namespace Pile
 {
 	public static class Core
 	{
-		static this()
+		/*static this()
 		{
 			Runtime.SetCrashReportKind(.GUI);
-		}
+		}*/
 
 		static ~this()
 		{

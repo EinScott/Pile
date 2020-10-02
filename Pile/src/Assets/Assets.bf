@@ -87,7 +87,5 @@ namespace Pile
 
 			return .Ok;
 		}
-
-		// IF you do removing methods, think about how a package own list might still have a reference to a string of an asset here. How do you handle that?
 	}
 }

@@ -30,7 +30,7 @@ namespace Pile
 
 		public abstract class Importer
 		{
-			public abstract void Load(StringView name, uint8[] data, JSONObject dataNode);
+			public abstract Result<void, String> Load(StringView name, uint8[] data, JSONObject dataNode);
 			public abstract Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode);
 
 			private Package package;
@@ -222,7 +222,10 @@ namespace Pile
 
 						let nodeDataLength = ReadUInt();
 						let nodeData = new uint8[nodeDataLength];
-						Span<uint8>(&file[readByte], (.)nodeDataLength).CopyTo(nodeData);
+
+						if (nodeDataLength > 0) // This might be 0
+							Span<uint8>(&file[readByte], (.)nodeDataLength).CopyTo(nodeData);
+
 						readByte += (.)nodeDataLength;
 
 						nodes.Add(new PackageNode(importerIndex, name, data, nodeData));
@@ -264,7 +267,8 @@ namespace Pile
 				let dataNode = res.Get();
 
 				importer.[Friend]package = package;
-				importer.Load(name, node.Data, dataNode);
+				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
+					return .Err(new String("Couldn't loat package {0}. Error importing asset {1} with {2}: {3}")..Format(name, importerNames[(int)node.Importer], err));
 				importer.[Friend]package = null;
 				delete dataNode;
 
@@ -277,14 +281,11 @@ namespace Pile
 			for (let s in importerNames)
 				delete s;
 
-			return .Ok(null);
+			return .Ok(package);
 		}
 
 		public static void UnloadPackage(StringView packageName)
 		{
-			// TODO: unloading of packages
-			// If assets can be deleted by methods there, the strings referenced in package might be deleted, solve this first!
-
 			// Also fire some unload event here and when loading
 			// This event should probably pass somethings that lets others access the list of assets included
 		}
@@ -496,24 +497,32 @@ namespace Pile
 					// Read file
 					let res = Core.System.FileReadAllBytes(filePath);
 					if (res case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error reading file at {1}: {2}")..Format(packagePath, filePath, err));
+						return .Err(new String("Couldn't build package at {0}. Error reading file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
 					uint8[] data = res;
 
 					// Run through importer
 					let ress = importer.Build(data, let node);
 					if (ress case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error importing file at {1}: {2}")..Format(packagePath, filePath, err));
-					uint8[] importedData = ress;
+						return .Err(new String("Couldn't build package at {0}. Error importing file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
+					uint8[] builtData = ress;
+					if (builtData.Count <= 0)
+						return .Err(new String("Couldn't build package at {0}. Error importing file at {1} with {2}: Length of returned data cannot be 0")..Format(packagePath, filePath, import.importer));
 
 					delete data;
 
 					// Convert node string to bytes
 					let s = scope String();
-					node.ToString(s);
-					let nodeData = new uint8[s.Length];
-					Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(nodeData);
+					if (node != null)
+						node.ToString(s); // Node might be null
 
-					delete node;
+					let nodeData = new uint8[s.Length]; // Array might be empty, and that is valid
+					
+					if (node != null)
+					{
+						// Fill array
+						Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(nodeData);
+						delete node;
+					}
 
 					// Make name
 					s.Clear();
@@ -531,7 +540,7 @@ namespace Pile
 
 					// Add data
 					importerUsed = true;
-					nodes.Add(new PackageNode((uint32)importerNames.Count, name, importedData, nodeData));
+					nodes.Add(new PackageNode((uint32)importerNames.Count, name, builtData, nodeData));
 
 					delete filePath;
 				}

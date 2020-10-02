@@ -3,20 +3,18 @@ using JSON_Beef.Types;
 
 namespace Pile
 {
-	public class TestImporter : Packages.Importer
+	public class RawImporter : Packages.Importer
 	{
-		public override void Load(StringView name, uint8[] data, JSONObject dataNode)
+		public override Result<void, String> Load(StringView name, uint8[] data, JSONObject dataNode)
 		{
-			Log.Message(dataNode);
-			let asset = new TestAsset(data);
+			let asset = new RawAsset(data);
 
-			SubmitAsset(name, asset);
+			return SubmitAsset(name, asset);
 		}
 
 		public override Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode)
 		{
-			dataNode = new JSONObject();
-			dataNode.Add<int>("testEntry", 42);
+			dataNode = null;
 
 			let outData = new uint8[data.Count];
 			data.CopyTo(outData);
@@ -24,7 +22,7 @@ namespace Pile
 		}
 	}
 
-	public class TestAsset
+	public class RawAsset
 	{
 		public readonly StringView text;
 		public readonly uint8[] data ~ delete _;

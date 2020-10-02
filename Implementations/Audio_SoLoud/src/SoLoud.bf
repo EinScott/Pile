@@ -127,7 +127,7 @@ namespace SoLoud
 		public static extern char8* GetErrorString(Soloud* soloud, SoLoudResult errorCode);
 
 		[LinkName("Soloud_getBackendId")]
-		public static extern uint32 GetBackendId(Soloud* soloud);
+		public static extern Backend GetBackendId(Soloud* soloud);
 
 		[LinkName("Soloud_getBackendString")]
 		public static extern char8* GetBackendString(Soloud* soloud);
