@@ -121,8 +121,8 @@ namespace Pile
 			packagesPath = new String();
 			Path.InternalCombine(packagesPath, Core.System.DataPath, "Packages");
 
-			if (!Core.System.DirectoryExists(packagesPath))
-				Core.System.DirectoryCreate(packagesPath);
+			if (!Directory.Exists(packagesPath))
+				Directory.CreateDirectory(packagesPath);
 		}
 
 		public static void RegisterImporter(StringView name, Importer importer)
@@ -161,7 +161,7 @@ namespace Pile
 				let packagePath = scope String();
 				Path.InternalCombineViews(packagePath, packagesPath, packageName);
 				if (!packageName.EndsWith(".bin")) Path.ChangeExtension(scope String(packagePath), ".bin", packagePath);
-				let res = Core.System.FileReadAllBytes(packagePath);
+				let res = File.ReadAllBytes(packagePath);
 				if (res case .Err)
 				  return .Err(new String("Couldn't loat package {0}. Error reading file from {1}")..Format(packageName, packagePath));
 
@@ -311,7 +311,7 @@ namespace Pile
 			{
 				// Read package file
 				String jsonFile = scope String();
-				if (Core.System.FileReadAllText(packagePath, jsonFile) case .Err(let err))
+				if (File.ReadAllText(packagePath, jsonFile) case .Err(let err))
 					return .Err(new String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
 
 				if (!JSONParser.IsValidJson(jsonFile))
@@ -401,7 +401,7 @@ namespace Pile
 					let dirPath = scope String();
 					Path.GetDirectoryPath(fullPath, dirPath);
 
-					if (!Core.System.DirectoryExists(dirPath))
+					if (!Directory.Exists(dirPath))
 						return .Err(new String("Couldn't build package at {0}. Failed to find containing directory of {1} at {2}")..Format(packagePath, path, dirPath));
 
 					// Import everything - recursively
@@ -416,7 +416,7 @@ namespace Pile
 							currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
 							currImportPath..Append(Path.DirectorySeparatorChar)..Append('*');
 
-							for (let entry in Core.System.DirectoryEnumerate(currImportPath, .Files | .Directories))
+							for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
 							{
 								let path = new String();
 								entry.GetFilePath(path);
@@ -455,7 +455,7 @@ namespace Pile
 							wildCardPath..Append(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
 
 							bool match = false;
-							for (let entry in Core.System.DirectoryEnumerate(currSearchStr, .Files | .Directories))
+							for (let entry in Directory.Enumerate(currSearchStr, .Files | .Directories))
 							{
 								let dirFilePath = new String();
 								entry.GetFilePath(dirFilePath);
@@ -495,7 +495,7 @@ namespace Pile
 					Log.Message(scope String("Importing {0}")..Format(filePath));
 
 					// Read file
-					let res = Core.System.FileReadAllBytes(filePath);
+					let res = File.ReadAllBytes(filePath);
 					if (res case .Err(let err))
 						return .Err(new String("Couldn't build package at {0}. Error reading file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
 					uint8[] data = res;
@@ -627,7 +627,7 @@ namespace Pile
 				Path.GetFileNameWithoutExtension(scope String(packagePath), packageName);
 				Path.InternalCombine(outPath, packagesPath, packageName);
 				Path.ChangeExtension(scope String(outPath), ".bin", outPath);
-				let res = Core.System.FileWriteAllBytes(outPath, file);
+				let res = File.WriteAllBytes(outPath, file);
 				if (res case .Err)
 					return .Err(new String("Couldn't build package at {0}. Error writing file to {1}")..Format(packagePath, outPath));
 

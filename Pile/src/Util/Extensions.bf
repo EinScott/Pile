@@ -183,5 +183,30 @@ namespace System
 				}
 			}
 		}
+
+		public extension File
+		{
+			public static Result<uint8[], FileError> ReadAllBytes(StringView path)
+			{
+				FileStream s = scope FileStream();
+				if (s.Open(path) case .Err(let err))
+					return .Err(.FileOpenError(err));
+				let outData = new uint8[(.)s.Length];
+				if (s.TryRead(outData) case .Err)
+					return .Err(.FileReadError(.Unknown));
+
+				return .Ok(outData);
+			}
+
+			public static Result<void> WriteAllBytes(StringView path, Span<uint8> data)
+			{
+				FileStream fs = scope FileStream();
+				var result = fs.Open(path, .Create, .Write);
+				if (result case .Err)
+					return .Err;
+				fs.TryWrite(data);
+				return .Ok;
+			}
+		}
 	}
 }

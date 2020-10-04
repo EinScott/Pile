@@ -19,14 +19,14 @@ namespace Pile
 
 			void Read(StringView path, String source)
 			{
-				if (!Core.System.FileExists(path))
+				if (!File.Exists(path))
 				{
 					// Log this if it doesn't seem to be intentional (empty path). If thats also wrong someone else will complain
 					if (path.Length != 0) Log.Warning(scope String("Shader source file at {0} does not exist")..Format(path));
 					return;
 				}
 
-				switch (Core.System.FileReadAllText(path, source, true))
+				switch (File.ReadAllText(path, source, true))
 				{
 				case .Err(let err):
 					if (err case .FileOpenError(let openErr))

@@ -95,12 +95,12 @@ namespace Pile
 
 		    public class Slice : IUserData
 		    {
-		        public int32 Frame;
+		        public uint32 Frame;
 		        public String Name = new String("") ~ delete _;
 		        public int32 OriginX;
 		        public int32 OriginY;
-		        public int32 Width;
-		        public int32 Height;
+		        public uint32 Width;
+		        public uint32 Height;
 		        public Point2? Pivot;
 		        public Rect? NineSlice;
 		        public String UserDataText { get; set; }
@@ -191,17 +191,25 @@ namespace Pile
 
 		    private Result<void, String> Parse(Stream stream)
 		    {
-		        var reader = new BinaryReader(stream);
-
 		        // wrote these to match the documentation names so it's easier (for me, anyway) to parse
-		        uint8 BYTE() => reader.ReadByte();
-		        uint16 WORD() => reader.ReadUInt16();
-		        int16 SHORT() => reader.ReadInt16();
-		        uint32 DWORD() => reader.ReadUInt32();
-		        int64 LONG() => reader.ReadInt32();
-		        StringView STRING() => Encoding.UTF8.GetString(BYTES(WORD()));
-		        uint8[] BYTES(int number) => reader.ReadBytes(number); // This all makes no sense as long as you dont figure out what reader is, since both string and uint8 are alloc
-		        void SEEK(int number) => reader.BaseStream.Position += number;
+		        uint8 BYTE() => stream.Read<uint8>();
+		        uint16 WORD() => stream.Read<uint16>();
+		        int16 SHORT() => stream.Read<int16>();
+		        uint32 DWORD() => stream.Read<uint32>();
+		        int32 LONG() => stream.Read<int32>();
+		        mixin STRING()
+				{
+					let buf = scope uint8[WORD()];
+					let res = stream.TryRead(buf); // BYTES(count) is here
+					if (res case .Err)
+						return .Err("Error reading ASE: Couldn't read STRING");
+					else if (res case .Ok(let val))
+						if (val != buf.Count)
+							return .Err("Error reading ASE: STRING was not of expected size");
+					let s = scope String((char8*)&buf[0], buf.Count);
+					s
+				}
+		        void SEEK(int number) => stream.Position += number;
 
 		        // Header
 		        {
@@ -248,7 +256,7 @@ namespace Pile
 
 		            // frame header
 		            {
-		                frameStart = reader.BaseStream.Position;
+		                frameStart = stream.Position;
 		                frameEnd = frameStart + DWORD();
 		                WORD();                  // Magic number (always 0xF1FA)
 		                chunkCount = WORD();     // Number of "chunks" in this frame
@@ -264,7 +272,7 @@ namespace Pile
 
 		                // chunk header
 		                {
-		                    chunkStart = reader.BaseStream.Position;
+		                    chunkStart = stream.Position;
 		                    chunkEnd = chunkStart + DWORD();
 		                    chunkType = (Chunks)WORD();
 		                }
@@ -284,7 +292,7 @@ namespace Pile
 		                    layer.BlendMode = WORD();
 		                    layer.Alpha = (BYTE() / 255f);
 		                    SEEK(3); // for future
-		                    layer.Name = STRING();
+		                    layer.Name.Set(STRING!());
 
 		                    last = layer;
 		                    Layers.Add(layer);
@@ -317,16 +325,32 @@ namespace Pile
 		                        // RAW
 		                        if (celType == 0)
 		                        {
-		                            reader.Read(temp, 0, width * height * (int)Mode);
+		                            let res = stream.TryRead(temp);
+									if (res case .Err)
+										return .Err("Error reading ASE: Couldn't read RAW Cell");
+									else if (res case .Ok(let val))
+										if (val != temp.Count)
+											return .Err("Error reading ASE: RAW Cell was not of expected size");
 		                        }
 		                        // DEFLATE
 		                        else
 		                        {
-		                            SEEK(2);
+		                            //SEEK(2);
 
-		                            using var deflate = new DeflateStream(reader.BaseStream, CompressionMode.Decompress, true);
-		                            deflate.Read(temp, 0, count);
-		                        }
+		                            //using var deflate = new DeflateStream(reader.BaseStream, CompressionMode.Decompress, true);
+		                            //deflate.Read(temp, 0, count);
+
+									let source = scope uint8[(chunkEnd - stream.Position + 1)];
+									let res = stream.TryRead(source);
+									if (res case .Err)
+										return .Err("Error reading ASE: Couldn't read COMPRESSED Cell");
+									else if (res case .Ok(let val))
+										if (val != source.Count)
+											return .Err("Error reading ASE: COMPRESSED Cell was not of expected size");
+
+									if (Compression.Decompress(source, temp) case .Err(let err))
+										return .Err(new String("Error reading ASE COMPRESSED Cell: {0}")..Format(err));
+								}
 
 		                        // get pixel data
 		                        pixels = new Color[width * height];
@@ -380,7 +404,7 @@ namespace Pile
 		                        palette[start + p] = new Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
 
 		                        if (Math.IsBitSet(hasName, 0))
-		                            STRING();
+		                            STRING!();
 		                    }
 		                }
 		                // USERDATA
@@ -392,7 +416,7 @@ namespace Pile
 
 		                        // has text
 		                        if (Math.IsBitSet(flags, 0))
-		                            last.UserDataText = STRING();
+		                            last.UserDataText.Set(STRING!());
 
 		                        // has color
 		                        if (Math.IsBitSet(flags, 1))
@@ -414,7 +438,7 @@ namespace Pile
 		                        SEEK(8);
 		                        tag.Color = new Color(BYTE(), BYTE(), BYTE(), (uint8)255).Premultiply();
 		                        SEEK(1);
-		                        tag.Name = STRING();
+		                        tag.Name.Set(STRING!());
 		                        Tags.Add(tag);
 		                    }
 		                }
@@ -424,24 +448,24 @@ namespace Pile
 		                    var count = DWORD();
 		                    var flags = (int)DWORD();
 		                    DWORD(); // reserved
-		                    var name = STRING();
+		                    var name = STRING!();
 
 		                    for (int s = 0; s < count; s++)
 		                    {
-		                        var slice = new Slice
+		                        var slice = new Slice()
 		                        {
-		                            Name = name,
-		                            Frame = (int)DWORD(),
-		                            OriginX = (int)LONG(),
-		                            OriginY = (int)LONG(),
-		                            Width = (int)DWORD(),
-		                            Height = (int)DWORD()
+		                            Frame = DWORD(),
+		                            OriginX = LONG(),
+		                            OriginY = LONG(),
+		                            Width = DWORD(),
+		                            Height = DWORD()
 		                        };
+								slice.Name.Set(name);
 
 		                        // 9 slice (ignored atm)
-		                        if (Calc.IsBitSet(flags, 0))
+		                        if (Math.IsBitSet(flags, 0))
 		                        {
-		                            slice.NineSlice = new RectInt(
+		                            slice.NineSlice = Rect(
 		                                (int)LONG(),
 		                                (int)LONG(),
 		                                (int)DWORD(),
@@ -449,19 +473,21 @@ namespace Pile
 		                        }
 
 		                        // pivot point
-		                        if (Calc.IsBitSet(flags, 1))
-		                            slice.Pivot = new Point2((int)DWORD(), (int)DWORD());
+		                        if (Math.IsBitSet(flags, 1))
+		                            slice.Pivot = Point2((.)DWORD(), (.)DWORD());
 		                        
 		                        last = slice;
 		                        Slices.Add(slice);
 		                    }
 		                }
 
-		                reader.BaseStream.Position = chunkEnd;
+		                stream.Position = chunkEnd;
 		            }
 
-		            reader.BaseStream.Position = frameEnd;
+		            stream.Position = frameEnd;
 		        }
+
+				return .Ok;
 		    }
 
 		    #endregion
@@ -516,7 +542,7 @@ namespace Pile
 		    private void BytesToPixels(uint8[] bytes, Color[] pixels, Modes mode, Color[] palette)
 		    {
 		        int len = pixels.Count;
-		        if (mode == Modes.RGBA)
+		        if (mode == .RGBA)
 		        {
 		            for (int p = 0, int b = 0; p < len; p++, b += 4)
 		            {
@@ -526,7 +552,7 @@ namespace Pile
 		                pixels[p].A = bytes[b + 3];
 		            }
 		        }
-		        else if (mode == Modes.Grayscale)
+		        else if (mode == .Grayscale)
 		        {
 		            for (int p = 0, int b = 0; p < len; p++, b += 2)
 		            {
@@ -534,7 +560,7 @@ namespace Pile
 		                pixels[p].A = bytes[b + 1];
 		            }
 		        }
-		        else if (mode == Modes.Indexed)
+		        else if (mode == .Indexed)
 		        {
 		            for (int p = 0;  p < len; p++)
 		                pixels[p] = palette[bytes[p]];

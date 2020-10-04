@@ -203,8 +203,7 @@ namespace Pile
 
 			if (directory.Length != 0 && !Directory.Exists(directory))
 			{
-				FileResult res = default;
-				if (Core.System.DirectoryCreate(directory) case .Err(res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
+				if (Directory.CreateDirectory(directory) case .Err(let res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't create missing directory: {0}")..Format(res));
 			}
 
 			let fileLog = scope String();
@@ -238,14 +237,13 @@ namespace Pile
 			if (File.Exists(filePath))
 			{
 				var existingFile = scope String();
-				FileError res = default;
-				if (Core.System.FileReadAllText(filePath, existingFile, true) case .Err(res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
+				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) Runtime.FatalError(scope String("Couldn't append log to file, couldn't read existing file: {0}")..Format(res));
 
 				fileLog.Append(existingFile);
 			}
 
 			// Write
-			Runtime.Assert(Core.System.FileWriteAllText(filePath, fileLog) case .Ok, "Couldn't append log to file, couldn't write file");
+			Runtime.Assert(File.WriteAllText(filePath, fileLog) case .Ok, "Couldn't append log to file, couldn't write file");
 		}
 	}
 }

@@ -25,7 +25,7 @@ LibPaths = ["$(ProjectDir)/dist64/soloud.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist64/soloud.dll\")"]
 
 [[Configs.Release.Win64.DistinctOptions]]
-Filter = "SDL2.*"
+Filter = "SoLoud.*"
 BfOptimizationLevel = "O3"
 EmitDebugInfo = "No"
 RuntimeChecks = false
@@ -51,7 +51,7 @@ LibPaths = ["$(ProjectDir)/dist32/soloud.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist32/soloud.dll\")"]
 
 [[Configs.Release.Win32.DistinctOptions]]
-Filter = "SDL2.*"
+Filter = "SoLoud.*"
 BfOptimizationLevel = "O3"
 EmitDebugInfo = "No"
 RuntimeChecks = false
