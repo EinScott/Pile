@@ -4,10 +4,8 @@ namespace Pile
 {
 	public static class Time
 	{
-		static this() => TargetFPS = 60;
-
-		static double targetMilliseconds;
-		static int targetFps;
+		static double targetMilliseconds = (double)1000 / 60;
+		static int targetFps = 60;
 		public static int TargetFPS
 		{
 			get => targetFps;
@@ -27,7 +25,7 @@ namespace Pile
 		public static float RawDelta { get; private set; }
 		public static float Delta { get; private set; }
 
-		public static float Scale;
+		public static float Scale = 1;
 
 		public static bool OnInterval(double time, double delta, double interval, double offset)
 		{

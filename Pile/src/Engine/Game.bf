@@ -5,6 +5,11 @@ namespace Pile
 	public abstract class Game<T> : Game where T : Game
 	{
 		public static T Instance;
+
+		public this()
+		{
+			Instance = (T)this;
+		}
 	}
 
 	public abstract class Game

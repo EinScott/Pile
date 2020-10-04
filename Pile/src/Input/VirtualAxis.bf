@@ -151,42 +151,36 @@ namespace Pile
 	        return value;
 	    }
 
-	    public VirtualAxis Add(Keys negative, Keys positive)
+	    public void Add(Keys negative, Keys positive)
 	    {
 	        Nodes.Add(new KeyNode(input, negative, false));
 	        Nodes.Add(new KeyNode(input, positive, true));
-	        return this;
 	    }
 
-	    public VirtualAxis Add(Keys key, bool isPositive)
+	    public void Add(Keys key, bool isPositive)
 	    {
 	        Nodes.Add(new KeyNode(input, key, isPositive));
-	        return this;
 	    }
 
-	    public VirtualAxis Add(int controller, Buttons negative, Buttons positive)
+	    public void Add(int controller, Buttons negative, Buttons positive)
 	    {
 	        Nodes.Add(new ButtonNode(input, controller, negative, false));
 	        Nodes.Add(new ButtonNode(input, controller, positive, true));
-	        return this;
 	    }
 
-	    public VirtualAxis Add(int controller, Buttons button, bool isPositive)
+	    public void Add(int controller, Buttons button, bool isPositive)
 	    {
 	        Nodes.Add(new ButtonNode(input, controller, button, isPositive));
-	        return this;
 	    }
 
-	    public VirtualAxis Add(int controller, Axes axis, float deadzone = 0f)
+	    public void Add(int controller, Axes axis, float deadzone = 0f)
 	    {
 	        Nodes.Add(new AxisNode(input, controller, axis, deadzone, true));
-	        return this;
 	    }
 
-	    public VirtualAxis Add(int controller, Axes axis, bool inverse, float deadzone = 0f)
+	    public void Add(int controller, Axes axis, bool inverse, float deadzone = 0f)
 	    {
 	        Nodes.Add(new AxisNode(input, controller, axis, deadzone, !inverse));
-	        return this;
 	    }
 
 	    public void Clear()
