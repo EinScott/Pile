@@ -272,8 +272,8 @@ namespace Pile
 		{
 			Shader = shader;
 
-			parameters = new Parameter[shader.UniformCount];
-			for (int i = 0; i < shader.UniformCount; i++)
+			parameters = new Parameter[shader.Uniforms.Length];
+			for (int i = 0; i < shader.Uniforms.Length; i++)
 				parameters[i] = new [Friend]Parameter(shader.[Friend]Uniforms[i]);
 		}
 

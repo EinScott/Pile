@@ -5,9 +5,9 @@ namespace Pile
 {
 	public class Shader
 	{
-		// Access lists directly
-		readonly List<ShaderAttribute> Attributes;
-		readonly List<ShaderUniform> Uniforms;
+		// Maintained by platform
+		public readonly ReadOnlySpan<ShaderAttribute> Attributes;
+		public readonly ReadOnlySpan<ShaderUniform> Uniforms;
 
 		public class Platform
 		{
@@ -16,8 +16,6 @@ namespace Pile
 		}
 
 		readonly Platform platform ~ delete _;
-
-		public int UniformCount => Uniforms.Count;
 
 		public this(ShaderData source)
 		{

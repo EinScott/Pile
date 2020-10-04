@@ -1,15 +1,11 @@
-#if TEST // currently, compiling tests crashes
+#if TEST
 using System;
 
 namespace Pile
 {
 	static
 	{
-		[Test]
-		static Result<void, String> FileSystemTest()
-		{
-			return .Ok;
-		}
+		// Nothing here yet
 	}
 }
 #endif

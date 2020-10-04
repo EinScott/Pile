@@ -138,6 +138,16 @@ namespace System
 		{
 		    return Math.Round(value / snapTo) * snapTo;
 		}
+
+		public static bool IsBitSet(uint8 b, int pos)
+		{
+		    return (b & (1 << pos)) != 0;
+		}
+
+		public static bool IsBitSet(int b, int pos)
+		{
+		    return (b & (1 << pos)) != 0;
+		}
 	}
 
 	namespace IO

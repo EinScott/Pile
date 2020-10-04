@@ -88,7 +88,7 @@ namespace Pile.Implementations
 
 				// Determine active attributes
 				if (vertexFormat != null)
-					for (let attribute in material.Shader.[Friend]Attributes)
+					for (let attribute in material.Shader.Attributes)
 					{
 						if (!SetupAttributePointer(attribute, vertexFormat))
 							GL.glDisableVertexAttribArray(attribute.Location);

@@ -1,4 +1,4 @@
-/*using System;
+using System;
 using System.IO;
 using System.Text;
 
@@ -219,16 +219,29 @@ namespace Pile
 		    if (!hasPLTE && color == Colors.Indexed)
 		        return .Err("Error reading PNG: PNG Missing PLTE data");
 
+			let width = bitmap.Width;
+			let height = bitmap.Height;
+
 		    // Parse the IDAT data into Pixels
 		    // It would be cool to do this line-by-line so we don't need to create a buffer to store the decompressed stream
 		    {
-		        uint8[] buffer = scope uint8[bitmap.Width * bitmap.Height * (depth == 16 ? 2 : 1) * 4 + bitmap.Height];
+		        uint8[] buffer = scope uint8[width * height * (depth == 16 ? 2 : 1) * 4 + height];
 
 		        // decompress the image data
 		        {
-		            idat.Seek(2);
-		            using DeflateStream deflateStream = new DeflateStream(idat, CompressionMode.Decompress);
-		            deflateStream.Read(buffer);
+		            //idat.Seek(2);
+		            //using DeflateStream deflateStream = new DeflateStream(idat, CompressionMode.Decompress);
+		            //deflateStream.Read(buffer);
+
+					let res = Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer));
+					switch (res)
+					{
+					case .Ok(let val):
+						if (buffer.Count != val)
+							return .Err("Decompressed image data doesnt have expected size");
+					case .Err(let err):
+						return .Err(err);
+					}
 		        }
 
 		        // apply filter pass - this happens in-place
@@ -241,7 +254,7 @@ namespace Pile
 		            for (int y = 0; y < height; y++)
 		            {
 		                int source = y * (lineLength + 1) + 1;
-		                byte lineFilter = buffer[source - 1];
+		                uint8 lineFilter = buffer[source - 1];
 
 		                // 0 - None
 		                if (lineFilter == 0)
@@ -254,7 +267,7 @@ namespace Pile
 		                    Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                    for (int x = bpp; x < lineLength; x++)
 		                    {
-		                        buffer[dest + x] = (byte)(buffer[source + x] + buffer[dest + x - bpp]);
+		                        buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - bpp]);
 		                    }
 		                }
 		                // 2 - Up
@@ -268,7 +281,7 @@ namespace Pile
 		                    {
 		                        for (int x = 0; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + buffer[dest + x - lineLength]);
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - lineLength]);
 		                        }
 		                    }
 		                }
@@ -280,19 +293,19 @@ namespace Pile
 		                        Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + ((buffer[dest + x - bpp] + 0) / 2));
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + ((buffer[dest + x - bpp] + 0) / 2));
 		                        }
 		                    }
 		                    else
 		                    {
 		                        for (int x = 0; x < bpp; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + ((0 + buffer[dest + x - lineLength]) / 2));
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + ((0 + buffer[dest + x - lineLength]) / 2));
 		                        }
 
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + ((buffer[dest + x - bpp] + buffer[dest + x - lineLength]) / 2));
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + ((buffer[dest + x - bpp] + buffer[dest + x - lineLength]) / 2));
 		                        }
 		                    }
 		                }
@@ -304,19 +317,19 @@ namespace Pile
 		                        Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + buffer[dest + x - bpp]);
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - bpp]);
 		                        }
 		                    }
 		                    else
 		                    {
-		                        for (int x = 0, c = Math.Min(bpp, lineLength); x < c; x++)
+		                        for (int x = 0, int c = Math.Min(bpp, lineLength); x < c; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + buffer[dest + x - lineLength]);
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - lineLength]);
 		                        }
 
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (byte)(buffer[source + x] + PaethPredictor(buffer[dest + x - bpp], buffer[dest + x - lineLength], buffer[dest + x - bpp - lineLength]));
+		                            buffer[dest + x] = (uint8)(buffer[source + x] + PaethPredictor(buffer[dest + x - bpp], buffer[dest + x - lineLength], buffer[dest + x - bpp - lineLength]));
 		                        }
 		                    }
 		                }
@@ -328,7 +341,7 @@ namespace Pile
 		        // if the bit-depth isn't 8, convert it
 		        if (depth != 8)
 		        {
-		            throw new NotImplementedException("Non 8-bit PNGs not Implemented");
+		            return .Err("Non 8-bit PNGs not Implemented");
 		        }
 
 		        // Convert bytes to RGBA data
@@ -337,10 +350,10 @@ namespace Pile
 		            // Indexed Color
 		            if (color == Colors.Indexed)
 		            {
-		                for (int p = width * height - 1, i = width * height * 4 - 4; p >= 0; p--, i -= 4)
+		                for (int p = width * height - 1, int i = width * height * 4 - 4; p >= 0; p--, i -= 4)
 		                {
 		                    int id = buffer[p] * 3;
-		                    buffer[i + 3] = (alphaPalette == null || buffer[p] >= alphaPalette.Length) ? (byte)255 : alphaPalette[buffer[p]];
+		                    buffer[i + 3] = (alphaPalette == null || buffer[p] >= alphaPalette.Count) ? (uint8)255 : alphaPalette[buffer[p]];
 		                    buffer[i + 2] = palette[id + 2];
 		                    buffer[i + 1] = palette[id + 1];
 		                    buffer[i + 0] = palette[id + 0];
@@ -349,7 +362,7 @@ namespace Pile
 		            // Grayscale
 		            else if (color == Colors.Greyscale)
 		            {
-		                for (int p = width * height - 1, i = width * height * 4 - 4; p >= 0; p--, i -= 4)
+		                for (int p = width * height - 1, int i = width * height * 4 - 4; p >= 0; p--, i -= 4)
 		                {
 		                    buffer[i + 3] = 255;
 		                    buffer[i + 2] = buffer[p];
@@ -360,9 +373,9 @@ namespace Pile
 		            // Grayscale-Alpha
 		            else if (color == Colors.GreyscaleAlpha)
 		            {
-		                for (int p = width * height * 2 - 2, i = width * height * 4 - 4; p >= 0; p -= 2, i -= 4)
+		                for (int p = width * height * 2 - 2, int i = width * height * 4 - 4; p >= 0; p -= 2, i -= 4)
 		                {
-		                    byte val = buffer[p], alpha = buffer[p + 1];
+		                    //uint8 val = buffer[p], alpha = buffer[p + 1]; // UNUSED
 		                    buffer[i + 3] = buffer[p + 1];
 		                    buffer[i + 2] = buffer[p];
 		                    buffer[i + 1] = buffer[p];
@@ -372,7 +385,7 @@ namespace Pile
 		            // Truecolor
 		            else if (color == Colors.Truecolor)
 		            {
-		                for (int p = width * height * 3 - 3, i = width * height * 4 - 4; p >= 0; p -= 3, i -= 4)
+		                for (int p = width * height * 3 - 3, int i = width * height * 4 - 4; p >= 0; p -= 3, i -= 4)
 		                {
 		                    buffer[i + 3] = 255;
 		                    buffer[i + 2] = buffer[p + 2];
@@ -384,20 +397,20 @@ namespace Pile
 
 		        // set RGBA data to Color array
 		        {
-		            pixels = new Color[width * height];
-
-		            fixed (byte* inArray = buffer)
-		            fixed (Color* outArray = pixels)
-		            {
-		                Buffer.MemoryCopy(inArray, outArray, width * height * 4, width * height * 4);
-		            }
+		            let pixels = Span<Color>((Color*)&buffer[0], width * height);
+					bitmap.SetPixels(pixels);
+					bitmap.Pixels[0] = Color.Red;
 		        }
 		    }
 
-		    return true;
+		    return .Ok;
 		}
 
-		public static unsafe bool Write(Stream stream, int width, int height, Color[] pixels)
+		// TODO: PNG Writing
+		/*public static Result<void, String> Write(Stream stream, Bitmap bitmap)
+			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
+
+		public static Result<void, String> Write(Stream stream, int width, int height, Color[] pixels)
 		{
 		    const int MaxIDATChunkLength = 8192;
 
@@ -528,7 +541,7 @@ namespace Pile
 		    // IEND Chunk
 		    Chunk(writer, "IEND", new Span<byte>());
 		    return true;
-		}
+		}*/
 
 		[Inline]
 		private static uint8 PaethPredictor(uint8 a, uint8 b, uint8 c)
@@ -573,4 +586,4 @@ namespace Pile
 		    return input;
 		}
 	}
-}*/
+}

@@ -99,6 +99,12 @@ namespace Pile
 			}
 		}
 
+		public Color Premultiply()
+		{
+			let af = Af;
+			return Color((uint8)(R * af), (uint8)(G * af), (uint8)(B * af), A);
+		}
+
 		public override void ToString(String strBuffer)
 		{
 			strBuffer.Set("Color [ ");
