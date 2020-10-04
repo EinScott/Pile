@@ -153,7 +153,7 @@ namespace Pile
 					if (res case .Err)
 						return .Err("Error reading PNG: Couldn't read PLTE chunk");
 					else if (res case .Ok(let val))
-						if (val != palette.Count)
+						if (val != palette.Count - 1)
 							return .Err("Error reading PNG: PLTE chunk was not of expected size");
 		        }
 		        // IDAT Chunk (Image Data)
@@ -170,7 +170,7 @@ namespace Pile
 		                if (res case .Err)
 							return .Err("Error reading PNG: Couldn't read IDAT chunk");
 						else if (res case .Ok(let val))
-							if (val != sizedChunk.Length)
+							if (val != sizedChunk.Length - 1)
 								return .Err("Error reading PNG: IDAT chunk was not of expected size");
 
 		                idat.Write(idatChunk.Slice(0, size));
@@ -187,7 +187,7 @@ namespace Pile
 						if (res case .Err)
 							return .Err("Error reading PNG: Couldn't read tRNS chunk");
 						else if (res case .Ok(let val))
-							if (val != alphaPalette.Count)
+							if (val != alphaPalette.Count - 1)
 								return .Err("Error reading PNG: tRNS chunk was not of expected size");
 		            }
 		            else if (color == .Greyscale)
@@ -237,7 +237,7 @@ namespace Pile
 					switch (res)
 					{
 					case .Ok(let val):
-						if (buffer.Count != val)
+						if (buffer.Count - 1 != val)
 							return .Err("Decompressed image data doesnt have expected size");
 					case .Err(let err):
 						return .Err(err);
@@ -406,11 +406,10 @@ namespace Pile
 		    return .Ok;
 		}
 
-		// TODO: PNG Writing
 		/*public static Result<void, String> Write(Stream stream, Bitmap bitmap)
-			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
+			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);*/
 
-		public static Result<void, String> Write(Stream stream, int width, int height, Color[] pixels)
+		/*public static Result<void, String> Write(Stream stream, int width, int height, Color[] pixels)
 		{
 		    const int MaxIDATChunkLength = 8192;
 
@@ -539,8 +538,8 @@ namespace Pile
 		    }
 
 		    // IEND Chunk
-		    Chunk(writer, "IEND", new Span<byte>());
-		    return true;
+		    Chunk(writer, "IEND", Span<uint8>());
+		    return .Ok;
 		}*/
 
 		[Inline]
