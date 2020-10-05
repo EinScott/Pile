@@ -65,7 +65,7 @@ namespace Pile
 		public this(Bitmap bitmap)
 			: this(bitmap.Height, bitmap.Width, .Color)
 		{
-			platform.SetData(scope Span<Color>(bitmap.Pixels));
+			platform.SetData(&bitmap.Pixels[0]);
 		}
 
 		public void CopyTo(Bitmap bitmap)
@@ -108,7 +108,7 @@ namespace Pile
 			if (sizeof(T) * buffer.Length * sizeof(T) < Size)
 				return .Err("Buffer is smaller than the Size of the Texture");
 
-			platform.SetData(&buffer);
+			platform.SetData(&buffer[0]);
 			return .Ok;
 		}
 
@@ -118,7 +118,7 @@ namespace Pile
 			if (sizeof(T) * buffer.Length * sizeof(T) < Size)
 				return .Err("Buffer is smaller than the Size of the Texture");
 
-			platform.GetData(&buffer);
+			platform.GetData(&buffer[0]);
 			return .Ok;
 		}
 	}

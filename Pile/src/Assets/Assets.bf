@@ -59,7 +59,7 @@ namespace Pile
 			 if (!Has<T>(name))
 				 return null;
 
-			 return assets.GetValue(typeof(T)).Get().GetValue(name).Get();
+			 return (T)assets.GetValue(typeof(T)).Get().GetValue(name).Get();
 		}
 
 		public static Object Get(Type type, String name)

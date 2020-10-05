@@ -3,8 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.IO;
 
-/*
- *
+/* 
  * DEFINES:
  * PILE_LONG_LOG_RECORD - increases amount of output log lines Log remembers from 16 to 128
  * PILE_DISABLE_LOG_MESSAGES - adds [SkipCall] attribute to Log.Message functions
@@ -37,6 +36,8 @@ namespace Pile
 			CondDelete!(System);
 		}
 
+		static readonly Version Version = .(0, 1);
+
 		static bool running;
 		static bool exiting;
 		static bool initialized;
@@ -56,6 +57,7 @@ namespace Pile
 		{
 			if (initialized) return .Err("Is already initialized");
 
+			Log.Message(scope String("Initializing Pile {0}.{1}")..Format(Version.Major, Version.Minor));
 			var w = scope Stopwatch(true);
 			Title = title;
 			System = system;
@@ -86,13 +88,13 @@ namespace Pile
 			if (Audio != null)
 			{
 				Audio.[Friend]Initialize();
-				Log.Message(scope String("Graphics: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
+				Log.Message(scope String("Audio: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
 			}
 
 			Packages.[Friend]Initialize();
 
-			Log.Message(scope String("Pile initialized (took {0}ms)")..Format(w.Elapsed.Milliseconds));
 			w.Stop();
+			Log.Message(scope String("Pile initialized (took {0}ms)")..Format(w.Elapsed.Milliseconds));
 
 			initialized = true;
 			return .Ok;
@@ -104,6 +106,7 @@ namespace Pile
 			else if (!initialized) return .Err("Core must be initialized first");
 			else if (game == null) return .Err("Game is null");
 
+			Log.Message("Starting up game");
 			Game = game;
 
 			let timer = scope Stopwatch(true);

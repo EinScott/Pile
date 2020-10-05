@@ -891,7 +891,7 @@ namespace Pile
 		    Quad(pos0, pos1, pos2, pos3, uv0, uv1, uv2, uv3, color, washed);
 		}
 
-		public void Image(Texture texture, Color color, bool washed = false)
+		public void Image(Texture texture, Color color = .White, bool washed = false)
 		{
 		    SetTexture(texture);
 		    Quad(
@@ -906,7 +906,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Texture texture, Vector2 position, Color color, bool washed = false)
+		public void Image(Texture texture, Vector2 position, Color color = .White, bool washed = false)
 		{
 		    SetTexture(texture);
 		    Quad(
@@ -921,7 +921,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Texture texture, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
+		public void Image(Texture texture, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, bool washed = false)
 		{
 		    let was = MatrixStack;
 
@@ -942,7 +942,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector2 position, Color color, bool washed = false)
+		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector2 position, Color color = .White, bool washed = false)
 		{
 		    let tx0 = cx / texture.Width;
 		    let ty0 = cy / texture.Height;
@@ -962,7 +962,7 @@ namespace Pile
 				color, washed);
 		}
 
-		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
+		public void Image(Texture texture, float cx, float cy, float cwidth, float cheight, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, bool washed = false)
 		{
 		    let was = MatrixStack;
 
@@ -988,7 +988,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		public void Image(Subtexture subtex, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Color color = .White, bool washed = false)
 		{
 		    SetTexture(subtex.Texture);
 		    Quad(
@@ -997,7 +997,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Subtexture subtex, Vector2 position, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Vector2 position, Color color = .White, bool washed = false)
 		{
 		    SetTexture(subtex.Texture);
 		    Quad(position + subtex.DrawCoords[0], position + subtex.DrawCoords[1], position + subtex.DrawCoords[2], position + subtex.DrawCoords[3],
@@ -1005,7 +1005,7 @@ namespace Pile
 		        color, washed);
 		}
 
-		public void Image(Subtexture subtex, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, bool washed = false)
 		{
 		    var was = MatrixStack;
 
@@ -1020,7 +1020,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		public void Image(Subtexture subtex, Rect clip, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, bool washed = false)
+		public void Image(Subtexture subtex, Rect clip, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, bool washed = false)
 		{
 		    var (source, frame) = subtex.GetClip(clip);
 		    var tex = subtex.Texture;

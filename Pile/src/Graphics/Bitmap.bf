@@ -24,7 +24,17 @@ namespace Pile
 			initialized = true;
 		}
 
-		public this(int32 width, int32 height) : this(width, height, new Color[width * height]) {}
+		public this(int32 width, int32 height)
+		{
+			Runtime.Assert(width > 0 && height > 0);
+
+			Pixels = new Color[width * height];
+
+			Width = width;
+			Height = height;
+
+			initialized = true;
+		}
 
 		public this() { } // Unitialized
 

@@ -5,14 +5,11 @@ using System.Text;
 
 namespace Pile
 {
-	/// <summary>
 	/// Parses the Contents of an Aseprite file
 	///
 	/// Aseprite File Spec: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
 	///
 	/// TODO: This is not a true or full implementation, and is missing several features (ex. blendmodes)
-	/// 
-	/// </summary>
 	public class Aseprite
 	{
 	    public enum Modes
@@ -308,8 +305,8 @@ namespace Pile
 		                    var celType = WORD();
 		                    int32 width = 0;
 		                    int32 height = 0;
-		                    Color[] pixels = null;
-		                    Cel link = null;
+		                    Color[] pixels;
+		                    Cel link;
 
 		                    SEEK(7);
 
@@ -341,12 +338,12 @@ namespace Pile
 		                            //using var deflate = new DeflateStream(reader.BaseStream, CompressionMode.Decompress, true);
 		                            //deflate.Read(temp, 0, count);
 
-									let source = scope uint8[(chunkEnd - stream.Position + 1)];
+									let source = scope uint8[(chunkEnd - stream.Position)]; // Read to end of chunk
 									let res = stream.TryRead(source);
 									if (res case .Err)
 										return .Err("Error reading ASE: Couldn't read COMPRESSED Cell");
 									else if (res case .Ok(let val))
-										if (val != source.Count - 1)
+										if (val != source.Count)
 											return .Err(new String("Error reading ASE: COMPRESSED Cell was not of expected size {0}: {1}")..Format(source.Count, val));
 
 									if (Compression.Decompress(source, temp) case .Err(let err))
@@ -538,9 +535,7 @@ namespace Pile
 
 	    #region Utils
 
-	    /// <summary>
 	    /// Converts an array of Bytes to an array of Colors, using the specific Aseprite Mode & Palette
-	    /// </summary>
 	    private void BytesToPixels(uint8[] bytes, Color[] pixels, Modes mode, Color[] palette)
 	    {
 	        int len = pixels.Count;
@@ -548,9 +543,9 @@ namespace Pile
 	        {
 	            for (int p = 0, int b = 0; p < len; p++, b += 4)
 	            {
-	                pixels[p].R = bytes[b + 0] * bytes[b + 3] / 255;
-	                pixels[p].G = bytes[b + 1] * bytes[b + 3] / 255;
-	                pixels[p].B = bytes[b + 2] * bytes[b + 3] / 255;
+	                pixels[p].R = (uint8)(bytes[b + 0] * (bytes[b + 3] / 255f));
+	                pixels[p].G = (uint8)(bytes[b + 1] * (bytes[b + 3] / 255f));
+	                pixels[p].B = (uint8)(bytes[b + 2] * (bytes[b + 3] / 255f));
 	                pixels[p].A = bytes[b + 3];
 	            }
 	        }
@@ -558,7 +553,7 @@ namespace Pile
 	        {
 	            for (int p = 0, int b = 0; p < len; p++, b += 2)
 	            {
-	                pixels[p].R = pixels[p].G = pixels[p].B = bytes[b + 0] * bytes[b + 1] / 255;
+	                pixels[p].R = pixels[p].G = pixels[p].B = (uint8)(bytes[b + 0] * (bytes[b + 1] / 255f));
 	                pixels[p].A = bytes[b + 1];
 	            }
 	        }
@@ -569,9 +564,7 @@ namespace Pile
 	        }
 	    }
 
-	    /// <summary>
 	    /// Applies a Cel's pixels to the Frame, using its Layer's BlendMode & Alpha
-	    /// </summary>
 	    private void CelToFrame(Frame frame, Cel cel)
 	    {
 	        var opacity = (uint8)((cel.Alpha * cel.Layer.Alpha) * 255);
@@ -595,9 +588,7 @@ namespace Pile
 	    }
 
 		/* TODO look at this when doing importer!!
-	    /// <summary>
 	    /// Adds all Aseprite Frames to the Atlas, using the naming format (ex. "mySprite/{0}" where {0} becomes the frame index)
-	    /// </summary>
 	    public void Pack(String namingFormat, Packer packer)
 	    {
 	        if (!namingFormat.Contains("{0}"))
@@ -616,4 +607,4 @@ namespace Pile
 
 	    #endregion
 	}
-	}
+}
