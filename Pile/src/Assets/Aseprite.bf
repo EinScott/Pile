@@ -261,7 +261,7 @@ namespace Pile
 	            }
 
 	            // chunks
-	            for (int j = 0; j < chunkCount; j++)
+	            Loop:for (int j = 0; j < chunkCount; j++)
 	            {
 					Chunk:
 					{
@@ -318,7 +318,7 @@ namespace Pile
 
 		                        var count = width * height * (int)Mode;
 		                        if (count > temp.Count)
-		                            temp = scope:Chunk uint8[count];
+		                            temp = scope:Loop uint8[count];
 
 		                        // RAW
 		                        if (celType == 0)

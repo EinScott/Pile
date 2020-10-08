@@ -63,7 +63,7 @@ namespace Pile
 		}
 
 		public this(Bitmap bitmap)
-			: this(bitmap.Height, bitmap.Width, .Color)
+			: this(bitmap.Width, bitmap.Height, .Color)
 		{
 			platform.SetData(&bitmap.Pixels[0]);
 		}

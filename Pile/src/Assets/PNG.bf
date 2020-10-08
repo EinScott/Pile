@@ -63,7 +63,7 @@ namespace Pile
 		    return isPng;
 		}
 
-		public static Result<void, String> Read(Stream stream, ref Bitmap bitmap)
+		public static Result<void, String> Read(Stream stream, Bitmap bitmap)
 		{
 
 		    // This could likely be optimized a buuunch more
@@ -223,7 +223,6 @@ namespace Pile
 			let height = bitmap.Height;
 
 		    // Parse the IDAT data into Pixels
-		    // It would be cool to do this line-by-line so we don't need to create a buffer to store the decompressed stream
 		    {
 		        uint8[] buffer = scope uint8[width * height * (depth == 16 ? 2 : 1) * 4 + height];
 
@@ -233,15 +232,8 @@ namespace Pile
 		            //using DeflateStream deflateStream = new DeflateStream(idat, CompressionMode.Decompress);
 		            //deflateStream.Read(buffer);
 
-					let res = Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer));
-					switch (res)
-					{
-					case .Ok(let val):
-						if (buffer.Count != val)
-							return .Err("Decompressed image data doesnt have expected size");
-					case .Err(let err):
-						return .Err(err);
-					}
+					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err(let err))
+						return .Err(new String("Error reading PNG: PNG iDat decompression failed: {0}")..Format(err));
 		        }
 
 		        // apply filter pass - this happens in-place
@@ -399,7 +391,6 @@ namespace Pile
 		        {
 		            let pixels = Span<Color>((Color*)&buffer[0], width * height);
 					bitmap.SetPixels(pixels);
-					bitmap.Pixels[0] = Color.Red;
 		        }
 		    }
 
