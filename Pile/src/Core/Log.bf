@@ -96,7 +96,7 @@ namespace Pile
 			if (SaveOnError)
 			{
 				var s = scope String();
-				Path.InternalCombine(s, Core.System.DataPath, @"log.txt");
+				Path.InternalCombine(s, Core.System.UserPath, @"log.txt");
 				AppendToFile(s);
 			}
 		}
@@ -107,7 +107,7 @@ namespace Pile
 			if (SaveOnError)
 			{
 				var s = scope String();
-				Path.InternalCombine(s, Core.System.DataPath, @"log.txt");
+				Path.InternalCombine(s, Core.System.UserPath, @"log.txt");
 				AppendToFile(s);
 			}
 		}

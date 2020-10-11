@@ -22,9 +22,9 @@ namespace Pile.Implementations
 		[SkipCall]
 		protected override void Update() {}
 
-		protected override void DetermineDataPath()
+		protected override void DetermineDataPaths(StringView title)
 		{
-			base.DetermineDataPath(); // It's probably best to leave this as is
+			base.DetermineDataPaths(title); // It's probably best to leave this as is
 		}
 
 		[SkipCall]

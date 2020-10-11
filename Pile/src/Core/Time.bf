@@ -20,6 +20,7 @@ namespace Pile
 		}
 
 		public static int FPS { get; private set; }
+		public static TimeSpan RawDuration { get; private set; }
 		public static TimeSpan Duration { get; private set; }
 
 		public static float RawDelta { get; private set; }
@@ -34,12 +35,12 @@ namespace Pile
 
 		public static bool OnInterval(double delta, double interval, double offset)
 		{
-		    return OnInterval(Duration.TotalSeconds, delta, interval, offset);
+		    return OnInterval(RawDuration.TotalSeconds, delta, interval, offset);
 		}
 
 		public static bool OnInterval(double interval, double offset = 0.0)
 		{
-		    return OnInterval(Duration.TotalSeconds, Delta, interval, offset);
+		    return OnInterval(RawDuration.TotalSeconds, Delta, interval, offset);
 		}
 
 		public static bool BetweenInterval(double time, double interval, double offset)
@@ -49,7 +50,7 @@ namespace Pile
 
 		public static bool BetweenInterval(double interval, double offset = 0.0)
 		{
-		    return BetweenInterval(Duration.TotalSeconds, interval, offset);
+		    return BetweenInterval(RawDuration.TotalSeconds, interval, offset);
 		}
 	}
 }

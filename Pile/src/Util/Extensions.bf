@@ -30,6 +30,7 @@ namespace Pile
 }
 
 using Pile;
+using System.Collections;
 
 namespace System
 {
@@ -150,6 +151,20 @@ namespace System
 		}
 	}
 
+	extension Environment
+	{
+		public static void GetEnvironmentVariable(String key, String outString)
+		{
+			let dict = new Dictionary<String, String>();
+			Environment.GetEnvironmentVariables(dict);
+
+			if (!dict.ContainsKey(key)) return;
+
+			outString.Append(dict[key]);
+			DeleteDictionaryAndKeysAndItems!(dict);
+		}
+	}
+
 	namespace IO
 	{
 		public extension Path
@@ -186,6 +201,7 @@ namespace System
 
 		public extension File
 		{
+			[NoDiscard("Possibly leaving heap data array unreferenced")]
 			public static Result<uint8[], FileError> ReadAllBytes(StringView path)
 			{
 				FileStream s = scope FileStream();

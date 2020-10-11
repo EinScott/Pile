@@ -22,16 +22,16 @@ namespace Pile
 		}
 
 		private static readonly uint8[8] header = uint8[8]( 137, 80, 78, 71, 13, 10, 26, 10 );
-		private static readonly uint[] crcTable = new uint[256] ~ delete _;
+		private static readonly uint32[] crcTable = new uint32[256] ~ delete _;
 
 		static this()
 		{
 		    // create the CRC table
 		    // taken from libpng format specification: http://www.libpng.org/pub/png/spec/1.2/PNG-CRCAppendix.html
 
-		    for (int n = 0; n < 256; n++)
+		    for (int32 n = 0; n < 256; n++)
 		    {
-		        uint c = (uint)n;
+		        uint32 c = (uint32)n;
 		        for (int k = 0; k < 8; k++)
 		        {
 		            if ((c & 1) != 0)
@@ -63,8 +63,16 @@ namespace Pile
 		    return isPng;
 		}
 
+		static mixin Handle(Result<int> res)
+		{
+			if (res case .Err)
+				return .Err("Error reading PNG: Couldn't read span");
+		}
+
 		public static Result<void, String> Read(Stream stream, Bitmap bitmap)
 		{
+			// TODO: Why is png loading not working?
+			Log.Warning("THIS DOESNT REALLY WORK RIGHT NOW AND I'M NOT ENTIRELY SURE WHY");
 
 		    // This could likely be optimized a buuunch more
 		    // We also ignore all checksums when reading because they don't seem super important for game usage
@@ -85,32 +93,38 @@ namespace Pile
 
 		    bool hasIHDR = false, hasPLTE = false, hasIDAT = false;
 
+			Result<int> ReadFour() => stream.TryRead(Span<uint8>(&fourbytes[0], 4));
+
 		    // Check PNG Header
 		    if (!IsValid(stream))
 		        return .Err("Error reading PNG: Stream is not PNG");
 
 		    // Skip PNG header
 		    stream.Seek(8);
+			Log.Message(stream.Position);
+			Log.Message(stream.Length);
 
 		    // Read Chunks
 		    while (stream.Position < stream.Length)
 		    {
+				Log.Message(stream.Position);
+
 		        int64 chunkStartPosition = stream.Position;
 
 		        // chunk length
-		        fourbytes = stream.Read<uint8[4]>();
-		        int32 chunkLength = SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
+				Handle!(ReadFour());
+		        int64 chunkLength = (int64)SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
 
 		        // chunk type
-		        fourbytes = stream.Read<uint8[4]>();
+		        Handle!(ReadFour());
 
 		        // IHDR Chunk
 		        if (Check("IHDR", fourbytes))
 		        {
 		            hasIHDR = true;
-		            fourbytes = stream.Read<uint8[4]>();
+		            Handle!(ReadFour());
 		            let width = SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
-		            fourbytes = stream.Read<uint8[4]>();
+		            Handle!(ReadFour());
 		            let height = SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
 		            depth = stream.Read<uint8>();
 		            color.UnderlyingRef = stream.Read<uint8>();
@@ -173,7 +187,7 @@ namespace Pile
 							if (val != sizedChunk.Length)
 								return .Err("Error reading PNG: IDAT chunk was not of expected size");
 
-		                idat.Write(idatChunk.Slice(0, size));
+		                idat.Write(sizedChunk);
 		            }
 		        }
 		        // tRNS Chunk (Alpha Palette)
@@ -206,7 +220,7 @@ namespace Pile
 		        }
 
 		        // seek to end of the chunk
-		        stream.Seek(chunkStartPosition + chunkLength + 12);
+		        stream.Seek(chunkStartPosition + chunkLength + (int64)12);
 		    }
 
 		    // checks
@@ -233,7 +247,7 @@ namespace Pile
 		            //deflateStream.Read(buffer);
 
 					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err(let err))
-						return .Err(new String("Error reading PNG: PNG iDat decompression failed: {0}")..Format(err));
+						return .Err(new String("Error reading PNG: PNG iDAT decompression failed: {0}")..Format(err));
 		        }
 
 		        // apply filter pass - this happens in-place

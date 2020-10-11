@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Threading;
 using System.IO;
@@ -16,11 +17,6 @@ namespace Pile
 {
 	public static class Core
 	{
-		/*static this()
-		{
-			Runtime.SetCrashReportKind(.GUI);
-		}*/
-
 		static ~this()
 		{
 			if (initialized) Delete();
@@ -53,7 +49,7 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void, String> Initialize(System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight, String title)
+		public static Result<void, String> Initialize(String title, System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight)
 		{
 			if (initialized) return .Err("Is already initialized");
 
@@ -64,6 +60,14 @@ namespace Pile
 			Graphics = graphics;
 			Audio = audio;
 
+			// Print platform
+			{
+				let s = scope String();
+				Environment.OSVersion.ToString(s);
+
+				Log.Message(scope String("Platform: {0} (Bfp {1})")..Format(s, Environment.OSVersion.Platform));
+			}
+
 			// System init
 			if (System != null)
 			{
@@ -72,7 +76,7 @@ namespace Pile
 				
 				Window = System.[Friend]CreateWindow(windowWidth, windowHeight);
 				Input = System.[Friend]CreateInput();
-				System.[Friend]DetermineDataPath();
+				System.[Friend]DetermineDataPaths(title);
 
 				Directory.SetCurrentDirectory(System.DataPath);
 			}
@@ -129,7 +133,8 @@ namespace Pile
 				lastTime = currTime;
 
 				// Variable time step
-				Time.[Friend]Duration += diffTime;
+				Time.[Friend]RawDuration += diffTime;
+				Time.[Friend]Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
 				Time.[Friend]RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
 				Time.[Friend]Delta = Time.RawDelta * Time.Scale;
 
@@ -158,7 +163,7 @@ namespace Pile
 					let sleep = Time.[Friend]targetMilliseconds - (timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError;
 					let realSleep = (int32)Math.Floor(sleep);
 
-					if (sleep > 0)Thread.Sleep(realSleep);
+					if (sleep > 0) Thread.Sleep(realSleep);
 
 					sleepError = realSleep - sleep;
 				}
