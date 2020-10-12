@@ -71,9 +71,6 @@ namespace Pile
 
 		public static Result<void, String> Read(Stream stream, Bitmap bitmap)
 		{
-			// TODO: Why is png loading not working?
-			Log.Warning("THIS DOESNT REALLY WORK RIGHT NOW AND I'M NOT ENTIRELY SURE WHY");
-
 		    // This could likely be optimized a buuunch more
 		    // We also ignore all checksums when reading because they don't seem super important for game usage
 
@@ -101,14 +98,10 @@ namespace Pile
 
 		    // Skip PNG header
 		    stream.Seek(8);
-			Log.Message(stream.Position);
-			Log.Message(stream.Length);
 
 		    // Read Chunks
 		    while (stream.Position < stream.Length)
 		    {
-				Log.Message(stream.Position);
-
 		        int64 chunkStartPosition = stream.Position;
 
 		        // chunk length
@@ -273,7 +266,7 @@ namespace Pile
 		                    Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                    for (int x = bpp; x < lineLength; x++)
 		                    {
-		                        buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - bpp]);
+		                        buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - bpp]);
 		                    }
 		                }
 		                // 2 - Up
@@ -287,7 +280,7 @@ namespace Pile
 		                    {
 		                        for (int x = 0; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - lineLength]);
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - lineLength]);
 		                        }
 		                    }
 		                }
@@ -299,20 +292,21 @@ namespace Pile
 		                        Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + ((buffer[dest + x - bpp] + 0) / 2));
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + ((int)buffer[dest + x - bpp] / 2));
 		                        }
 		                    }
 		                    else
 		                    {
+								// THIS GOES WRONG
 		                        for (int x = 0; x < bpp; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + ((0 + buffer[dest + x - lineLength]) / 2));
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + ((int)buffer[dest + x - lineLength] / 2));
 		                        }
 
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + ((buffer[dest + x - bpp] + buffer[dest + x - lineLength]) / 2));
-		                        }
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (((int)buffer[dest + x - bpp] + (int)buffer[dest + x - lineLength]) / 2));
+								}
 		                    }
 		                }
 		                // 4 - Paeth
@@ -323,19 +317,20 @@ namespace Pile
 		                        Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - bpp]);
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - bpp]);
 		                        }
 		                    }
 		                    else
 		                    {
+								// THIS AS WELL
 		                        for (int x = 0, int c = Math.Min(bpp, lineLength); x < c; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + buffer[dest + x - lineLength]);
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - lineLength]);
 		                        }
 
 		                        for (int x = bpp; x < lineLength; x++)
 		                        {
-		                            buffer[dest + x] = (uint8)(buffer[source + x] + PaethPredictor(buffer[dest + x - bpp], buffer[dest + x - lineLength], buffer[dest + x - bpp - lineLength]));
+		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + PaethPredictor(buffer[dest + x - bpp], buffer[dest + x - lineLength], buffer[dest + x - bpp - lineLength]));
 		                        }
 		                    }
 		                }
@@ -550,10 +545,10 @@ namespace Pile
 		[Inline]
 		private static uint8 PaethPredictor(uint8 a, uint8 b, uint8 c)
 		{
-		    int32 p = a + b - c;
-		    int32 pa = Math.Abs(p - a);
-		    int32 pb = Math.Abs(p - b);
-		    int32 pc = Math.Abs(p - c);
+		    int32 p = (int32)a + b - c;
+		    int32 pa = Math.Abs((int32)p - a);
+		    int32 pb = Math.Abs((int32)p - b);
+		    int32 pc = Math.Abs((int32)p - c);
 
 		    if (pa <= pb && pa <= pc)
 		        return a;
