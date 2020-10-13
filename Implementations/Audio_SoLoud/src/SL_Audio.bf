@@ -27,6 +27,7 @@ namespace Pile.Implementations
 			version = SL_Soloud.GetVersion(slPtr);
 			SL_Soloud.GetBackendId(slPtr).ToString(api);
 
+			// TODO: (impl) before delegating functionality to components, load manually here in full to see how it works
 			// try to play sound manually here ..
 			//SL_Openmpt.LoadMem()
 

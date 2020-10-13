@@ -32,7 +32,7 @@ namespace Pile
 			CondDelete!(System);
 		}
 
-		static readonly Version Version = .(0, 1);
+		static readonly Version Version = .(0, 2);
 
 		static bool running;
 		static bool exiting;
@@ -123,7 +123,9 @@ namespace Pile
 			int64 diffTime;
 
 			running = true;
-			CallStartup();
+
+			// Startup game
+			Game.[Friend]Startup();
 
 			while(running)
 			{
@@ -132,14 +134,34 @@ namespace Pile
 				diffTime = currTime - lastTime;
 				lastTime = currTime;
 
-				// Variable time step
+				// Raw time
 				Time.[Friend]RawDuration += diffTime;
-				Time.[Friend]Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
-				Time.[Friend]RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
-				Time.[Friend]Delta = Time.RawDelta * Time.Scale;
+				Time.[Friend]RawDelta = diffTime * TimeSpan.[Friend]SecondsPerTick;
+				
+				Game.[Friend]Step();
 
-				// Update
-				CallUpdate();
+				if (Time.[Friend]freeze > double.Epsilon)
+				{
+					// Freeze time
+					Time.[Friend]freeze -= Time.RawDelta;
+
+					if (Time.[Friend]freeze <= double.Epsilon)
+						Time.[Friend]freeze = 0;
+				}
+				else
+				{
+					// Scaled time vars
+					Time.[Friend]Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
+					Time.[Friend]Delta = Time.RawDelta * Time.Scale;
+	
+					// Update
+					Game.[Friend]Update();
+				}
+
+				// Update engine
+				Graphics.[Friend]Step();
+				Input.[Friend]Step();
+				System.[Friend]Step();
 
 				// Render
 				if (!exiting && !Window.Closed)
@@ -169,7 +191,8 @@ namespace Pile
 				}
 			}
 
-			CallShutdown();
+			// Shutdown game
+			Game.[Friend]Shutdown();
 
 			if (deleteGameOnShutdown) delete Game;
 			Game = null;
@@ -187,32 +210,10 @@ namespace Pile
 			}
 		}
 
-		static void CallStartup()
-		{
-			Game.[Friend]Startup();
-		}
-
-		static void CallUpdate()
-		{
-			Graphics?.[Friend]Update();
-			if (System != null)
-			{
-				Input.[Friend]Step();
-				System.[Friend]Update();
-			}
-
-			Game.[Friend]Update();
-		}
-
 		static void CallRender()
 		{
 			Game.[Friend]Render();
-			Graphics?.[Friend]AfterRender();
-		}
-
-		static void CallShutdown()
-		{
-			Game.[Friend]Shutdown();
+			Graphics.[Friend]AfterRender();
 		}
 	}
 }

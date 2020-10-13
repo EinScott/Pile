@@ -20,13 +20,23 @@ namespace Pile
 		}
 
 		public static int FPS { get; private set; }
+
+		// All of these rely on the game loop clock and are likely not tooo accurate
+		// For accurate time measurements use DateTime
 		public static TimeSpan RawDuration { get; private set; }
 		public static TimeSpan Duration { get; private set; }
 
-		public static float RawDelta { get; private set; }
-		public static float Delta { get; private set; }
+		public static double RawDelta { get; private set; }
+		public static double Delta { get; private set; }
 
-		public static float Scale = 1;
+		public static double Scale = 1;
+
+		private static double freeze = 0;
+		public static void Freeze(double time, bool add = true)
+		{
+			if (add) freeze += time;
+			else freeze = time;
+		}
 
 		public static bool OnInterval(double time, double delta, double interval, double offset)
 		{

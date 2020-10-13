@@ -63,15 +63,21 @@ namespace Pile
 		    return isPng;
 		}
 
-		static mixin Handle(Result<int> res)
+		static mixin HandleRead(Result<int> res)
 		{
 			if (res case .Err)
 				return .Err("Error reading PNG: Couldn't read span");
 		}
 
+		static mixin HandleWrite(Result<void> res)
+		{
+			if (res case .Err)
+				return .Err("Error writing PNG: Couldn't write span");
+		}
+
 		public static Result<void, String> Read(Stream stream, Bitmap bitmap)
 		{
-		    // This could likely be optimized a buuunch more
+		    // TODO: optimize reading
 		    // We also ignore all checksums when reading because they don't seem super important for game usage
 
 		    var hasTransparency = false;
@@ -105,19 +111,19 @@ namespace Pile
 		        int64 chunkStartPosition = stream.Position;
 
 		        // chunk length
-				Handle!(ReadFour());
+				HandleRead!(ReadFour());
 		        int64 chunkLength = (int64)SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
 
 		        // chunk type
-		        Handle!(ReadFour());
+		        HandleRead!(ReadFour());
 
 		        // IHDR Chunk
 		        if (Check("IHDR", fourbytes))
 		        {
 		            hasIHDR = true;
-		            Handle!(ReadFour());
+		            HandleRead!(ReadFour());
 		            let width = SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
-		            Handle!(ReadFour());
+		            HandleRead!(ReadFour());
 		            let height = SwapEndian(BitConverter.Convert<uint8[4], int32>(fourbytes));
 		            depth = stream.Read<uint8>();
 		            color.UnderlyingRef = stream.Read<uint8>();
@@ -406,48 +412,50 @@ namespace Pile
 		    return .Ok;
 		}
 
-		/*public static Result<void, String> Write(Stream stream, Bitmap bitmap)
-			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);*/
+		public static Result<void, String> Write(Stream stream, Bitmap bitmap)
+			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
 
-		/*public static Result<void, String> Write(Stream stream, int width, int height, Color[] pixels)
+		public static Result<void, String> Write(Stream stream, int32 width, int32 height, Color[] pixels)
 		{
-		    const int MaxIDATChunkLength = 8192;
+			// TODO: finish deflation
+			var s = 1; // (just so we dont get a warning)
+			if (s + 1 == 2) return .Err("Unfinished implementation");
 
-		    static void Chunk(BinaryWriter writer, string title, Span<byte> buffer)
+		    const int32 MaxIDATChunkLength = 8192;
+
+		    Result<void, String> Chunk(Stream stream, String title, Span<uint8> buffer)
 		    {
 		        // write chunk
-		        {
-		            writer.Write(SwapEndian(buffer.Length));
-		            for (int i = 0; i < title.Length; i++)
-		                writer.Write((byte)title[i]);
-		            writer.Write(buffer);
-		        }
+	            HandleWrite!(stream.Write(SwapEndian((.)buffer.Length)));
+	            HandleWrite!(stream.Write(Span<uint8>((uint8*)&title[0], title.Length)));
+	            HandleWrite!(stream.Write(buffer));
 
 		        // write CRC
 		        {
-		            uint crc = 0xFFFFFFFFU;
+		            uint32 crc = 0xFFFFFFFFU;
 		            for (int n = 0; n < title.Length; n++)
-		                crc = crcTable[(crc ^ (byte)title[n]) & 0xFF] ^ (crc >> 8);
+		                crc = crcTable[((int32)crc ^ (uint8)title[n]) & 0xFF] ^ (crc >> 8);
 
 		            for (int n = 0; n < buffer.Length; n++)
-		                crc = crcTable[(crc ^ buffer[n]) & 0xFF] ^ (crc >> 8);
+		                crc = crcTable[((int32)crc ^ buffer[n]) & 0xFF] ^ (crc >> 8);
 
-		            writer.Write(SwapEndian((int)(crc ^ 0xFFFFFFFFU)));
+		            stream.Write(SwapEndian((uint8)(crc ^ 0xFFFFFFFFU)));
 		        }
 		    }
 
-		    static void WriteIDAT(BinaryWriter writer, MemoryStream memory, bool writeAll)
+		    Result<void, String> WriteIDAT(Stream stream, MemoryStream memory, bool writeAll)
 		    {
-		        var zlib = new Span<byte>(memory.GetBuffer());
-		        var remainder = (int)memory.Position;
-		        var offset = 0;
+		        let zlib = (Span<uint8>)memory.[Friend]mMemory;
+		        var remainder = (int32)memory.Position;
+		        int32 offset = 0;
 
 		        // write out IDAT chunks while there is memory to write
 		        while ((writeAll ? remainder > 0 : remainder >= MaxIDATChunkLength))
 		        {
-		            var amount = Math.Min(remainder, MaxIDATChunkLength);
+		            int32 amount = Math.Min(remainder, MaxIDATChunkLength);
 
-		            Chunk(writer, "IDAT", zlib.Slice(offset, amount));
+		            if (Chunk(stream, "IDAT", zlib.Slice(offset, amount)) case .Err(let err))
+						return .Err(err);
 		            offset += amount;
 		            remainder -= amount;
 		        }
@@ -458,41 +466,54 @@ namespace Pile
 		            if (remainder > 0)
 		                zlib.Slice(offset).CopyTo(zlib);
 		            memory.Position = remainder;
-		            memory.SetLength(remainder);
+		            memory.[Friend]mMemory.Count = remainder;
 		        }
 		    }
 
 		    // PNG header
-		    using BinaryWriter writer = new BinaryWriter(stream);
-		    writer.Write(header);
+		    stream.Write(header);
 
 		    // IHDR Chunk
 		    {
-		        Span<byte> buf = stackalloc byte[13];
+		        Span<uint8> buf = scope uint8[13];
 
-		        BinaryPrimitives.WriteInt32BigEndian(buf.Slice(0), width);
-		        BinaryPrimitives.WriteInt32BigEndian(buf.Slice(4), height);
+		        //BinaryPrimitives.WriteInt32BigEndian(buf.Slice(0), width);
+		        //BinaryPrimitives.WriteInt32BigEndian(buf.Slice(4), height);
+
+				int32 val = (int32)width;
+				buf[00] = (uint8)(val & 0xFF);
+				buf[01] = (uint8)((val >> 8) & 0xFF);
+				buf[02] = (uint8)((val >> 16) & 0xFF);
+				buf[03] = (uint8)((val >> 24) & 0xFF);
+
+				val = (int32)height;
+				buf[00] = (uint8)(val & 0xFF);
+				buf[01] = (uint8)((val >> 8) & 0xFF);
+				buf[02] = (uint8)((val >> 16) & 0xFF);
+				buf[03] = (uint8)((val >> 24) & 0xFF);
+
 		        buf[08] = 8; // depth
 		        buf[09] = 6; // color (truecolor-alpha)
 		        buf[10] = 0; // compression
 		        buf[11] = 0; // filter
 		        buf[12] = 0; // interlace
 
-		        Chunk(writer, "IHDR", buf);
+		        Chunk(stream, "IHDR", buf);
 		    }
 
 		    // IDAT Chunk(s)
 		    {
-		        using MemoryStream zlibMemory = new MemoryStream();
+		        MemoryStream zlibMemory = scope MemoryStream();
 
 		        // zlib Header
-		        zlibMemory.WriteByte(0x78);
-		        zlibMemory.WriteByte(0x9C);
+		        zlibMemory.Write<uint8>(0x78);
+		        zlibMemory.Write<uint8>(0x9C);
 
 		        uint adler = 1U;
+				adler = adler; // (just to get rid of warning)
 
 		        // filter & deflate data line by line
-		        using (DeflateStream deflate = new DeflateStream(zlibMemory, CompressionLevel.Fastest, true))
+		        /*using (DeflateStream deflate = new DeflateStream(zlibMemory, CompressionLevel.Fastest, true))
 		        {
 		            fixed (Color* ptr = pixels)
 		            {
@@ -511,7 +532,7 @@ namespace Pile
 		                    const int MaxHorizontalStep = 1024;
 		                    for (int x = 0; x < width; x += MaxHorizontalStep)
 		                    {
-		                        var segment = new Span<byte>(pixelBuffer + x * 4, Math.Min(width - x, MaxHorizontalStep) * 4);
+		                        var segment = new Span<uint8>(pixelBuffer + x * 4, Math.Min(width - x, MaxHorizontalStep) * 4);
 
 		                        // delfate the segment of the row
 		                        deflate.Write(segment);
@@ -531,16 +552,16 @@ namespace Pile
 
 		        // zlib adler32 trailer
 		        using (BinaryWriter bytes = new BinaryWriter(zlibMemory, Encoding.UTF8, true))
-		            bytes.Write(SwapEndian((int)adler));
+		            bytes.Write(SwapEndian((int)adler));*/
 
 		        // write out remaining chunks
-		        WriteIDAT(writer, zlibMemory, true);
+		        WriteIDAT(stream, zlibMemory, true);
 		    }
 
 		    // IEND Chunk
-		    Chunk(writer, "IEND", Span<uint8>());
+		    Chunk(stream, "IEND", Span<uint8>());
 		    return .Ok;
-		}*/
+		}
 
 		[Inline]
 		private static uint8 PaethPredictor(uint8 a, uint8 b, uint8 c)

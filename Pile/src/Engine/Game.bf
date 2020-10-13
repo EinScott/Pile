@@ -19,5 +19,7 @@ namespace Pile
 
 		protected virtual void Update() {}
 		protected virtual void Render() {}
+
+		protected virtual void Step() {}
 	}
 }

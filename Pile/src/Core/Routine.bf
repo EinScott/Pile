@@ -12,8 +12,8 @@ namespace Pile
 			case Break; // Stop the routine and lastly call end if not null
 
 			case WaitCycles(int cycles); // Wait [cycles] update cycles
-			case WaitSeconds(float seconds); // Wait [seconds] seconds
-			case WaitRawSeconds(float seconds); // Wait [seconds] seconds, not affected by Time.Scale
+			case WaitSeconds(double seconds); // Wait [seconds] seconds
+			case WaitRawSeconds(double seconds); // Wait [seconds] seconds, not affected by Time.Scale
 			case WaitRoutine(Routine routine); // Wait until routine.Done == true
 
 			case ChangePhase(int index); // Change current index of phase array
@@ -24,7 +24,7 @@ namespace Pile
 		public abstract bool Done { get; }
 	}
 
-	/// For convenience, you probably just want TData to be a tuple like (float, int, int, Routine) or something
+	/// For convenience, you probably just want TData to be a tuple like (float amount, int iter, int end, Routine wait) or something
 	public class Routine<TData> : Routine where TData : struct
 	{
 		public delegate RoutineReturn RoutineStart(ref TData data);
@@ -43,6 +43,7 @@ namespace Pile
 		public override bool Done => lastReturn == .Break;
 		public ref TData Data => ref data;
 
+		/// Single phase constructor
 		public this(RoutineStart startPhase, RoutineUpdate updatePhase, RoutineEnd endPhase = null, bool deletePhaseDelegates = true)
 		{
 			Debug.Assert(startPhase != null && updatePhase != null, "Routine delegates Start and Update can't be null");
@@ -53,6 +54,7 @@ namespace Pile
 			deleteDelegates = deletePhaseDelegates;
 		}
 
+		/// n-Phase contructor
 		public this(RoutineStart startPhase, RoutineEnd endPhase, bool deletePhaseDelegates, params RoutineUpdate[] _updatePhases)
 		{
 			Debug.Assert(startPhase != null && _updatePhases.Count > 0 && _updatePhases[0] != null, "Routine delegates Start and Update can't be null");

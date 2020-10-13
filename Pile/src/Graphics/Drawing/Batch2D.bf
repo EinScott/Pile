@@ -827,7 +827,7 @@ namespace Pile
 
 		    for (int i = 1; i <= steps; i++)
 		    {
-		        let next = Math.AngleToVector((i / (float)steps) * Math.TAU, radius);
+		        let next = Math.AngleToVector((i / (float)steps) * Math.TAU_f, radius);
 		        Triangle(center + last, center + next, center, edgeColor, edgeColor, centerColor);
 		        last = next;
 		    }
@@ -839,7 +839,7 @@ namespace Pile
 
 		    for (int i = 1; i <= steps; i++)
 		    {
-		        let next = Math.AngleToVector((i / (float)steps) * Math.TAU, radius);
+		        let next = Math.AngleToVector((i / (float)steps) * Math.TAU_f, radius);
 		        Line(center + last, center + next, thickness, color);
 		        last = next;
 		    }

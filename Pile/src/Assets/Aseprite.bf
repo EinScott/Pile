@@ -333,11 +333,6 @@ namespace Pile
 		                        // DEFLATE
 		                        else
 		                        {
-		                            //SEEK(2);
-
-		                            //using var deflate = new DeflateStream(reader.BaseStream, CompressionMode.Decompress, true);
-		                            //deflate.Read(temp, 0, count);
-
 									let source = scope uint8[(chunkEnd - stream.Position)]; // Read to end of chunk
 									let res = stream.TryRead(source);
 									if (res case .Err)
@@ -514,9 +509,9 @@ namespace Pile
 	                    var sa = MUL_UN8(src.A, opacity);
 	                    var ra = dest.A + sa - MUL_UN8(dest.A, sa);
 
-	                    dest.R = (uint8)(dest.R + (src.R - dest.R) * sa / ra);
-	                    dest.G = (uint8)(dest.G + (src.G - dest.G) * sa / ra);
-	                    dest.B = (uint8)(dest.B + (src.B - dest.B) * sa / ra);
+	                    dest.R = (uint8)(dest.R + ((int)src.R - dest.R) * sa / ra);
+	                    dest.G = (uint8)(dest.G + ((int)src.G - dest.G) * sa / ra);
+	                    dest.B = (uint8)(dest.B + ((int)src.B - dest.B) * sa / ra);
 	                    dest.A = (uint8)ra;
 	                }
 
@@ -543,9 +538,9 @@ namespace Pile
 	        {
 	            for (int p = 0, int b = 0; p < len; p++, b += 4)
 	            {
-	                pixels[p].R = (uint8)(bytes[b + 0] * (bytes[b + 3] / 255f));
-	                pixels[p].G = (uint8)(bytes[b + 1] * (bytes[b + 3] / 255f));
-	                pixels[p].B = (uint8)(bytes[b + 2] * (bytes[b + 3] / 255f));
+	                pixels[p].R = (uint8)((int)bytes[b + 0] * ((int)bytes[b + 3] / 255f));
+	                pixels[p].G = (uint8)((int)bytes[b + 1] * ((int)bytes[b + 3] / 255f));
+	                pixels[p].B = (uint8)((int)bytes[b + 2] * ((int)bytes[b + 3] / 255f));
 	                pixels[p].A = bytes[b + 3];
 	            }
 	        }
@@ -553,7 +548,7 @@ namespace Pile
 	        {
 	            for (int p = 0, int b = 0; p < len; p++, b += 2)
 	            {
-	                pixels[p].R = pixels[p].G = pixels[p].B = (uint8)(bytes[b + 0] * (bytes[b + 1] / 255f));
+	                pixels[p].R = pixels[p].G = pixels[p].B = (uint8)((int)bytes[b + 0] * ((int)bytes[b + 1] / 255f));
 	                pixels[p].A = bytes[b + 1];
 	            }
 	        }
