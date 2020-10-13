@@ -115,7 +115,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		protected override void Update()
+		protected override void Step()
 		{
 			RunDeleteLists();
 		}

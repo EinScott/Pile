@@ -20,7 +20,7 @@ namespace Pile.Implementations
 		protected override void Initialize() {}
 
 		[SkipCall]
-		protected override void Update() {}
+		protected override void Step() {}
 
 		protected override void DetermineDataPaths(StringView title)
 		{

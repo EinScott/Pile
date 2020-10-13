@@ -18,7 +18,7 @@ namespace Pile
 		public abstract DebugDrawMode DebugDraw { get; set; }
 
 		protected abstract Result<void, String> Initialize();
-		protected abstract void Update();
+		protected abstract void Step();
 		protected abstract void AfterRender();
 
 		public Result<void, String> Clear(RenderTarget target, Color color) =>

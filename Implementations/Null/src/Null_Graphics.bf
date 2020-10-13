@@ -24,7 +24,7 @@ namespace Pile.Implementations
 		protected override Result<void, System.String> Initialize() => .Ok;
 
 		[SkipCall]
-		protected override void Update() {}
+		protected override void Step() {}
 
 		[SkipCall]
 		protected override void AfterRender() {}

@@ -63,7 +63,7 @@ namespace Pile
 		protected abstract Window CreateWindow(int32 width, int32 height);
 
 		protected abstract void Initialize();
-		protected abstract void Update();
+		protected abstract void Step();
 
 		public String DataPath { get; private set; }
 		public String UserPath { get; private set; }

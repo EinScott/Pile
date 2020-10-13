@@ -180,15 +180,18 @@ namespace Pile
 
 				// NODEDATAARRAY
 				//		ELEMENT:
-				// 		IMPORTERNAMEINDEX (uint32)
-				// 		NAME (uint32)
-				// 		NAMEDATA
-				// 		DATAARRAYLENGTH (uint32)
-				// 		DATAARRAY (of bytes)
-				// 		DATANODEARRAYLENGTH (uint32)
-				// 		DATANODEARRAY (of bytes)
+				//		ZLIB SIZE (uint32)
+				//		ZLIB UNCOMPRESSED SIZE (uint32)
+				//		ZLIBARRAY: (decompressed) =>
+				// 			IMPORTERNAMEINDEX (uint32)
+				// 			NAME (uint32)
+				// 			NAMEDATA
+				// 			DATAARRAYLENGTH (uint32)
+				// 			DATAARRAY (of bytes)
+				// 			DATANODEARRAYLENGTH (uint32)
+				// 			DATANODEARRAY (of bytes)
 
-				int32 readByte = 4; // Start at header
+				int32 readByte = 4; // Start after header
 
 				if (file.Count < 16 // Check min file size
 					|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
@@ -208,25 +211,42 @@ namespace Pile
 					let nodeCount = ReadUInt();
 					for (uint32 i = 0; i < nodeCount; i++)
 					{
-						let importerIndex = ReadUInt();
+						// Decompress
+						let zLibSize = ReadUInt();
+						let uncompSize = ReadUInt();
+						let node = scope uint8[uncompSize];
+						int position = 0;
+						if (Compression.Decompress(Span<uint8>(&file[readByte], zLibSize), node) case .Err(let err))
+							return .Err(new String("Couldn't loat package {0}. Error decompressing node data: {1}")..Format(packageName, err));
+						readByte += (.)zLibSize;
 
-						let nameLength = ReadUInt();
+						uint32 ReadArrayUInt()
+						{
+							let startIndex = position;
+							position += 4;
+							return (((uint32)node[startIndex] << 24) | (((uint32)node[startIndex + 1]) << 16) | (((uint32)node[startIndex + 2]) << 8) | (uint32)node[startIndex + 3]);
+						}
+
+						// Read from decompressed array
+						let importerIndex = ReadArrayUInt();
+
+						let nameLength = ReadArrayUInt();
 						let name = new uint8[nameLength];
-						Span<uint8>(&file[readByte], (.)nameLength).CopyTo(name);
-						readByte += (.)nameLength;
+						Span<uint8>(&node[position], (.)nameLength).CopyTo(name);
+						position += (.)nameLength;
 
-						let dataLength = ReadUInt();
+						let dataLength = ReadArrayUInt();
 						let data = new uint8[dataLength];
-						Span<uint8>(&file[readByte], (.)dataLength).CopyTo(data);
-						readByte += (.)dataLength;
+						Span<uint8>(&node[position], (.)dataLength).CopyTo(data);
+						position += (.)dataLength;
 
-						let nodeDataLength = ReadUInt();
+						let nodeDataLength = ReadArrayUInt();
 						let nodeData = new uint8[nodeDataLength];
 
 						if (nodeDataLength > 0) // This might be 0
-							Span<uint8>(&file[readByte], (.)nodeDataLength).CopyTo(nodeData);
+							Span<uint8>(&node[position], (.)nodeDataLength).CopyTo(nodeData);
 
-						readByte += (.)nodeDataLength;
+						position += (.)nodeDataLength;
 
 						nodes.Add(new PackageNode(importerIndex, name, data, nodeData));
 					}
@@ -566,13 +586,16 @@ namespace Pile
 
 				// NODEDATAARRAY
 				//		ELEMENT:
-				// 		IMPORTERNAMEINDEX (uint32)
-				// 		NAME (uint32)
-				// 		NAMEDATA
-				// 		DATAARRAYLENGTH (uint32)
-				// 		DATAARRAY (of bytes)
-				// 		DATANODEARRAYLENGTH (uint32)
-				// 		DATANODEARRAY (of bytes)
+				//		ZLIB SIZE (uint32)
+				//		ZLIB UNCOMPRESSED SIZE (uint32)
+				//		ZLIBARRAY: (decompressed) =>
+				// 			IMPORTERNAMEINDEX (uint32)
+				// 			NAME (uint32)
+				// 			NAMEDATA
+				// 			DATAARRAYLENGTH (uint32)
+				// 			DATAARRAY (of bytes)
+				// 			DATANODEARRAYLENGTH (uint32)
+				// 			DATANODEARRAY (of bytes)
 
 				List<uint8> file = scope List<uint8>();
 				file.Add(0x50); // Head
@@ -596,13 +619,64 @@ namespace Pile
 				WriteUInt((uint32)nodes.Count);
 				for (let node in nodes)
 				{
-					WriteUInt(node.Importer);
-					WriteUInt((uint32)node.Name.Count);
-					file.AddRange(node.Name);
-					WriteUInt((uint32)node.Data.Count);
-					file.AddRange(node.Data);
-					WriteUInt((uint32)node.DataNode.Count);
-					file.AddRange(node.DataNode);
+					let sizeNumPos = file.Count;
+					WriteUInt((uint32)0);
+					let zLib = scope uint8[sizeof(uint32) * 4 + node.Name.Count + node.Data.Count + node.DataNode.Count];
+					int position = 0;
+
+					void WriteArrayUInt(uint32 uint)
+					{
+						zLib[position] = (uint8)((uint >> 24) & 0xFF);
+						zLib[position + 1] = (uint8)((uint >> 16) & 0xFF);
+						zLib[position + 2] = (uint8)((uint >> 8) & 0xFF);
+						zLib[position + 3] = (uint8)(uint & 0xFF);
+						position += 4;
+					}
+
+					void WriteArraySpan(Span<uint8> span)
+					{
+						var span;
+						let dest = Span<uint8>((&zLib[position - 1]) + 1, Math.Min(zLib.Count, span.Length));
+						if (span.Length != dest.Length)
+						{
+							Log.Warning(new String("Span to write to zlib input array was longer ({0}) than arrayLenght - currentArrayPosition ({1})")..Format(span.Length, dest.Length));
+							span.Length = dest.Length; // Trim input span to fit zlib mem. ~~This should never happen but yeah
+						}
+						span.CopyTo(dest);
+						position += dest.Length;
+					}
+
+					// Write into zLib array
+					WriteArrayUInt(node.Importer);
+					WriteArrayUInt((uint32)node.Name.Count);
+					WriteArraySpan(node.Name);
+					WriteArrayUInt((uint32)node.Data.Count);
+					WriteArraySpan(node.Data);
+					WriteArrayUInt((uint32)node.DataNode.Count);
+					WriteArraySpan(node.DataNode);
+
+					// Write uncompressed size
+					WriteUInt((uint32)zLib.Count);
+
+					// Compress
+					let zLibStart = file.Count;
+					file.Count += zLib.Count; // Reserve original size of data
+					var compSize = 0;
+					let res = Compression.Compress(zLib, Span<uint8>(&file[zLibStart], file.Count));
+					switch (res)
+					{
+					case .Err (let err):
+						return .Err(new String("Couldn't build package at {0}. Error compressing node data: {1}")..Format(packagePath, err));
+					case .Ok(let val):
+						compSize = val;
+					}
+					file.Count -= zLib.Count - compSize; // Remove unneeded reserved space
+
+					// Insert real size
+					file[sizeNumPos] = (uint8)((compSize >> 24) & 0xFF);
+					file[sizeNumPos + 1] = (uint8)((compSize >> 16) & 0xFF);
+					file[sizeNumPos + 2] = (uint8)((compSize >> 8) & 0xFF);
+					file[sizeNumPos + 3] = (uint8)(compSize & 0xFF);
 
 					delete node;
 				}

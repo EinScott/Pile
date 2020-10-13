@@ -52,7 +52,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		protected override void Update()
+		protected override void Step()
 		{
 			SDL.Event event;
 			while (SDL.PollEvent(out event) != 0)
