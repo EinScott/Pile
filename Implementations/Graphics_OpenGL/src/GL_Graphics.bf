@@ -90,9 +90,6 @@ namespace Pile.Implementations
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
 			OriginBottomLeft = true;
 
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 			return .Ok;
 		}
 

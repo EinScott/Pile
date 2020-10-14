@@ -13,6 +13,11 @@ namespace Pile.Implementations
 		
 		bool glGraphics;
 
+#if BF_PLATFORM_WINDOWS 
+		[Import("user32.lib"), CLink, CallingConvention(.Stdcall)]
+		public static extern bool SetProcessDPIAware();
+#endif
+
 		public this()
 		{
 			SDL_Init.[Friend]InitFlags |= .Video | .Joystick | .GameController | .Events;
@@ -39,6 +44,11 @@ namespace Pile.Implementations
 
 		protected override void Initialize()
 		{
+#if BF_PLATFORM_WINDOWS 
+			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+				SetProcessDPIAware();
+#endif
+
 			SDL_Init.[Friend]Init();
 
 			if (Core.Graphics is IGraphicsOpenGL)

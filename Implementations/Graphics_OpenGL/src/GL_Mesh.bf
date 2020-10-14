@@ -59,7 +59,7 @@ namespace Pile.Implementations
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, vertices.Ptr, vertices.Length);
 			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, indices.Ptr, sizeof(uint32) * indices.Length);
 
-			void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
+			void SetBuffer(ref uint32 bufferID, uint64 glBufferType, void* data, int length)
 			{
 				if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
 
@@ -104,7 +104,7 @@ namespace Pile.Implementations
 				{
 					// this is kind of messy because some attributes can take up multiple slots
 					// ex. a marix4x4 actually takes up 4 (size 16)
-					for (int i = 0, uint loc = 0; i < (int)vertexAttr.Components; i += 4, loc++)
+					for (int i = 0, uint64 loc = 0; i < (int)vertexAttr.Components; i += 4, loc++)
 					{
 						let componentsInLoc = Math.Min((int)vertexAttr.Components - i, 4);
 						let location = (uint)(attribute.Location + loc);
@@ -122,7 +122,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		static uint ToVertexType(VertexType type)
+		static uint64 ToVertexType(VertexType type)
 		{
 			switch (type)
 			{

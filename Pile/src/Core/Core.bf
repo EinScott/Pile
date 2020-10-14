@@ -113,8 +113,8 @@ namespace Pile
 		public static Result<void> Start(Game game, bool deleteGameOnShutdown = true)
 		{
 			if (running || exiting) LogErrorReturn!("A game is already running");
-			else if (!initialized) return LogErrorReturn!("Core needs to be initialized first");
-			else if (game == null) return LogErrorReturn!("Game cannot be null");
+			else if (!initialized) LogErrorReturn!("Core needs to be initialized first");
+			else if (game == null) LogErrorReturn!("Game cannot be null");
 
 			Log.Message("Starting up game");
 			Game = game;

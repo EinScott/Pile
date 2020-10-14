@@ -348,7 +348,7 @@ namespace Pile
 		        // if the bit-depth isn't 8, convert it
 		        if (depth != 8)
 		        {
-		            return LogErrorReturn!("Non 8-bit PNGs not Implemented");
+		            LogErrorReturn!("Non 8-bit PNGs not Implemented");
 		        }
 
 		        // Convert bytes to RGBA data
@@ -419,7 +419,7 @@ namespace Pile
 		{
 			// TODO: finish deflation
 			var s = 1; // (just so we dont get a warning)
-			if (s + 1 == 2) return LogErrorReturn!("Unfinished implementation");
+			if (s + 1 == 2) LogErrorReturn!("Unfinished implementation");
 
 		    const int32 MaxIDATChunkLength = 8192;
 

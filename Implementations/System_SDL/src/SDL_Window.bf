@@ -33,7 +33,23 @@ namespace Pile.Implementations
 				context = new [Friend].(this);
 
 				if (*SDL.GetError() != '\0')
-					Console.WriteLine(scope .(SDL.GetError()));
+					Log.Error(scope String("Error while creating window: {0}")..Format(SDL.GetError()));
+			}
+
+			// Scale to dpi
+			float hidpiRes = 72f;
+			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+			    hidpiRes = 96;
+
+			int32 index = (int32)SDL.SDL_GetWindowDisplayIndex(window);
+			SDL.GetDisplayDPI(index, let ddpi, ?, ?);
+			let dpi = (ddpi / hidpiRes);
+
+			if (dpi != 1)
+			{
+				SDL.GetDesktopDisplayMode(index, let mode);
+				SDL.SetWindowPosition(window, (int32)(mode.w - width * dpi) / 2, (int32)(mode.h - height * dpi) / 2);
+				SDL.SetWindowSize(window, (int32)(width * dpi), (int32)(height * dpi));
 			}
 		}
 
@@ -105,11 +121,11 @@ namespace Pile.Implementations
 			get
 			{
 				float hidpiRes = 72f;
-				/*if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-				    hidpiRes = 96;*/
+				if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+				    hidpiRes = 96;
 
 				int32 index = (int32)SDL.SDL_GetWindowDisplayIndex(window);
-				SDL.GetDisplayDPI(index, let ddpi, let _hdpi, let _vdpi);
+				SDL.GetDisplayDPI(index, let ddpi, ?, ?);
 				return Vector2.One * (ddpi / hidpiRes);
 			}
 		}

@@ -7,12 +7,12 @@ namespace Pile
 	{
 		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
-			int destL = (int32)destination.Length;
+			int64 destL = (int32)destination.Length;
 			let s = MiniZ.Compress(&destination[0], ref destL, &source[0], (int)(int32)source.Length, level);
 
 			switch (s)
 			{
-			case .OK: return .Ok(destL);
+			case .OK: return .Ok((.)destL);
 				// The errors that could realistically happen
 			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
@@ -55,12 +55,12 @@ namespace Pile
 
 		public static Result<int> Decompress(Span<uint8> source, Span<uint8> destination)
 		{
-			int destL = (int32)destination.Length;
+			int64 destL = (int32)destination.Length;
 			let s = MiniZ.Uncompress(&destination[0], ref destL, &source[0], source.Length);
 
 			switch (s)
 			{
-			case .OK: return .Ok(destL);
+			case .OK: return .Ok((.)destL);
 				// The errors that could realistically happen
 			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
