@@ -11,14 +11,14 @@ using System.IO;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
-// TODO before public: asset importers, font support/spritefonts/batcher font drawing, asset/package system stuff
-// TODO: audio, networking, support more platforms (build soloud & sdl for linux etc)
+// TODO before public: asset importers, font support/spritefonts/batcher font drawing, asset/package system stuff (what to do about packers??), finish png writing
+// TODO: audio, networking, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds)
 
 /* For networking to something like PILE_SERVER, wich automatically forces null implementations in some modules,
  * doesnt open a window, doesn't call render and instead sets up a new thread that receives commands from the console and triggers an event
  * Also have something like Networker, which is setup like any other core module
 
- * Question is, should this be forced into this class?? Probably, but maybe not... we'll see
+ * Question is, should this be forced into this class?? Probably, but maybe not... we'll see -- yes, it probably will
 */
 
 namespace Pile
@@ -143,13 +143,18 @@ namespace Pile
 				// Raw time
 				Time.[Friend]RawDuration += diffTime;
 				Time.[Friend]RawDelta = diffTime * TimeSpan.[Friend]SecondsPerTick;
-				
+
+				// Update engine
+				Graphics.[Friend]Step();
+				Input.[Friend]Step();
+				System.[Friend]Step();
 				Game.[Friend]Step();
 
 				if (Time.[Friend]freeze > double.Epsilon)
 				{
 					// Freeze time
 					Time.[Friend]freeze -= Time.RawDelta;
+					Log.Message(Time.[Friend]freeze);
 
 					if (Time.[Friend]freeze <= double.Epsilon)
 						Time.[Friend]freeze = 0;
@@ -163,11 +168,6 @@ namespace Pile
 					// Update
 					Game.[Friend]Update();
 				}
-
-				// Update engine
-				Graphics.[Friend]Step();
-				Input.[Friend]Step();
-				System.[Friend]Step();
 
 				// Render
 				if (!exiting && !Window.Closed)
