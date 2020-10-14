@@ -37,10 +37,10 @@ namespace Pile
 			get => platform.Attachments[index];
 		}
 
-		public Result<void, String> Resize(int32 width, int32 height)
+		public Result<void> Resize(int32 width, int32 height)
 		{
 			if (width <= 0 || height <= 0)
-				return .Err("FrameBuffer size must be larger than 0");
+				LogErrorReturn!("FrameBuffer size must be larger than 0");
 
 			if (renderSize.X != width || renderSize.Y != height)
 			{

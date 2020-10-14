@@ -21,7 +21,7 @@ namespace Pile.Implementations
 		}
 
 		[SkipCall]
-		protected override Result<void, System.String> Initialize() => .Ok;
+		protected override Result<void> Initialize() => .Ok;
 
 		[SkipCall]
 		protected override void Step() {}

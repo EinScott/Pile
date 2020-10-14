@@ -11,7 +11,7 @@ namespace Pile
 
 			public Object Value { get; private set; }
 
-			this(ShaderUniform uniform)
+			private this(ShaderUniform uniform)
 			{
 				Uniform = uniform;
 
@@ -34,97 +34,110 @@ namespace Pile
 				delete Value;
 			}
 
-			public void SetTexture(Texture value, int index = 0)
+			public Result<void> SetTexture(Texture value, int index = 0)
 			{
-				AssertParameters(.Sampler, index);
+				if (AssertParameters(.Sampler, index) case .Err) return .Err;
 
 				if (let val = Value as Texture[])
 					val[index] = value;
+
+				return .Ok;
 			}
 
-			public Texture GetTexture(int index = 0)
+			public Result<Texture> GetTexture(int index = 0)
 			{
-				AssertParameters(.Sampler, index);
+				if (AssertParameters(.Sampler, index) case .Err) return .Err;
 
 				if (let val = Value as Texture[])
 					return val[index];
-				return null;
+				return .Err;
 			}
 
-			public void SetInt(int32 value, int index = 0)
+			public Result<void> SetInt(int32 value, int index = 0)
 			{
-				AssertParameters(.Int, index);
+				if (AssertParameters(.Int, index) case .Err) return .Err;
 
 				if (let val = Value as int32[])
 					val[index] = value;
+
+				return .Ok;
 			}
 
-			public int32 GetInt(int index = 0)
+			public Result<int32> GetInt(int index = 0)
 			{
-				AssertParameters(.Int, index);
+				if (AssertParameters(.Int, index) case .Err) return .Err;
 
 				if (let val = Value as int32[])
 					return val[index];
-				return 0;
+
+				return .Err;
 			}
 
-			public void SetFloat(float value, int index = 0)
+			public Result<void> SetFloat(float value, int index = 0)
 			{
-				AssertParameters(.Float, index);
+				if (AssertParameters(.Float, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 					val[index] = value;
+
+				return .Ok;
 			}
 
-			public float GetFloat(int index = 0)
+			public Result<float> GetFloat(int index = 0)
 			{
-				AssertParameters(.Float, index);
+				if (AssertParameters(.Float, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 					return val[index];
-				return 0;
+
+				return .Err;
 			}
 
-			public void SetFloat2((float, float) value, int index = 0)
+			public Result<void> SetFloat2((float, float) value, int index = 0)
 			{
 				let offset = index * 2;
-				AssertParameters(.Float2, index);
+				if (AssertParameters(.Float2, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
 					val[offset] = value.0;
 					val[offset + 1] = value.1;
 				}
+
+				return .Ok;
 			}
 
-			public void SetFloat2(Vector2 value, int index = 0)
+			public Result<void> SetFloat2(Vector2 value, int index = 0)
 			{
 				let offset = index * 2;
-				AssertParameters(.Float2, index);
+				if (AssertParameters(.Float2, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
 					val[offset] = value.X;
 					val[offset + 1] = value.Y;
 				}
+
+				return .Ok;
 			}
 
-			public Vector2 GetFloat2(int index = 0)
+			public Result<Vector2> GetFloat2(int index = 0)
 			{
 				let offset = index * 2;
-				AssertParameters(.Float2, index);
+				if (AssertParameters(.Float2, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
 					return Vector2(val[offset], val[offset + 1]);
 				}
-				return .Zero;
+
+				return .Err;
 			}
 
-			public void SetFloat3((float, float, float) value, int index = 0)
+			public Result<void> SetFloat3((float, float, float) value, int index = 0)
 			{
 				let offset = index * 3;
-				AssertParameters(.Float3, index);
+				if (AssertParameters(.Float3, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
@@ -132,12 +145,14 @@ namespace Pile
 					val[offset + 1] = value.1;
 					val[offset + 2] = value.2;
 				}
+
+				return .Ok;
 			}
 
-			public void SetFloat3(Vector3 value, int index = 0)
+			public Result<void> SetFloat3(Vector3 value, int index = 0)
 			{
 				let offset = index * 3;
-				AssertParameters(.Float3, index);
+				if (AssertParameters(.Float3, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
@@ -145,24 +160,27 @@ namespace Pile
 					val[offset + 1] = value.Y;
 					val[offset + 2] = value.Z;
 				}
+
+				return .Ok;
 			}
 
-			public Vector3 GetFloat3(int index = 0)
+			public Result<Vector3> GetFloat3(int index = 0)
 			{
 				let offset = index * 3;
-				AssertParameters(.Float3, index);
+				if (AssertParameters(.Float3, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
 					return Vector3(val[offset], val[offset + 1], val[offset + 2]);
 				}
-				return .Zero;
+
+				return .Err;
 			}
 
-			public void SetFloat4((float, float, float, float) value, int index = 0)
+			public Result<void> SetFloat4((float, float, float, float) value, int index = 0)
 			{
 				let offset = index * 4;
-				AssertParameters(.Float4, index);
+				if (AssertParameters(.Float4, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
@@ -171,24 +189,27 @@ namespace Pile
 					val[offset + 2] = value.2;
 					val[offset + 3] = value.3;
 				}
+
+				return .Ok;
 			}
 
-			public (float, float, float, float) GetFloat4(int index = 0)
+			public Result<(float, float, float, float)> GetFloat4(int index = 0)
 			{
 				let offset = index * 4;
-				AssertParameters(.Float4, index);
+				if (AssertParameters(.Float4, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
 					return (val[offset], val[offset + 1], val[offset + 2], val[offset + 3]);
 				}
-				return (0, 0, 0, 0);
+
+				return .Err;
 			}
 
-			public void SetMat3x2(Matrix3x2 value, int index = 0)
+			public Result<void> SetMat3x2(Matrix3x2 value, int index = 0)
 			{
 				let offset = index * 6;
-				AssertParameters(.Matrix3x2, index);
+				if (AssertParameters(.Matrix3x2, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
@@ -199,24 +220,27 @@ namespace Pile
 					val[offset + 4] = value.m31;
 					val[offset + 5] = value.m32;
 				}
+
+				return .Ok;
 			}
 
-			public Matrix3x2 GetMat3x2(int index = 0)
+			public Result<Matrix3x2> GetMat3x2(int index = 0)
 			{
 				let offset = index * 6;
-				AssertParameters(.Matrix3x2, index);
+				if (AssertParameters(.Matrix3x2, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
 					return Matrix3x2(val[offset], val[offset + 1], val[offset + 2], val[offset + 3], val[offset + 4], val[offset + 5]);
 				}
-				return .Identity;
+
+				return .Err;
 			}
 
-			public void SetMatrix4x4(Matrix4x4 value, int index = 0)
+			public Result<void> SetMatrix4x4(Matrix4x4 value, int index = 0)
 			{
 				let offset = index * 16;
-				AssertParameters(.Matrix4x4, index);
+				if (AssertParameters(.Matrix4x4, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
@@ -237,12 +261,14 @@ namespace Pile
 					val[offset + 14] = value.m43;
 					val[offset + 15] = value.m44;
 				}
+
+				return .Ok;
 			}
 
-			public Matrix4x4 GetMatrix4x4(int index = 0)
+			public Result<Matrix4x4> GetMatrix4x4(int index = 0)
 			{
 				let offset = index * 16;
-				AssertParameters(.Matrix4x4, index);
+				if (AssertParameters(.Matrix4x4, index) case .Err) return .Err;
 
 				if (let val = Value as float[])
 				{
@@ -251,15 +277,17 @@ namespace Pile
 									val[offset + 8], val[offset + 9], val[offset + 10], val[offset + 11],
 									val[offset + 12], val[offset + 13], val[offset + 14], val[offset + 15]);
 				}
-				return Matrix4x4.Identity;
+
+				return .Err;
 			}
 
-			void AssertParameters(UniformType expected, int index)
+			Result<void> AssertParameters(UniformType expected, int index)
 			{
-				// TODO: Make these errors handelable (Result<T>)
 				// Assure valid access
-				Runtime.Assert(Uniform.Type == expected, scope String("Material Parameter {0} was expected to be of UniformType {1} instead of {2}")..Format(Uniform.Name, expected, Uniform.Type));
-				Runtime.Assert(index >= 0 && index < Uniform.Length, scope String("The Size of Material Parameter {0} is {1}, but was trying to access index {2}")..Format(Uniform.Name, Uniform.Length, index));
+				if (Uniform.Type != expected) LogErrorReturn!(scope String("Material Parameter {0} was expected to be of UniformType {1} instead of {2}")..Format(Uniform.Name, expected, Uniform.Type));
+				if (index < 0 && index >= Uniform.Length) LogErrorReturn!(scope String("The Size of Material Parameter {0} is {1}, but was trying to access index {2}")..Format(Uniform.Name, Uniform.Length, index));
+
+				return .Ok;
 			}
 		}
 

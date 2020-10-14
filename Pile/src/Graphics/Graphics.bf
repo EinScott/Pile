@@ -17,20 +17,20 @@ namespace Pile
 		public enum DebugDrawMode { Disabled, WireFrame }
 		public abstract DebugDrawMode DebugDraw { get; set; }
 
-		protected abstract Result<void, String> Initialize();
+		protected abstract Result<void> Initialize();
 		protected abstract void Step();
 		protected abstract void AfterRender();
 
-		public Result<void, String> Clear(RenderTarget target, Color color) =>
+		public Result<void> Clear(RenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public Result<void, String> Clear(RenderTarget target, Color color, float depth, int stencil) =>
+		public Result<void> Clear(RenderTarget target, Color color, float depth, int stencil) =>
 			Clear(target, .All, color, depth, stencil, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public Result<void, String> Clear(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		public Result<void> Clear(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			if (!target.Renderable)
-				return .Err("Target cannot currently be rendered to");
+				LogErrorReturn!("Target cannot currently be rendered to");
 
 			let size = target.RenderSize;
 			let bounds = Rect(0, 0, size.X, size.Y);
@@ -44,22 +44,22 @@ namespace Pile
 		[Unchecked]
 		protected abstract void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
-		public Result<void, String> Render(ref RenderPass pass)
+		public Result<void> Render(ref RenderPass pass)
 		{
 			if (!pass.target.Renderable)
-				return .Err("Render Target cannot currently be drawn to");
+				LogErrorReturn!("Render Target cannot currently be drawn to");
 
 			if (!(pass.target is FrameBuffer) && !(pass.target is Window))
-				return .Err("RenderTarget must be a FrameBuffer or Window");
+				LogErrorReturn!("RenderTarget must be a FrameBuffer or Window");
 
 			if (pass.mesh == null)
-				return .Err("Mesh cannot be null");
+				LogErrorReturn!("Mesh cannot be null");
 
 			if (pass.material == null)
-				return .Err("Material cannot be null");
+				LogErrorReturn!("Material cannot be null");
 
 			if (pass.mesh.IndexCount < pass.meshIndexStart + pass.meshIndexCount)
-				return .Err("Cannot draw more indices than exist in the Mesh");
+				LogErrorReturn!("Cannot draw more indices than exist in the Mesh");
 
 			if (pass.viewport != null)
 			{

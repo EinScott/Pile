@@ -5,14 +5,14 @@ namespace Pile
 {
 	public class RawImporter : Packages.Importer
 	{
-		public override Result<void, String> Load(StringView name, uint8[] data, JSONObject dataNode)
+		public override Result<void> Load(StringView name, uint8[] data, JSONObject dataNode)
 		{
 			let asset = new RawAsset(data);
 
 			return SubmitAsset(name, asset);
 		}
 
-		public override Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode)
+		public override Result<uint8[]> Build(uint8[] data, out JSONObject dataNode)
 		{
 			dataNode = null;
 

@@ -66,16 +66,16 @@ namespace Pile
 		static mixin HandleRead(Result<int> res)
 		{
 			if (res case .Err)
-				return .Err("Error reading PNG: Couldn't read span");
+				LogErrorReturn!("Error reading PNG: Couldn't read span");
 		}
 
 		static mixin HandleWrite(Result<void> res)
 		{
 			if (res case .Err)
-				return .Err("Error writing PNG: Couldn't write span");
+				LogErrorReturn!("Error writing PNG: Couldn't write span");
 		}
 
-		public static Result<void, String> Read(Stream stream, Bitmap bitmap)
+		public static Result<void> Read(Stream stream, Bitmap bitmap)
 		{
 		    // TODO: optimize reading
 		    // We also ignore all checksums when reading because they don't seem super important for game usage
@@ -100,7 +100,7 @@ namespace Pile
 
 		    // Check PNG Header
 		    if (!IsValid(stream))
-		        return .Err("Error reading PNG: Stream is not PNG");
+		        LogErrorReturn!("Error reading PNG: Stream is not PNG");
 
 		    // Skip PNG header
 		    stream.Seek(8);
@@ -145,29 +145,29 @@ namespace Pile
 
 		            // currently don't support interlacing as I'm actually not sure where the interlace step takes place lol
 		            if (interlace == Interlace.Adam7)
-		                return .Err("Error reading PNG: Interlaced PNGs not implemented");
+		                LogErrorReturn!("Error reading PNG: Interlaced PNGs not implemented");
 
 		            if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16)
-		                return .Err(new String("Error reading PNG: {0}-bit depth not supported")..Format(depth));
+		                LogErrorReturn!(scope String("Error reading PNG: {0}-bit depth not supported")..Format(depth));
 
 		            if (filter != 0)
-		                return .Err(new String("Error reading PNG: Filter {0} not supported")..Format(filter));
+		                LogErrorReturn!(scope String("Error reading PNG: Filter {0} not supported")..Format(filter));
 
 		            if (compression != 0)
-		                return .Err(new String("Error reading PNG: Compression {} not supported")..Format(compression));
+		                LogErrorReturn!(scope String("Error reading PNG: Compression {} not supported")..Format(compression));
 		        }
 		        // PLTE Chunk (Indexed Palette)
 		        else if (Check("PLTE", fourbytes))
 		        {
 		            hasPLTE = true;
-		            palette = scope:: uint8[chunkLength];
+		            palette = scope:: uint8[(.)chunkLength];
 
 		            let res = stream.TryRead(palette);
 					if (res case .Err)
-						return .Err("Error reading PNG: Couldn't read PLTE chunk");
+						LogErrorReturn!("Error reading PNG: Couldn't read PLTE chunk");
 					else if (res case .Ok(let val))
 						if (val != palette.Count)
-							return .Err("Error reading PNG: PLTE chunk was not of expected size");
+							LogErrorReturn!("Error reading PNG: PLTE chunk was not of expected size");
 		        }
 		        // IDAT Chunk (Image Data)
 		        else if (Check("IDAT", fourbytes))
@@ -176,15 +176,15 @@ namespace Pile
 
 		            for (int i = 0; i < chunkLength; i += idatChunk.Length)
 		            {
-		                int size = Math.Min(idatChunk.Length, chunkLength - i);
+		                int size = (.)Math.Min(idatChunk.Length, chunkLength - i);
 
 						let sizedChunk = idatChunk.Slice(0, size);
 						let res = stream.TryRead(sizedChunk);
 		                if (res case .Err)
-							return .Err("Error reading PNG: Couldn't read IDAT chunk");
+							LogErrorReturn!("Error reading PNG: Couldn't read IDAT chunk");
 						else if (res case .Ok(let val))
 							if (val != sizedChunk.Length)
-								return .Err("Error reading PNG: IDAT chunk was not of expected size");
+								LogErrorReturn!("Error reading PNG: IDAT chunk was not of expected size");
 
 		                idat.Write(sizedChunk);
 		            }
@@ -194,14 +194,14 @@ namespace Pile
 		        {
 		            if (color == .Indexed)
 		            {
-		                alphaPalette = scope:: uint8[chunkLength];
+		                alphaPalette = scope:: uint8[(.)chunkLength];
 
 						let res = stream.TryRead(alphaPalette);
 						if (res case .Err)
-							return .Err("Error reading PNG: Couldn't read tRNS chunk");
+							LogErrorReturn!("Error reading PNG: Couldn't read tRNS chunk");
 						else if (res case .Ok(let val))
 							if (val != alphaPalette.Count)
-								return .Err("Error reading PNG: tRNS chunk was not of expected size");
+								LogErrorReturn!("Error reading PNG: tRNS chunk was not of expected size");
 		            }
 		            else if (color == .Greyscale)
 		            {
@@ -224,13 +224,13 @@ namespace Pile
 
 		    // checks
 		    if (!hasIHDR)
-		        return .Err("Error reading PNG: Missing IHDR data");
+		        LogErrorReturn!("Error reading PNG: Missing IHDR data");
 
 		    if (!hasIDAT)
-		        return .Err("Error reading PNG: PNG Missing IDAT data");
+		        LogErrorReturn!("Error reading PNG: PNG Missing IDAT data");
 
 		    if (!hasPLTE && color == Colors.Indexed)
-		        return .Err("Error reading PNG: PNG Missing PLTE data");
+		        LogErrorReturn!("Error reading PNG: PNG Missing PLTE data");
 
 			let width = bitmap.Width;
 			let height = bitmap.Height;
@@ -246,7 +246,7 @@ namespace Pile
 		            //deflateStream.Read(buffer);
 
 					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err(let err))
-						return .Err(new String("Error reading PNG: PNG iDAT decompression failed: {0}")..Format(err));
+						LogErrorReturn!(scope String("Error reading PNG: PNG iDAT decompression failed: {0}")..Format(err));
 		        }
 
 		        // apply filter pass - this happens in-place
@@ -348,7 +348,7 @@ namespace Pile
 		        // if the bit-depth isn't 8, convert it
 		        if (depth != 8)
 		        {
-		            return .Err("Non 8-bit PNGs not Implemented");
+		            return LogErrorReturn!("Non 8-bit PNGs not Implemented");
 		        }
 
 		        // Convert bytes to RGBA data
@@ -412,18 +412,18 @@ namespace Pile
 		    return .Ok;
 		}
 
-		public static Result<void, String> Write(Stream stream, Bitmap bitmap)
+		public static Result<void> Write(Stream stream, Bitmap bitmap)
 			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
 
-		public static Result<void, String> Write(Stream stream, int32 width, int32 height, Color[] pixels)
+		public static Result<void> Write(Stream stream, int32 width, int32 height, Color[] pixels)
 		{
 			// TODO: finish deflation
 			var s = 1; // (just so we dont get a warning)
-			if (s + 1 == 2) return .Err("Unfinished implementation");
+			if (s + 1 == 2) return LogErrorReturn!("Unfinished implementation");
 
 		    const int32 MaxIDATChunkLength = 8192;
 
-		    Result<void, String> Chunk(Stream stream, String title, Span<uint8> buffer)
+		    Result<void> Chunk(Stream stream, String title, Span<uint8> buffer)
 		    {
 		        // write chunk
 	            HandleWrite!(stream.Write(SwapEndian((.)buffer.Length)));
@@ -443,7 +443,7 @@ namespace Pile
 		        }
 		    }
 
-		    Result<void, String> WriteIDAT(Stream stream, MemoryStream memory, bool writeAll)
+		    Result<void> WriteIDAT(Stream stream, MemoryStream memory, bool writeAll)
 		    {
 		        let zlib = (Span<uint8>)memory.[Friend]mMemory;
 		        var remainder = (int32)memory.Position;

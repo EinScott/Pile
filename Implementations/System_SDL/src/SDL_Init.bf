@@ -8,13 +8,13 @@ namespace Pile.Implementations
 		static SDL.InitFlag InitFlags;
 		static bool initialized;
 
-		static Result<void, String> Init()
+		static Result<void> Init()
 		{
 			if (initialized) return .Ok;
 
 			if (SDL.Init(InitFlags) != 0)
 			{
-				return .Err(scope .(SDL.GetError()));
+				LogErrorReturn!(scope String(SDL.GetError()));
 			}
 			else initialized = true;
 

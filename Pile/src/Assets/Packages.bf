@@ -11,7 +11,7 @@ namespace Pile
 	{
 		public class Package
 		{
-			Dictionary<Type,List<String>> ownedAssets = new Dictionary<Type,List<String>>();
+			Dictionary<Type, List<String>> ownedAssets = new Dictionary<Type, List<String>>();
 			
 			private this() {}
 
@@ -26,18 +26,26 @@ namespace Pile
 
 			readonly String name = new String() ~ delete _;
 			public StringView Name => name;
+
+			public bool OwnsAsset(Type type, String string)
+			{
+				if (!ownedAssets.ContainsKey(type)) return false;
+				if (!ownedAssets.GetValue(type).Get().Contains(string)) return false;
+
+				return true;
+			}
 		}
 
 		public abstract class Importer
 		{
-			public abstract Result<void, String> Load(StringView name, uint8[] data, JSONObject dataNode);
-			public abstract Result<uint8[], String> Build(uint8[] data, out JSONObject dataNode);
+			public abstract Result<void> Load(StringView name, uint8[] data, JSONObject dataNode);
+			public abstract Result<uint8[]> Build(uint8[] data, out JSONObject dataNode);
 
 			private Package package;
-			protected Result<void, String> SubmitAsset(StringView name, Object asset)
+			protected Result<void> SubmitAsset(StringView name, Object asset)
 			{
 				if (package == null)
-					return .Err("Importers can only submit assets when called from load package function");
+					LogErrorReturn!("Importers can only submit assets when called from load package function");
 
 				let type = asset.GetType();
 
@@ -47,7 +55,8 @@ namespace Pile
 				if (Assets.Has(type, nameString))
 				{
 					delete nameString;
-					return .Err(new String("Couldn't submit asset {0}: An object of this type ({1}) is already registered under this name")..Format(name, type));
+
+					LogErrorReturn!(scope String("Couldn't submit asset {0}: An object of this type ({1}) is already registered under this name")..Format(name, type));
 				}
 
 				// Add object location in package
@@ -57,12 +66,12 @@ namespace Pile
 				package.[Friend]ownedAssets.GetValue(type).Get().Add(nameString);
 
 				// Add object in assets
-				Assets.[Friend]AddAsset(type, nameString, asset);
+				if (Assets.[Friend]AddAsset(type, nameString, asset) case .Err) return .Err;
 
 				return .Ok;
 			}
 
-			protected Result<Subtexture, String> SubmitPackerBitmap(Package package, StringView name, Bitmap bitmap)
+			protected Result<Subtexture> SubmitPackerBitmap(Package package, StringView name, Bitmap bitmap)
 			{
 				// TODO: submit packer bitmaps from importers... prob needs some additions to assets and runtimePacker as well
 
@@ -83,7 +92,7 @@ namespace Pile
 			{
 				public readonly String path ~ delete _;
 				public readonly String importer ~ delete _;
-				public readonly String namePrefix ~ CondDelete!(_);
+				public readonly String namePrefix ~ DeleteNotNull!(_);
 
 				public this(StringView path, StringView importer, StringView? namePrefix)
 				{
@@ -115,6 +124,16 @@ namespace Pile
 		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
 
 		static String packagesPath ~ delete _;
+
+		public delegate void PackageEvent(Package package);
+		public static Event<PackageEvent> OnLoadPackage; // Called after a package was loaded
+		public static Event<PackageEvent> OnUnloadPackage; // Called before a package was unloaded (assets not yet deleted)
+
+		static ~this()
+		{
+			OnLoadPackage.Dispose();
+			OnUnloadPackage.Dispose();
+		}
 
 		static void Initialize()
 		{
@@ -151,7 +170,7 @@ namespace Pile
 			}
 		}
 
-		public static Result<Package, String> LoadPackage(StringView packageName)
+		public static Result<Package> LoadPackage(StringView packageName)
 		{
 			List<PackageNode> nodes = scope List<PackageNode>();
 			List<String> importerNames = scope List<String>();
@@ -163,7 +182,7 @@ namespace Pile
 				if (!packageName.EndsWith(".bin")) Path.ChangeExtension(scope String(packagePath), ".bin", packagePath);
 				let res = File.ReadAllBytes(packagePath);
 				if (res case .Err)
-				  return .Err(new String("Couldn't loat package {0}. Error reading file from {1}")..Format(packageName, packagePath));
+				  LogErrorReturn!(scope String("Couldn't loat package {0}. Error reading file from {1}")..Format(packageName, packagePath));
 
 				let file = res.Value;
 
@@ -197,7 +216,7 @@ namespace Pile
 					|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
 					|| file[3] != 0x00 // Check version
 					|| ReadUInt() != (uint32)file.Count) // Check file size
-					return .Err(new String("Couldn't loat package {0}. Invalid file format")..Format(packageName));
+					LogErrorReturn!(scope String("Couldn't loat package {0}. Invalid file format")..Format(packageName));
 
 				{
 					let importerNameCount = ReadUInt();
@@ -216,8 +235,8 @@ namespace Pile
 						let uncompSize = ReadUInt();
 						let node = scope uint8[uncompSize];
 						int position = 0;
-						if (Compression.Decompress(Span<uint8>(&file[readByte], zLibSize), node) case .Err(let err))
-							return .Err(new String("Couldn't loat package {0}. Error decompressing node data: {1}")..Format(packageName, err));
+						if (Compression.Decompress(Span<uint8>(&file[readByte], (.)zLibSize), node) case .Err(let err))
+							LogErrorReturn!(scope String("Couldn't loat package {0}. Error decompressing node data: {1}")..Format(packageName, err));
 						readByte += (.)zLibSize;
 
 						uint32 ReadArrayUInt()
@@ -253,7 +272,7 @@ namespace Pile
 				}
 
 				if (readByte != file.Count)
-					return .Err(new String("Couldn't loat package {0}. The file contains {1} bytes, but the end of data was at {2}")..Format(packageName, file.Count, readByte));
+					LogErrorReturn!(scope String("Couldn't loat package {0}. The file contains {1} bytes, but the end of data was at {2}")..Format(packageName, file.Count, readByte));
 
 				delete file;
 
@@ -276,19 +295,23 @@ namespace Pile
 
 				if (node.Importer < (uint32)importers.Count && importers.ContainsKey(importerNames[(int)node.Importer]))
 					importer = importers.GetValue(importerNames[(int)node.Importer]);
-				else if (node.Importer < (uint32)importers.Count) return .Err(new String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
-				else return .Err(new String("Couldn't loat package {0}. Couldn't find importer name at index {1} of file's importer name array; index out of range")..Format(packageName, node.Importer));
+				else if (node.Importer < (uint32)importers.Count)
+					LogErrorReturn!(scope String("Couldn't loat package {0}. Couldn't find importer {1}")..Format(packageName, importerNames[(int)node.Importer]));
+				else
+					LogErrorReturn!(scope String("Couldn't loat package {0}. Couldn't find importer name at index {1} of file's importer name array; index out of range")..Format(packageName, node.Importer));
 				
 				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
 
 				let json = scope String((char8*)node.DataNode.CArray(), node.DataNode.Count);
 				let res = JSONParser.ParseObject(json);
-				if (res case .Err(let err)) return .Err(new String("Couldn't loat package {0}. Error parsing json data for asset {1}: {2} ({3})")..Format(packageName, name, err, json));
+				if (res case .Err(let err))
+					LogErrorReturn!(scope String("Couldn't loat package {0}. Error parsing json data for asset {1}: {2} ({3})")..Format(packageName, name, err, json));
+
 				let dataNode = res.Get();
 
 				importer.[Friend]package = package;
 				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
-					return .Err(new String("Couldn't loat package {0}. Error importing asset {1} with {2}: {3}")..Format(name, importerNames[(int)node.Importer], err));
+					LogErrorReturn!(scope String("Couldn't loat package {0}. Error importing asset {1} with {2}: {3}")..Format(name, importerNames[(int)node.Importer], err));
 				importer.[Friend]package = null;
 				delete dataNode;
 
@@ -301,13 +324,26 @@ namespace Pile
 			for (let s in importerNames)
 				delete s;
 
+			OnLoadPackage(package);
 			return .Ok(package);
 		}
 
-		public static void UnloadPackage(StringView packageName)
+		public static Result<void> UnloadPackage(StringView packageName)
 		{
-			// Also fire some unload event here and when loading
-			// This event should probably pass somethings that lets others access the list of assets included
+			Package package = null;
+			for (var p in loadedPackages)
+				if (p.Name == packageName) package = p;
+
+			if (package == null)
+				LogErrorReturn!(scope String("Couldn't unload package {0}: No package with that name exists")..Format(packageName));
+
+			OnUnloadPackage(package);
+
+			for (let assetType in package.[Friend]ownedAssets.Keys)
+				for (let assetName in package.[Friend]ownedAssets.GetValue(assetType).Get())
+					Assets.[Friend]RemoveAsset(assetType, assetName);
+
+			return .Ok;
 		}
 
 		public static bool PackageLoaded(StringView packageName, out Package package)
@@ -323,7 +359,7 @@ namespace Pile
 			return false;
 		}
 
-		public static Result<void, String> BuildPackage(StringView packagePath)
+		public static Result<void> BuildPackage(StringView packagePath)
 		{
 			let t = scope Stopwatch(true);
 			PackageData packageData = scope PackageData();
@@ -332,49 +368,49 @@ namespace Pile
 				// Read package file
 				String jsonFile = scope String();
 				if (File.ReadAllText(packagePath, jsonFile) case .Err(let err))
-					return .Err(new String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
+					LogErrorReturn!(scope String("Couldn't build package at {0} because the file could not be opened")..Format(packagePath));
 
 				if (!JSONParser.IsValidJson(jsonFile))
-					return .Err(new String("Couldn't build package at {0}. Invalid json file")..Format(packagePath));
+					LogErrorReturn!(scope String("Couldn't build package at {0}. Invalid json file")..Format(packagePath));
 
 				JSONObject root = scope JSONObject();
 				let res = JSONParser.ParseObject(jsonFile, ref root);
 				if (res case .Err(let err))
-					return .Err(new String("Couldn't build package at {0}. Error parsing json: {1}")..Format(packagePath, err));
+					LogErrorReturn!(scope String("Couldn't build package at {0}. Error parsing json: {1}")..Format(packagePath, err));
 
 				if (!root.ContainsKey("imports"))
-					return .Err(new String("Couldn't build package at {0}. The root json object must include a 'imports' json array of objects")..Format(packagePath));
+					LogErrorReturn!(scope String("Couldn't build package at {0}. The root json object must include a 'imports' json array of objects")..Format(packagePath));
 
 				JSONArray array = null;
 				var ress = root.Get("imports", ref array);
 				if (ress case .Err(let err))
-					return .Err(new String("Couldn't build package at {0}. Error getting 'imports' array from root object: {1}")..Format(packagePath, err));
+					LogErrorReturn!(scope String("Couldn't build package at {0}. Error getting 'imports' array from root object: {1}")..Format(packagePath, err));
 				if (array == null)
-					return .Err(new String("Couldn't build package at {0}. Error getting 'imports' array from root object")..Format(packagePath));
+					LogErrorReturn!(scope String("Couldn't build package at {0}. Error getting 'imports' array from root object")..Format(packagePath));
 
 				JSONObject entry = null;
 				for (int i = 0; i < array.Count; i++)
 				{
 					ress = array.Get(i, ref entry);
 					if (ress case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error getting object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error getting object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
 					if (entry == null) continue; // This can probably not happen anyways
 
 					// Mandatory parameters
 					if (!entry.ContainsKey("path") || !entry.ContainsKey("importer"))
-						return .Err(new String("Couldn't build package at {0}. Error processing object at position {1} of 'imports' array: Object must include a path and importer string")..Format(packagePath, i));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error processing object at position {1} of 'imports' array: Object must include a path and importer string")..Format(packagePath, i));
 					if (entry.GetValueType("path") != .STRING || entry.GetValueType("importer") != .STRING)
-						return .Err(new String("Couldn't build package at {0}. Error processing object at position {1} of 'imports' array: Object must include a path and importer entry, both of json type string")..Format(packagePath, i));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error processing object at position {1} of 'imports' array: Object must include a path and importer entry, both of json type string")..Format(packagePath, i));
 
 					String path = null;
 					ress = entry.Get("path", ref path);
 					if (ress case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error getting object 'path' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error getting object 'path' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
 
 					String importer = null;
 					ress = entry.Get("importer", ref importer);
 					if (ress case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error getting object 'importer' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error getting object 'importer' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
 
 					// Option parameters
 					String namePrefix = null;
@@ -382,7 +418,7 @@ namespace Pile
 					{
 						ress = entry.Get("namePrefix", ref namePrefix);
 						if (ress case .Err(let err))
- 							return .Err(new String("Couldn't build package at {0}. Error getting object 'namePrefix' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
+ 							LogErrorReturn!(scope String("Couldn't build package at {0}. Error getting object 'namePrefix' of object at position {1} of 'imports' array: {2}")..Format(packagePath, i, err));
 					}
 
 					packageData.imports.Add(new PackageData.ImportData(path, importer, namePrefix == null ? null : StringView(namePrefix)));
@@ -405,7 +441,7 @@ namespace Pile
 
 				// Try to find importer
 				if (importers.ContainsKey(import.importer)) importer = importers[import.importer];
-				else return .Err(new String("Couldn't build package at {0}. Couln't find importer '{1}'")..Format(packagePath, import.importer));
+				else LogErrorReturn!(scope String("Couldn't build package at {0}. Couln't find importer '{1}'")..Format(packagePath, import.importer));
 
 				bool importerUsed = false;
 
@@ -422,7 +458,7 @@ namespace Pile
 					Path.GetDirectoryPath(fullPath, dirPath);
 
 					if (!Directory.Exists(dirPath))
-						return .Err(new String("Couldn't build package at {0}. Failed to find containing directory of {1} at {2}")..Format(packagePath, path, dirPath));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Failed to find containing directory of {1} at {2}")..Format(packagePath, path, dirPath));
 
 					// Import everything - recursively
 					if (Path.SamePath(fullPath, dirPath))
@@ -517,16 +553,16 @@ namespace Pile
 					// Read file
 					let res = File.ReadAllBytes(filePath);
 					if (res case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error reading file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error reading file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
 					uint8[] data = res;
 
 					// Run through importer
 					let ress = importer.Build(data, let node);
 					if (ress case .Err(let err))
-						return .Err(new String("Couldn't build package at {0}. Error importing file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error importing file at {1} with {2}: {3}")..Format(packagePath, filePath, import.importer, err));
 					uint8[] builtData = ress;
 					if (builtData.Count <= 0)
-						return .Err(new String("Couldn't build package at {0}. Error importing file at {1} with {2}: Length of returned data cannot be 0")..Format(packagePath, filePath, import.importer));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error importing file at {1} with {2}: Length of returned data cannot be 0")..Format(packagePath, filePath, import.importer));
 
 					delete data;
 
@@ -551,7 +587,7 @@ namespace Pile
 
 					// Check if name exists
 					if (duplicateNameLookup.Contains(s))
-						return .Err(new String("Couldn't build package at {0}. Error importing file at {1}: Entry with name {2} has already been imported")..Format(packagePath, filePath, s));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error importing file at {1}: Entry with name {2} has already been imported")..Format(packagePath, filePath, s));
 
 					// Add to node and duplicate lookup
 					let name = new uint8[s.Length];
@@ -639,7 +675,7 @@ namespace Pile
 						let dest = Span<uint8>((&zLib[position - 1]) + 1, Math.Min(zLib.Count, span.Length));
 						if (span.Length != dest.Length)
 						{
-							Log.Warning(new String("Span to write to zlib input array was longer ({0}) than arrayLenght - currentArrayPosition ({1})")..Format(span.Length, dest.Length));
+							Log.Warning(scope String("Span to write to zlib input array was longer ({0}) than arrayLenght - currentArrayPosition ({1})")..Format(span.Length, dest.Length));
 							span.Length = dest.Length; // Trim input span to fit zlib mem. ~~This should never happen but yeah
 						}
 						span.CopyTo(dest);
@@ -666,7 +702,7 @@ namespace Pile
 					switch (res)
 					{
 					case .Err (let err):
-						return .Err(new String("Couldn't build package at {0}. Error compressing node data: {1}")..Format(packagePath, err));
+						LogErrorReturn!(scope String("Couldn't build package at {0}. Error compressing node data: {1}")..Format(packagePath, err));
 					case .Ok(let val):
 						compSize = val;
 					}
@@ -703,7 +739,7 @@ namespace Pile
 				Path.ChangeExtension(scope String(outPath), ".bin", outPath);
 				let res = File.WriteAllBytes(outPath, file);
 				if (res case .Err)
-					return .Err(new String("Couldn't build package at {0}. Error writing file to {1}")..Format(packagePath, outPath));
+					LogErrorReturn!(scope String("Couldn't build package at {0}. Error writing file to {1}")..Format(packagePath, outPath));
 
 				t.Stop();
 				Log.Message(scope String("Built package {0} in {1}ms")..Format(packageName, t.ElapsedMilliseconds));

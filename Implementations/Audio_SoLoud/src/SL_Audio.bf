@@ -21,7 +21,7 @@ namespace Pile.Implementations
 			SL_Soloud.Destroy(slPtr);
 		}
 
-		protected override Result<void, String> Initialize()
+		protected override Result<void> Initialize()
 		{
 			slPtr = SL_Soloud.Create();
 			version = SL_Soloud.GetVersion(slPtr);

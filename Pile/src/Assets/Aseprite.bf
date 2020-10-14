@@ -46,7 +46,8 @@ namespace Pile
 
 	    public this(Stream stream)
 	    {
-	        Parse(stream);
+	        if (Parse(stream) case .Err)
+				Log.Error("Reading .ase from stream failed. See error above");
 	    }
 
 	    #region Data Structures
@@ -185,7 +186,7 @@ namespace Pile
 
 	    #region .ase Parser
 
-	    private Result<void, String> Parse(Stream stream)
+	    private Result<void> Parse(Stream stream)
 	    {
 	        // wrote these to match the documentation names so it's easier (for me, anyway) to parse
 	        uint8 BYTE() => stream.Read<uint8>();
@@ -198,10 +199,10 @@ namespace Pile
 				let buf = scope uint8[WORD()];
 				let res = stream.TryRead(buf); // BYTES(count) is here
 				if (res case .Err)
-					return .Err("Error reading ASE: Couldn't read STRING");
+					return .Err;
 				else if (res case .Ok(let val))
 					if (val != buf.Count)
-						return .Err("Error reading ASE: STRING was not of expected size");
+						LogErrorReturn!("Couldn't load Aseprite: Unexpected string size");
 				let s = scope:mixin String((char8*)&buf[0], buf.Count);
 				s
 			}
@@ -215,7 +216,9 @@ namespace Pile
 	            // Magic number (0xA5E0)
 	            var magic = WORD();
 	            if (magic != 0xA5E0)
-	                return .Err("File is not in .ase format");
+				{
+					LogErrorReturn!("Couldn't load Asprite: Invalid format");
+				}
 
 	            // Frames / Width / Height / Color Mode
 	            frameCount = WORD();
@@ -325,24 +328,26 @@ namespace Pile
 		                        {
 		                            let res = stream.TryRead(temp);
 									if (res case .Err)
-										return .Err("Error reading ASE: Couldn't read RAW Cell");
+										LogErrorReturn!("Error reading ASE RAW Cell: Error reading");
 									else if (res case .Ok(let val))
 										if (val != temp.Count - 1)
-											return .Err("Error reading ASE: RAW Cell was not of expected size");
+											LogErrorReturn!("Error reading ASE RAW Cell: Unexpected size");
 		                        }
 		                        // DEFLATE
 		                        else
 		                        {
-									let source = scope uint8[(chunkEnd - stream.Position)]; // Read to end of chunk
+									let source = scope uint8[(.)(chunkEnd - stream.Position)]; // Read to end of chunk
 									let res = stream.TryRead(source);
 									if (res case .Err)
-										return .Err("Error reading ASE: Couldn't read COMPRESSED Cell");
+										LogErrorReturn!("Error reading ASE COMPRESSED Cell: Error reading");
 									else if (res case .Ok(let val))
 										if (val != source.Count)
-											return .Err(new String("Error reading ASE: COMPRESSED Cell was not of expected size {0}: {1}")..Format(source.Count, val));
+											LogErrorReturn!("Error reading ASE COMPRESSED Cell: Unexpected size");
 
 									if (Compression.Decompress(source, temp) case .Err(let err))
-										return .Err(new String("Error reading ASE COMPRESSED Cell: {0}")..Format(err));
+									{
+										LogErrorReturn!(scope String("Error decompressing ASE COMPRESSED Cell: {0}")..Format(err));
+									}
 								}
 
 		                        // get pixel data
@@ -363,7 +368,7 @@ namespace Pile
 		                    }
 		                    else
 		                    {
-		                        return .Err("Cell format not implemented");
+								LogErrorReturn!("Error reading ASE Cell: Cell format not implemented");
 		                    }
 
 		                    var cel = new Cel(layer, pixels)
@@ -394,7 +399,7 @@ namespace Pile
 		                    for (int p = 0; p < (end - start) + 1; p++)
 		                    {
 		                        var hasName = WORD();
-		                        palette[start + p] = Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
+		                        palette[(.)start + p] = Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
 
 		                        if (Math.IsBitSet(hasName, 0))
 		                            STRING!();
@@ -438,10 +443,10 @@ namespace Pile
 		                // SLICE
 		                else if (chunkType == Chunks.Slice)
 		                {
-		                    var count = DWORD();
-		                    var flags = (int)DWORD();
+		                    let count = (int)DWORD();
+		                    let flags = (int)DWORD();
 		                    DWORD(); // reserved
-		                    var name = STRING!();
+		                    let name = STRING!();
 
 		                    for (int s = 0; s < count; s++)
 		                    {

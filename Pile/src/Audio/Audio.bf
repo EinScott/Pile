@@ -8,7 +8,7 @@ namespace Pile
 		public abstract uint32 MinorVersion { get; }
 		public abstract String ApiName { get; }
 
-		protected abstract Result<void, String> Initialize();
+		protected abstract Result<void> Initialize();
 
 		// Play() functions
 		// Stop() functions...
@@ -16,7 +16,7 @@ namespace Pile
 
 		// handle mixing??
 
-		public Result<AudioInstance, String> Play(AudioClip clip, float volume = 1, float pan = 0, bool paused = false, AudioBus bus = null)
+		public Result<AudioInstance> Play(AudioClip clip, float volume = 1, float pan = 0, bool paused = false, AudioBus bus = null)
 		{
 			return .Ok(null);
 		}

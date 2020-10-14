@@ -69,9 +69,9 @@ namespace Pile.Implementations
 			delete deviceName;
 		}
 
-		protected override Result<void, String> Initialize()
+		protected override Result<void> Initialize()
 		{
-			if (!(Core.System is ISystemOpenGL)) return .Err("System must be present and support openGL");
+			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must be present and support openGL");
 			system = Core.System as ISystemOpenGL;
 
 			// Config gl on system

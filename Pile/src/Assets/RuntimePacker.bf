@@ -49,10 +49,10 @@ namespace Pile
 			pages.Add(new Page(this));
 		}
 
-		public Result<Entry, String> Add(StringView name, Bitmap bitmap)
+		public Result<Entry> Add(StringView name, Bitmap bitmap)
 		{
 			for (let p in pages)
-				if (p.entries.ContainsKey(scope String(name))) return .Err(new String("Couldn't add bitmap to runtime packer. Name {0} is already taken")..Format(name));
+				if (p.entries.ContainsKey(scope String(name))) LogErrorReturn!(scope String("Couldn't add bitmap to runtime packer. Name {0} is already taken")..Format(name));
 
 			int top = 0, left = 0, right = bitmap.Width, bottom = bitmap.Height;
 
@@ -103,7 +103,7 @@ namespace Pile
 				var checkRect = Rect(0, 0, packedRect.Width + Padding * 2, packedRect.Height + Padding * 2);
 
 				if (packedRect.Right > PageSize || packedRect.Bottom > PageSize)
-					return .Err(new String("Bitmap {0} is too big for packer page resolution of {1}")..Format(name, PageSize));
+					LogErrorReturn!(scope String("Bitmap {0} is too big for packer page resolution of {1}")..Format(name, PageSize));
 
 				// TODO: optimize??
 				int currPage = 0;

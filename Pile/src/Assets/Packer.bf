@@ -35,7 +35,7 @@ namespace Pile
 			public String name = new String() ~ delete _;
 			public Rect packed;
 			public Rect frame;
-			public Color[] pixels = null ~ CondDelete!(_);
+			public Color[] pixels = null ~ DeleteNotNull!(_);
 			public Source duplicateOf = null;
 
 			public bool Empty => packed.Width <= 0 || packed.Height <= 0;
@@ -170,7 +170,7 @@ namespace Pile
 		    public PackingNode* Down;
 		}
 
-		public Result<Output, String> Pack()
+		public Result<Output> Pack()
 		{
 			if (!HasUnpackedData)
 				return .Ok(Packed);
@@ -192,7 +192,7 @@ namespace Pile
 
 			// make sure the largest isn't too large
 			if (sources[0].packed.Width > maxSize || sources[0].packed.Height > maxSize)
-			    return .Err("Source image is larger than max atlas size");
+			    LogErrorReturn!("Source image is larger than max atlas size");
 
 			// TODO: why do we sometimes need more than source images * 3? [FOSTERCOMMENT]
 			// for safety I've just made it 4 ... but it should really only be 3?

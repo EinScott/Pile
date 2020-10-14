@@ -11,7 +11,15 @@ using System.IO;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
-// TODO: asset importers, font support/spritefonts/batcher font drawing, audio, package unloading, (networking??)
+// TODO before public: asset importers, font support/spritefonts/batcher font drawing, asset/package system stuff
+// TODO: audio, networking, support more platforms (build soloud & sdl for linux etc)
+
+/* For networking to something like PILE_SERVER, wich automatically forces null implementations in some modules,
+ * doesnt open a window, doesn't call render and instead sets up a new thread that receives commands from the console and triggers an event
+ * Also have something like Networker, which is setup like any other core module
+
+ * Question is, should this be forced into this class?? Probably, but maybe not... we'll see
+*/
 
 namespace Pile
 {
@@ -24,12 +32,12 @@ namespace Pile
 
 		static void Delete()
 		{
-			CondDelete!(Window);
-			CondDelete!(Input);
+			DeleteNotNull!(Window);
+			DeleteNotNull!(Input);
 
-			CondDelete!(Audio);
-			CondDelete!(Graphics);
-			CondDelete!(System);
+			DeleteNotNull!(Audio);
+			DeleteNotNull!(Graphics);
+			DeleteNotNull!(System);
 		}
 
 		static readonly Version Version = .(0, 2);
@@ -49,9 +57,10 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void, String> Initialize(String title, System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight)
+		public static Result<void> Initialize(String title, System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight)
 		{
-			if (initialized) return .Err("Is already initialized");
+			if (initialized) LogErrorReturn!("Core is already initialized");
+			if (system == null || graphics == null || audio == null) LogErrorReturn!("Core modules cannot be null");
 
 			Log.Message(scope String("Initializing Pile {0}.{1}")..Format(Version.Major, Version.Minor));
 			var w = scope Stopwatch(true);
@@ -69,7 +78,6 @@ namespace Pile
 			}
 
 			// System init
-			if (System != null)
 			{
 				System.[Friend]Initialize();
 				Log.Message(scope String("System: {0}")..Format(System.ApiName));
@@ -82,14 +90,12 @@ namespace Pile
 			}
 
 			// Graphics init
-			if (Graphics != null)
 			{
 				Graphics.[Friend]Initialize();
 				Log.Message(scope String("Graphics: {0} {1}.{2} ({3})")..Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
 			}
 
 			// Audio init
-			if (Audio != null)
 			{
 				Audio.[Friend]Initialize();
 				Log.Message(scope String("Audio: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
@@ -104,11 +110,11 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void, String> Start(Game game, bool deleteGameOnShutdown = true)
+		public static Result<void> Start(Game game, bool deleteGameOnShutdown = true)
 		{
-			if (running || exiting) return .Err("Is already running");
-			else if (!initialized) return .Err("Core must be initialized first");
-			else if (game == null) return .Err("Game is null");
+			if (running || exiting) LogErrorReturn!("A game is already running");
+			else if (!initialized) return LogErrorReturn!("Core needs to be initialized first");
+			else if (game == null) return LogErrorReturn!("Game cannot be null");
 
 			Log.Message("Starting up game");
 			Game = game;
