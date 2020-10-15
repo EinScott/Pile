@@ -11,6 +11,8 @@ namespace Pile.Implementations
 
 		private this(GL_Graphics graphics, ShaderData source)
 		{
+			Runtime.Assert( source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
+
 			this.graphics = graphics;
 
 			programID = (uint32)GL.glCreateProgram();

@@ -12,7 +12,7 @@ using System.IO;
  */
 
 // TODO before public: asset importers, font support/spritefonts/batcher font drawing, asset/package system stuff (what to do about packers??), finish png writing
-// TODO: audio, networking, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds)
+// TODO: audio, networking, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), make it easier to build packages
 
 /* For networking to something like PILE_SERVER, wich automatically forces null implementations in some modules,
  * doesnt open a window, doesn't call render and instead sets up a new thread that receives commands from the console and triggers an event

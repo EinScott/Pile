@@ -59,7 +59,7 @@ namespace Pile.Implementations
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, vertices.Ptr, vertices.Length);
 			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, indices.Ptr, sizeof(uint32) * indices.Length);
 
-			void SetBuffer(ref uint32 bufferID, uint64 glBufferType, void* data, int length)
+			void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
 			{
 				if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
 
@@ -122,7 +122,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		static uint64 ToVertexType(VertexType type)
+		static uint ToVertexType(VertexType type)
 		{
 			switch (type)
 			{

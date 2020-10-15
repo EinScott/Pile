@@ -1,43 +1,19 @@
 using System;
-using System.IO;
 
 namespace Pile
 {
 	public class ShaderData
 	{
+		// Source will be graphics platform specific
 		public String vertexSource = new .() ~ delete _;
 		public String fragmentSource = new .() ~ delete _;
 		public String geometrySource = new .() ~ delete _;
 
-		public this(StringView vertexShaderPath, StringView fragmentShaderPath, StringView geomeryShaderPath = "")
+		public this(StringView vertexShader, StringView fragmentShader, StringView geometryShader = "")
 		{
-			// possibly integrate this with assets in the future, i mean the files need to be stored somewhere anyway
-
-			Read(vertexShaderPath, vertexSource);
-			Read(fragmentShaderPath, fragmentSource);
-			Read(geomeryShaderPath, geometrySource);
-
-			void Read(StringView path, String source)
-			{
-				if (!File.Exists(path))
-				{
-					// Log this if it doesn't seem to be intentional (empty path). If thats also wrong someone else will complain
-					if (path.Length != 0) Log.Warning(scope String("Shader source file at {0} does not exist")..Format(path));
-					return;
-				}
-
-				switch (File.ReadAllText(path, source, true))
-				{
-				case .Err(let err):
-					if (err case .FileOpenError(let openErr))
-						Runtime.FatalError(scope String("Error opening shader source file: {0}")..Format(err));
-					else
-						Runtime.FatalError("Error reading shader source file");
-				case .Ok:
-				}
-			}
-
-			Runtime.Assert(vertexSource.Length > 0 && fragmentSource.Length > 0, "At least vertex and fragment shader must be given");
+			vertexSource.Set(vertexShader);
+			fragmentSource.Set(fragmentShader);
+			geometrySource.Set(geometryShader);
 		}
 	}
 }
