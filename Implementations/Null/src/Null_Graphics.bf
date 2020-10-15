@@ -1,5 +1,7 @@
 using System;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class Null_Graphics : Graphics, IGraphicsOpenGL
@@ -21,13 +23,13 @@ namespace Pile.Implementations
 		}
 
 		[SkipCall]
-		protected override Result<void> Initialize() => .Ok;
+		internal override Result<void> Initialize() => .Ok;
 
 		[SkipCall]
-		protected override void Step() {}
+		internal override void Step() {}
 
 		[SkipCall]
-		protected override void AfterRender() {}
+		internal override void AfterRender() {}
 
 		[SkipCall]
 		[Unchecked] // If this is not given, beef will not count this method as overridden!
@@ -37,22 +39,22 @@ namespace Pile.Implementations
 		[Unchecked]
 		protected override void RenderInternal(ref RenderPass pass) {}
 
-		protected override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
+		internal override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
 		{
 			return new Null_Texture();
 		}
 
-		protected override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
+		internal override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
 		{
 			return new Null_Framebuffer();
 		}
 
-		protected override Mesh.Platform CreateMesh()
+		internal override Mesh.Platform CreateMesh()
 		{
 			return new Null_Mesh();
 		}
 
-		protected override Shader.Platform CreateShader(ShaderData source)
+		internal override Shader.Platform CreateShader(ShaderData source)
 		{
 			return new Null_Shader();
 		}

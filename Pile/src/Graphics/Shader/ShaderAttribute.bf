@@ -8,7 +8,7 @@ namespace Pile
 		public StringView Name => name;
 		public readonly uint Location;
 
-		this(StringView name, uint location)
+		internal this(StringView name, uint location)
 		{
 			this.name.Set(name);
 			Location = location;

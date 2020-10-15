@@ -2,22 +2,24 @@ using Pile;
 using SDL2;
 using System;
 
+using internal Pile.Implementations;
+
 namespace Pile.Implementations
 {
 	public class SDL_Window : Window
 	{
 		SDL_System system;
-		SDL.Window* window;
-		uint32 windowID;
+		internal SDL.Window* window;
+		internal uint32 windowID;
 
-		SDL_Context context = null;
+		internal SDL_Context context = null;
 
-		protected this(String title, int32 width, int32 height, SDL_System system)
+		internal this(String title, int32 width, int32 height, SDL_System system)
 		{
 			this.system = system;
 
 			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
-			if (system.[Friend]glGraphics) flags |= .OpenGL;
+			if (system.glGraphics) flags |= .OpenGL;
 
 			window = SDL.CreateWindow(title, .Centered, .Centered, width, height, flags);
 			windowID = SDL.GetWindowID(window);
@@ -28,9 +30,9 @@ namespace Pile.Implementations
 
 			size.Set(width, height);
 
-			if (system.[Friend]glGraphics)
+			if (system.glGraphics)
 			{
-				context = new [Friend].(this);
+				context = new SDL_Context(this);
 
 				if (*SDL.GetError() != '\0')
 					Log.Error(scope String("Error while creating window: {0}")..Format(SDL.GetError()));
@@ -61,7 +63,7 @@ namespace Pile.Implementations
 		protected override void CloseInternal()
 		{
 			SDL.DestroyWindow(window);
-			if (system.[Friend]glGraphics && context != null)
+			if (system.glGraphics && context != null)
 			{
 				delete context;
 				context = null;
@@ -71,7 +73,7 @@ namespace Pile.Implementations
 		public override void SetTitle(StringView title) => SDL.SetWindowTitle(window, scope String(title));
 		public override void GetTitle(String buffer) => buffer.Append(SDL.GetWindowTitle(window));
 
-		Point2 position;
+		internal Point2 position;
 		public override Point2 Position
 		{
 			get => position;
@@ -86,7 +88,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		Point2 size;
+		internal Point2 size;
 		public override Point2 Size
 		{
 			get => size;
@@ -107,7 +109,7 @@ namespace Pile.Implementations
 			{
 				int32 w = 0, h = 0;
 
-				if (system.[Friend]glGraphics)
+				if (system.glGraphics)
 					SDL.GL_GetDrawableSize(window, out w, out h);
 				else
 					SDL.GetWindowSize(window, out w, out h);
@@ -178,7 +180,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		bool visible;
+		internal bool visible;
 		public override bool Visible
 		{
 			get => visible;
@@ -203,17 +205,17 @@ namespace Pile.Implementations
 			{
 				vSync = value;
 
-				if (system.[Friend]glGraphics) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
+				if (system.glGraphics) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
 			}
 		}
 
-		bool focus;
+		internal bool focus;
 		public override bool Focus
 		{
 			get => focus;
 		}
 
-		bool mouseFocus;
+		internal bool mouseFocus;
 		public override bool MouseOver
 		{
 			get => mouseFocus;
@@ -224,9 +226,9 @@ namespace Pile.Implementations
 			SDL.RaiseWindow(window);
 		}
 
-		protected override void Present()
+		internal override void Present()
 		{
-			if (system.[Friend]glGraphics)
+			if (system.glGraphics)
 			{
 				SDL.GL_SwapWindow(window);
 			}

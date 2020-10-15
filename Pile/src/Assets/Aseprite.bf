@@ -586,25 +586,6 @@ namespace Pile
 	            }
 	        }
 	    }
-
-		/* TODO look at this when doing importer!!
-	    /// Adds all Aseprite Frames to the Atlas, using the naming format (ex. "mySprite/{0}" where {0} becomes the frame index)
-	    public void Pack(String namingFormat, Packer packer)
-	    {
-	        if (!namingFormat.Contains("{0}"))
-	            throw new Exception("naming format must contain {0} for frame index");
-
-	        int frameIndex = 0;
-	        foreach (var frame in Frames)
-	        {
-	            var name = string.Format(namingFormat, frameIndex);
-	            packer.AddPixels(name, Width, Height, frame.Bitmap.Pixels);
-
-	            frameIndex++;
-	        }
-
-	    }*/
-
 	    #endregion
 	}
 }

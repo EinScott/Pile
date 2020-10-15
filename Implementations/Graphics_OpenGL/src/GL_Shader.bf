@@ -1,6 +1,8 @@
 using OpenGL43;
 using System;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class GL_Shader : Shader.Platform
@@ -9,7 +11,7 @@ namespace Pile.Implementations
 
 		readonly GL_Graphics graphics;
 
-		private this(GL_Graphics graphics, ShaderData source)
+		internal this(GL_Graphics graphics, ShaderData source)
 		{
 			Runtime.Assert( source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
 
@@ -65,7 +67,7 @@ namespace Pile.Implementations
 
 					int location = GL.glGetAttribLocation(programID, string.CStr());
 					if (location >= 0)
-						Attributes.Add(new [Friend]ShaderAttribute(string, (uint)location));
+						Attributes.Add(new ShaderAttribute(string, (uint)location));
 	
 					string.Clear();
 
@@ -88,7 +90,7 @@ namespace Pile.Implementations
 					{
 						if (length > 1 && string.EndsWith("[0]"))
 							string.RemoveFromEnd(3);
-						Uniforms.Add(new [Friend]ShaderUniform(string, location, length, GlTypeToEnum(type)));
+						Uniforms.Add(new ShaderUniform(string, location, length, GlTypeToEnum(type)));
 					}
 
 					string.Clear();
@@ -152,7 +154,7 @@ namespace Pile.Implementations
 		{
 			if (programID != 0)
 			{
-				graphics.[Friend]programsToDelete.Add(programID);
+				graphics.programsToDelete.Add(programID);
 			}
 		}
 
@@ -167,7 +169,7 @@ namespace Pile.Implementations
 
 			for (int i = 0; i < material.ParameterCount; i++)
 			{
-				let parameter = material.[Friend]parameters[i];
+				let parameter = material.parameters[i];
 				let uniform = parameter.Uniform;
 
 				switch (uniform.Type)
@@ -179,7 +181,7 @@ namespace Pile.Implementations
 						let textures = (parameter.Value as Texture[]);
 						for (int j = 0; j < uniform.Length; j++)
 						{
-						    let id = (textures[j]?.[Friend]platform as GL_Texture)?.[Friend]textureID ?? 0;
+						    let id = (textures[j]?.platform as GL_Texture)?.textureID ?? 0;
 
 						    GL.glActiveTexture(GL.GL_TEXTURE0 + (uint)textureSlot);
 						    GL.glBindTexture(GL.GL_TEXTURE_2D, id);

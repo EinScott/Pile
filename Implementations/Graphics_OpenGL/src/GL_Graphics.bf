@@ -2,6 +2,8 @@ using static OpenGL43.GL;
 using System;
 using System.Collections;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class GL_Graphics : Graphics, IGraphicsOpenGL
@@ -39,13 +41,13 @@ namespace Pile.Implementations
 		Rect viewport;
 		RenderPass? lastRenderState;
 		RenderTarget lastRenderTarget;
-		List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
-		List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
+		internal List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
+		internal List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
 		// --
 
-		List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
-		List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
-		List<uint32> programsToDelete = new List<uint32>() ~ delete _;
+		internal List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
+		internal List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
+		internal List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
 		public this(uint32 majorVersion = 3, uint32 minorVersion = 3)
 		{
@@ -69,7 +71,7 @@ namespace Pile.Implementations
 			delete deviceName;
 		}
 
-		protected override Result<void> Initialize()
+		internal override Result<void> Initialize()
 		{
 			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must be present and support openGL");
 			system = Core.System as ISystemOpenGL;
@@ -112,7 +114,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		protected override void Step()
+		internal override void Step()
 		{
 			RunDeleteLists();
 		}
@@ -139,7 +141,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		protected override void AfterRender()
+		internal override void AfterRender()
 		{
 			glFlush();
 		}
@@ -159,7 +161,7 @@ namespace Pile.Implementations
 			else if (let fb = target as FrameBuffer)
 			{
 				// Bind frame buffer
-				(fb.[Friend]platform as GL_FrameBuffer).Bind();
+				(fb.platform as GL_FrameBuffer).Bind();
 				Clear(this, target, flags, color, depth, stencil, viewport);
 			}
 		}
@@ -229,16 +231,16 @@ namespace Pile.Implementations
 			if (updateAll || lastRenderTarget != pass.target)
 			{
 				if (pass.target is Window) glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				else if (let fb = pass.target as FrameBuffer) (fb.[Friend]platform as GL_FrameBuffer).Bind();
+				else if (let fb = pass.target as FrameBuffer) (fb.platform as GL_FrameBuffer).Bind();
 
 				lastRenderTarget = pass.target;
 			}
 
 			// Use shader
-			(pass.material.Shader.[Friend]platform as GL_Shader).Use(pass.material);
+			(pass.material.Shader.platform as GL_Shader).Use(pass.material);
 
 			// Bind mesh
-			(pass.mesh.[Friend]platform as GL_Mesh).Bind(pass.material);
+			(pass.mesh.platform as GL_Mesh).Bind(pass.material);
 
 			// Blend mode
 			{
@@ -412,24 +414,24 @@ namespace Pile.Implementations
 			}
 		}
 
-		protected override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
+		internal override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
 		{
-			return new [Friend]GL_Texture(this);
+			return new GL_Texture(this);
 		}
 
-		protected override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
+		internal override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
 		{
-			return new [Friend]GL_FrameBuffer(this, width, height, attachments);
+			return new GL_FrameBuffer(this, width, height, attachments);
 		}
 		
-		protected override Mesh.Platform CreateMesh()
+		internal override Mesh.Platform CreateMesh()
 		{
-			return new [Friend]GL_Mesh(this);
+			return new GL_Mesh(this);
 		}
 
-		protected override Shader.Platform CreateShader(ShaderData source)
+		internal override Shader.Platform CreateShader(ShaderData source)
 		{
-			return new [Friend]GL_Shader(this, source);
+			return new GL_Shader(this, source);
 		}
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)

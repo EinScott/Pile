@@ -1,15 +1,17 @@
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class  Mesh
 	{
-		public abstract class Platform
+		internal abstract class Platform
 		{
-			public abstract void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format);
+			internal abstract void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format);
 		}
 
-		readonly Platform platform ~ delete _;
+		internal readonly Platform platform ~ delete _;
 
 		public uint32 VertexCount { get; private set; }
 		public uint32 IndexCount { get; private set; } 
@@ -17,7 +19,7 @@ namespace Pile
 
 		public this()
 		{
-			platform = Core.Graphics.[Friend]CreateMesh();
+			platform = Core.Graphics.CreateMesh();
 		}
 
 		public void Setup<T>(Span<T> vertices, Span<uint32> indices, VertexFormat format)

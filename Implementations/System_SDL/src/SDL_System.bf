@@ -2,6 +2,8 @@ using Pile;
 using System;
 using SDL2;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class SDL_System : System, ISystemOpenGL
@@ -11,7 +13,7 @@ namespace Pile.Implementations
 		SDL_Window window; // Are both managed by Core
 		SDL_Input input;
 		
-		bool glGraphics;
+		internal bool glGraphics;
 
 #if BF_PLATFORM_WINDOWS 
 		[Import("user32.lib"), CLink, CallingConvention(.Stdcall)]
@@ -20,36 +22,36 @@ namespace Pile.Implementations
 
 		public this()
 		{
-			SDL_Init.[Friend]InitFlags |= .Video | .Joystick | .GameController | .Events;
+			SDL_Init.InitFlags |= .Video | .Joystick | .GameController | .Events;
 		}
 
-		protected override Input CreateInput()
+		internal override Input CreateInput()
 		{
 			// Only one input
 			if (input == null) return input = new .(window);
 			else return input;
 		}
 
-		protected override Window CreateWindow(int32 width, int32 height)
+		internal override Window CreateWindow(int32 width, int32 height)
 		{
 			// Only one window
 			if (window == null)
 			{
-				window = new [Friend].(Core.Title, width, height, this);
+				window = new SDL_Window(Core.Title, width, height, this);
 
 				return window;
 			}
 			else return window;
 		}
 
-		protected override void Initialize()
+		internal override void Initialize()
 		{
 #if BF_PLATFORM_WINDOWS 
 			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 				SetProcessDPIAware();
 #endif
 
-			SDL_Init.[Friend]Init();
+			SDL_Init.Init();
 
 			if (Core.Graphics is IGraphicsOpenGL)
 			{
@@ -62,7 +64,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		protected override void Step()
+		internal override void Step()
 		{
 			SDL.Event event;
 			while (SDL.PollEvent(out event) != 0)
@@ -73,13 +75,13 @@ namespace Pile.Implementations
 					Core.Exit();
 					return;
 				case .WindowEvent:
-					if (!window.Closed && event.window.windowID == window.[Friend]windowID)
+					if (!window.Closed && event.window.windowID == window.windowID)
 					{
 						switch (event.window.windowEvent)
 						{
 						case .Close:
 							window.OnClose();
-							window.[Friend]Closed = true;
+							window.Closed = true;
 							return;
 
 						case .SizeChanged: // Preceeds .Resize, is always triggered when size changes
@@ -87,39 +89,39 @@ namespace Pile.Implementations
 
 						// Size
 						case .Resized: // Only resize through external causes
-							window.[Friend]size.X = event.window.data1;
-							window.[Friend]size.Y = event.window.data2;
+							window.size.X = event.window.data1;
+							window.size.Y = event.window.data2;
 							window.OnUserResized();
 		
 						// Moved
 						case .Moved:
-							window.[Friend]position.X = event.window.data1;
-							window.[Friend]position.Y = event.window.data2;
+							window.position.X = event.window.data1;
+							window.position.Y = event.window.data2;
 							window.OnMoved();
 		
 						// Focus
 						case .TAKE_FOCUS:
-							SDL.SDL_SetWindowInputFocus(window.[Friend]window); // Take focus
+							SDL.SDL_SetWindowInputFocus(window.window); // Take focus
 						case .FocusGained:
-							window.[Friend]focus = true;
+							window.focus = true;
 							window.OnFocusChanged();
 						case .Focus_lost:
-							window.[Friend]focus = false;
+							window.focus = false;
 							window.OnFocusChanged();
 		
 						// Visible
 						case .Restored, .Shown, .Maximized:
-							window.[Friend]visible = true;
+							window.visible = true;
 							window.OnVisibilityChanged();
 						case .Hidden, .Minimized:
-							window.[Friend]visible = false;
+							window.visible = false;
 							window.OnVisibilityChanged();
 
 						// MouseOver
 						case .Enter:
-							window.[Friend]mouseFocus = true;
+							window.mouseFocus = true;
 						case .Leave:
-							window.[Friend]mouseFocus = false;
+							window.mouseFocus = false;
 						default:
 						}
 					}
@@ -127,7 +129,7 @@ namespace Pile.Implementations
 					 .MouseButtonDown, .MouseButtonUp, .MouseWheel,
 					 .JoyAxisMotion, .JoyBallMotion, .JoyButtonDown, .JoyButtonUp, .JoyDeviceAdded, .JoyDeviceRemoved, .JoyHatMotion,
 					 .ControllerAxismotion, .ControllerButtondown, .ControllerButtonup, .ControllerDeviceadded, .ControllerDeviceremapped, .ControllerDeviceremoved:
-					input.[Friend]ProcessEvent(event);
+					input.ProcessEvent(event);
 				default:
 				}
 
@@ -156,7 +158,7 @@ namespace Pile.Implementations
 
 		public ISystemOpenGL.Context GetGLContext()
 		{
-			return window.[Friend]context;
+			return window.context;
 		}
 	}
 }

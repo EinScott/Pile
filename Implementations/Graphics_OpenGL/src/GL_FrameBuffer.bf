@@ -1,6 +1,8 @@
 using System;
 using OpenGL43;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class GL_FrameBuffer : FrameBuffer.Platform
@@ -9,14 +11,14 @@ namespace Pile.Implementations
 
 		uint32 frameBufferID;
 
-		private this(GL_Graphics graphics, int32 width, int32 height, TextureFormat[] attachments)
+		internal this(GL_Graphics graphics, int32 width, int32 height, TextureFormat[] attachments)
 		{
 			this.graphics = graphics;
 
 			for (int i = 0; i < attachments.Count; i++)
 			{
 				let attachment = new Texture(width, height, attachments[i]);
-				(attachment.[Friend]platform as GL_Texture).[Friend]isFrameBuffer = true;
+				(attachment.platform as GL_Texture).isFrameBuffer = true;
 				Attachments.Add(attachment);
 			}
 		}
@@ -26,7 +28,7 @@ namespace Pile.Implementations
 			Delete();
 		}
 
-		public override void Resize(int32 width, int32 height)
+		internal override void Resize(int32 width, int32 height)
 		{
 			Delete();
 
@@ -34,7 +36,7 @@ namespace Pile.Implementations
 				Attachments[i].Resize(width, height);
 		}
 
-		public void Bind()
+		internal void Bind()
 		{
 			if (frameBufferID == 0)
 			{
@@ -46,11 +48,11 @@ namespace Pile.Implementations
 				{
 					if (texture.format.IsColorFormat())
 					{
-						GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0 + color, GL.GL_TEXTURE_2D, (texture.[Friend]platform as GL_Texture).[Friend]textureID, 0);
+						GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0 + color, GL.GL_TEXTURE_2D, (texture.platform as GL_Texture).textureID, 0);
 						color++;
 					}
 					else
-						GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_STENCIL_ATTACHMENT, GL.GL_TEXTURE_2D, (texture.[Friend]platform as GL_Texture).[Friend]textureID, 0);
+						GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_STENCIL_ATTACHMENT, GL.GL_TEXTURE_2D, (texture.platform as GL_Texture).textureID, 0);
 				}
 			}
 			else
@@ -61,7 +63,7 @@ namespace Pile.Implementations
 		{
 			if (frameBufferID > 0)
 			{
-				graphics.[Friend]frameBuffersToDelete.Add(frameBufferID);
+				graphics.frameBuffersToDelete.Add(frameBufferID);
 				frameBufferID = 0;
 			}
 		}

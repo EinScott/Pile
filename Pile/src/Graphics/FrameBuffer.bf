@@ -1,18 +1,19 @@
 using System.Collections;
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class FrameBuffer : RenderTarget
 	{
-		public abstract class Platform
+		internal abstract class Platform
 		{
-			public readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
-
-			public abstract void Resize(int32 width, int32 height);
+			internal readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
+			internal abstract void Resize(int32 width, int32 height);
 		}
 
-		readonly Platform platform ~ delete _;
+		internal readonly Platform platform ~ delete _;
 
 		public int AttachmentCount => platform.Attachments.Count;
 
@@ -28,7 +29,7 @@ namespace Pile
 			Runtime.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");
 			renderSize = Point2(width, height);
 			
-			platform = Core.Graphics.[Friend]CreateFrameBuffer(width, height, attachments);
+			platform = Core.Graphics.CreateFrameBuffer(width, height, attachments);
 			Renderable = true;
 		}
 
@@ -52,6 +53,6 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static operator Texture(FrameBuffer target) => target.[Friend]platform.Attachments[0];
+		public static operator Texture(FrameBuffer target) => target.platform.Attachments[0];
 	}
 }

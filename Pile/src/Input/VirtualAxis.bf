@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class VirtualAxis
@@ -27,7 +29,7 @@ namespace Pile
 	        public override float Value(bool deadzone) => (input.Keyboard.Down(key) ? (positive ? 1 : -1) : 0);
 	        public override double Timestamp => input.Keyboard.Timestamp(key);
 
-	        public this(Input input, Keys key, bool positive)
+	        internal this(Input input, Keys key, bool positive)
 	        {
 	            this.input = input;
 	            this.key = key;
@@ -42,10 +44,10 @@ namespace Pile
 	        public Buttons button;
 	        public bool positive;
 
-	        public override float Value(bool deadzone) => (input.state.[Friend]controllers[index].Down(button) ? (positive ? 1 : -1) : 0);
-	        public override double Timestamp => input.state.[Friend]controllers[index].Timestamp(button);
+	        public override float Value(bool deadzone) => (input.state.controllers[index].Down(button) ? (positive ? 1 : -1) : 0);
+	        public override double Timestamp => input.state.controllers[index].Timestamp(button);
 
-	        public this(Input input, int controller, Buttons button, bool positive)
+	        internal this(Input input, int controller, Buttons button, bool positive)
 	        {
 	            this.input = input;
 	            this.index = controller;
@@ -64,8 +66,8 @@ namespace Pile
 
 	        public override float Value(bool deadzone)
 	        {
-	            if (!deadzone || Math.Abs(input.state.[Friend]controllers[index].Axis(axis)) >= this.deadzone)
-	                return input.state.[Friend]controllers[index].Axis(axis) * (positive ? 1 : -1);
+	            if (!deadzone || Math.Abs(input.state.controllers[index].Axis(axis)) >= this.deadzone)
+	                return input.state.controllers[index].Axis(axis) * (positive ? 1 : -1);
 	            return 0f;
 	        }
 
@@ -73,13 +75,13 @@ namespace Pile
 	        {
 	            get
 	            {
-	                if (Math.Abs(input.state.[Friend]controllers[index].Axis(axis)) < deadzone)
+	                if (Math.Abs(input.state.controllers[index].Axis(axis)) < deadzone)
 	                    return 0;
-	                return input.state.[Friend]controllers[index].Timestamp(axis);
+	                return input.state.controllers[index].Timestamp(axis);
 	            }
 	        }
 
-	        public this(Input input, int controller, Axes axis, float deadzone, bool positive)
+	        internal this(Input input, int controller, Axes axis, float deadzone, bool positive)
 	        {
 	            this.input = input;
 	            this.index = controller;

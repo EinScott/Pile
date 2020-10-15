@@ -2,6 +2,8 @@ using SDL2;
 using System;
 using System.Collections;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class SDL_Input : Input
@@ -11,7 +13,7 @@ namespace Pile.Implementations
 		readonly SDL.SDL_GameController*[] sdlGamepads;
 		readonly SDL_Window window; // deleted by Core
 
-		public this(SDL_Window window)
+		internal this(SDL_Window window)
 		{
 			this.window = window;
 
@@ -69,16 +71,16 @@ namespace Pile.Implementations
 		{
 			get
 			{
-				SDL.GetWindowPosition(window.[Friend]window, let winX, let winY);
+				SDL.GetWindowPosition(window.window, let winX, let winY);
 				int32 x = 0, y = 0;
 				SDL.GetGlobalMouseState(&x, &y);
 				return Point2(x - winX, y - winY);
 			}
 
-			set =>SDL.WarpMouseInWindow(window.[Friend]window, (int32)value.X, (int32)value.Y);
+			set =>SDL.WarpMouseInWindow(window.window, (int32)value.X, (int32)value.Y);
 		}
 
-		void ProcessEvent(SDL.Event e)
+		internal void ProcessEvent(SDL.Event e)
 		{
 			switch (e.type)
 			{
@@ -191,7 +193,7 @@ namespace Pile.Implementations
 			default:
 			}
 		}
-
+		
 		private static Buttons GamepadButtonToEnum(uint8 button)
 		{
 			Buttons output;

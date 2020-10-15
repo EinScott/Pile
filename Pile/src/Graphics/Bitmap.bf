@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Diagnostics;
 
 namespace Pile
 {
@@ -10,10 +11,11 @@ namespace Pile
 		public int32 Height { get; private set; }
 
 		bool initialized;
+		public bool Empty => !initialized;
 
 		public this(int32 width, int32 height, Color[] pixels)
 		{
-			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Count);
+			Debug.Assert(width > 0 && height > 0 && width * height <= pixels.Count);
 
 			Pixels = new Color[width * height];
 			pixels.CopyTo(Pixels);
@@ -26,7 +28,7 @@ namespace Pile
 
 		public this(int32 width, int32 height)
 		{
-			Runtime.Assert(width > 0 && height > 0);
+			Debug.Assert(width > 0 && height > 0);
 
 			Pixels = new Color[width * height];
 
@@ -45,7 +47,8 @@ namespace Pile
 
 		public void Premultiply()
 		{
-			uint8* rgba = (uint8*)&(void)Pixels;
+			if (!initialized) return;
+			uint8* rgba = (uint8*)&Pixels[0];
 
 			let len = Pixels.Count * 4;
 			for (int32 i = 0; i < len; i++)
@@ -59,7 +62,7 @@ namespace Pile
 		public void Clear()
 		{
 			if (!initialized) return;
-			Array.Clear(&Pixels, Pixels.Count);
+			Array.Clear(&Pixels[0], Pixels.Count);
 		}
 
 		/**Also clears pixel data!*/

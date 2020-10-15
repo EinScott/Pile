@@ -6,13 +6,15 @@ namespace Pile
 	{
 		public const int MaxButtons = 6;
 
-		readonly bool[] pressed = new bool[MaxButtons] ~ delete _;
-		readonly bool[] down = new bool[MaxButtons] ~ delete _;
-		readonly bool[] released = new bool[MaxButtons] ~ delete _;
-		readonly int64[] timestamp = new int64[MaxButtons] ~ delete _;
-		Vector2 wheelValue;
+		internal readonly bool[] pressed = new bool[MaxButtons] ~ delete _;
+		internal readonly bool[] down = new bool[MaxButtons] ~ delete _;
+		internal readonly bool[] released = new bool[MaxButtons] ~ delete _;
+		internal readonly int64[] timestamp = new int64[MaxButtons] ~ delete _;
+		internal Vector2 wheelValue;
 
-		void Step()
+		internal this() {}
+
+		internal void Step()
 		{
 			for (int i = 0; i < MaxButtons; i++)
 			{
@@ -24,7 +26,7 @@ namespace Pile
 			wheelValue.Y = 0;
 		}
 
-		void Copy(Mouse from)
+		internal void Copy(Mouse from)
 		{
 			from.pressed.CopyTo(pressed);
 			from.down.CopyTo(down);

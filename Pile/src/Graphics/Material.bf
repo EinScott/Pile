@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class Material
@@ -11,7 +13,7 @@ namespace Pile
 
 			public Object Value { get; private set; }
 
-			private this(ShaderUniform uniform)
+			internal this(ShaderUniform uniform)
 			{
 				Uniform = uniform;
 
@@ -302,7 +304,7 @@ namespace Pile
 
 			parameters = new Parameter[shader.Uniforms.Length];
 			for (int i = 0; i < shader.Uniforms.Length; i++)
-				parameters[i] = new [Friend]Parameter(shader.[Friend]Uniforms[i]);
+				parameters[i] = new Parameter(shader.Uniforms[i]);
 		}
 
 		public Parameter this[StringView name]

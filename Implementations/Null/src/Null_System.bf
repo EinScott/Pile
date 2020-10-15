@@ -1,28 +1,30 @@
 using System;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class Null_System : System, ISystemOpenGL
 	{
 		public override String ApiName => "Null System";
 
-		protected override Input CreateInput()
+		internal override Input CreateInput()
 		{
 			return new Null_Input();
 		}
 
-		protected override Window CreateWindow(int32 width, int32 height)
+		internal override Window CreateWindow(int32 width, int32 height)
 		{
 			return new Null_Window(width, height);
 		}
 
 		[SkipCall]
-		protected override void Initialize() {}
+		internal override void Initialize() {}
 
 		[SkipCall]
-		protected override void Step() {}
+		internal override void Step() {}
 
-		protected override void DetermineDataPaths(StringView title)
+		internal override void DetermineDataPaths(StringView title)
 		{
 			base.DetermineDataPaths(title); // It's probably best to leave this as is
 		}

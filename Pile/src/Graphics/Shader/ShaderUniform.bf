@@ -10,7 +10,7 @@ namespace Pile
 		public readonly int Length;
 		public readonly UniformType Type;
 
-		this(StringView name, int location, int size, UniformType type)
+		internal this(StringView name, int location, int size, UniformType type)
 		{
 			this.name.Set(name);
 			Location = location;

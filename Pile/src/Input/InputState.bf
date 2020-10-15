@@ -1,6 +1,8 @@
 using System.Collections;
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class InputState
@@ -9,10 +11,10 @@ namespace Pile
 
 		public readonly Keyboard keyboard;
 		public readonly Mouse mouse;
-		readonly Controller[] controllers;
+		internal readonly Controller[] controllers;
 		public Controller GetController(int index) => controllers[index];
 
-		public this(Input input, int maxControllers)
+		internal this(Input input, int maxControllers)
 		{
 			this.input = input;
 
@@ -34,28 +36,28 @@ namespace Pile
 			delete controllers;
 		}
 
-		void Step()
+		internal void Step()
 		{
 			for	(int i = 0; i < controllers.Count; i++)
 			{
 				if (controllers[i].Connected)
-					controllers[i].[Friend]Step();
+					controllers[i].Step();
 			}
 
-			keyboard.[Friend]Step();
-			mouse.[Friend]Step();
+			keyboard.Step();
+			mouse.Step();
 		}
 
-		void Copy(InputState from)
+		internal void Copy(InputState from)
 		{
 			for	(int i = 0; i < controllers.Count; i++)
 			{
 				if (from.controllers[i].Connected || controllers[i].Connected != from.controllers[i].Connected)
-					controllers[i].[Friend]Copy(from.controllers[i]);
+					controllers[i].Copy(from.controllers[i]);
 			}
 
-			keyboard.[Friend]Copy(from.keyboard);
-			mouse.[Friend]Copy(from.mouse);
+			keyboard.Copy(from.keyboard);
+			mouse.Copy(from.mouse);
 		}
 	}
 }

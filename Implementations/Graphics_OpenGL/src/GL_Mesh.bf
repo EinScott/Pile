@@ -1,6 +1,8 @@
 using System;
 using OpenGL43;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class GL_Mesh : Mesh.Platform
@@ -24,7 +26,7 @@ namespace Pile.Implementations
 
 		readonly GL_Graphics graphics;
 
-		private this(GL_Graphics graphics)
+		internal this(GL_Graphics graphics)
 		{
 			this.graphics = graphics;
 		}
@@ -36,10 +38,10 @@ namespace Pile.Implementations
 
 		void Delete()
 		{
-			if (vertexArrayID > 0) graphics.[Friend]vertexArraysToDelete.Add(vertexArrayID);
+			if (vertexArrayID > 0) graphics.vertexArraysToDelete.Add(vertexArrayID);
 
-			if (vertexBufferID > 0) graphics.[Friend]buffersToDelete.Add(vertexBufferID);
-			if (indexBufferID > 0) graphics.[Friend]buffersToDelete.Add(indexBufferID);
+			if (vertexBufferID > 0) graphics.buffersToDelete.Add(vertexBufferID);
+			if (indexBufferID > 0) graphics.buffersToDelete.Add(indexBufferID);
 
 			vertexArrayID = 0;
 
@@ -48,7 +50,7 @@ namespace Pile.Implementations
 			bound = false;
 		}
 
-		public override void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format)
+		internal override void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format)
 		{
 			if (vertexFormat != format)
 			{

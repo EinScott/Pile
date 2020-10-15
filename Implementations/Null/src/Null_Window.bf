@@ -53,6 +53,6 @@ namespace Pile.Implementations
 		protected override void CloseInternal() {}
 
 		[SkipCall]
-		protected override void Present() {}
+		internal override void Present() {}
 	}
 }

@@ -5,10 +5,10 @@ namespace Pile.Implementations
 {
 	public static class SDL_Init
 	{
-		static SDL.InitFlag InitFlags;
+		internal static SDL.InitFlag InitFlags;
 		static bool initialized;
 
-		static Result<void> Init()
+		internal static Result<void> Init()
 		{
 			if (initialized) return .Ok;
 

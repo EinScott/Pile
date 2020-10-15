@@ -4,7 +4,7 @@ namespace Pile
 {
 	public static class Time
 	{
-		static double targetMilliseconds = (double)1000 / 60;
+		internal static double targetMilliseconds = (double)1000 / 60;
 		static int targetFps = 60;
 		public static int TargetFPS
 		{
@@ -19,19 +19,19 @@ namespace Pile
 			}
 		}
 
-		public static int FPS { get; private set; }
+		public static int FPS { get; internal set; }
 
 		// All of these rely on the game loop clock and are likely not tooo accurate
 		// For accurate time measurements use DateTime
-		public static TimeSpan RawDuration { get; private set; }
-		public static TimeSpan Duration { get; private set; }
+		public static TimeSpan RawDuration { get; internal set; }
+		public static TimeSpan Duration { get; internal set; }
 
-		public static double RawDelta { get; private set; }
-		public static double Delta { get; private set; }
+		public static double RawDelta { get; internal set; }
+		public static double Delta { get; internal set; }
 
 		public static double Scale = 1;
 
-		private static double freeze = 0;
+		internal static double freeze = 0;
 		public static void Freeze(double time, bool add = true)
 		{
 			if (add) freeze += time;

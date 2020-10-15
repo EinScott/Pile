@@ -5,15 +5,17 @@ using System.Diagnostics;
 using JSON_Beef.Types;
 using JSON_Beef.Serialization;
 
+using internal Pile;
+
 namespace Pile
 {
 	public static class Packages
 	{
 		public class Package
 		{
-			Dictionary<Type, List<String>> ownedAssets = new Dictionary<Type, List<String>>();
+			internal Dictionary<Type, List<String>> ownedAssets = new Dictionary<Type, List<String>>();
 			
-			private this() {}
+			internal this() {}
 
 			public ~this()
 			{
@@ -24,7 +26,7 @@ namespace Pile
 				delete ownedAssets;
 			}
 
-			readonly String name = new String() ~ delete _;
+			internal readonly String name = new String() ~ delete _;
 			public StringView Name => name;
 
 			public bool OwnsAsset(Type type, String string)
@@ -41,7 +43,7 @@ namespace Pile
 			public abstract Result<void> Load(StringView name, uint8[] data, JSONObject dataNode);
 			public abstract Result<uint8[]> Build(uint8[] data, out JSONObject dataNode);
 
-			private Package package;
+			internal Package package;
 			protected Result<void> SubmitAsset(StringView name, Object asset)
 			{
 				if (package == null)
@@ -60,13 +62,13 @@ namespace Pile
 				}
 
 				// Add object location in package
-				if (!package.[Friend]ownedAssets.ContainsKey(type))
-					package.[Friend]ownedAssets.Add(type, new List<String>());
+				if (!package.ownedAssets.ContainsKey(type))
+					package.ownedAssets.Add(type, new List<String>());
 
-				package.[Friend]ownedAssets.GetValue(type).Get().Add(nameString);
+				package.ownedAssets.GetValue(type).Get().Add(nameString);
 
 				// Add object in assets
-				if (Assets.[Friend]AddAsset(type, nameString, asset) case .Err) return .Err;
+				if (Assets.AddAsset(type, nameString, asset) case .Err) return .Err;
 
 				return .Ok;
 			}
@@ -84,17 +86,17 @@ namespace Pile
 		}
 
 		// Represents the json data in the package import file
-		class PackageData
+		internal class PackageData
 		{
 			public List<ImportData> imports = new List<ImportData>() ~ DeleteContainerAndItems!(_);
 
-			public class ImportData
+			internal class ImportData
 			{
 				public readonly String path ~ delete _;
 				public readonly String importer ~ delete _;
 				public readonly String namePrefix ~ DeleteNotNull!(_);
 
-				public this(StringView path, StringView importer, StringView? namePrefix)
+				internal this(StringView path, StringView importer, StringView? namePrefix)
 				{
 					this.path = new String(path);
 					this.importer = new String(importer);
@@ -104,7 +106,7 @@ namespace Pile
 		}
 		
 		// Node of data for one imported file
-		class PackageNode
+		internal class PackageNode
 		{
 			public readonly uint32 Importer;
 			public readonly uint8[] Name ~ delete _;
@@ -135,7 +137,7 @@ namespace Pile
 			OnUnloadPackage.Dispose();
 		}
 
-		static void Initialize()
+		internal static void Initialize()
 		{
 			packagesPath = new String();
 			Path.InternalCombine(packagesPath, Core.System.DataPath, "Packages");
@@ -284,9 +286,9 @@ namespace Pile
 				}
 			}
 
-			let package = new [Friend]Package();
-			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, "", package.[Friend]name);
-			else package.[Friend]name.Set(packageName);
+			let package = new Package();
+			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, "", package.name);
+			else package.name.Set(packageName);
 
 			// Import each package node
 			for (let node in nodes)
@@ -309,10 +311,10 @@ namespace Pile
 
 				let dataNode = res.Get();
 
-				importer.[Friend]package = package;
+				importer.package = package;
 				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
 					LogErrorReturn!(scope String("Couldn't loat package {0}. Error importing asset {1} with {2}: {3}")..Format(name, importerNames[(int)node.Importer], err));
-				importer.[Friend]package = null;
+				importer.package = null;
 				delete dataNode;
 
 				delete node;
@@ -339,9 +341,9 @@ namespace Pile
 
 			OnUnloadPackage(package);
 
-			for (let assetType in package.[Friend]ownedAssets.Keys)
-				for (let assetName in package.[Friend]ownedAssets.GetValue(assetType).Get())
-					Assets.[Friend]RemoveAsset(assetType, assetName);
+			for (let assetType in package.ownedAssets.Keys)
+				for (let assetName in package.ownedAssets.GetValue(assetType).Get())
+					Assets.RemoveAsset(assetType, assetName);
 
 			return .Ok;
 		}

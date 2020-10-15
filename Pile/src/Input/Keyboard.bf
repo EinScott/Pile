@@ -8,14 +8,14 @@ namespace Pile
 
 		public readonly Input input;
 
-		readonly bool[] pressed = new bool[MaxKeys] ~ delete _;
-		readonly bool[] down = new bool[MaxKeys] ~ delete _;
-		readonly bool[] released = new bool[MaxKeys] ~ delete _;
-		readonly int64[] timestamp = new int64[MaxKeys] ~ delete _;
+		internal readonly bool[] pressed = new bool[MaxKeys] ~ delete _;
+		internal readonly bool[] down = new bool[MaxKeys] ~ delete _;
+		internal readonly bool[] released = new bool[MaxKeys] ~ delete _;
+		internal readonly int64[] timestamp = new int64[MaxKeys] ~ delete _;
 
 		public readonly String Text = new String();
 
-		public this(Input input)
+		internal this(Input input)
 		{
 			this.input = input;
 		}
@@ -25,7 +25,7 @@ namespace Pile
 			delete Text;
 		}
 
-		void Step()
+		internal void Step()
 		{
 			for (int i = 0; i < MaxKeys; i++)
 			{
@@ -36,7 +36,7 @@ namespace Pile
 			Text.Clear();
 		}
 
-		void Copy(Keyboard from)
+		internal void Copy(Keyboard from)
 		{
 			from.pressed.CopyTo(pressed);
 			from.down.CopyTo(down);

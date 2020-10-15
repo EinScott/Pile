@@ -1,23 +1,25 @@
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class Texture
 	{
-		public abstract class Platform
+		internal abstract class Platform
 		{
-			public abstract void Initialize(Texture texture);
-			public abstract void Resize(int32 width, int32 height);
-			public abstract void SetFilter(TextureFilter filter);
-			public abstract void SetWrap(TextureWrap x, TextureWrap y);
-			public abstract void SetData(void* buffer);
-			public abstract void GetData(void* buffer);
-			public abstract bool IsFrameBuffer();
+			internal abstract void Initialize(Texture texture);
+			internal abstract void Resize(int32 width, int32 height);
+			internal abstract void SetFilter(TextureFilter filter);
+			internal abstract void SetWrap(TextureWrap x, TextureWrap y);
+			internal abstract void SetData(void* buffer);
+			internal abstract void GetData(void* buffer);
+			internal abstract bool IsFrameBuffer();
 		}
 
 		public static TextureFilter DefaultTextureFilter = TextureFilter.Nearest;
 
-		readonly Platform platform ~ delete _;
+		internal readonly Platform platform ~ delete _;
 		public readonly TextureFormat format;
 
 		public int32 Width { get; private set; }
@@ -56,7 +58,7 @@ namespace Pile
 			Height = height;
 			this.format = format;
 
-			platform = Core.Graphics.[Friend]CreateTexture(width, height, format);
+			platform = Core.Graphics.CreateTexture(width, height, format);
 			platform.Initialize(this);
 
 			filter = DefaultTextureFilter;
@@ -78,7 +80,7 @@ namespace Pile
 
 		public Result<void> Set(Bitmap bitmap)
 		{
-			if (!bitmap.[Friend]initialized) LogErrorReturn!("Bitmap is empty");
+			if (bitmap.Empty) LogErrorReturn!("Bitmap is empty");
 
 			if (Resize(bitmap.Width, bitmap.Height) case .Err) return .Err;
 			platform.SetData(scope Span<Color>(bitmap.Pixels));

@@ -14,19 +14,19 @@ namespace Pile
 		public int Buttons { get; private set; }
 		public int Axes { get; private set; }
 
-		readonly bool[] pressed = new bool[MaxButtons] ~ delete _;
-		readonly bool[] down = new bool[MaxButtons] ~ delete _;
-		readonly bool[] released = new bool[MaxButtons] ~ delete _;
-		readonly int64[] timestamp = new int64[MaxButtons] ~ delete _;
-		readonly float[] axis = new float[MaxAxis] ~ delete _;
-		readonly int64[] axisTimestamp = new int64[MaxAxis] ~ delete _;
+		internal readonly bool[] pressed = new bool[MaxButtons] ~ delete _;
+		internal readonly bool[] down = new bool[MaxButtons] ~ delete _;
+		internal readonly bool[] released = new bool[MaxButtons] ~ delete _;
+		internal readonly int64[] timestamp = new int64[MaxButtons] ~ delete _;
+		internal readonly float[] axis = new float[MaxAxis] ~ delete _;
+		internal readonly int64[] axisTimestamp = new int64[MaxAxis] ~ delete _;
 
-		public this(Input input)
+		internal this(Input input)
 		{
 			this.input = input;
 		}
 
-		void Connect(uint buttonCount, uint axisCount, bool isGamepad)
+		internal void Connect(uint buttonCount, uint axisCount, bool isGamepad)
 		{
 		    Buttons = (int)Math.Min(buttonCount, MaxButtons);
 		    Axes = (int)Math.Min(axisCount, MaxAxis);
@@ -34,7 +34,7 @@ namespace Pile
 		    Connected = true;
 		}
 
-		void Disconnect()
+		internal void Disconnect()
 		{
 		    Connected = false;
 		    IsGamepad = false;
@@ -56,7 +56,7 @@ namespace Pile
 			}
 		}
 
-		void Step()
+		internal void Step()
 		{
 			for (int i = 0; i < MaxButtons; i++)
 			{
@@ -65,19 +65,19 @@ namespace Pile
 			}
 		}
 
-		void Copy(Controller from)
+		internal void Copy(Controller from)
 		{
 			Connected = from.Connected;
 			IsGamepad = from.IsGamepad;
 			Buttons = from.Buttons;
 			Axes = from.Axes;
 
-			from.[Friend]pressed.CopyTo(pressed);
-			from.[Friend]down.CopyTo(down);
-			from.[Friend]released.CopyTo(released);
-			from.[Friend]timestamp.CopyTo(timestamp);
-			from.[Friend]axis.CopyTo(axis);
-			from.[Friend]axisTimestamp.CopyTo(axisTimestamp);
+			from.pressed.CopyTo(pressed);
+			from.down.CopyTo(down);
+			from.released.CopyTo(released);
+			from.timestamp.CopyTo(timestamp);
+			from.axis.CopyTo(axis);
+			from.axisTimestamp.CopyTo(axisTimestamp);
 		}
 
 		public bool Pressed(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && pressed[buttonIndex];

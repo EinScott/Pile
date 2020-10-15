@@ -8,7 +8,7 @@ namespace Pile
 		public abstract uint32 MinorVersion { get; }
 		public abstract String ApiName { get; }
 
-		protected abstract Result<void> Initialize();
+		internal abstract Result<void> Initialize();
 
 		// Play() functions
 		// Stop() functions...

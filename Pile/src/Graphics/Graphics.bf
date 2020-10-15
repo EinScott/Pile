@@ -1,5 +1,7 @@
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public abstract class Graphics
@@ -17,9 +19,9 @@ namespace Pile
 		public enum DebugDrawMode { Disabled, WireFrame }
 		public abstract DebugDrawMode DebugDraw { get; set; }
 
-		protected abstract Result<void> Initialize();
-		protected abstract void Step();
-		protected abstract void AfterRender();
+		internal abstract Result<void> Initialize();
+		internal abstract void Step();
+		internal abstract void AfterRender();
 
 		public Result<void> Clear(RenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
@@ -75,9 +77,9 @@ namespace Pile
 		[Unchecked]
 		protected abstract void RenderInternal(ref RenderPass pass);
 
-		protected abstract Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format);
-		protected abstract FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments);
-		protected abstract Mesh.Platform CreateMesh();
-		protected abstract Shader.Platform CreateShader(ShaderData source);
+		internal abstract Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format);
+		internal abstract FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments);
+		internal abstract Mesh.Platform CreateMesh();
+		internal abstract Shader.Platform CreateShader(ShaderData source);
 	}
 }

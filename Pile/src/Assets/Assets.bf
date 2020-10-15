@@ -65,7 +65,7 @@ namespace Pile
 
 		/** The name string passed here will be directly referenced in the dictionary, so take a fresh one, ideally the same that is also referenced in package owned assets.
 		*/
-		private static Result<void> AddAsset(Type type, String name, Object object)
+		internal static Result<void> AddAsset(Type type, String name, Object object)
 		{
 			if (!object.GetType().IsSubtypeOf(type))
 				LogErrorReturn!(scope String("Couldn't add asset {0} of type {1}, because it is not assignable to given type {2}")..Format(name, object.GetType(), type));
@@ -81,7 +81,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		private static void RemoveAsset(Type type, String name)
+		internal static void RemoveAsset(Type type, String name)
 		{
 			if (!assets.ContainsKey(type))
 				return;

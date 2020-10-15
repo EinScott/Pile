@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.IO;
 
+using internal Pile;
+
 /* 
  * DEFINES:
  * PILE_LONG_LOG_RECORD - increases amount of output log lines Log remembers from 16 to 128
@@ -11,15 +13,8 @@ using System.IO;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
-// TODO before public: asset importers, font support/spritefonts/batcher font drawing, asset/package system stuff (what to do about packers??), finish png writing
+// TODO before public: asset importers ((shader), font, png), font support/spritefonts/batcher font drawing, packer stuff & assets, finish png writing, DebugDraw.Text, .Enabled (like old pile)                   
 // TODO: audio, networking, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), make it easier to build packages
-
-/* For networking to something like PILE_SERVER, wich automatically forces null implementations in some modules,
- * doesnt open a window, doesn't call render and instead sets up a new thread that receives commands from the console and triggers an event
- * Also have something like Networker, which is setup like any other core module
-
- * Question is, should this be forced into this class?? Probably, but maybe not... we'll see -- yes, it probably will
-*/
 
 namespace Pile
 {
@@ -79,29 +74,29 @@ namespace Pile
 
 			// System init
 			{
-				System.[Friend]Initialize();
+				System.Initialize();
 				Log.Message(scope String("System: {0}")..Format(System.ApiName));
 				
-				Window = System.[Friend]CreateWindow(windowWidth, windowHeight);
-				Input = System.[Friend]CreateInput();
-				System.[Friend]DetermineDataPaths(title);
+				Window = System.CreateWindow(windowWidth, windowHeight);
+				Input = System.CreateInput();
+				System.DetermineDataPaths(title);
 
 				Directory.SetCurrentDirectory(System.DataPath);
 			}
 
 			// Graphics init
 			{
-				Graphics.[Friend]Initialize();
+				Graphics.Initialize();
 				Log.Message(scope String("Graphics: {0} {1}.{2} ({3})")..Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
 			}
 
 			// Audio init
 			{
-				Audio.[Friend]Initialize();
+				Audio.Initialize();
 				Log.Message(scope String("Audio: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
 			}
 
-			Packages.[Friend]Initialize();
+			Packages.Initialize();
 
 			w.Stop();
 			Log.Message(scope String("Pile initialized (took {0}ms)")..Format(w.Elapsed.Milliseconds));
@@ -141,29 +136,28 @@ namespace Pile
 				lastTime = currTime;
 
 				// Raw time
-				Time.[Friend]RawDuration += diffTime;
-				Time.[Friend]RawDelta = diffTime * TimeSpan.[Friend]SecondsPerTick;
+				Time.RawDuration += diffTime;
+				Time.RawDelta = diffTime * TimeSpan.[Friend]SecondsPerTick;
 
 				// Update engine
-				Graphics.[Friend]Step();
-				Input.[Friend]Step();
-				System.[Friend]Step();
+				Graphics.Step();
+				Input.Step();
+				System.Step();
 				Game.[Friend]Step();
 
-				if (Time.[Friend]freeze > double.Epsilon)
+				if (Time.freeze > double.Epsilon)
 				{
 					// Freeze time
-					Time.[Friend]freeze -= Time.RawDelta;
-					Log.Message(Time.[Friend]freeze);
+					Time.freeze -= Time.RawDelta;
 
-					if (Time.[Friend]freeze <= double.Epsilon)
-						Time.[Friend]freeze = 0;
+					if (Time.freeze <= double.Epsilon)
+						Time.freeze = 0;
 				}
 				else
 				{
 					// Scaled time vars
-					Time.[Friend]Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
-					Time.[Friend]Delta = Time.RawDelta * Time.Scale;
+					Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
+					Time.Delta = Time.RawDelta * Time.Scale;
 	
 					// Update
 					Game.[Friend]Update();
@@ -172,23 +166,23 @@ namespace Pile
 				// Render
 				if (!exiting && !Window.Closed)
 				{
-					Window.[Friend]Render(); // Calls CallRender()
-					Window.[Friend]Present();
+					Window.Render(); // Calls CallRender()
+					Window.Present();
 				}
 
 				// Count FPS
 				frameCount++;
 				if ((double)(timer.[Friend]GetElapsedDateTimeTicks() - frameTicks) * TimeSpan.[Friend]SecondsPerTick >= 1)
 				{
-					Time.[Friend]FPS = frameCount;
+					Time.FPS = frameCount;
 					frameTicks = timer.[Friend]GetElapsedDateTimeTicks();
 					frameCount = 0;
 				}
 
 				// Wait for FPS
-				if ((float)(timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError < Time.[Friend]targetMilliseconds)
+				if ((float)(timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError < Time.targetMilliseconds)
 				{
-					let sleep = Time.[Friend]targetMilliseconds - (timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError;
+					let sleep = Time.targetMilliseconds - (timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError;
 					let realSleep = (int32)Math.Floor(sleep);
 
 					if (sleep > 0) Thread.Sleep(realSleep);
@@ -216,10 +210,10 @@ namespace Pile
 			}
 		}
 
-		static void CallRender()
+		internal static void CallRender()
 		{
 			Game.[Friend]Render();
-			Graphics.[Friend]AfterRender();
+			Graphics.AfterRender();
 		}
 	}
 }

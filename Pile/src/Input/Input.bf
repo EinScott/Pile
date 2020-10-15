@@ -1,6 +1,8 @@
 using System.Collections;
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public abstract class Input
@@ -8,7 +10,7 @@ namespace Pile
 		public readonly InputState state;
 		public readonly InputState lastState;
 		public readonly InputState nextState;
-		protected readonly uint maxControllers;
+		internal readonly uint maxControllers;
 
 		public Keyboard Keyboard => state.keyboard;
 		public Mouse Mouse => state.mouse;
@@ -17,9 +19,9 @@ namespace Pile
 		public float repeatDelay = 0.4f;
 		public float repeatInterval = 0.03f;
 
-		protected List<VirtualButton> virtualButtons = new List<VirtualButton>();
+		internal List<VirtualButton> virtualButtons = new List<VirtualButton>();
 
-		public this(int maxControllers = 8)
+		internal this(int maxControllers = 8)
 		{
 			state = new InputState(this, maxControllers);
 			lastState = new InputState(this, maxControllers);
@@ -36,18 +38,18 @@ namespace Pile
 			delete nextState;
 
 			for (int i = 0; i < virtualButtons.Count; i++)
-				virtualButtons[i].[Friend]deletingList = true;
+				virtualButtons[i].deletingList = true;
 			DeleteContainerAndItems!(virtualButtons);
 		}
 
-		void Step()
+		internal void Step()
 		{
-			lastState.[Friend]Copy(state);
-			state.[Friend]Copy(nextState);
-			nextState.[Friend]Step();
+			lastState.Copy(state);
+			state.Copy(nextState);
+			nextState.Step();
 
 			for (int i = 0; i < virtualButtons.Count; i++)
-				virtualButtons[i].[Friend]Update();
+				virtualButtons[i].Update();
 		}
 
 		public abstract void SetMouseCursor(Cursors cursor);
@@ -70,9 +72,9 @@ namespace Pile
 		    int id = (int)key;
 		    if (id < Pile.Keyboard.MaxKeys)
 			{
-			    nextState.keyboard.[Friend]down[id] = true;
-			    nextState.keyboard.[Friend]pressed[id] = true;
-			    nextState.keyboard.[Friend]timestamp[id] = Time.Duration.Ticks;
+			    nextState.keyboard.down[id] = true;
+			    nextState.keyboard.pressed[id] = true;
+			    nextState.keyboard.timestamp[id] = Time.Duration.Ticks;
 			}
 		}
 
@@ -81,48 +83,48 @@ namespace Pile
 		    int id = (int)key;
 		    if (id < Pile.Keyboard.MaxKeys)
 		    {
-			    nextState.keyboard.[Friend]down[id] = false;
-			    nextState.keyboard.[Friend]released[id] = true;
+			    nextState.keyboard.down[id] = false;
+			    nextState.keyboard.released[id] = true;
 			}
 		}
 
 		protected void OnMouseDown(MouseButtons button)
 		{
-		    nextState.mouse.[Friend]down[(int)button] = true;
-		    nextState.mouse.[Friend]pressed[(int)button] = true;
-		    nextState.mouse.[Friend]timestamp[(int)button] = Time.Duration.Ticks;
+		    nextState.mouse.down[(int)button] = true;
+		    nextState.mouse.pressed[(int)button] = true;
+		    nextState.mouse.timestamp[(int)button] = Time.Duration.Ticks;
 		}
 
 		protected void OnMouseUp(MouseButtons button)
 		{
-		    nextState.mouse.[Friend]down[(int)button] = false;
-		    nextState.mouse.[Friend]released[(int)button] = true;
+		    nextState.mouse.down[(int)button] = false;
+		    nextState.mouse.released[(int)button] = true;
 		}
 
 		protected void OnMouseWheel(float offsetX, float offsetY)
 		{
-		    nextState.mouse.[Friend]wheelValue = Vector2(offsetX, offsetY);
+		    nextState.mouse.wheelValue = Vector2(offsetX, offsetY);
 		}
 
 		protected void OnJoystickConnect(uint index, uint buttonCount, uint axisCount, bool isGamepad)
 		{
 		    if (index < maxControllers)
-		        nextState.[Friend]controllers[(int)index].[Friend]Connect(buttonCount, axisCount, isGamepad);
+		        nextState.controllers[(int)index].Connect(buttonCount, axisCount, isGamepad);
 		}
 
 		protected void OnJoystickDisconnect(uint index)
 		{
 		    if (index < maxControllers)
-		        nextState.[Friend]controllers[(int)index].[Friend]Disconnect();
+		        nextState.controllers[(int)index].Disconnect();
 		}
 
 		protected void OnJoystickButtonDown(uint index, uint button)
 		{
 		    if (index < maxControllers && button < Controller.MaxButtons)
 		    {
-		        nextState.[Friend]controllers[(int)index].[Friend]down[(int)button] = true;
-		        nextState.[Friend]controllers[(int)index].[Friend]pressed[(int)button] = true;
-		        nextState.[Friend]controllers[(int)index].[Friend]timestamp[(int)button] = Time.Duration.Ticks;
+		        nextState.controllers[(int)index].down[(int)button] = true;
+		        nextState.controllers[(int)index].pressed[(int)button] = true;
+		        nextState.controllers[(int)index].timestamp[(int)button] = Time.Duration.Ticks;
 		    }
 		}
 
@@ -130,8 +132,8 @@ namespace Pile
 		{
 		    if (index < maxControllers && button < Controller.MaxButtons)
 		    {
-		        nextState.[Friend]controllers[(int)index].[Friend]down[(int)button] = false;
-		        nextState.[Friend]controllers[(int)index].[Friend]released[(int)button] = true;
+		        nextState.controllers[(int)index].down[(int)button] = false;
+		        nextState.controllers[(int)index].released[(int)button] = true;
 		    }
 		}
 
@@ -139,9 +141,9 @@ namespace Pile
 		{
 		    if (index < maxControllers)
 		    {
-		        nextState.[Friend]controllers[(int)index].[Friend]down[(int)button] = true;
-		        nextState.[Friend]controllers[(int)index].[Friend]pressed[(int)button] = true;
-		        nextState.[Friend]controllers[(int)index].[Friend]timestamp[(int)button] = Time.Duration.Ticks;
+		        nextState.controllers[(int)index].down[(int)button] = true;
+		        nextState.controllers[(int)index].pressed[(int)button] = true;
+		        nextState.controllers[(int)index].timestamp[(int)button] = Time.Duration.Ticks;
 		    }
 		}
 
@@ -149,34 +151,34 @@ namespace Pile
 		{
 		    if (index < maxControllers)
 		    {
-		        nextState.[Friend]controllers[(int)index].[Friend]down[(int)button] = false;
-		        nextState.[Friend]controllers[(int)index].[Friend]released[(int)button] = true;
+		        nextState.controllers[(int)index].down[(int)button] = false;
+		        nextState.controllers[(int)index].released[(int)button] = true;
 		    }
 		}
 
 		protected bool IsJoystickButtonDown(uint index, uint button)
 		{
-		    return (index < maxControllers && button < Controller.MaxButtons && nextState.[Friend]controllers[(int)index].[Friend]down[(int)button]);
+		    return (index < maxControllers && button < Controller.MaxButtons && nextState.controllers[(int)index].down[(int)button]);
 		}
 
 		protected bool IsGamepadButtonDown(uint index, Buttons button)
 		{
-		    return (index < maxControllers && nextState.[Friend]controllers[(int)index].[Friend]down[(int)button]);
+		    return (index < maxControllers && nextState.controllers[(int)index].down[(int)button]);
 		}
 
 		protected void OnJoystickAxis(uint index, uint axis, float value)
 		{
 		    if (index < maxControllers && axis < Controller.MaxAxis)
 		    {
-		        nextState.[Friend]controllers[(int)index].[Friend]axis[(int)axis] = value;
-		        nextState.[Friend]controllers[(int)index].[Friend]axisTimestamp[(int)axis] = Time.Duration.Ticks;
+		        nextState.controllers[(int)index].axis[(int)axis] = value;
+		        nextState.controllers[(int)index].axisTimestamp[(int)axis] = Time.Duration.Ticks;
 		    }
 		}
 
 		protected float GetJoystickAxis(uint index, uint axis)
 		{
 		    if (index < maxControllers && axis < Controller.MaxAxis)
-		        return nextState.[Friend]controllers[(int)index].[Friend]axis[(int)axis];
+		        return nextState.controllers[(int)index].axis[(int)axis];
 		    return 0;
 		}
 
@@ -184,15 +186,15 @@ namespace Pile
 		{
 		    if (index < maxControllers)
 		    {
-		        nextState.[Friend]controllers[(int)index].[Friend]axis[(int)axis] = value;
-		        nextState.[Friend]controllers[(int)index].[Friend]axisTimestamp[(int)axis] = Time.Duration.Ticks;
+		        nextState.controllers[(int)index].axis[(int)axis] = value;
+		        nextState.controllers[(int)index].axisTimestamp[(int)axis] = Time.Duration.Ticks;
 		    }
 		}
 
 		protected float GetGamepadAxis(uint index, Axes axis)
 		{
 		    if (index < maxControllers)
-		        return nextState.[Friend]controllers[(int)index].[Friend]axis[(int)axis];
+		        return nextState.controllers[(int)index].axis[(int)axis];
 		    return 0;
 		}
 	}

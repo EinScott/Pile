@@ -1,10 +1,12 @@
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public abstract class Window : RenderTarget
 	{
-		public bool Closed { get; private set; }
+		public bool Closed { get; internal set; }
 
 		public ~this()
 		{
@@ -51,15 +53,15 @@ namespace Pile
 		public Event<Action> OnClose;
 
 		// Rendering
-		private void Render()
+		internal void Render()
 		{
 			Renderable = true;
 
-			Core.[Friend]CallRender();
+			Core.CallRender();
 
 			Renderable = false;
 		}
 
-		protected abstract void Present();
+		internal abstract void Present();
 	}
 }
