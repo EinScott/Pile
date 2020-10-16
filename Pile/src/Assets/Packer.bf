@@ -61,6 +61,11 @@ namespace Pile
 		readonly List<Source> sources = new List<Source>() ~ DeleteContainerAndItems!(_);
 		readonly Dictionary<int32, Source> duplicateLookup = new Dictionary<int32, Source>() ~ delete _;
 
+		public ~this()
+		{
+			delete Packed;
+		}
+
 		public void AddBitmap(StringView name, Bitmap bitmap)
 		{
 			if (bitmap != null)
@@ -170,22 +175,46 @@ namespace Pile
 		    public PackingNode* Down;
 		}
 
-		public Result<Output> Pack()
+		public void Clear()
 		{
-			if (!HasUnpackedData)
-				return .Ok(Packed);
+			for (var value in Packed.Entries)
+			{
+				delete value.key;
+				delete value.value;
+			}
+			Packed.Entries.Clear();
+			for (var value in Packed.Pages)
+				delete value;
+			Packed.Pages.Clear();
+			HasUnpackedData = false;
 
+			for (var source in sources)
+				delete source;
+			sources.Clear();
+			duplicateLookup.Clear();
+		}
+
+		public Result<void> Pack()
+		{
 			// Already been packed
 			if (!HasUnpackedData)
-			    return Packed;
+			    return .Ok;
 
 			// Reset
-			Packed = new Output();
+			for (var value in Packed.Entries)
+			{
+				delete value.key;
+				delete value.value;
+			}
+			Packed.Entries.Clear();
+			for (var value in Packed.Pages)
+				delete value;
+			Packed.Pages.Clear();
 			HasUnpackedData = false;
 
 			// Nothing to pack
 			if (sources.Count <= 0)
-			    return Packed;
+			    return .Ok;
 
 			// sort the sources by size
 			sources.Sort(scope (a, b) => b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height);
@@ -330,7 +359,7 @@ namespace Pile
 			    }
 			}
 
-			return .Ok(Packed);
+			return .Ok;
 
 			PackingNode* FindNode(PackingNode* root, int w, int h)
 			{

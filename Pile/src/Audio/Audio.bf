@@ -8,6 +8,8 @@ namespace Pile
 		public abstract uint32 MinorVersion { get; }
 		public abstract String ApiName { get; }
 
+		internal ~this() {}
+
 		internal abstract Result<void> Initialize();
 
 		// Play() functions

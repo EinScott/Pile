@@ -19,6 +19,8 @@ namespace Pile
 		public enum DebugDrawMode { Disabled, WireFrame }
 		public abstract DebugDrawMode DebugDraw { get; set; }
 
+		internal ~this() {}
+
 		internal abstract Result<void> Initialize();
 		internal abstract void Step();
 		internal abstract void AfterRender();

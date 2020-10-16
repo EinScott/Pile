@@ -9,7 +9,7 @@ namespace Pile
 {
 	public static class Assets
 	{
-		static Packer texturePacker = new Packer() ~ delete _;
+		static RuntimePacker packer = new RuntimePacker(false) ~ delete _; // Subtextures are managed like all assets
 		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
 
 		static ~this()
@@ -100,6 +100,31 @@ namespace Pile
 				delete dict.value;
 			}
 				
+		}
+
+		// BELOW NOT YET CALLLED
+		internal static Result<void> AddPackerBitmap(String name, Bitmap bitmap)
+		{
+			let type = typeof(Subtexture);
+			if (!assets.ContainsKey(type))
+				assets.Add(type, new Dictionary<String, Object>());
+
+			else if (assets.GetValue(type).Get().ContainsKey(name))
+				LogErrorReturn!(scope String("Couldn't add asset {0} to dictionary for type {1}, because the name is already taken for this type")..Format(name, type));
+
+			assets.GetValue(type).Get().Add(name, packer.AddToCurrentPack(name, bitmap));
+
+			return .Ok;
+		}
+		
+		internal static void CommitPackerBitmaps(String packName)
+		{
+			packer.CommitCurrentPack(packName);
+		}
+
+		internal static void RemovePackerBitmaps(String packName)
+		{
+			packer.RemovePack(packName);
 		}
 	}
 }

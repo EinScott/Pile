@@ -15,7 +15,7 @@ namespace Pile.Implementations
 
 		Soloud* slPtr;
 
-		public ~this()
+		internal ~this()
 		{
 			SL_Soloud.Deinit(slPtr);
 			SL_Soloud.Destroy(slPtr);

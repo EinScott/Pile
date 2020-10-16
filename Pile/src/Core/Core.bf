@@ -27,12 +27,12 @@ namespace Pile
 
 		static void Delete()
 		{
-			DeleteNotNull!(Window);
-			DeleteNotNull!(Input);
+			delete Window;
+			delete Input;
 
-			DeleteNotNull!(Audio);
-			DeleteNotNull!(Graphics);
-			DeleteNotNull!(System);
+			delete Audio;
+			delete Graphics;
+			delete System;
 		}
 
 		static readonly Version Version = .(0, 2);

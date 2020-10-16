@@ -56,7 +56,7 @@ namespace Pile.Implementations
 			this.minorVersion = majorVersion == 3 ? VERSION_3_MINOR : Math.Min(MAX_VERSION_MINOR, Math.Max(MIN_VERSION_MINOR, minorVersion));
 		}
 
-		public ~this()
+		internal ~this()
 		{
 			system = null;
 

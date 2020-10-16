@@ -7,7 +7,7 @@ namespace Pile
 	{
 		public abstract String ApiName { get; }
 
-		public ~this()
+		internal ~this()
 		{
 			delete DataPath;
 			delete UserPath;
