@@ -46,9 +46,7 @@ namespace Pile
 			}
 		}
 
-		public Output Packed { get; private set; }
-
-		public bool HasUnpackedData { get; private set; }
+		bool hasUnpackedData;
 
 		public bool trim = true;
 		public int32 maxSize = 8192;
@@ -61,11 +59,6 @@ namespace Pile
 		readonly List<Source> sources = new List<Source>() ~ DeleteContainerAndItems!(_);
 		readonly Dictionary<int32, Source> duplicateLookup = new Dictionary<int32, Source>() ~ delete _;
 
-		public ~this()
-		{
-			delete Packed;
-		}
-
 		public void AddBitmap(StringView name, Bitmap bitmap)
 		{
 			if (bitmap != null)
@@ -74,7 +67,7 @@ namespace Pile
 
 		public void AddPixels(StringView name, int32 width, int32 height, Span<Color> pixels)
 		{
-			HasUnpackedData = true;
+			hasUnpackedData = true;
 
 			let source = new Source(name);
 			int top = 0, left = 0, right = width, bottom = height;
@@ -167,6 +160,19 @@ namespace Pile
 			sources.Add(source);
 		}
 
+		public void RemoveSource(StringView name)
+		{
+			hasUnpackedData = true;
+
+			// Find source
+
+			// Remove source
+
+			// If this source is in the duplicateLookup, search for duplicates
+			// Modify the first duplicate to take the spot of this texture in the duplicate,
+ 			// Assign that one to all following duplicates
+		}
+
 		struct PackingNode
 		{
 		    public bool Used;
@@ -177,16 +183,7 @@ namespace Pile
 
 		public void Clear()
 		{
-			for (var value in Packed.Entries)
-			{
-				delete value.key;
-				delete value.value;
-			}
-			Packed.Entries.Clear();
-			for (var value in Packed.Pages)
-				delete value;
-			Packed.Pages.Clear();
-			HasUnpackedData = false;
+			hasUnpackedData = false;
 
 			for (var source in sources)
 				delete source;
@@ -194,27 +191,18 @@ namespace Pile
 			duplicateLookup.Clear();
 		}
 
-		public Result<void> Pack()
+		public Result<Output> Pack()
 		{
 			// Already been packed
-			if (!HasUnpackedData)
-			    return .Ok;
+			if (!hasUnpackedData)
+			    return .Err;
 
 			// Reset
-			for (var value in Packed.Entries)
-			{
-				delete value.key;
-				delete value.value;
-			}
-			Packed.Entries.Clear();
-			for (var value in Packed.Pages)
-				delete value;
-			Packed.Pages.Clear();
-			HasUnpackedData = false;
+			hasUnpackedData = false;
 
 			// Nothing to pack
 			if (sources.Count <= 0)
-			    return .Ok;
+			    return .Err;
 
 			// sort the sources by size
 			sources.Sort(scope (a, b) => b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height);
@@ -230,6 +218,7 @@ namespace Pile
 			Span<PackingNode> buffer = scope PackingNode[nodeCount];
 
 			var padding = Math.Max(0, padding);
+			let output = new Output();
 
 			// using pointer operations here was faster
 			PackingNode* nodes = buffer.Ptr;
@@ -325,7 +314,7 @@ namespace Pile
 		        // create each page
 		        {
 		            var bmp = new Bitmap(pageWidth, pageHeight);
-		            Packed.Pages.Add(bmp);
+		            output.Pages.Add(bmp);
 
 		            // create each entry for this page and copy its image data
 		            for (int i = from; i < packed; i++)
@@ -335,7 +324,7 @@ namespace Pile
 		                // do not pack duplicate entries yet
 		                if (source.duplicateOf == null)
 		                {
-		                    Packed.Entries[source.name] = new Entry(source.name, page, source.packed, source.frame);
+		                    output.Entries[source.name] = new Entry(source.name, page, source.packed, source.frame);
 
 		                    if (!source.Empty)
 		                        bmp.SetPixels(source.packed, source.pixels);
@@ -353,13 +342,13 @@ namespace Pile
 			    {
 			        if (source.duplicateOf != null)
 			        {
-			            let entry = Packed.Entries[source.duplicateOf.name];
-			            Packed.Entries[source.name] = new Entry(source.name, entry.Page, entry.Source, entry.Frame);
+			            let entry = output.Entries[source.duplicateOf.name];
+			            output.Entries[source.name] = new Entry(source.name, entry.Page, entry.Source, entry.Frame);
 			        }
 			    }
 			}
 
-			return .Ok;
+			return .Ok(output);
 
 			PackingNode* FindNode(PackingNode* root, int w, int h)
 			{

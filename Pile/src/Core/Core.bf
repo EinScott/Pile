@@ -27,6 +27,9 @@ namespace Pile
 
 		static void Delete()
 		{
+			// Shutdown engine
+			Assets.Shutdown();
+
 			delete Window;
 			delete Input;
 

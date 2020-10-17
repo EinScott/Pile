@@ -371,7 +371,16 @@ namespace Pile.Implementations
 
 			// Draw mesh
 			{
-				glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32) * pass.meshIndexStart)); // TODO: Allow for different index types here and when setting them in mesh
+				uint glIndexType;
+				switch (pass.mesh.IndexType)
+				{
+				case .UnsignedShort:
+					glIndexType = GL_UNSIGNED_SHORT;
+				case .UnsignedInt:
+					glIndexType = GL_UNSIGNED_INT;
+				}
+
+				glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart));
 				glBindVertexArray(0);
 			}
 

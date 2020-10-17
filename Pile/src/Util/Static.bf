@@ -15,5 +15,15 @@ namespace Pile
 		{
 			if (instance != null) delete instance;
 		}
+
+		public static mixin DeleteDictionaryAndItems(var container)
+		{
+			if (container != null)
+			{
+				for (var value in container)
+					delete value.value;
+				delete container;
+			}
+		}
 	}
 }

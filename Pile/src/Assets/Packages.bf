@@ -73,13 +73,15 @@ namespace Pile
 				return .Ok;
 			}
 
-			protected Result<Subtexture> SubmitPackerBitmap(Package package, StringView name, Bitmap bitmap)
+			protected Result<Subtexture> SubmitPackerTexture(Package package, StringView name, Bitmap bitmap)
 			{
 				// TODO: submit packer bitmaps from importers... prob needs some additions to assets and runtimePacker as well
 
 				// Add bitmap in package...
 
 				// Add bitmap in assets...
+
+				// -- add ownedTextures to packageData for cleanup
 
 				return .Ok(null);
 			}

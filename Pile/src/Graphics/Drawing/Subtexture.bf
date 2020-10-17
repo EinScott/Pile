@@ -4,8 +4,8 @@ namespace Pile
 {
 	public class Subtexture
 	{
-		public Point2[4] TexCoords { get; private set; }
- 		public Point2[4] DrawCoords { get; private set; }
+		public readonly Point2[4] TexCoords { get; private set; }
+ 		public readonly Point2[4] DrawCoords { get; private set; }
 
 		public Texture Texture
 		{
@@ -39,7 +39,6 @@ namespace Pile
 		        UpdateCoords();
 		    }
 		}
-
 
 		public int Width => frame.Width;
 		public int Height => frame.Height;

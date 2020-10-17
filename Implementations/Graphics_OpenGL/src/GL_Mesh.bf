@@ -50,7 +50,7 @@ namespace Pile.Implementations
 			bound = false;
 		}
 
-		internal override void Setup(Span<uint8> vertices, Span<uint32> indices, VertexFormat format)
+		internal override void Setup(Span<uint8> vertices, Span<uint8> indices, VertexFormat format)
 		{
 			if (vertexFormat != format)
 			{
@@ -59,7 +59,7 @@ namespace Pile.Implementations
 			}
 
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, vertices.Ptr, vertices.Length);
-			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, indices.Ptr, sizeof(uint32) * indices.Length);
+			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, indices.Ptr, indices.Length);
 
 			void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
 			{
