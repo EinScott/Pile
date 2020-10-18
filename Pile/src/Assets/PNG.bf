@@ -77,7 +77,6 @@ namespace Pile
 
 		public static Result<void> Read(Stream stream, Bitmap bitmap)
 		{
-		    // TODO: optimize reading
 		    // We also ignore all checksums when reading because they don't seem super important for game usage
 
 		    var hasTransparency = false;

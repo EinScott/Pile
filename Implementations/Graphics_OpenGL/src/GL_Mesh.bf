@@ -7,8 +7,7 @@ namespace Pile.Implementations
 {
 	public class GL_Mesh : Mesh.Platform
 	{
-		// does not currently support instanced rendering/instance buffers
-		// this is 2D lightweight and we're probably batching anyways
+		// TODO: does not currently support instanced rendering/instance buffers
 
 		uint32 vertexArrayID;
 

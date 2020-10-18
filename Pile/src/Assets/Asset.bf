@@ -5,24 +5,26 @@ namespace Pile
 	public class Asset<T> where T : Object
 	{
 		readonly String name ~ delete _;
+		readonly Packages packages;
 		T asset;
 
 		public T Asset => asset;
 
-		public this(StringView assetName)
+		public this(StringView assetName, Packages packages = null)
 		{
 			this.name = new String(assetName);
+			this.packages = packages == null ? Core.Packages : packages;
 
-			Core.Packages.OnLoadPackage.Add(new => PackageLoaded);
-			Core.Packages.OnUnloadPackage.Add(new => PackageUnloaded);
+			this.packages.OnLoadPackage.Add(new => PackageLoaded);
+			this.packages.OnUnloadPackage.Add(new => PackageUnloaded);
 
-			asset = Core.Assets.Get<T>(name); // Will set it to reference the asset or null
+			asset = this.packages.[Friend]Assets.Get<T>(name); // Will set it to reference the asset or null
 		}
 
 		public ~this()
 		{
-			Core.Packages.OnLoadPackage.Remove(scope => PackageLoaded, true);
-			Core.Packages.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
+			packages.OnLoadPackage.Remove(scope => PackageLoaded, true);
+			packages.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
 		}
 
 		public T AssetOrDefault(T def) => asset == null ? def : asset;
@@ -32,7 +34,7 @@ namespace Pile
 			if (asset != null) return; // Already have asset
 
 			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsPackerTexture(name)))
-				asset = Core.Assets.Get<T>(name); // Get it
+				asset = packages.[Friend]Assets.Get<T>(name); // Get it
 		}
 
 		void PackageUnloaded(Package package)

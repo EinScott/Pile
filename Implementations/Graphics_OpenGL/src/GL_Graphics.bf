@@ -8,9 +8,6 @@ namespace Pile.Implementations
 {
 	public class GL_Graphics : Graphics, IGraphicsOpenGL
 	{
-		// Single context, simple openGL implementaion
-		// Most things could be moved around a bit or optimized, i just want it to run right now (TODO)
-
 		const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
 					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;
 

@@ -6,6 +6,8 @@ namespace Pile
 {
 	public class Batch2D
 	{
+		// TODO: improve this at some point. not constantly pushing a new mesh onto the graphics card would probably be a good idea
+
 		public static readonly VertexFormat VertexFormat = new VertexFormat(
 			VertexAttribute("a_position", .Position, .Float, .Two, false),
 			VertexAttribute("a_tex", .TexCoord0, .Float, .Two, false),
@@ -1055,7 +1057,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		// TODO: text
+		// TODO: text here
 
 		public void CheckeredPattern(Rect bounds, float cellWidth, float cellHeight, Color a, Color b)
 		{
