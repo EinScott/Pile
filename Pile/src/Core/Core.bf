@@ -13,7 +13,7 @@ using internal Pile;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
-// TODO before public: asset importers ((shader), font, png), font support/spritefonts/batcher font drawing, packer stuff & assets, finish png writing, DebugDraw.Text, .Enabled (like old pile)                   
+// TODO before public: asset importers ((shader), font, png), font support/spritefonts/batcher font drawing, finish png writing, DebugDraw.Text, .Enabled (like old pile)                   
 // TODO: audio, networking, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), make it easier to build packages
 
 namespace Pile

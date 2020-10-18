@@ -4,7 +4,7 @@ namespace Pile
 {
 	public class Subtexture
 	{
-		public readonly Point2[4] TexCoords { get; private set; }
+		public readonly Vector2[4] TexCoords { get; private set; }
  		public readonly Point2[4] DrawCoords { get; private set; }
 
 		public Texture Texture
@@ -103,10 +103,10 @@ namespace Pile
 
 		    if (texture != null)
 		    {
-		        let tx0 = source.X / texture.Width;
-				let ty0 = source.Y / texture.Height;
-				let tx1 = source.Right / texture.Width;
-				let ty1 = source.Bottom / texture.Height;
+		        let tx0 = source.X / (float)texture.Width;
+				let ty0 = source.Y / (float)texture.Height;
+				let tx1 = source.Right / (float)texture.Width;
+				let ty1 = source.Bottom / (float)texture.Height;
 
 		        TexCoords[0].X = tx0;
 		        TexCoords[0].Y = ty0;
