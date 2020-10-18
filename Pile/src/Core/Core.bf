@@ -28,7 +28,8 @@ namespace Pile
 		static void Delete()
 		{
 			// Shutdown engine
-			Assets.Shutdown();
+			delete Packages;
+			delete Assets;
 
 			delete Window;
 			delete Input;
@@ -52,6 +53,9 @@ namespace Pile
 
 		public static Input Input { get; private set; }
 		public static Window Window { get; private set; }
+
+		public static Assets Assets { get; private set; }
+		public static Packages Packages { get; private set; }
 
 		static Game Game;
 
@@ -99,7 +103,9 @@ namespace Pile
 				Log.Message(scope String("Audio: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
 			}
 
-			Packages.Initialize();
+			// Init engine
+			Assets = new Assets();
+			Packages = new Packages(Assets);
 
 			w.Stop();
 			Log.Message(scope String("Pile initialized (took {0}ms)")..Format(w.Elapsed.Milliseconds));

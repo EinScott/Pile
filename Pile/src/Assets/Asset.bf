@@ -13,33 +13,31 @@ namespace Pile
 		{
 			this.name = new String(assetName);
 
-			Packages.OnLoadPackage.Add(new => PackageLoaded);
-			Packages.OnUnloadPackage.Add(new => PackageUnloaded);
+			Core.Packages.OnLoadPackage.Add(new => PackageLoaded);
+			Core.Packages.OnUnloadPackage.Add(new => PackageUnloaded);
 
-			asset = Assets.Get<T>(name); // Will set it to reference the asset or null
+			asset = Core.Assets.Get<T>(name); // Will set it to reference the asset or null
 		}
 
 		public ~this()
 		{
-			Packages.OnLoadPackage.Remove(scope => PackageLoaded, true);
-			Packages.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
+			Core.Packages.OnLoadPackage.Remove(scope => PackageLoaded, true);
+			Core.Packages.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
 		}
 
 		void PackageLoaded(Package package)
 		{
 			if (asset != null) return; // Already have asset
 
-			if (package.OwnsAsset(typeof(T), name))
-				asset = Assets.Get<T>(name); // Get it
-
-			// TODO: specail case for typeof(Subtexture)
+			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsPackerTexture(name)))
+				asset = Core.Assets.Get<T>(name); // Get it
 		}
 
 		void PackageUnloaded(Package package)
 		{
 			if (asset == null) return; // Don't have asset
 
-			if (package.OwnsAsset(typeof(T), name))
+			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsPackerTexture(name)))
 				asset = null; // Leave it
 		}
 

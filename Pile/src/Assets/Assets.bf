@@ -7,19 +7,14 @@ using JSON_Beef.Types;
 
 namespace Pile
 {
-	public static class Assets
+	public class Assets
 	{
-		static Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
-		static List<Texture> atlas = new List<Texture>();
-		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
+		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
+		List<Texture> atlas = new List<Texture>();
+		Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
 
-		internal static void Shutdown()
-		{
-			DeleteContainerAndItems!(atlas);
-		}
-
-		public static int TextureCount => packer.SourceImageCount;
-		public static int AssetCount
+		public int TextureCount => packer.SourceImageCount;
+		public int AssetCount
 		{
 			get
 			{
@@ -31,15 +26,19 @@ namespace Pile
 			}
 		}
 
-		static ~this()
+		internal this() {}
+
+		internal ~this()
 		{
+			DeleteContainerAndItems!(atlas);
+
 			for (let dic in assets.Values)
 				DeleteDictionaryAndKeysAndItems!(dic);
 
 			delete assets;
 		}
 
-		public static bool Has<T>(String name) where T : Object
+		public bool Has<T>(String name) where T : Object
 		{
 			let type = typeof(T);
 
@@ -52,7 +51,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has<T>() where T : Object
+		public bool Has<T>() where T : Object
 		{
 			let type = typeof(T);
 
@@ -62,7 +61,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has(Type type, String name)
+		public bool Has(Type type, String name)
 		{
 			if (!type.IsObject)
 				return false;
@@ -76,7 +75,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has(Type type)
+		public bool Has(Type type)
 		{
 			if (!type.IsObject)
 				return false;
@@ -87,7 +86,7 @@ namespace Pile
 			return true;
 		}
 
-		public static T Get<T>(String name) where T : Object
+		public T Get<T>(String name) where T : Object
  		{
 			 if (!Has<T>(name))
 				 return null;
@@ -95,7 +94,7 @@ namespace Pile
 			 return (T)assets.GetValue(typeof(T)).Get().GetValue(name).Get();
 		}
 
-		public static Object Get(Type type, String name)
+		public Object Get(Type type, String name)
 		{
 			if (!Has(type, name))
 				return false;
@@ -103,7 +102,7 @@ namespace Pile
 			return assets.GetValue(type).Get().GetValue(name).Get();
 		}
 
-		public static AssetEnumerator<T> Get<T>() where T : Object
+		public AssetEnumerator<T> Get<T>() where T : Object
 		{
 			if (!Has<T>())
 				return AssetEnumerator<T>(null);
@@ -111,7 +110,7 @@ namespace Pile
 			return AssetEnumerator<T>(assets.GetValue(typeof(T)).Get());
 		}
 
-		public static Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
+		public Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
 		{
 			if (!Has(type))
 				return .Err;
@@ -121,7 +120,7 @@ namespace Pile
 
 		/** The name string passed here will be directly referenced in the dictionary, so take a fresh one, ideally the same that is also referenced in package owned assets.
 		*/
-		internal static Result<void> AddAsset(Type type, String name, Object object)
+		internal Result<void> AddAsset(Type type, String name, Object object)
 		{
 			if (!object.GetType().IsSubtypeOf(type))
 				LogErrorReturn!(scope String("Couldn't add asset {0} of type {1}, because it is not assignable to given type {2}")..Format(name, object.GetType(), type));
@@ -137,7 +136,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		internal static void RemoveAsset(Type type, String name)
+		internal void RemoveAsset(Type type, String name)
 		{
 			if (!assets.ContainsKey(type))
 				return;
@@ -157,7 +156,7 @@ namespace Pile
 			}
 		}
 
-		internal static Result<void> AddPackerTexture(String name, Bitmap bitmap)
+		internal Result<void> AddPackerTexture(String name, Bitmap bitmap)
 		{
 			// Add to packer
 			packer.AddBitmap(name, bitmap);
@@ -180,7 +179,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		internal static void RemovePackerTexture(String name)
+		internal void RemovePackerTexture(String name)
 		{
 			// Remove from packer
 			packer.RemoveSource(name);
@@ -205,16 +204,13 @@ namespace Pile
 			}
 		}
 		
-		internal static void PackAndUpdate()
+		internal void PackAndUpdate()
 		{
 			// Pack sources
 			let res = packer.Pack();
 
 			if (res case .Err) return; // We can't or shouldn't pack now
 			var output = res.Get();
-
-			// TODO for tomorrow: write submit function in importer, hook these functions up to loading and unloading (another list in pack data for texture removal)
-			// that should do it. Fix bugs, test with ase importer. If it works, remove runtimePacker. (Look at mem usage, but for one i assume its fine and otherwise it should be ok)
 
 			// Apply bitmaps to textures in atlas
 			int i = 0;
