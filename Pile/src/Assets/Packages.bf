@@ -11,82 +11,6 @@ namespace Pile
 {
 	public static class Packages
 	{
-		public class Package
-		{
-			internal Dictionary<Type, List<String>> ownedAssets = new Dictionary<Type, List<String>>();
-			
-			internal this() {}
-
-			public ~this()
-			{
-				// Manages dictionary and lists, but not strings, which are taken care of by assets and might already be deleted
-				for (let entry in ownedAssets)
-					delete entry.value;
-
-				delete ownedAssets;
-			}
-
-			internal readonly String name = new String() ~ delete _;
-			public StringView Name => name;
-
-			public bool OwnsAsset(Type type, String string)
-			{
-				if (!ownedAssets.ContainsKey(type)) return false;
-				if (!ownedAssets.GetValue(type).Get().Contains(string)) return false;
-
-				return true;
-			}
-		}
-
-		public abstract class Importer
-		{
-			public abstract Result<void> Load(StringView name, uint8[] data, JSONObject dataNode);
-			public abstract Result<uint8[]> Build(uint8[] data, out JSONObject dataNode);
-
-			internal Package package;
-			protected Result<void> SubmitAsset(StringView name, Object asset)
-			{
-				if (package == null)
-					LogErrorReturn!("Importers can only submit assets when called from load package function");
-
-				let type = asset.GetType();
-
-				let nameString = new String(name);
-
-				// Check if assets contains this name already
-				if (Assets.Has(type, nameString))
-				{
-					delete nameString;
-
-					LogErrorReturn!(scope String("Couldn't submit asset {0}: An object of this type ({1}) is already registered under this name")..Format(name, type));
-				}
-
-				// Add object location in package
-				if (!package.ownedAssets.ContainsKey(type))
-					package.ownedAssets.Add(type, new List<String>());
-
-				package.ownedAssets.GetValue(type).Get().Add(nameString);
-
-				// Add object in assets
-				if (Assets.AddAsset(type, nameString, asset) case .Err) return .Err;
-
-				return .Ok;
-			}
-
-			protected Result<Subtexture> SubmitPackerTexture(Package package, StringView name, Bitmap bitmap)
-			{
-				// TODO: submit packer bitmaps from importers... prob needs some additions to assets and runtimePacker as well
-
-				// Add bitmap in package...
-
-				// Add bitmap in assets...
-
-				// -- add ownedTextures to packageData for cleanup
-
-				return .Ok(null);
-			}
-		}
-
 		// Represents the json data in the package import file
 		internal class PackageData
 		{
@@ -328,6 +252,8 @@ namespace Pile
 			for (let s in importerNames)
 				delete s;
 
+			Assets.PackAndUpdate();
+
 			OnLoadPackage(package);
 			return .Ok(package);
 		}
@@ -335,18 +261,28 @@ namespace Pile
 		public static Result<void> UnloadPackage(StringView packageName)
 		{
 			Package package = null;
-			for (var p in loadedPackages)
-				if (p.Name == packageName) package = p;
+			for (int i = 0; i < loadedPackages.Count; i++)
+				if (loadedPackages[i].Name == packageName)
+				{
+					package = loadedPackages[i];
+					loadedPackages.RemoveAtFast(i);
+				}
 
 			if (package == null)
 				LogErrorReturn!(scope String("Couldn't unload package {0}: No package with that name exists")..Format(packageName));
-
-			OnUnloadPackage(package);
 
 			for (let assetType in package.ownedAssets.Keys)
 				for (let assetName in package.ownedAssets.GetValue(assetType).Get())
 					Assets.RemoveAsset(assetType, assetName);
 
+			for (let textureName in package.ownedPackerTextures)
+				Assets.RemovePackerTexture(textureName);
+
+			Assets.PackAndUpdate();
+
+			OnUnloadPackage(package);
+
+			delete package;
 			return .Ok;
 		}
 
@@ -490,7 +426,7 @@ namespace Pile
 							}
 
 							// Tidy up
-							importDirs.RemoveAt(importDirs.Count - 1);
+							importDirs.PopBack();
 							delete currImportPath;
 						}
 						while (importDirs.Count > 0);
@@ -540,7 +476,7 @@ namespace Pile
 								Log.Warning(scope String("Couldn't find any matches for {1} in {2}")..Format(packagePath, wildCardPath, currImportPath));
 
 							// Tidy up
-							importDirs.RemoveAt(importDirs.Count - 1);
+							importDirs.PopBack();
 							delete currImportPath;
 
 							wildCardPath.Clear();

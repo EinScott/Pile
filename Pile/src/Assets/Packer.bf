@@ -7,16 +7,17 @@ namespace Pile
 	{
 		public class Entry
 		{
-			readonly String name = new String() ~ delete _;
+			readonly String name ~ delete _;
 			public StringView Name => name;
 
 			public readonly int32 Page;
 			public readonly Rect Source;
 			public readonly Rect Frame;
 
-			public this(StringView name, int32 page, Rect source, Rect frame)
+			public this(String name, int32 page, Rect source, Rect frame)
 			{
-				this.name.Set(name);
+				// This is the string here and also in the dictionary (a fresh one only for this)
+				this.name = name;
 
 				Page = page;
 				Source = source;
@@ -27,7 +28,7 @@ namespace Pile
 		public class Output
 		{
 			public readonly List<Bitmap> Pages = new List<Bitmap>() ~ DeleteContainerAndItems!(_);
-			public readonly Dictionary<String, Entry> Entries = new Dictionary<String, Entry>() ~ DeleteDictionaryAndKeysAndItems!(_);
+			public readonly Dictionary<String, Entry> Entries = new Dictionary<String, Entry>() ~ DeleteDictionaryAndItems!(_);
 		}
 
 		public class Source
@@ -117,10 +118,7 @@ namespace Pile
 
 			    if (combineDuplicates)
 			    {
-			        int32 hash = 0;
-			        for (int x = left; x < right; x++)
-			            for (int y = top; y < bottom; y++)
-			                hash = ((hash << 5) + hash) + (int32)pixels[x + y * width];
+			        let hash = GetHash(left, right, top, bottom, pixels);
 
 			        if (duplicateLookup.TryGetValue(hash, let duplicate))
 			        {
@@ -164,13 +162,51 @@ namespace Pile
 		{
 			hasUnpackedData = true;
 
-			// Find source
+			// Find source & remove it
+			Source removeSource = null;
+			for (int i = 0; i < sources.Count; i++)
+			{
+				if (sources[i].name == name)
+				{
+					removeSource = sources[i];
+					sources.RemoveAtFast(i);
+				}
+			}
 
-			// Remove source
+			if (removeSource == null) return;
 
-			// If this source is in the duplicateLookup, search for duplicates
-			// Modify the first duplicate to take the spot of this texture in the duplicate,
- 			// Assign that one to all following duplicates
+			// Find duplicates of this
+			if (duplicateLookup.ContainsValue(removeSource))
+			{
+				Source replacement = null;
+				for (let source in sources)
+					if (source.duplicateOf == removeSource)
+					{
+						if (replacement == null)
+						{
+							// Replace the removed source in the duplicate lookup
+							replacement = source;
+							source.duplicateOf = null;
+							let hash = GetHash(0, source.packed.Width, 0, source.packed.Height, source.pixels);
+							duplicateLookup[hash] = source;
+						}
+						else source.duplicateOf = replacement;
+					}
+			}
+
+			// Delete source
+			delete removeSource;
+		}
+
+		int32 GetHash(int left, int right, int top, int bottom, Span<Color> pixels)
+		{
+			int32 hash = 0;
+			let width = right - left;
+			for (int x = left; x < right; x++)
+			    for (int y = top; y < bottom; y++)
+			        hash = ((hash << 5) + hash) + (int32)pixels[x + y * width];
+
+			return hash;
 		}
 
 		struct PackingNode
@@ -324,7 +360,8 @@ namespace Pile
 		                // do not pack duplicate entries yet
 		                if (source.duplicateOf == null)
 		                {
-		                    output.Entries[source.name] = new Entry(source.name, page, source.packed, source.frame);
+							let key = new String(source.name);
+		                    output.Entries[key] = new Entry(key, page, source.packed, source.frame);
 
 		                    if (!source.Empty)
 		                        bmp.SetPixels(source.packed, source.pixels);
@@ -343,7 +380,8 @@ namespace Pile
 			        if (source.duplicateOf != null)
 			        {
 			            let entry = output.Entries[source.duplicateOf.name];
-			            output.Entries[source.name] = new Entry(source.name, entry.Page, entry.Source, entry.Frame);
+						let key = new String(source.name);
+			            output.Entries[key] = new Entry(key, entry.Page, entry.Source, entry.Frame);
 			        }
 			    }
 			}

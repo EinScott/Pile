@@ -25,15 +25,17 @@ namespace Pile
 			Packages.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
 		}
 
-		void PackageLoaded(Packages.Package package)
+		void PackageLoaded(Package package)
 		{
 			if (asset != null) return; // Already have asset
 
 			if (package.OwnsAsset(typeof(T), name))
 				asset = Assets.Get<T>(name); // Get it
+
+			// TODO: specail case for typeof(Subtexture)
 		}
 
-		void PackageUnloaded(Packages.Package package)
+		void PackageUnloaded(Package package)
 		{
 			if (asset == null) return; // Don't have asset
 

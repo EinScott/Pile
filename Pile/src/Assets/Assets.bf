@@ -111,6 +111,14 @@ namespace Pile
 			return AssetEnumerator<T>(assets.GetValue(typeof(T)).Get());
 		}
 
+		public static Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
+		{
+			if (!Has(type))
+				return .Err;
+
+			return assets.GetValue(type).Get().Values;
+		}
+
 		/** The name string passed here will be directly referenced in the dictionary, so take a fresh one, ideally the same that is also referenced in package owned assets.
 		*/
 		internal static Result<void> AddAsset(Type type, String name, Object object)
@@ -205,7 +213,7 @@ namespace Pile
 			if (res case .Err) return; // We can't or shouldn't pack now
 			var output = res.Get();
 
-			// TODO for tomorrow: write remove in packer, write submit function in importer, hook these functions up to loading and unloading (another list in pack data for texture removal)
+			// TODO for tomorrow: write submit function in importer, hook these functions up to loading and unloading (another list in pack data for texture removal)
 			// that should do it. Fix bugs, test with ase importer. If it works, remove runtimePacker. (Look at mem usage, but for one i assume its fine and otherwise it should be ok)
 
 			// Apply bitmaps to textures in atlas
@@ -230,8 +238,7 @@ namespace Pile
 				let subtex = Get<Subtexture>(entry.key);
 
 				subtex.Reset(atlas[entry.value.Page], entry.value.Source, entry.value.Frame);
-				delete entry.key;
-				delete entry.value;
+				delete entry.value; // Will also delete the key, because that is the same string as the name property
 			}
 
 			output.Entries.Clear(); // We deleted these in our loops, no need to loop again
