@@ -120,7 +120,6 @@ namespace Pile
 			else if (!initialized) LogErrorReturn!("Core needs to be initialized first");
 			else if (game == null) LogErrorReturn!("Game cannot be null");
 
-			Log.Message("Starting up game");
 			Game = game;
 
 			let timer = scope Stopwatch(true);

@@ -280,6 +280,8 @@ namespace Pile
 			if (package == null)
 				LogErrorReturn!(scope String("Couldn't unload package {0}: No package with that name exists")..Format(packageName));
 
+			OnUnloadPackage(package);
+
 			for (let assetType in package.ownedAssets.Keys)
 				for (let assetName in package.ownedAssets.GetValue(assetType).Get())
 					Assets.RemoveAsset(assetType, assetName);
@@ -288,8 +290,6 @@ namespace Pile
 				Assets.RemovePackerTexture(textureName);
 
 			Assets.PackAndUpdate();
-
-			OnUnloadPackage(package);
 
 			delete package;
 			return .Ok;

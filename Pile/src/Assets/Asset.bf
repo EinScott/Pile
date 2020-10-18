@@ -25,6 +25,8 @@ namespace Pile
 			Core.Packages.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
 		}
 
+		public T AssetOrDefault(T def) => asset == null ? def : asset;
+
 		void PackageLoaded(Package package)
 		{
 			if (asset != null) return; // Already have asset

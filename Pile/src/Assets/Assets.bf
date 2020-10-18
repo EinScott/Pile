@@ -145,10 +145,10 @@ namespace Pile
 
 			let pair = assets.GetValue(type).Get().GetAndRemove(name).Get();
 
-			// Delete unused dicts
 			delete pair.key;
 			delete pair.value;
 			
+			// Delete unused dicts
 			if (assets.GetValue(type).Get().Count == 0)
 			{
 				let dict = assets.GetAndRemove(type).Get();
@@ -193,10 +193,10 @@ namespace Pile
 
 			let pair = assets.GetValue(type).Get().GetAndRemove(name).Get();
 
-			// Delete unused dicts
 			delete pair.key;
 			delete pair.value;
-
+			
+			// Delete unused dicts
 			if (assets.GetValue(type).Get().Count == 0)
 			{
 				let dict = assets.GetAndRemove(type).Get();
