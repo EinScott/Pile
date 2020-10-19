@@ -25,64 +25,74 @@ namespace Pile
 			Height = height;
 		}
 
+		public this(Point2 position, Point2 size)
+		{
+			X = position.X;
+			Y = position.Y;
+			Width = size.X;
+			Height = size.Y;
+		}
+
+		public Point2 Position
+		{
+			[Inline]
+			get => .(X, Y);
+
+			[Inline]
+			set mut
+			{
+				X = value.X;
+				Y = value.Y;
+			}
+		}
+
+		public Point2 Size
+		{
+			[Inline]
+			get => .(Width, Height);
+
+			[Inline]
+			set mut
+			{
+				Width = value.X;
+				Height = value.Y;
+			}
+		}
+
 		public int Left
 		{
 			[Inline]
-			get
-			{
-				return X;
-			}
+			get => X;
 
 			[Inline]
-			set	mut
-			{
-				X = value;
-			}
+			set	mut => X = value;
 		}
 
 		public int Right
 		{
 			[Inline]
-			get
-			{
-				return X + Width;
-			}
+			get => X + Width;
 
 			[Inline]
-			set	mut
-			{
-				X = value - Width;
-			}
+			set	mut => X = value - Width;
 		}
 
 		public int Top
 		{
 			[Inline]
-			get
-			{
-				return Y;
-			}
+			get => Y;
 
 			[Inline]
-			set mut
-			{
-				Y = value;
-			}
+			set mut => Y = value;
 		}
 
 		public int Bottom
 		{
 			[Inline]
-			get
-			{
-				return Y + Height;
-			}
+			get => Y + Height;
 
 			[Inline]
-			set mut
-			{
-				Y = value - Height;
-			}
+			set mut => Y = value - Height;
 		}
 
 		public Rect MirrorX(int axis = 0)
