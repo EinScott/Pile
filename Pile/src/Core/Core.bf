@@ -123,7 +123,6 @@ namespace Pile
 			Game = game;
 
 			let timer = scope Stopwatch(true);
-			double sleepError = 0;
 			var frameCount = 0;
 			var frameTicks = 0L;
 
@@ -140,7 +139,7 @@ namespace Pile
 			{
 				// step time and diff
 				currTime = timer.[Friend]GetElapsedDateTimeTicks();
-				diffTime = currTime - lastTime;
+				diffTime = Math.Min(Time.maxTicks, currTime - lastTime);
 				lastTime = currTime;
 
 				// Raw time
@@ -180,7 +179,7 @@ namespace Pile
 
 				// Count FPS
 				frameCount++;
-				if ((double)(timer.[Friend]GetElapsedDateTimeTicks() - frameTicks) * TimeSpan.[Friend]SecondsPerTick >= 1)
+				if ((double)(timer.[Friend]GetElapsedDateTimeTicks() - frameTicks) / TimeSpan.TicksPerSecond >= 1)
 				{
 					Time.FPS = frameCount;
 					frameTicks = timer.[Friend]GetElapsedDateTimeTicks();
@@ -188,14 +187,12 @@ namespace Pile
 				}
 
 				// Wait for FPS
-				if ((float)(timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError < Time.targetMilliseconds)
+				if (timer.[Friend]GetElapsedDateTimeTicks() - currTime < Time.targetTicks && !exiting)
 				{
-					let sleep = Time.targetMilliseconds - (timer.[Friend]GetElapsedDateTimeTicks() - currTime) * TimeSpan.[Friend]MillisecondsPerTick + sleepError;
-					let realSleep = (int32)Math.Floor(sleep);
-
-					if (sleep > 0) Thread.Sleep(realSleep);
-
-					sleepError = realSleep - sleep;
+					let sleep = Time.targetTicks - (timer.[Friend]GetElapsedDateTimeTicks() - currTime);
+					
+					if (sleep > 0)
+						Thread.Sleep((int32)((double)sleep / TimeSpan.TicksPerMillisecond));
 				}
 			}
 
