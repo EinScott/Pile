@@ -162,5 +162,6 @@ namespace Pile
 
 		public static operator ReadOnlySpan<T>(Span<T> span) => ReadOnlySpan<T>(span);
 		public static operator ReadOnlySpan<T>(List<T> list) => ReadOnlySpan<T>(list);
+		public static operator ReadOnlySpan<T>(T[] list) => ReadOnlySpan<T>(list);
 	}
 }
