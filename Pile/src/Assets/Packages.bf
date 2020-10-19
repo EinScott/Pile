@@ -85,7 +85,7 @@ namespace Pile
 					return;
 				}
 
-			importer.assets = Assets;
+			importer.Assets = Assets;
 			importers.Add(new String(name), importer);
 		}
 

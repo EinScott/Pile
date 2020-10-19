@@ -1,5 +1,7 @@
 using System;
 
+// generated using https://github.com/MineGame159/opengl-beef
+
 namespace OpenGL43 {
     static class GL {
         public function void* GetProcAddressFunc(StringView procname);

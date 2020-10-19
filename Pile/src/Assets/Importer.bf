@@ -11,8 +11,9 @@ namespace Pile
 		public abstract Result<void> Load(StringView name, Span<uint8> data, JSONObject dataNode);
 		public abstract Result<uint8[]> Build(Span<uint8> data, out JSONObject dataNode);
 
+		public Assets Assets { get; internal set; }
+
 		internal Package package;
-		internal Assets assets;
 		protected Result<void> SubmitAsset(StringView name, Object asset)
 		{
 			if (package == null)
@@ -23,7 +24,7 @@ namespace Pile
 			let nameString = new String(name);
 
 			// Check if assets contains this name already
-			if (assets.Has(type, nameString))
+			if (Assets.Has(type, nameString))
 			{
 				delete nameString;
 
@@ -31,7 +32,7 @@ namespace Pile
 			}
 
 			// Add object in assets
-			if (assets.AddAsset(type, nameString, asset) case .Err) return .Err;
+			if (Assets.AddAsset(type, nameString, asset) case .Err) return .Err;
 
 			// Add object location in package
 			if (!package.ownedAssets.ContainsKey(type))
@@ -50,7 +51,7 @@ namespace Pile
 			let nameString = new String(name);
 
 			// Check if assets contains this name already
-			if (assets.Has(typeof(Subtexture), nameString))
+			if (Assets.Has(typeof(Subtexture), nameString))
 			{
 				delete nameString;
 
@@ -58,7 +59,7 @@ namespace Pile
 			}
 
 			// Add object in assets
-			if (assets.AddPackerTexture(nameString, bitmap) case .Err) return .Err;
+			if (Assets.AddPackerTexture(nameString, bitmap) case .Err) return .Err;
 
 			// Add object location in package
 			package.ownedPackerTextures.Add(nameString);
