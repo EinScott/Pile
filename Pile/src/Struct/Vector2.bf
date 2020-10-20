@@ -62,7 +62,7 @@ namespace Pile
 		[Inline]
 		public Vector2 Normalized()
 		{
-			return this / Length;
+			return this == .Zero ? .Zero : this / Length;
 		}
 
 		public static Vector2 Lerp(Vector2 a, Vector2 b, float t)

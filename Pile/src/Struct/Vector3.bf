@@ -64,7 +64,7 @@ namespace Pile
 		[Inline]
 		public Vector3 Normalized()
 		{
-			return this / Length;
+			return this == .Zero ? .Zero : this / Length;
 		}
 
 		public static Vector3 Lerp(Vector3 a, Vector3 b, float t)
