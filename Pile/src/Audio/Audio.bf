@@ -12,29 +12,9 @@ namespace Pile
 
 		internal abstract Result<void> Initialize();
 
-		// Play() functions
-		// Stop() functions...
-		// usw...
+		// handle mixing?? - well.. central internal stuff, dont know if this is going to happen here yet
 
-		// handle mixing??
-
-		public Result<AudioInstance> Play(AudioClip clip, float volume = 1, float pan = 0, bool paused = false, AudioBus bus = null)
-		{
-			return .Ok(null);
-		}
-
-		public abstract void PlayInternal(AudioClip clip, float volume = 1, float pan = 0, bool paused = false, AudioBus bus = null);
-
-		public void Stop(AudioInstance instance)
-		{
-
-		}
-
-		public void Stop(params AudioInstance[] instances)
-		{
-
-		}
-
-		public abstract void StopInternal(params AudioInstance[] instances);
+		// CreateSpeaker() - dunno about this naming, but i think its better than prepending 'audio' to some generic word
+		// CreateSoundClip()
 	}
 }

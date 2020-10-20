@@ -33,15 +33,5 @@ namespace Pile.Implementations
 
 			return .Ok;
 		}
-
-		public override void PlayInternal(AudioClip clip, float volume = 1, float pan = 0, bool paused = false, AudioBus bus = null)
-		{
-
-		}
-
-		public override void StopInternal(params AudioInstance[] instances)
-		{
-
-		}
 	}
 }

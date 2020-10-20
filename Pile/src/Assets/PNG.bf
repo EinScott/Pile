@@ -131,7 +131,7 @@ namespace Pile
 		            interlace.UnderlyingRef = stream.Read<uint8>();
 		            hasTransparency = color == Colors.GreyscaleAlpha || color == Colors.TruecolorAlpha;
 
-					bitmap.Resize(width, height);
+					bitmap.ResizeAndClear(width, height);
 
 		            if (color == Colors.Greyscale || color == Colors.Indexed)
 		                components = 1;

@@ -9,7 +9,7 @@ namespace Pile
 		internal abstract class Platform
 		{
 			internal abstract void Initialize(Texture texture);
-			internal abstract void Resize(int32 width, int32 height);
+			internal abstract void ResizeAndClear(int32 width, int32 height);
 			internal abstract void SetFilter(TextureFilter filter);
 			internal abstract void SetWrap(TextureWrap x, TextureWrap y);
 			internal abstract void SetData(void* buffer);
@@ -72,7 +72,7 @@ namespace Pile
 
 		public void CopyTo(Bitmap bitmap)
 		{
-			bitmap.Resize(Width, Height);
+			bitmap.ResizeAndClear(Width, Height);
 
 			var span = scope Span<Color>(bitmap.Pixels);
 			platform.GetData(span);
@@ -82,14 +82,13 @@ namespace Pile
 		{
 			if (bitmap.Empty) LogErrorReturn!("Bitmap is empty");
 
-			if ((bitmap.Width != Width || bitmap.Height != Height) && Resize(bitmap.Width, bitmap.Height) case .Err) return .Err;
+			if ((bitmap.Width != Width || bitmap.Height != Height) && ResizeAndClear(bitmap.Width, bitmap.Height) case .Err) return .Err;
 			platform.SetData(scope Span<Color>(bitmap.Pixels));
 
 			return .Ok;
 		}
 
-		/** Resize also clears the texture! TextureFormat is preserved.*/
-		public Result<void> Resize(int32 width, int32 height)
+		public Result<void> ResizeAndClear(int32 width, int32 height)
 		{
 			if (width <= 0 || height <= 0)
 				LogErrorReturn!("Texture size must be larger than 0");
@@ -99,7 +98,7 @@ namespace Pile
 				Width = width;
 				Height = height;
 
-				platform.Resize(width, height);
+				platform.ResizeAndClear(width, height);
 			}
 			return .Ok;
 		}

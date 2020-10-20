@@ -10,7 +10,7 @@ namespace Pile
 		internal abstract class Platform
 		{
 			internal readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
-			internal abstract void Resize(int32 width, int32 height);
+			internal abstract void ResizeAndClear(int32 width, int32 height);
 		}
 
 		internal readonly Platform platform ~ delete _;
@@ -38,7 +38,7 @@ namespace Pile
 			get => platform.Attachments[index];
 		}
 
-		public Result<void> Resize(int32 width, int32 height)
+		public Result<void> ResizeAndClear(int32 width, int32 height)
 		{
 			if (width <= 0 || height <= 0)
 				LogErrorReturn!("FrameBuffer size must be larger than 0");
@@ -48,7 +48,7 @@ namespace Pile
 				renderSize.X = width;
 				renderSize.Y = height;
 
-				platform.Resize(width, height);
+				platform.ResizeAndClear(width, height);
 			}
 			return .Ok;
 		}

@@ -247,9 +247,9 @@ namespace Pile
 			if (sources[0].packed.Width > maxSize || sources[0].packed.Height > maxSize)
 			    LogErrorReturn!("Source image is larger than max atlas size");
 
-			// TODO: why do we sometimes need more than source images * 3? [FOSTERCOMMENT]
+			// why do we sometimes need more than source images * 3? [FOSTERCOMMENT]
 			// for safety I've just made it 4 ... but it should really only be 3?
-			// --> changes this to 3 to look into it. If this crashes here, investigate further or change back
+			// --> changed this to 3 to look into it. If this crashes here, investigate further or change back
 
 			int nodeCount = sources.Count * 3;
 			Span<PackingNode> buffer = scope PackingNode[nodeCount];

@@ -65,8 +65,7 @@ namespace Pile
 			Array.Clear(&Pixels[0], Pixels.Count);
 		}
 
-		/**Also clears pixel data!*/
-		public void Resize(int32 width, int32 height)
+		public void ResizeAndClear(int32 width, int32 height)
 		{
 			Width = width;
 			Height = height;
@@ -131,7 +130,7 @@ namespace Pile
 		{
 			if (!initialized) return;
 
-			sub.Resize((int32)source.Width, (int32)source.Height);
+			sub.ResizeAndClear((int32)source.Width, (int32)source.Height);
 			GetPixels(sub.Pixels, Rect(0, 0, source.Width, source.Height), source);
 		}
 
@@ -139,7 +138,7 @@ namespace Pile
 		{
 			if (!initialized) return;
 
-			bitmap.Resize(Width, Height);
+			bitmap.ResizeAndClear(Width, Height);
 			bitmap.SetPixels(Pixels);
 		}
 	}
