@@ -4,8 +4,11 @@ namespace Pile
 {
 	public static class Time
 	{
-		internal static int64 targetTicks = (int64)((double)10000000 / 60);
-		static int targetFps = 60;
+		const int DEFAULT_TARGET_FPS = 60;
+		const int DEFAULT_MIN_FPS = 20;
+
+		internal static int64 targetTicks = (int64)((double)10000000 / DEFAULT_TARGET_FPS);
+		static int targetFps = DEFAULT_TARGET_FPS;
 
 		// The game tries to run at this framerate. 0 mean no upper limit.
 		// If the a frame is completed faster than the duration of a frame at this framerate, the thread will sleep for the remaining time.
@@ -33,8 +36,8 @@ namespace Pile
 			}
 		}
 
-		internal static int64 maxTicks = (int64)((double)10000000 / 40);
-		static int minFPS = 40;
+		internal static int64 maxTicks = (int64)((double)10000000 / DEFAULT_MIN_FPS);
+		static int minFPS = DEFAULT_MIN_FPS;
 
 		// This limits how much the game tries to catch up. 0 means no lower limit.
 		// If the actual delta time is higher than the duration of one frame at this framerate, RawDelta will be set to the later, thus the game will slow down.
