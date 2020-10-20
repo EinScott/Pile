@@ -245,7 +245,7 @@ namespace Pile
 	        IUserData last = null;
 
 	        // Frames
-	        for (int i = 0; i < frameCount; i++)
+	        Loop:for (int i = 0; i < frameCount; i++)
 	        {
 	            var frame = new Frame(this);
 	            Frames.Add(frame);
@@ -264,7 +264,7 @@ namespace Pile
 	            }
 
 	            // chunks
-	            Loop:for (int j = 0; j < chunkCount; j++)
+	            for (int j = 0; j < chunkCount; j++)
 	            {
 					Chunk:
 					{
