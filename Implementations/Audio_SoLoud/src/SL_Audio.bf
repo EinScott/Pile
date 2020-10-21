@@ -1,5 +1,6 @@
 using System;
 using SoLoud;
+using static SoLoud.SL_Soloud;
 
 namespace Pile.Implementations
 {
@@ -14,18 +15,26 @@ namespace Pile.Implementations
 		public override String ApiName => api;
 
 		Soloud* slPtr;
+		Backend backend;
+
+		public this(Backend backend = .AUTO)
+		{
+			this.backend = backend;
+		}
 
 		internal ~this()
 		{
-			SL_Soloud.Deinit(slPtr);
-			SL_Soloud.Destroy(slPtr);
+			Deinit(slPtr);
+			Destroy(slPtr);
 		}
 
 		internal override Result<void> Initialize()
 		{
-			slPtr = SL_Soloud.Create();
-			version = SL_Soloud.GetVersion(slPtr);
-			SL_Soloud.GetBackendId(slPtr).ToString(api);
+			slPtr = Create();
+			Init(slPtr, .SOLOUD_CLIP_ROUNDOFF, backend, AUTO, AUTO, .TWO);
+
+			version = GetVersion(slPtr);
+			GetBackendId(slPtr).ToString(api);
 
 			// TODO: (impl) before delegating functionality to components, load manually here in full to see how it works
 			// try to play sound manually here ..
