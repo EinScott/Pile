@@ -28,12 +28,12 @@ namespace Pile.Implementations
 			Delete();
 		}
 
-		internal override void Resize(int32 width, int32 height)
+		internal override void ResizeAndClear(int32 width, int32 height)
 		{
 			Delete();
 
 			for (int i = 0; i < Attachments.Count; i++)
-				Attachments[i].Resize(width, height);
+				Attachments[i].ResizeAndClear(width, height);
 		}
 
 		internal void Bind()
