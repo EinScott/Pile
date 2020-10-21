@@ -3,35 +3,35 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	/// USE Routine<TData>
-	public abstract class Routine
+	public enum RoutineReturn
 	{
-		public enum RoutineReturn
-		{
-			case Continue; // Simply returns
-			case Break; // Stop the routine and lastly call end if not null
+		case Continue; // Simply returns
+		case Break; // Stop the routine and lastly call end if not null
 
-			case WaitCycles(int cycles); // Wait [cycles] update cycles
-			case WaitSeconds(double seconds); // Wait [seconds] seconds
-			case WaitRawSeconds(double seconds); // Wait [seconds] seconds, not affected by Time.Scale
-			case WaitRoutine(Routine routine); // Wait until routine.Done == true
+		case WaitCycles(int cycles); // Wait [cycles] update cycles
+		case WaitSeconds(double seconds); // Wait [seconds] seconds
+		case WaitRawSeconds(double seconds); // Wait [seconds] seconds, not affected by Time.Scale
+		case WaitRoutine(IRoutine routine); // Wait until routine.Done == true
 
-			case ChangePhase(int index); // Change current index of phase array
-		}
+		case ChangePhase(int index); // Change current index of phase array
+	}
 
-		protected this() {}
+	public interface IRoutine
+	{
+		public bool Done { get; }
 
-		public abstract bool Done { get; }
+		public void Start();
+		public void Update();
+		public void Abort();
 	}
 
 	/// For convenience, you probably just want TData to be a tuple like (float amount, int iter, int end, Routine wait) or something
-	public class Routine<TData> : Routine where TData : struct
+	public class Routine<TData> : IRoutine where TData : struct
 	{
-		public delegate RoutineReturn RoutineStart(ref TData data);
 		public delegate RoutineReturn RoutineUpdate(ref TData data);
 		public delegate void RoutineEnd(ref TData data);
 
-		readonly RoutineStart StartPhase;
+		readonly RoutineUpdate StartPhase;
 		readonly RoutineUpdate[] UpdatePhases;
 		readonly RoutineEnd EndPhase;
 		readonly bool deleteDelegates;
@@ -40,11 +40,11 @@ namespace Pile
 		RoutineReturn lastReturn = .Break;
 		int phase = 0;
 
-		public override bool Done => lastReturn == .Break;
+		public bool Done => lastReturn == .Break;
 		public ref TData Data => ref data;
 
 		/// Single phase constructor
-		public this(RoutineStart startPhase, RoutineUpdate updatePhase, RoutineEnd endPhase = null, bool deletePhaseDelegates = true)
+		public this(RoutineUpdate startPhase, RoutineUpdate updatePhase, RoutineEnd endPhase = null, bool deletePhaseDelegates = true)
 		{
 			Debug.Assert(startPhase != null && updatePhase != null, "Routine delegates Start and Update can't be null");
 
@@ -55,7 +55,7 @@ namespace Pile
 		}
 
 		/// n-Phase contructor
-		public this(RoutineStart startPhase, RoutineEnd endPhase, bool deletePhaseDelegates, params RoutineUpdate[] _updatePhases)
+		public this(RoutineUpdate startPhase, RoutineEnd endPhase, bool deletePhaseDelegates, params RoutineUpdate[] _updatePhases)
 		{
 			Debug.Assert(startPhase != null && _updatePhases.Count > 0 && _updatePhases[0] != null, "Routine delegates Start and Update can't be null");
 
@@ -80,6 +80,8 @@ namespace Pile
 			}
 			else delete UpdatePhases;
 		}
+
+		public void Start() => Start(default);
 
 		public void Start(TData startData, int startPhase = 0)
 		{

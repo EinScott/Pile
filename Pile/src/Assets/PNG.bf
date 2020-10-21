@@ -302,7 +302,6 @@ namespace Pile
 		                    }
 		                    else
 		                    {
-								// THIS GOES WRONG
 		                        for (int x = 0; x < bpp; x++)
 		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + ((int)buffer[dest + x - lineLength] / 2));
@@ -327,7 +326,6 @@ namespace Pile
 		                    }
 		                    else
 		                    {
-								// THIS AS WELL
 		                        for (int x = 0, int c = Math.Min(bpp, lineLength); x < c; x++)
 		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - lineLength]);
