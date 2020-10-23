@@ -11,8 +11,6 @@ namespace Pile
 		public abstract Result<void> Load(StringView name, Span<uint8> data, JSONObject dataNode);
 		public abstract Result<uint8[]> Build(Span<uint8> data, out JSONObject dataNode);
 
-		public Assets Assets { get; internal set; }
-
 		internal Package package;
 		protected Result<void> SubmitAsset(StringView name, Object asset)
 		{

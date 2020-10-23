@@ -9,7 +9,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Packages
+	public static class Packages
 	{
 		// Represents the json data in the package import file
 		internal class PackageData
@@ -48,21 +48,17 @@ namespace Pile
 			}
 		}
 
-		Dictionary<String, Importer> importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndItems!(_);
-		List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
+		static Dictionary<String, Importer> importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndItems!(_);
+		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
 
-		String packagesPath ~ delete _;
+		static String packagesPath ~ delete _;
 
 		public delegate void PackageEvent(Package package);
-		public Event<PackageEvent> OnLoadPackage; // Called after a package was loaded
-		public Event<PackageEvent> OnUnloadPackage; // Called before a package was unloaded (assets not yet deleted)
+		public static Event<PackageEvent> OnLoadPackage; // Called after a package was loaded
+		public static Event<PackageEvent> OnUnloadPackage; // Called before a package was unloaded (assets not yet deleted)
 
-		readonly Assets Assets;
-
-		internal this(Assets assets)
+		internal static void Initialize()
 		{
-			Assets = assets;
-
 			packagesPath = new String();
 			Path.InternalCombine(packagesPath, Core.System.DataPath, "Packages");
 
@@ -70,13 +66,13 @@ namespace Pile
 				Directory.CreateDirectory(packagesPath);
 		}
 
-		internal ~this()
+		static ~this()
 		{
 			OnLoadPackage.Dispose();
 			OnUnloadPackage.Dispose();
 		}
 
-		public void RegisterImporter(StringView name, Importer importer)
+		public static void RegisterImporter(StringView name, Importer importer)
 		{
 			for (let s in importers.Keys)
 				if (s == name)
@@ -85,11 +81,10 @@ namespace Pile
 					return;
 				}
 
-			importer.Assets = Assets;
 			importers.Add(new String(name), importer);
 		}
 
-		public void UnregisterImporter(StringView name)
+		public static void UnregisterImporter(StringView name)
 		{
 			let res = importers.GetAndRemove(scope String(name));
 
@@ -103,7 +98,7 @@ namespace Pile
 			}
 		}
 
-		public Result<Package> LoadPackage(StringView packageName)
+		public static Result<Package> LoadPackage(StringView packageName)
 		{
 			for (int i = 0; i < loadedPackages.Count; i++)
 				if (loadedPackages[i].Name == packageName)
@@ -267,7 +262,7 @@ namespace Pile
 			return .Ok(package);
 		}
 
-		public Result<void> UnloadPackage(StringView packageName)
+		public static Result<void> UnloadPackage(StringView packageName)
 		{
 			Package package = null;
 			for (int i = 0; i < loadedPackages.Count; i++)
@@ -295,7 +290,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		public bool PackageLoaded(StringView packageName, out Package package)
+		public static bool PackageLoaded(StringView packageName, out Package package)
 		{
 			for (let p in loadedPackages)
 				if (p.Name == packageName)
@@ -308,7 +303,7 @@ namespace Pile
 			return false;
 		}
 
-		public Result<void> BuildPackage(StringView packagePath)
+		public static Result<void> BuildPackage(StringView packagePath)
 		{
 			let t = scope Stopwatch(true);
 			PackageData packageData = scope PackageData();

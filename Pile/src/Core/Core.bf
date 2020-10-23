@@ -13,7 +13,8 @@ using internal Pile;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  */
 
-// TODO before public: asset importers ((shader), font, png), font support/spritefonts/batcher font drawing, finish png writing
+// TODO before public: more default importers (aseprite, png), font support/spritefonts/batcher font drawing, finish png writing,
+//						>> make building/importing assets less weird somehow? << , possibly make template project
 // TODO: audio, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into bgfx graphics
 
 namespace Pile
@@ -27,9 +28,8 @@ namespace Pile
 
 		static void Delete()
 		{
-			// Shutdown engine
-			delete Packages;
-			delete Assets;
+			// Delete assets and textures while modules are still present
+			Assets.Shutdown();
 
 			delete Window;
 			delete Input;
@@ -39,11 +39,11 @@ namespace Pile
 			delete System;
 		}
 
-		static readonly Version Version = .(0, 2);
+		static readonly Version Version = .(0, 3);
 
 		static bool running;
 		static bool exiting;
-		static bool initialized;
+		internal static bool initialized;
 
 		public static String Title { get; private set; }
 
@@ -53,9 +53,6 @@ namespace Pile
 
 		public static Input Input { get; private set; }
 		public static Window Window { get; private set; }
-
-		public static Assets Assets { get; private set; }
-		public static Packages Packages { get; private set; }
 
 		static Game Game;
 
@@ -103,9 +100,8 @@ namespace Pile
 				Log.Message(scope String()..AppendF("Audio: {} {}.{}", Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
 			}
 
-			// Init engine
-			Assets = new Assets();
-			Packages = new Packages(Assets);
+			// Packages init
+			Packages.Initialize();
 
 			w.Stop();
 			Log.Message(scope String()..AppendF("Pile initialized (took {}ms)", w.Elapsed.Milliseconds));
