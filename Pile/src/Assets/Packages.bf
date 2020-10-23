@@ -450,22 +450,23 @@ namespace Pile
 						importDirs.Add(new String(dirPath));
 
 						String currImportPath;
-						let currSearchStr = scope String();
+						let searchPath = scope String();
 						let wildCardPath = scope String();
 						repeat // For each entry in import dirs
 						{
-							currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
-							currSearchStr..Append(currImportPath)..Append(Path.DirectorySeparatorChar)..Append('*');
+							let current = importDirs.Count - 1;
+							currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
 
-							wildCardPath..Append(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
+							searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append('*');
+							wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
 
 							bool match = false;
-							for (let entry in Directory.Enumerate(currSearchStr, .Files | .Directories))
+							for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
 							{
 								let dirFilePath = new String();
 								entry.GetFilePath(dirFilePath);
 
-								if (Path.WildcareCompare(dirFilePath, wildCardPath))
+								if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
 								{
 									match = true;
 
@@ -485,10 +486,8 @@ namespace Pile
 								Log.Warning(scope String("Couldn't find any matches for {1} in {2}")..Format(packagePath, wildCardPath, currImportPath));
 
 							// Tidy up
-							importDirs.PopBack();
+							importDirs.RemoveAtFast(current);
 							delete currImportPath;
-
-							wildCardPath.Clear();
 						}
 						while (importDirs.Count > 0);
 					}
