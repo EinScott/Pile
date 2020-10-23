@@ -61,7 +61,7 @@ namespace Pile
 
 		public bool Has(Type type, String name)
 		{
-			if (!type.IsObject || !type.IsNullable)
+			if (!type.IsObject || !type.HasDestructor)
 				return false;
 
 			if (!assets.ContainsKey(type))
@@ -75,7 +75,7 @@ namespace Pile
 
 		public bool Has(Type type)
 		{
-			if (!type.IsObject || !type.IsNullable)
+			if (!type.IsObject || !type.HasDestructor)
 				return false;
 
 			if (!assets.ContainsKey(type))
@@ -120,7 +120,7 @@ namespace Pile
 		*/
 		internal Result<void> AddAsset(Type type, String name, Object object)
 		{
-			if (!type.IsNullable)
+			if (!type.HasDestructor)
 				LogErrorReturn!("Only classes can be handled as assets");
 
 			if (!object.GetType().IsSubtypeOf(type))
