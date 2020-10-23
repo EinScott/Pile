@@ -147,13 +147,13 @@ namespace Pile
 		                LogErrorReturn!("Error reading PNG: Interlaced PNGs not implemented");
 
 		            if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16)
-		                LogErrorReturn!(scope String("Error reading PNG: {0}-bit depth not supported")..Format(depth));
+		                LogErrorReturn!(scope String()..AppendF("Error reading PNG: {}-bit depth not supported", depth));
 
 		            if (filter != 0)
-		                LogErrorReturn!(scope String("Error reading PNG: Filter {0} not supported")..Format(filter));
+		                LogErrorReturn!(scope String()..AppendF("Error reading PNG: Filter {} not supported", filter));
 
 		            if (compression != 0)
-		                LogErrorReturn!(scope String("Error reading PNG: Compression {} not supported")..Format(compression));
+		                LogErrorReturn!(scope String()..AppendF("Error reading PNG: Compression {} not supported", compression));
 		        }
 		        // PLTE Chunk (Indexed Palette)
 		        else if (Check("PLTE", fourbytes))
@@ -245,7 +245,7 @@ namespace Pile
 		            //deflateStream.Read(buffer);
 
 					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err(let err))
-						LogErrorReturn!(scope String("Error reading PNG: PNG iDAT decompression failed: {0}")..Format(err));
+						LogErrorReturn!(scope String()..AppendF("Error reading PNG: PNG iDAT decompression failed: {}", err));
 		        }
 
 		        // apply filter pass - this happens in-place

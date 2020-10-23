@@ -10,7 +10,7 @@ namespace Pile
 	public class Assets
 	{
 		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
-		List<Texture> atlas = new List<Texture>();
+		List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(atlas);;
 		Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
 
 		public int TextureCount => packer.SourceImageCount;
@@ -30,15 +30,13 @@ namespace Pile
 
 		internal ~this()
 		{
-			DeleteContainerAndItems!(atlas);
-
 			for (let dic in assets.Values)
 				DeleteDictionaryAndKeysAndItems!(dic);
 
 			delete assets;
 		}
 
-		public bool Has<T>(String name) where T : Object
+		public bool Has<T>(String name) where T : class
 		{
 			let type = typeof(T);
 
@@ -51,7 +49,7 @@ namespace Pile
 			return true;
 		}
 
-		public bool Has<T>() where T : Object
+		public bool Has<T>() where T : class
 		{
 			let type = typeof(T);
 
@@ -63,7 +61,7 @@ namespace Pile
 
 		public bool Has(Type type, String name)
 		{
-			if (!type.IsObject)
+			if (!type.IsObject || !type.IsNullable)
 				return false;
 
 			if (!assets.ContainsKey(type))
@@ -77,7 +75,7 @@ namespace Pile
 
 		public bool Has(Type type)
 		{
-			if (!type.IsObject)
+			if (!type.IsObject || !type.IsNullable)
 				return false;
 
 			if (!assets.ContainsKey(type))
@@ -86,7 +84,7 @@ namespace Pile
 			return true;
 		}
 
-		public T Get<T>(String name) where T : Object
+		public T Get<T>(String name) where T : class
  		{
 			 if (!Has<T>(name))
 				 return null;
@@ -102,7 +100,7 @@ namespace Pile
 			return assets.GetValue(type).Get().GetValue(name).Get();
 		}
 
-		public AssetEnumerator<T> Get<T>() where T : Object
+		public AssetEnumerator<T> Get<T>() where T : class
 		{
 			if (!Has<T>())
 				return AssetEnumerator<T>(null);
@@ -122,14 +120,17 @@ namespace Pile
 		*/
 		internal Result<void> AddAsset(Type type, String name, Object object)
 		{
+			if (!type.IsNullable)
+				LogErrorReturn!("Only classes can be handled as assets");
+
 			if (!object.GetType().IsSubtypeOf(type))
-				LogErrorReturn!(scope String("Couldn't add asset {0} of type {1}, because it is not assignable to given type {2}")..Format(name, object.GetType(), type));
+				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} of type {}, because it is not assignable to given type {}", name, object.GetType(), type));
 
 			if (!assets.ContainsKey(type))
 				assets.Add(type, new Dictionary<String, Object>());
 
 			else if (assets.GetValue(type).Get().ContainsKey(name))
-				LogErrorReturn!(scope String("Couldn't add asset {0} to dictionary for type {1}, because the name is already taken for this type")..Format(name, type));
+				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} to dictionary for type {}, because the name is already taken for this type", name, type));
 
 			assets.GetValue(type).Get().Add(name, object);
 
@@ -171,7 +172,7 @@ namespace Pile
 				assets.Add(type, new Dictionary<String, Object>());
 
 			else if (assets.GetValue(type).Get().ContainsKey(name))
-				LogErrorReturn!(scope String("Couldn't add asset {0} to dictionary for type {1}, because the name is already taken for this type")..Format(name, type));
+				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} to dictionary for type {}, because the name is already taken for this type", name, type));
 
 			let tex = new Subtexture();
 			assets.GetValue(type).Get().Add(name, tex); // Will be filled in on PackAndUpdate()

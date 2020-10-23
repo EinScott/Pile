@@ -64,7 +64,7 @@ namespace Pile
 			if (initialized) LogErrorReturn!("Core is already initialized");
 			if (system == null || graphics == null || audio == null) LogErrorReturn!("Core modules cannot be null");
 
-			Log.Message(scope String("Initializing Pile {0}.{1}")..Format(Version.Major, Version.Minor));
+			Log.Message(scope String()..AppendF("Initializing Pile {}.{}", Version.Major, Version.Minor));
 			var w = scope Stopwatch(true);
 			Title = title;
 			System = system;
@@ -76,13 +76,13 @@ namespace Pile
 				let s = scope String();
 				Environment.OSVersion.ToString(s);
 
-				Log.Message(scope String("Platform: {0} (Bfp {1})")..Format(s, Environment.OSVersion.Platform));
+				Log.Message(scope String()..AppendF("Platform: {} (Bfp {})", s, Environment.OSVersion.Platform));
 			}
 
 			// System init
 			{
 				System.Initialize();
-				Log.Message(scope String("System: {0}")..Format(System.ApiName));
+				Log.Message(scope String()..AppendF("System: {}", System.ApiName));
 				
 				Window = System.CreateWindow(windowWidth, windowHeight);
 				Input = System.CreateInput();
@@ -94,13 +94,13 @@ namespace Pile
 			// Graphics init
 			{
 				Graphics.Initialize();
-				Log.Message(scope String("Graphics: {0} {1}.{2} ({3})")..Format(Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
+				Log.Message(scope String()..AppendF("Graphics: {} {}.{} ({})", Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
 			}
 
 			// Audio init
 			{
 				Audio.Initialize();
-				Log.Message(scope String("Audio: {0} {1}.{2}")..Format(Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
+				Log.Message(scope String()..AppendF("Audio: {} {}.{}", Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
 			}
 
 			// Init engine
@@ -108,7 +108,7 @@ namespace Pile
 			Packages = new Packages(Assets);
 
 			w.Stop();
-			Log.Message(scope String("Pile initialized (took {0}ms)")..Format(w.Elapsed.Milliseconds));
+			Log.Message(scope String()..AppendF("Pile initialized (took {}ms)", w.Elapsed.Milliseconds));
 
 			initialized = true;
 			return .Ok;

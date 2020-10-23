@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class Asset<T> where T : Object
+	public class Asset<T> where T : class
 	{
 		readonly String name ~ delete _;
 		readonly Packages packages;

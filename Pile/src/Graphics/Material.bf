@@ -286,8 +286,8 @@ namespace Pile
 			Result<void> AssertParameters(UniformType expected, int index)
 			{
 				// Assure valid access
-				if (Uniform.Type != expected) LogErrorReturn!(scope String("Material Parameter {0} was expected to be of UniformType {1} instead of {2}")..Format(Uniform.Name, expected, Uniform.Type));
-				if (index < 0 && index >= Uniform.Length) LogErrorReturn!(scope String("The Size of Material Parameter {0} is {1}, but was trying to access index {2}")..Format(Uniform.Name, Uniform.Length, index));
+				if (Uniform.Type != expected) LogErrorReturn!(scope String()..AppendF("Material Parameter {} was expected to be of UniformType {} instead of {}", Uniform.Name, expected, Uniform.Type));
+				if (index < 0 && index >= Uniform.Length) LogErrorReturn!(scope String()..AppendF("The Size of Material Parameter {} is {}, but was trying to access index {}", Uniform.Name, Uniform.Length, index));
 
 				return .Ok;
 			}
