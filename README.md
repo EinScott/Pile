@@ -24,13 +24,43 @@ Pile depends on [JSON_Beef](https://github.com/Jonathan-Racaud/JSON_Beef).
 
 First, you need to override Game<T>. T should be the class itself. This is used for nothing but supplying a reference to the active game instance with the right type.
 
+Pile has its own entry point. While you can still have your own main function, and start pile like shown in Run(), it might be  more conveniant to use Pile's EntryPoint, especially when you are using Packages.
+To use it:
+- set your projects startup object (found in (right click on project) > Properties... > General/Beef > General/Startup Object) to "Pile.EntryPoint"
+- you have to make sure your game class is included at all, since it is never referenced by Pile, with [AlwaysInclude]
+- use the static constructor to tell Pile what to do on startup (See example below). Make sure to register all your Importers (if any) in there as well (todo, ref Assets & Packages wiki).
+
+To run Pile (in Run()), simply initialize it with implementations of all core modules. To do this, add implementation projects, like Pile_OpenGL, Pile_SDL2 and Pile_SoLoud to your dependencies and create the instances as follows. Finally, start Pile with your game instance.
+
 ```cs
 using Pile;
+using Pile.Implementations;
+using System;
 
 namespace ExampleGameProject
 {
+  [AlwaysInclude]
   public class ExampleGame : Game<ExampleGame>
   {
+    static this()
+    {
+      Packages.RegisterImporter("raw", new RawImporter());
+
+      // Register our function to be called on main
+      EntryPoint.GameMain = => Run;
+    }
+
+    static Result<void> Run()
+    {
+      // Start pile with an instance of our game
+      Core.Initialize("Example Game Window", new SDL_System(), new GL_Graphics(), new SL_Audio(), 1280, 720);
+			Core.Start(new Cavex());
+
+			return .Ok;
+    }
+
+    // ---
+
     public this() {}
 
     // This class contains some fundamental overridable methods which are called by Core.
@@ -54,29 +84,6 @@ namespace ExampleGameProject
 }
 ```
 
-To run Pile, simply initialize it with implementations of all core modules. To do this, add implementation projects, like Pile_OpenGL, Pile_SDL2 and Pile_SoLoud to your dependencies and create the instances as follows. Finally, start Pile with your game instance.
-
-```cs
-using Pile;
-using Pile.Implementations;
-
-namespace ExampleGameProject
-{
-  static
-  {
-    public static int Main(String[] args)
-    {
-      // Initializes Pile with the given core modules. Also opens the game window.
-      Core.Initialize("An Example Game", new SDL_System(), new GL_Graphics(), new SL_Audio(), 1280, 720);
-
-      // "Starts" your game. Will enter the core loop until closing is requested.
-			Core.Start(new ExampleGame());
-
-      return 0;
-    }
-  }
-}
-```
-
 ## Documentation
 I try to keep the code clean and commented where needed, but documentation will also follow at some point.
+See Sample_BeefProj.toml for reference on using Packages.

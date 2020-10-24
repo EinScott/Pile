@@ -303,7 +303,7 @@ namespace Pile
 			return false;
 		}
 
-		public static Result<void> BuildPackage(StringView packagePath)
+		public static Result<void> BuildPackage(StringView packagePath, StringView outputPath = packagesPath)
 		{
 			let t = scope Stopwatch(true);
 			PackageData packageData = scope PackageData();
@@ -678,7 +678,7 @@ namespace Pile
 				let outPath = scope String();
 				let packageName = scope String();
 				Path.GetFileNameWithoutExtension(scope String(packagePath), packageName);
-				Path.InternalCombine(outPath, packagesPath, packageName);
+				Path.InternalCombine(outPath, scope String(outputPath), packageName);
 				Path.ChangeExtension(scope String(outPath), ".bin", outPath);
 				let res = File.WriteAllBytes(outPath, file);
 				if (res case .Err)

@@ -11,6 +11,7 @@ using internal Pile;
  * PILE_LONG_LOG_RECORD - increases amount of output log lines Log remembers from 16 to 128
  * PILE_DISABLE_LOG_MESSAGES - adds [SkipCall] attribute to Log.Message functions
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
+ * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  */
 
 // TODO before public: more default importers (aseprite, png), font support/spritefonts/batcher font drawing, finish png writing,

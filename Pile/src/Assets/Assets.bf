@@ -14,6 +14,7 @@ namespace Pile
 		static Packer packer = new Packer() { combineDuplicates = true };
 		static List<Texture> atlas = new List<Texture>();
 		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
+		static bool shutdown = false;
 
 		public static int TextureCount => packer.SourceImageCount;
 		public static int AssetCount
@@ -29,6 +30,11 @@ namespace Pile
 		}
 
 		static this() {}
+		static ~this()
+		{
+			if (!shutdown)
+				Shutdown();
+		}
 
 		internal static void Shutdown()
 		{
@@ -39,6 +45,8 @@ namespace Pile
 				DeleteDictionaryAndKeysAndItems!(dic);
 
 			delete assets;
+
+			shutdown = true;
 		}
 
 		public static bool Has<T>(String name) where T : class
