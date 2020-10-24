@@ -14,8 +14,7 @@ using internal Pile;
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  */
 
-// TODO before public: more default importers (aseprite, png), font support/spritefonts/batcher font drawing, finish png writing,
-//						>> make building/importing assets less weird somehow? << , possibly make template project
+// TODO before public: more default importers (aseprite, png), font support/spritefonts/batcher font drawing, finish png writing
 // TODO: audio, support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into bgfx graphics
 
 namespace Pile
