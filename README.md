@@ -54,9 +54,9 @@ namespace ExampleGameProject
     {
       // Start pile with an instance of our game
       Core.Initialize("Example Game Window", new SDL_System(), new GL_Graphics(), new SL_Audio(), 1280, 720);
-			Core.Start(new Cavex());
+      Core.Start(new Cavex());
 
-			return .Ok;
+      return .Ok;
     }
 
     // ---
