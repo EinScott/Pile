@@ -140,7 +140,7 @@ namespace Pile
 
 				// Raw time
 				Time.RawDuration += diffTime;
-				Time.RawDelta = diffTime * TimeSpan.[Friend]SecondsPerTick;
+				Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
 
 				// Update engine
 				Graphics.Step();

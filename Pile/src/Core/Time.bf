@@ -74,13 +74,13 @@ namespace Pile
 		public static TimeSpan RawDuration { get; internal set; }
 		public static TimeSpan Duration { get; internal set; }
 
-		public static double RawDelta { get; internal set; }
-		public static double Delta { get; internal set; }
+		public static float RawDelta { get; internal set; }
+		public static float Delta { get; internal set; }
 
-		public static double Scale = 1;
+		public static float Scale = 1;
 
-		internal static double freeze = 0;
-		public static void Freeze(double time, bool add = true)
+		internal static float freeze = 0;
+		public static void Freeze(float time, bool add = true)
 		{
 			if (add) freeze += time;
 			else freeze = time;

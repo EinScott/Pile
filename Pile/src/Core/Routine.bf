@@ -9,8 +9,8 @@ namespace Pile
 		case Break; // Stop the routine and lastly call end if not null
 
 		case WaitCycles(int cycles); // Wait [cycles] update cycles
-		case WaitSeconds(double seconds); // Wait [seconds] seconds
-		case WaitRawSeconds(double seconds); // Wait [seconds] seconds, not affected by Time.Scale
+		case WaitSeconds(float seconds); // Wait [seconds] seconds
+		case WaitRawSeconds(float seconds); // Wait [seconds] seconds, not affected by Time.Scale
 		case WaitRoutine(IRoutine routine); // Wait until routine.Done == true
 
 		case ChangePhase(int index); // Change current index of phase array
