@@ -5,7 +5,10 @@ namespace Pile
 {
 	public abstract class System
 	{
+		public abstract uint32 MajorVersion { get; }
+		public abstract uint32 MinorVersion { get; }
 		public abstract String ApiName { get; }
+		public abstract String Info { get; }
 
 		internal ~this()
 		{

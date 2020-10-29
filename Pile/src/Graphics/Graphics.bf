@@ -6,12 +6,11 @@ namespace Pile
 {
 	public abstract class Graphics
 	{
-		// These must return valid things even BEFORE this is initialized
-		// so either static or constructor set
+		// version has to be set before initialize is called! (may be used by System.Initialize)
 		public abstract uint32 MajorVersion { get; }
 		public abstract uint32 MinorVersion { get; }
 		public abstract String ApiName { get; }
-		public abstract String DeviceName { get; }
+		public abstract String Info { get; }
 
 		public int32 MaxTextureSize { get; protected set; }
 		public bool OriginBottomLeft { get; protected set; }

@@ -6,13 +6,10 @@ namespace Pile.Implementations
 {
 	public class Null_Graphics : Graphics, IGraphicsOpenGL
 	{
-		public override uint32 MajorVersion => 0;
-
+		public override uint32 MajorVersion => 1;
 		public override uint32 MinorVersion => 0;
-
-		public override System.String ApiName => "Null Graphics";
-
-		public override System.String DeviceName => "Unknown";
+		public override String ApiName => "Null Graphics";
+		public override String Info => "";
 
 		public override DebugDrawMode DebugDraw
 		{

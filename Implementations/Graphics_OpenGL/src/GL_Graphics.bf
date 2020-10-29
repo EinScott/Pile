@@ -12,10 +12,10 @@ namespace Pile.Implementations
 					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;
 
 		public override String ApiName => "OpenGL Core";
-		String deviceName;
-		public override String DeviceName
+		String info = new String() ~ delete _;
+		public override String Info
 		{
-			get => deviceName;
+			get => info;
 		}
 		public IGraphicsOpenGL.GLProfile Profile => IGraphicsOpenGL.GLProfile.Core;
 		uint32 majorVersion, minorVersion;
@@ -64,8 +64,6 @@ namespace Pile.Implementations
 			delete deleteProgram;
 			delete deleteVertexArray;
 			delete deleteFrameBuffer;
-
-			delete deviceName;
 		}
 
 		internal override Result<void> Initialize()
@@ -85,8 +83,9 @@ namespace Pile.Implementations
 
 			if (glDebugMessageCallback != null) glDebugMessageCallback(=> DebugCallback, null); // This may be not be avaiable depending on the version
 
-			deviceName = new String(glGetString(GL_RENDERER));
+			info.AppendF("device: {}, vendor: {}", StringView(glGetString(GL_RENDERER)), StringView(glGetString(GL_VENDOR)));
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
+
 			OriginBottomLeft = true;
 
 			return .Ok;

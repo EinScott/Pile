@@ -60,7 +60,8 @@ namespace Pile
 		{
 			if (initialized) LogErrorReturn!("Core is already initialized");
 			if (system == null || graphics == null || audio == null) LogErrorReturn!("Core modules cannot be null");
-
+			
+			Console.WriteLine();
 			Log.Message(scope String()..AppendF("Initializing Pile {}.{}", Version.Major, Version.Minor));
 			var w = scope Stopwatch(true);
 			Title = title;
@@ -73,13 +74,13 @@ namespace Pile
 				let s = scope String();
 				Environment.OSVersion.ToString(s);
 
-				Log.Message(scope String()..AppendF("Platform: {} (Bfp {})", s, Environment.OSVersion.Platform));
+				Log.Message(scope String()..AppendF("Platform: {} (bfp: {})", s, Environment.OSVersion.Platform));
 			}
 
 			// System init
 			{
 				System.Initialize();
-				Log.Message(scope String()..AppendF("System: {}", System.ApiName));
+				Log.Message(scope String()..AppendF("System: {} {}.{} ({})", System.ApiName, System.MajorVersion, system.MinorVersion, system.Info));
 				
 				Window = System.CreateWindow(windowWidth, windowHeight);
 				Input = System.CreateInput();
@@ -91,13 +92,13 @@ namespace Pile
 			// Graphics init
 			{
 				Graphics.Initialize();
-				Log.Message(scope String()..AppendF("Graphics: {} {}.{} ({})", Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.DeviceName));
+				Log.Message(scope String()..AppendF("Graphics: {} {}.{} ({})", Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.Info));
 			}
 
 			// Audio init
 			{
 				Audio.Initialize();
-				Log.Message(scope String()..AppendF("Audio: {} {}.{}", Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion));
+				Log.Message(scope String()..AppendF("Audio: {} {}.{} ({})", Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion, Audio.Info));
 			}
 
 			// Packages init

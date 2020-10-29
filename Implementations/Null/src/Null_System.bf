@@ -6,7 +6,10 @@ namespace Pile.Implementations
 {
 	public class Null_System : System, ISystemOpenGL
 	{
+		public override uint32 MajorVersion => 1;
+		public override uint32 MinorVersion => 0;
 		public override String ApiName => "Null System";
+		public override String Info => "";
 
 		internal override Input CreateInput()
 		{

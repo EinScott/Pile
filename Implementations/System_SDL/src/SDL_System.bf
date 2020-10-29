@@ -8,7 +8,14 @@ namespace Pile.Implementations
 {
 	public class SDL_System : System, ISystemOpenGL
 	{
+		uint32 majVer;
+		uint32 minVer;
+		public override uint32 MajorVersion => majVer;
+		public override uint32 MinorVersion => minVer;
 		public override String ApiName => "SDL2";
+
+		String info = new String() ~ delete _;
+		public override String Info => info;
 
 		SDL_Window window; // Are both managed by Core
 		SDL_Input input;
@@ -52,6 +59,13 @@ namespace Pile.Implementations
 #endif
 
 			SDL_Init.Init();
+
+			// Version
+			SDL.GetVersion(let ver);
+			majVer = ver.major;
+			minVer = ver.minor;
+
+			info.AppendF("patch: {}", ver.patch);
 
 			if (Core.Graphics is IGraphicsOpenGL)
 			{

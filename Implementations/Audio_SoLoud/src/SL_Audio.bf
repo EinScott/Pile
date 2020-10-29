@@ -6,16 +6,18 @@ namespace Pile.Implementations
 {
 	public class SL_Audio : Audio
 	{
-		uint32 version;
-		public override uint32 MajorVersion => version;
+		uint32 majVer;
+		uint32 minVer;
+		public override uint32 MajorVersion => majVer;
+		public override uint32 MinorVersion => minVer;
+		public override String ApiName => "SoLoud";
 
-		public override uint32 MinorVersion => 0;
-
-		String api = new String("SoLoud ") ~ delete _;
-		public override String ApiName => api;
+		String info = new String() ~ delete _;
+		public override String Info => info;
+		
+		readonly Backend backend;
 
 		Soloud* slPtr;
-		Backend backend;
 
 		public this(Backend backend = .AUTO)
 		{
@@ -33,12 +35,19 @@ namespace Pile.Implementations
 			slPtr = Create();
 			Init(slPtr, .SOLOUD_CLIP_ROUNDOFF, backend, AUTO, AUTO, .TWO);
 
-			version = GetVersion(slPtr);
-			GetBackendId(slPtr).ToString(api);
+			// Version
+			let ver = GetVersion(slPtr);
+			majVer = (uint32)Math.Floor((float)ver / 100);
+			minVer = ver - (majVer * 100);
+
+			// Info
+			info.AppendF("backend: {} buffer size: {}, sample rate: {}", GetBackendId(slPtr), GetBackendBufferSize(slPtr), GetBackendSamplerate(slPtr));
 
 			// TODO: (impl) before delegating functionality to components, load manually here in full to see how it works
 			// try to play sound manually here ..
 			//SL_Openmpt.LoadMem()
+
+
 
 			return .Ok;
 		}
