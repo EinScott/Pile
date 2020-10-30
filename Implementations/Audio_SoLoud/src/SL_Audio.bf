@@ -18,6 +18,7 @@ namespace Pile.Implementations
 		readonly Backend backend;
 
 		Soloud* slPtr;
+		Wav* wav;
 
 		public this(Backend backend = .AUTO)
 		{
@@ -26,6 +27,8 @@ namespace Pile.Implementations
 
 		internal ~this()
 		{
+			SL_Wav.Destroy(wav);
+
 			Deinit(slPtr);
 			Destroy(slPtr);
 		}
@@ -47,6 +50,19 @@ namespace Pile.Implementations
 			// try to play sound manually here ..
 			//SL_Openmpt.LoadMem()
 
+			// How do we handle this with assets AND this? should soloud always copy??? mem of the music should probably be wrapped in Clip type
+			let s = scope String();
+			System.IO.Path.InternalCombine(s, Core.System.DataPath, "test.mp3");
+			let fileData = System.IO.File.ReadAllBytes(s).Get();
+
+			wav = SL_Wav.Create();
+			SL_Wav.LoadMem(wav, &fileData[0], (.)fileData.Count, true, true);
+
+			uint32 voice = SL_Soloud.Play(slPtr, wav);
+
+			SL_Soloud.SetLooping(slPtr, voice, true);
+
+			delete fileData;
 
 
 			return .Ok;
