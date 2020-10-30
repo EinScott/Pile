@@ -19,6 +19,7 @@ namespace Pile.Implementations
 
 		Soloud* slPtr;
 		Wav* wav;
+		FreeverbFilter* reverb;
 
 		public this(Backend backend = .AUTO)
 		{
@@ -28,6 +29,7 @@ namespace Pile.Implementations
 		internal ~this()
 		{
 			SL_Wav.Destroy(wav);
+			SL_FreeverbFilter.Destroy(reverb);
 
 			Deinit(slPtr);
 			Destroy(slPtr);
@@ -57,6 +59,12 @@ namespace Pile.Implementations
 
 			wav = SL_Wav.Create();
 			SL_Wav.LoadMem(wav, &fileData[0], (.)fileData.Count, true, true);
+
+			// filters should probably be applied to busses instead of sounds
+			reverb = SL_FreeverbFilter.Create();
+			SL_FreeverbFilter.SetParams(reverb, 0, 0.5f, 0.5f, 1);
+
+			SL_Wav.SetFilter(wav, 0, reverb);
 
 			uint32 voice = SL_Soloud.Play(slPtr, wav);
 
