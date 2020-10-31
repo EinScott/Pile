@@ -19,5 +19,10 @@ namespace Pile
 		// CreateSoundClip()
 
 		// Generic class for filters that can work for all?
+
+		// still need to do something that actually play sounds, so we avoid handing out handles
+		// ---- no, clips are played on channels, channel is internal bus, busses can lead into other busses??
+		// but so audiobus and audiochannel are the same. is that good?? idk
+		// should probably be seperated somehow?? one one hand it would be good to have one play sounds, and the other bunde these sources, on the other hand this creates more voices (but that should probably matter less??)
 	}
 }

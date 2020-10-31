@@ -5,7 +5,7 @@ This is still in active development. Major TODOs are in Core.bf, minor TODOs in 
 This is based on and partly a almost direct port of [Foster](https://github.com/NoelFB/Foster).
 
 ## What it does
-Pile handles window management, input, rendering and audio through a few core modules that can be implemented for each platform: System, Graphics, Audio.
+Pile handles window management, input, rendering and audio through a few abstract core modules that can be implemented for each platform: System, Graphics, Audio.
 Currently, there are SDL2 System, OpenGL 3.3+ Graphics and SoLoud Audio (WIP) modules. Custom implementations are possible.
 
 Apart from that, Pile can build asset packages to later load and unload at runtime. This is done by registering importers for each type of asset needed and then requesting certain assets to be built and later loaded by it. These are also very easily writable yourself.
@@ -14,7 +14,7 @@ Textures are merged into one big atlas. Currently this cannot be turned off, but
 There are also some useful structs, like Vector2&3, Point2&4 or Rect (of intagers) as well as some extensions to corelib classes, especially Math.
 
 ## Platforms
-Pile is currently Win64 only due to two factors:
+Pile is currently Win64 only due to two factors while in principal the design allows for cross platform support:
 
 - SDL2 and SoLoud are only compiled for Win64&32 currently. Contribution of compiled binaries and general testing for other platforms is welcome.
 - The OpenGL module crashes on Win32 and acts weired. Should investigate at some point. We probably need a few other Graphics modules for certain platforms.

@@ -571,7 +571,7 @@ namespace SoLoud
 		public static extern uint32 Play(Bus* bus, void* sound);
 
 		[LinkName("Bus_playEx")]
-		public static extern uint32 Play(Bus* bus, void* sound, float volume, float pan, int32 paused);
+		public static extern uint32 Play(Bus* bus, void* sound, float volume, float pan, bool paused); // @edit
 
 		[LinkName("Bus_playClocked")]
 		public static extern uint32 PlayClocked(Bus* bus, double soundTime, void* sound);
@@ -583,7 +583,7 @@ namespace SoLoud
 		public static extern uint32 Play3d(Bus* bus, void* sound, float posX, float posY, float posZ);
 
 		[LinkName("Bus_play3dEx")]
-		public static extern uint32 Play3d(Bus* bus, void* sound, float posX, float posY, float posZ, float velX, float velY, float velZ, float volume, int32 paused);
+		public static extern uint32 Play3d(Bus* bus, void* sound, float posX, float posY, float posZ, float velX, float velY, float velZ, float volume, bool paused); // @edit
 
 		[LinkName("Bus_play3dClocked")]
 		public static extern uint32 Play3dClocked(Bus* bus, double soundTime, void* sound, float posX, float posY, float posZ);
@@ -595,7 +595,7 @@ namespace SoLoud
 		public static extern SoLoudResult SetChannels(Bus* bus, uint32 channels);
 
 		[LinkName("Bus_setVisualizationEnable")]
-		public static extern void SetVisualizationEnable(Bus* bus, int32 enable);
+		public static extern void SetVisualizationEnable(Bus* bus, bool enable); // @edit
 
 		[LinkName("Bus_annexSound")]
 		public static extern void AnnexSound(Bus* bus, uint32 voiceHandle);
@@ -622,10 +622,10 @@ namespace SoLoud
 		public static extern void SetVolume(Bus* bus, float volume);
 
 		[LinkName("Bus_setLooping")]
-		public static extern void SetLooping(Bus* bus, int32 loop);
+		public static extern void SetLooping(Bus* bus, bool loop); // @edit
 
 		[LinkName("Bus_setAutoStop")]
-		public static extern void SetAutoStop(Bus* bus, int32 autoStop);
+		public static extern void SetAutoStop(Bus* bus, bool autoStop); // @edit
 
 		[LinkName("Bus_set3dMinMaxDistance")]
 		public static extern void Set3dMinMaxDistance(Bus* bus, float minDistance, float maxDistance);
@@ -652,7 +652,7 @@ namespace SoLoud
 		public static extern void Set3dAttenuator(Bus* bus, void* attenuator);
 
 		[LinkName("Bus_setInaudibleBehavior")]
-		public static extern void SetInaudibleBehavior(Bus* bus, int32 mustTick, int32 kill);
+		public static extern void SetInaudibleBehavior(Bus* bus, bool mustTick, bool kill); // @edit
 
 		[LinkName("Bus_setLoopPoint")]
 		public static extern void SetLoopPoint(Bus* bus, double loopPoint);
