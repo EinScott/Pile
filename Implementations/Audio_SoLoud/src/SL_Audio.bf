@@ -2,6 +2,8 @@ using System;
 using SoLoud;
 using static SoLoud.SL_Soloud;
 
+using internal Pile;
+
 namespace Pile.Implementations
 {
 	public class SL_Audio : Audio
@@ -52,7 +54,7 @@ namespace Pile.Implementations
 		{
 			slPtr = Create();
 			Init(slPtr, .SOLOUD_CLIP_ROUNDOFF, Backend, AUTO, AUTO, .TWO);
-			if (MaxVoiceCount != 16) SL_Soloud.SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
+			SL_Soloud.SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
 
 			// Version
 			let ver = GetVersion(slPtr);
@@ -77,7 +79,7 @@ namespace Pile.Implementations
 			// AudioChannel is bus and plays sounds??
 			bus = SL_Bus.Create();
 			SL_Bus.SetVolume(bus, 0.7f);
-			SL_Bus.SetVisualizationEnable(bus, true);
+			SL_Bus.SetVisualizationEnable(bus, true); // enable this on master as some kind of debug option like in graphics??
 			/*uint32 busHandle =*/ SL_Soloud.Play(slPtr, bus);
 
 			// filters should probably be applied to busses instead of sounds
@@ -95,5 +97,9 @@ namespace Pile.Implementations
 
 			return .Ok;
 		}
+
+		internal override AudioSource.Platform CreateAudioSource() => new SL_AudioSource();
+		internal override AudioClip.Platform CreateAudioClip() => new SL_AudioClip();
+		internal override MixingBus.Platform CreateMixingBus() => new SL_MixingBus();
 	}
 }

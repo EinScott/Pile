@@ -419,25 +419,13 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
-		{
-			return new GL_Texture(this);
-		}
+		internal override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format) => new GL_Texture(this);
 
-		internal override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
-		{
-			return new GL_FrameBuffer(this, width, height, attachments);
-		}
+		internal override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments) => new GL_FrameBuffer(this, width, height, attachments);
 		
-		internal override Mesh.Platform CreateMesh()
-		{
-			return new GL_Mesh(this);
-		}
+		internal override Mesh.Platform CreateMesh() => new GL_Mesh(this);
 
-		internal override Shader.Platform CreateShader(ShaderData source)
-		{
-			return new GL_Shader(this, source);
-		}
+		internal override Shader.Platform CreateShader(ShaderData source) => new GL_Shader(this, source);
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)
 		{

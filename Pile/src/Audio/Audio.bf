@@ -1,5 +1,7 @@
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	public abstract class Audio
@@ -9,20 +11,22 @@ namespace Pile
 		public abstract String ApiName { get; }
 		public abstract String Info { get; }
 
+		// insert main mixingBus here
+
 		internal ~this() {}
 
 		internal abstract Result<void> Initialize();
 
+		internal abstract AudioSource.Platform CreateAudioSource();
+		internal abstract AudioClip.Platform CreateAudioClip();
+		internal abstract MixingBus.Platform CreateMixingBus();
+
+
 		// handle mixing?? - well.. central internal stuff, dont know if this is going to happen here yet
 
-		// CreateSpeaker() - dunno about this naming, but i think its better than prepending 'audio' to some generic word
-		// CreateSoundClip()
+		// Generic class for filters that can work for all? -- yeah should probably do something like that
+		// question is, how does the implementation acutally hook filters up to that interface?
 
-		// Generic class for filters that can work for all?
-
-		// still need to do something that actually play sounds, so we avoid handing out handles
-		// ---- no, clips are played on channels, channel is internal bus, busses can lead into other busses??
-		// but so audiobus and audiochannel are the same. is that good?? idk
-		// should probably be seperated somehow?? one one hand it would be good to have one play sounds, and the other bunde these sources, on the other hand this creates more voices (but that should probably matter less??)
+		// dont hand out handles
 	}
 }

@@ -1,9 +1,21 @@
+using System;
+using internal Pile;
+
 namespace Pile
 {
 	public class AudioClip
 	{
-		// represents audio data
+		internal abstract class Platform
+		{
+			public abstract void Initialize(Span<uint8> data);
+		}
 
-		// equivalent to solouds audioSource
+		internal readonly Platform platform ~ delete _;
+
+		public this(Span<uint8> data)
+		{
+			platform = Core.Audio.CreateAudioClip();
+			platform.Initialize(data);
+		}
 	}
 }
