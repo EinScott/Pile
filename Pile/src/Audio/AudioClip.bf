@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -15,7 +16,7 @@ namespace Pile
 
 		public this(Span<uint8> data)
 		{
-			AssertInit();
+			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependant objects");
 
 			platform = Core.Audio.CreateAudioClip();
 			platform.Initialize(data);

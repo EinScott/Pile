@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using SoLoud;
+
 using internal Pile;
 
 namespace Pile.Implementations
@@ -6,17 +9,38 @@ namespace Pile.Implementations
 	{
 		public override bool IsMasterBus => false;
 
-		internal this() {}
+		readonly SL_Audio audio;
 
-		public override void Initialize(MixingBus bus)
+		internal uint32 busHandle; // external only. Is set when this is played on SoLoud or another Bus, used again when removing
+		internal Bus* bus;
+
+		MixingBus api;
+
+		internal this()
 		{
+			audio = Core.Audio as SL_Audio;
 
+			bus = SL_Bus.Create();
+
+			Debug.Assert(bus != null, "Failed to create SL_MixingBus (Bus)");
+		}
+
+		public ~this()
+		{
+			SL_Bus.Destroy(bus);
+		}
+
+		public override void Initialize(MixingBus _bus)
+		{
+			api = _bus;
 		}
 
 		public override void SetVolume(float volume)
 		{
-
+			SL_Bus.SetVolume(bus, volume);
 		}
+
+		// Keep track of these classes in two lists (well need to reset handles later maybe)
 
 		public override void AddBus(MixingBus bus)
 		{
@@ -36,6 +60,13 @@ namespace Pile.Implementations
 		public override void RemoveSource(AudioSource source)
 		{
 
+		}
+
+		public override void RedirectInputsToMaster()
+		{
+			// Stop voices on this
+
+			// Reset handle (and play) on master
 		}
 	}
 }

@@ -53,7 +53,7 @@ namespace Pile
 
 		public this(int32 width, int32 height, TextureFormat format = .Color)
 		{
-			AssertInit();
+			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependant objects");
 
 			Debug.Assert(width > 0 || height > 0, "Texture size must be larger than 0");
 

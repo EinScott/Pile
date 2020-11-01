@@ -1,3 +1,6 @@
+using SoLoud;
+using System.Diagnostics;
+
 using internal Pile;
 
 namespace Pile.Implementations
@@ -6,21 +9,80 @@ namespace Pile.Implementations
 	{
 		// slightly confusingly, Pile.AudioSource doesnt correspond to a SoLoud AudioSource, but rather something like a Voice playing interface
 
-		// look into virtual voices and probably use those (unless prioritized, then you can just create normal protected voices)
-		// keep a list of current voices to update when changing properties (we generally dont configure the Wav, but the handle we create(d))
+		readonly SL_Audio audio;
 
-		bool Prioritized;
+		internal uint32 busHandle; // external only. Is set when this is played on SoLoud or another Bus, used again when removing
+		internal Bus* bus;
+		uint32 group;
 
-		internal this() {}
+		AudioSource api;
+		bool prioritized;
+
+		public override bool Playing => SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group);
+
+		internal this()
+		{
+			audio = Core.Audio as SL_Audio;
+
+			bus = SL_Bus.Create();
+			SL_Bus.SetInaudibleBehavior(bus, true, false);
+			group = SL_Soloud.CreateVoiceGroup(audio.slPtr);
+
+			Debug.Assert(bus != null && group != 0, "Failed to create SL_AudioSource (Bus or VoiceGroup)");
+		}
+
+		public ~this()
+		{
+			if (api.StopOnDelete || api.Paused)
+				SL_Soloud.Stop(audio.slPtr, group);
+			else SetLooping(false); // Since we are throwing our handles into the void, lets make sure the sounds end eventually
+
+			SL_Soloud.DestroyVoiceGroup(audio.slPtr, group);
+			SL_Bus.Destroy(bus);
+		}
 
 		public override void Initialize(AudioSource source)
 		{
-			Prioritized = source.Prioritized;
+			prioritized = source.Prioritized;
+
+			this.api = source;
 		}
 
 		public override void Play(AudioClip clip)
 		{
+			let platform = clip.platform as SL_AudioClip;
+			let handle = SL_Bus.Play(bus, platform.audio);
 
+			SL_Soloud.SetInaudibleBehavior(audio.slPtr, handle, true, api.StopInaudible);
+			if (api.Prioritized) SL_Soloud.SetProtectVoice(audio.slPtr, handle, true);
+
+			// Add to group
+			SL_Soloud.AddVoiceToGroup(audio.slPtr, group, handle);
+		}
+
+		public override void SetVolume(float volume)
+		{
+			SL_Bus.SetVolume(bus, volume);
+		}
+
+		public override void SetPan(float pan)
+		{
+			SL_Soloud.SetPan(audio.slPtr, group, pan);
+		}
+
+		public override void SetSpeed(float speed)
+		{
+			SL_Soloud.SetRelativePlaySpeed(audio.slPtr, group, speed);
+		}
+
+		public override void SetLooping(bool looping)
+		{
+			SL_Soloud.SetLooping(audio.slPtr, group, looping);
+		}
+
+		public override void SetPaused(bool paused)
+		{
+			SL_Soloud.SetPause(audio.slPtr, group, paused);
 		}
 	}
 }

@@ -8,6 +8,8 @@ namespace Pile.Implementations
 {
 	public class SL_Audio : Audio
 	{
+		// TODO: support things like queue, maybe voice and other sources
+
 		uint32 majVer;
 		uint32 minVer;
 		public override uint32 MajorVersion => majVer;
@@ -24,7 +26,7 @@ namespace Pile.Implementations
 		readonly Backend Backend;
 		readonly uint32 MaxVoiceCount;
 
-		Soloud* slPtr;
+		internal Soloud* slPtr;
 		Wav* wav;
 		Bus* bus;
 		FreeverbFilter* reverb;
@@ -102,6 +104,12 @@ namespace Pile.Implementations
 
 			delete fileData;
 
+			/**
+
+			soloud.getActiveVoiceCount();
+			soloud.getVoiceCount();
+
+			*/
 
 			return .Ok;
 		}

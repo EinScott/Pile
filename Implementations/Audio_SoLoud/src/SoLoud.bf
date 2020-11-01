@@ -274,7 +274,7 @@ namespace SoLoud
 		public static extern SoLoudResult SetMaxActiveVoiceCount(Soloud* soloud, uint32 voiceCount);
 
 		[LinkName("Soloud_setInaudibleBehavior")]
-		public static extern void SetInaudibleBehavior(Soloud* soloud, uint32 voiceHandle, int32 mustTick, bool kill); // @edit
+		public static extern void SetInaudibleBehavior(Soloud* soloud, uint32 voiceHandle, bool mustTick, bool kill); // @edit
 
 		[LinkName("Soloud_setGlobalVolume")]
 		public static extern void SetGlobalVolume(Soloud* soloud, float volume);
@@ -379,7 +379,7 @@ namespace SoLoud
 		public static extern SoLoudResult IsVoiceGroup(Soloud* soloud, uint32 voiceGroupHandle);
 
 		[LinkName("Soloud_isVoiceGroupEmpty")]
-		public static extern SoLoudResult IsVoiceGroupEmpty(Soloud* soloud, uint32 voiceGroupHandle);
+		public static extern bool IsVoiceGroupEmpty(Soloud* soloud, uint32 voiceGroupHandle);
 
 		[LinkName("Soloud_update3dAudio")]
 		public static extern void Update3dAudio(Soloud* soloud);

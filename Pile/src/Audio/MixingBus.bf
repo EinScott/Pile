@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -20,27 +21,20 @@ namespace Pile
 			// Called from AudioSource
 			public abstract void AddSource(AudioSource source);
 			public abstract void RemoveSource(AudioSource source);
+
+			// When this is deleted, things feeding into this bus need to be redirected
+			public abstract void RedirectInputsToMaster();
+
+			// TODO: Filterstuff
 		}
 
 		internal readonly Platform platform ~ delete _;
-
 		internal MixingBus output;
-		internal float volume;
 
-		/// Returns null only on Audio.MasterBus, otherwise any bus or Audio.MasterBus
-		public MixingBus Output
-		{
-			get => output;
-			set
-			{
-				if (value != null && value == output || platform.IsMasterBus) return;
+		float volume;
 
-				if (output != null) output.platform.RemoveBus(this);
-				output = value;
-				if (output != null) output.platform.AddBus(this);
-				else Core.Audio.MasterBus.platform.AddBus(this);
-			}
-		}
+		/// Returns Audio.MasterBus by default. Won't be null
+		public MixingBus Output => output;
 
 		public float Volume
 		{
@@ -54,15 +48,27 @@ namespace Pile
 			}
 		}
 
-		public this()
+		public this(MixingBus output = null)
 		{
-			AssertInit();
+			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependant objects");
 
 			platform = Core.Audio.CreateMixingBus();
 			platform.Initialize(this);
-			Output = null; // Default output bus
+
+			if (!platform.IsMasterBus)
+			{
+				this.output = output??Core.Audio.MasterBus;
+				Output.platform.AddBus(this);
+			}
 		}
 
-		// TODO: Filterstuff
+		public ~this()
+		{
+			if (!platform.IsMasterBus)
+			{
+				Output.platform.RemoveBus(this);
+				platform.RedirectInputsToMaster();
+			}
+		}
 	}
 }

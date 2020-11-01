@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -20,7 +21,7 @@ namespace Pile
 
 		public this()
 		{
-			AssertInit();
+			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependant objects");
 
 			platform = Core.Graphics.CreateMesh();
 		}
