@@ -1,5 +1,6 @@
 using System.Collections;
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -25,8 +26,10 @@ namespace Pile
 
 		public this(int32 width, int32 height, params TextureFormat[] attachments)
 		{
-			Runtime.Assert(width > 0 || height > 0, "FrameBuffer size must be larger than 0");
-			Runtime.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");
+			AssertInit();
+
+			Debug.Assert(width > 0 || height > 0, "FrameBuffer size must be larger than 0");
+			Debug.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");
 			renderSize = Point2(width, height);
 			
 			platform = Core.Graphics.CreateFrameBuffer(width, height, attachments);

@@ -20,6 +20,8 @@ namespace Pile
 
 		public this()
 		{
+			AssertInit();
+
 			platform = Core.Graphics.CreateMesh();
 		}
 

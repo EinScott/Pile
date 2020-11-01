@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -52,7 +53,9 @@ namespace Pile
 
 		public this(int32 width, int32 height, TextureFormat format = .Color)
 		{
-			Runtime.Assert(width > 0 || height > 0, "Texture size must be larger than 0");
+			AssertInit();
+
+			Debug.Assert(width > 0 || height > 0, "Texture size must be larger than 0");
 
 			Width = width;
 			Height = height;

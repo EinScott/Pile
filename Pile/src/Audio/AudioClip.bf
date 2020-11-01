@@ -1,4 +1,5 @@
 using System;
+
 using internal Pile;
 
 namespace Pile
@@ -14,6 +15,8 @@ namespace Pile
 
 		public this(Span<uint8> data)
 		{
+			AssertInit();
+
 			platform = Core.Audio.CreateAudioClip();
 			platform.Initialize(data);
 		}

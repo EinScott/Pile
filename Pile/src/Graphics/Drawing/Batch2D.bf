@@ -135,7 +135,7 @@ namespace Pile
 			pass = RenderPass(target, Mesh, DefaultMaterial);
 			pass.viewport = viewport;
 
-			Runtime.Assert(matrixStack.Count <= 0, "Batch.MatrixStack Pushes more than it Pops");
+			Debug.Assert(matrixStack.Count <= 0, "Batch.MatrixStack Pushes more than it Pops");
 
 			if (batches.Count > 0 || currentBatch.elements > 0)
 			{

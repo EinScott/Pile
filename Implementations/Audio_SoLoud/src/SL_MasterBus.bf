@@ -1,10 +1,11 @@
 using internal Pile;
+using SoLoud;
 
 namespace Pile.Implementations
 {
-	public class SL_MixingBus : MixingBus.Platform
+	public class SL_MasterBus : MixingBus.Platform
 	{
-		public override bool IsMasterBus => false;
+		public override bool IsMasterBus => true;
 
 		internal this() {}
 

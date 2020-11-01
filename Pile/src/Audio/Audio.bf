@@ -11,7 +11,7 @@ namespace Pile
 		public abstract String ApiName { get; }
 		public abstract String Info { get; }
 
-		// insert main mixingBus here
+		public abstract MixingBus MasterBus { get; }
 
 		internal ~this() {}
 

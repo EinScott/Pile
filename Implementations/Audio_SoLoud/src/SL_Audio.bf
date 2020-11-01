@@ -16,7 +16,11 @@ namespace Pile.Implementations
 
 		String info = new String() ~ delete _;
 		public override String Info => info;
-		
+
+		bool retMaster = true;
+		MixingBus master ~ delete _;
+		public override MixingBus MasterBus => master;
+
 		readonly Backend Backend;
 		readonly uint32 MaxVoiceCount;
 
@@ -52,6 +56,10 @@ namespace Pile.Implementations
 
 		internal override Result<void> Initialize()
 		{
+			// Create master bus (cant do earlier since we need to have Core.Auio assigned)
+			master = new MixingBus(); // Will get special MixingBus.Platform, because retMaster == true
+			retMaster = false;
+
 			slPtr = Create();
 			Init(slPtr, .SOLOUD_CLIP_ROUNDOFF, Backend, AUTO, AUTO, .TWO);
 			SL_Soloud.SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
@@ -100,6 +108,6 @@ namespace Pile.Implementations
 
 		internal override AudioSource.Platform CreateAudioSource() => new SL_AudioSource();
 		internal override AudioClip.Platform CreateAudioClip() => new SL_AudioClip();
-		internal override MixingBus.Platform CreateMixingBus() => new SL_MixingBus();
+		internal override MixingBus.Platform CreateMixingBus() => !retMaster ? new SL_MixingBus() : new SL_MasterBus();
 	}
 }

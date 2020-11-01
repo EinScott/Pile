@@ -21,6 +21,8 @@ namespace Pile
 
 		public this(ShaderData source)
 		{
+			AssertInit();
+
 			platform = Core.Graphics.CreateShader(source);
 
 			Attributes = platform.Attributes;

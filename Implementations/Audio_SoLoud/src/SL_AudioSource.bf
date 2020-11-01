@@ -13,9 +13,9 @@ namespace Pile.Implementations
 
 		internal this() {}
 
-		public override void Initialize(bool prioritized)
+		public override void Initialize(AudioSource source)
 		{
-			Prioritized = prioritized;
+			Prioritized = source.Prioritized;
 		}
 
 		public override void Play(AudioClip clip)
