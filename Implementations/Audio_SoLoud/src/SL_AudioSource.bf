@@ -18,7 +18,7 @@ namespace Pile.Implementations
 		AudioSource api;
 		bool prioritized;
 
-		public override bool Playing => SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group);
+		public override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group) && !api.Paused;
 
 		internal this()
 		{
@@ -90,7 +90,6 @@ namespace Pile.Implementations
 
 		public override void SetPaused(bool paused)
 		{
-			Log.Message(paused);
 			SL_Soloud.SetPause(audio.slPtr, group, paused);
 		}
 	}
