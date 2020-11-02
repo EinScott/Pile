@@ -27,9 +27,6 @@ namespace Pile.Implementations
 		readonly uint32 MaxVoiceCount;
 
 		internal Soloud* slPtr;
-		Wav* wav;
-		Bus* bus;
-		FreeverbFilter* reverb;
 
 		public this(uint32 maxVoiceCount = 16, Backend backend = .AUTO)
 		{
@@ -39,22 +36,9 @@ namespace Pile.Implementations
 
 		internal ~this()
 		{
-			SL_Wav.Destroy(wav);
-			SL_Bus.Destroy(bus);
-			SL_FreeverbFilter.Destroy(reverb);
-
 			Deinit(slPtr);
 			Destroy(slPtr);
 		}
-
-		// temp
-		public void Draw(Batch2D batch)
-		{
-			float* arr = SL_Bus.CalcFFT(bus);
-			for (int i = 0; i < 256; i++)
-				batch.Line(Vector2(i * 2 + 20, 128), Vector2(i * 2 + 20, 128 - arr[i] * 1), 1, Color.White);
-		}
-		// --
 
 		internal override Result<void> Initialize()
 		{
@@ -72,14 +56,13 @@ namespace Pile.Implementations
 			minVer = ver - (majVer * 100);
 
 			// Info
-			info.AppendF("backend: {}, buffer size: {}, sample rate: {}", GetBackendId(slPtr), GetBackendBufferSize(slPtr), GetBackendSamplerate(slPtr));
+			info.AppendF("backend: {}, buffer size: {}", GetBackendId(slPtr), GetBackendBufferSize(slPtr));
 
-			// TODO: (impl) before delegating functionality to components, load manually here in full to see how it works
 			// try to play sound manually here ..
 			//SL_Openmpt.LoadMem()
 
 			// How do we handle this with assets AND this? should soloud always copy??? mem of the music should probably be wrapped in Clip type
-			let s = scope String();
+			/*let s = scope String();
 			System.IO.Path.InternalCombine(s, Core.System.DataPath, "test.mp3");
 			let fileData = System.IO.File.ReadAllBytes(s).Get();
 
@@ -102,9 +85,12 @@ namespace Pile.Implementations
 
 			SL_Soloud.SetLooping(slPtr, audioHandle, true);
 
-			delete fileData;
+			delete fileData;*/
 
 			/**
+
+			SL_Bus.SetVisualizationEnable(bus, true);
+			SL_Bus.Cal...
 
 			soloud.getActiveVoiceCount();
 			soloud.getVoiceCount();

@@ -51,10 +51,18 @@ namespace Pile.Implementations
 		public override void Play(AudioClip clip)
 		{
 			let platform = clip.platform as SL_AudioClip;
-			let handle = SL_Bus.Play(bus, platform.audio);
+			let handle = SL_Bus.Play(bus, platform.audio, 1, api.Pan, true);
 
+			// Apply source config
 			SL_Soloud.SetInaudibleBehavior(audio.slPtr, handle, true, api.StopInaudible);
 			if (api.Prioritized) SL_Soloud.SetProtectVoice(audio.slPtr, handle, true);
+
+			// Set current parameters
+			SL_Soloud.SetRelativePlaySpeed(audio.slPtr, handle, api.Speed);
+			SL_Soloud.SetLooping(audio.slPtr, handle, api.Looping);
+
+			// Play sound if not paused
+			if (!api.Paused) SL_Soloud.SetPause(audio.slPtr, handle, false);
 
 			// Add to group
 			SL_Soloud.AddVoiceToGroup(audio.slPtr, group, handle);
@@ -82,6 +90,7 @@ namespace Pile.Implementations
 
 		public override void SetPaused(bool paused)
 		{
+			Log.Message(paused);
 			SL_Soloud.SetPause(audio.slPtr, group, paused);
 		}
 	}

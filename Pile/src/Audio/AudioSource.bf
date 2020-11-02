@@ -129,6 +129,8 @@ namespace Pile
 		public void Play(AudioClip clip)
 		{
 			Debug.Assert(clip != null, "AudioClip was null");
+
+			platform.Play(clip);
 		}
 	}
 }
