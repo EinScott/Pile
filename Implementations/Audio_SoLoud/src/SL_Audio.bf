@@ -8,7 +8,7 @@ namespace Pile.Implementations
 {
 	public class SL_Audio : Audio
 	{
-		// TODO: support things like queue, maybe voice and other sources
+		// TODO: support things like queue, maybe voice and other sources [also 3d, filters and faders, see to.dos elsewhere]
 
 		uint32 majVer;
 		uint32 minVer;
@@ -47,7 +47,7 @@ namespace Pile.Implementations
 			retMaster = false;
 
 			slPtr = Create();
-			Init(slPtr, .SOLOUD_CLIP_ROUNDOFF, Backend, AUTO, AUTO, .TWO);
+			Init(slPtr, .CLIP_ROUNDOFF, Backend, AUTO, AUTO, .TWO);
 			SL_Soloud.SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
 
 			// Version

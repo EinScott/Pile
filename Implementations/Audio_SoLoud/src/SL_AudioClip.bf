@@ -27,7 +27,7 @@ namespace Pile.Implementations
 
 		public override void Initialize(Span<uint8> data)
 		{
-			SL_Wav.LoadMem(audio, data.Ptr, (.)data.Length, true, true);
+			SL_Wav.LoadMem(audio, data.Ptr, (.)data.Length, SL_TRUE, SL_TRUE);
 		}
 	}
 }

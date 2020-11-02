@@ -51,6 +51,26 @@ namespace SoLoud
 		BOOL = 2
 	}
 
+	public enum Resampler : uint32
+	{
+		POINT = 0,
+		LINEAR = 1,
+		CATMULLROM = 2
+	}
+	
+	public enum Waveform : int32
+	{
+		SQUARE = 0,
+		SAW = 1,
+		SIN = 2,
+		TRIANGLE = 3,
+		BOUNCE = 4,
+		JAWS = 5,
+		HUMPS = 6,
+		FSQUARE = 7,
+		FSAW = 8
+	}
+
 	static
 	{
 		public static bool ResultIsError(SoLoudResult check, out SoLoudResult res)
@@ -60,6 +80,9 @@ namespace SoLoud
 
 			return true;
 		}
+
+		public const int32 SL_TRUE = 1;
+		public const int32 SL_FALSE = 0;
 	}
 
 	public static class SL_Soloud
@@ -83,15 +106,14 @@ namespace SoLoud
 			MINIAUDIO = 14,
 			NOSOUND = 15,
 			NULLDRIVER = 16
-			//BACKEND_MAX = 17 // This is not actually a valid value
 		}
 
 		public enum Flags : uint32
 		{
-			SOLOUD_CLIP_ROUNDOFF = 1,
-			SOLOUD_ENABLE_VISUALIZATION = 2,
-			SOLOUD_LEFT_HANDED_3D = 4,
-			SOLOUD_NO_FPU_REGISTER_CHANGE = 8
+			CLIP_ROUNDOFF = 1,
+			ENABLE_VISUALIZATION = 2,
+			LEFT_HANDED_3D = 4,
+			NO_FPU_REGISTER_CHANGE = 8
 		}
 
 		public enum Channels : uint32
@@ -103,6 +125,8 @@ namespace SoLoud
 			EIGHT = 8
 		}
 
+		
+		public const uint32 BACKEND_MAX = 17;
 		public const uint32 AUTO = 0;
 
 		[LinkName("Soloud_destroy")]
@@ -115,7 +139,7 @@ namespace SoLoud
 		public static extern SoLoudResult Init(Soloud* soloud);
 
 		[LinkName("Soloud_initEx")]
-		public static extern SoLoudResult Init(Soloud* soloud, Flags flags = .SOLOUD_CLIP_ROUNDOFF, Backend backend = .AUTO, uint32 samplerate = AUTO, uint32 bufferSize = AUTO, Channels channels = .TWO);
+		public static extern SoLoudResult Init(Soloud* soloud, Flags flags = .CLIP_ROUNDOFF, Backend backend = .AUTO, uint32 samplerate = AUTO, uint32 bufferSize = AUTO, Channels channels = .TWO);
 
 		[LinkName("Soloud_deinit")]
 		public static extern void Deinit(Soloud* soloud);
@@ -151,7 +175,7 @@ namespace SoLoud
 		public static extern uint32 Play(Soloud* soloud, void* sound);
 
 		[LinkName("Soloud_playEx")]
-		public static extern uint32 Play(Soloud* soloud, void* sound, float volume, float pan, bool paused, uint32 bus);
+		public static extern uint32 Play(Soloud* soloud, void* sound, float volume, float pan, int32 paused, uint32 bus);
 
 		[LinkName("Soloud_playClocked")]
 		public static extern uint32 PlayClocked(Soloud* soloud, double soundTime, void* sound);
@@ -226,7 +250,7 @@ namespace SoLoud
 		public static extern float GetSamplerate(Soloud* soloud, uint32 voiceHandle);
 
 		[LinkName("Soloud_getProtectVoice")]
-		public static extern SoLoudResult GetProtectVoice(Soloud* soloud, uint32 voiceHandle);
+		public static extern int32 GetProtectVoice(Soloud* soloud, uint32 voiceHandle);
 
 		[LinkName("Soloud_getActiveVoiceCount")]
 		public static extern uint32 GetActiveVoiceCount(Soloud* soloud);
@@ -235,7 +259,7 @@ namespace SoLoud
 		public static extern uint32 GetVoiceCount(Soloud* soloud);
 
 		[LinkName("Soloud_isValidVoiceHandle")]
-		public static extern SoLoudResult IsValidVoiceHandle(Soloud* soloud, uint32 voiceHandle);
+		public static extern int32 IsValidVoiceHandle(Soloud* soloud, uint32 voiceHandle);
 
 		[LinkName("Soloud_getRelativePlaySpeed")]
 		public static extern float GetRelativePlaySpeed(Soloud* soloud, uint32 voiceHandle);
@@ -244,7 +268,7 @@ namespace SoLoud
 		public static extern float GetPostClipScaler(Soloud* soloud);
 
 		[LinkName("Soloud_getMainResampler")]
-		public static extern uint32 GetMainResampler(Soloud* soloud);
+		public static extern Resampler GetMainResampler(Soloud* soloud);
 
 		[LinkName("Soloud_getGlobalVolume")]
 		public static extern float GetGlobalVolume(Soloud* soloud);
@@ -253,10 +277,10 @@ namespace SoLoud
 		public static extern uint32 GetMaxActiveVoiceCount(Soloud* soloud);
 
 		[LinkName("Soloud_getLooping")]
-		public static extern SoLoudResult GetLooping(Soloud* soloud, uint32 voiceHandle);
+		public static extern int32 GetLooping(Soloud* soloud, uint32 voiceHandle);
 
 		[LinkName("Soloud_getAutoStop")]
-		public static extern SoLoudResult GetAutoStop(Soloud* soloud, uint32 voiceHandle);
+		public static extern int32 GetAutoStop(Soloud* soloud, uint32 voiceHandle);
 
 		[LinkName("Soloud_getLoopPoint")]
 		public static extern double GetLoopPoint(Soloud* soloud, uint32 voiceHandle);
@@ -265,16 +289,16 @@ namespace SoLoud
 		public static extern void SetLoopPoint(Soloud* soloud, uint32 voiceHandle, double loopPoint);
 
 		[LinkName("Soloud_setLooping")]
-		public static extern void SetLooping(Soloud* soloud, uint32 voiceHandle, bool looping); // @edit
+		public static extern void SetLooping(Soloud* soloud, uint32 voiceHandle, int32 looping);
 
 		[LinkName("Soloud_setAutoStop")]
-		public static extern void SetAutoStop(Soloud* soloud, uint32 voiceHandle, bool autoStop); // @edit
+		public static extern void SetAutoStop(Soloud* soloud, uint32 voiceHandle, int32 autoStop);
 
 		[LinkName("Soloud_setMaxActiveVoiceCount")]
 		public static extern SoLoudResult SetMaxActiveVoiceCount(Soloud* soloud, uint32 voiceCount);
 
 		[LinkName("Soloud_setInaudibleBehavior")]
-		public static extern void SetInaudibleBehavior(Soloud* soloud, uint32 voiceHandle, bool mustTick, bool kill); // @edit
+		public static extern void SetInaudibleBehavior(Soloud* soloud, uint32 voiceHandle, int32 mustTick, int32 kill);
 
 		[LinkName("Soloud_setGlobalVolume")]
 		public static extern void SetGlobalVolume(Soloud* soloud, float volume);
@@ -283,19 +307,19 @@ namespace SoLoud
 		public static extern void SetPostClipScaler(Soloud* soloud, float scaler);
 
 		[LinkName("Soloud_setMainResampler")]
-		public static extern void SetMainResampler(Soloud* soloud, uint32 resampler);
+		public static extern void SetMainResampler(Soloud* soloud, Resampler resampler);
 
 		[LinkName("Soloud_setPause")]
-		public static extern void SetPause(Soloud* soloud, uint32 voiceHandle, bool pause); // @edit
+		public static extern void SetPause(Soloud* soloud, uint32 voiceHandle, int32 pause);
 
 		[LinkName("Soloud_setPauseAll")]
-		public static extern void SetPauseAll(Soloud* soloud, bool pause); // @edit
+		public static extern void SetPauseAll(Soloud* soloud, int32 pause);
 
 		[LinkName("Soloud_setRelativePlaySpeed")]
 		public static extern SoLoudResult SetRelativePlaySpeed(Soloud* soloud, uint32 voiceHandle, float speed);
 
 		[LinkName("Soloud_setProtectVoice")]
-		public static extern void SetProtectVoice(Soloud* soloud, uint32 voiceHandle, bool protect); // @edit
+		public static extern void SetProtectVoice(Soloud* soloud, uint32 voiceHandle, int32 protect);
 
 		[LinkName("Soloud_setSamplerate")]
 		public static extern void SetSamplerate(Soloud* soloud, uint32 voiceHandle, float samplerate);
@@ -349,7 +373,7 @@ namespace SoLoud
 		public static extern void SetGlobalFilter(Soloud* soloud, uint32 filterId, void* filter);
 
 		[LinkName("Soloud_setVisualizationEnable")]
-		public static extern void SetVisualizationEnable(Soloud* soloud, bool enable); // @edit
+		public static extern void SetVisualizationEnable(Soloud* soloud, int32 enable);
 
 		[LinkName("Soloud_calcFFT")]
 		public static extern float* CalcFFT(Soloud* soloud);
@@ -571,7 +595,7 @@ namespace SoLoud
 		public static extern uint32 Play(Bus* bus, void* sound);
 
 		[LinkName("Bus_playEx")]
-		public static extern uint32 Play(Bus* bus, void* sound, float volume, float pan, bool paused); // @edit
+		public static extern uint32 Play(Bus* bus, void* sound, float volume, float pan, int32 paused);
 
 		[LinkName("Bus_playClocked")]
 		public static extern uint32 PlayClocked(Bus* bus, double soundTime, void* sound);
@@ -583,7 +607,7 @@ namespace SoLoud
 		public static extern uint32 Play3d(Bus* bus, void* sound, float posX, float posY, float posZ);
 
 		[LinkName("Bus_play3dEx")]
-		public static extern uint32 Play3d(Bus* bus, void* sound, float posX, float posY, float posZ, float velX, float velY, float velZ, float volume, bool paused); // @edit
+		public static extern uint32 Play3d(Bus* bus, void* sound, float posX, float posY, float posZ, float velX, float velY, float velZ, float volume, int32 paused);
 
 		[LinkName("Bus_play3dClocked")]
 		public static extern uint32 Play3dClocked(Bus* bus, double soundTime, void* sound, float posX, float posY, float posZ);
@@ -595,7 +619,7 @@ namespace SoLoud
 		public static extern SoLoudResult SetChannels(Bus* bus, uint32 channels);
 
 		[LinkName("Bus_setVisualizationEnable")]
-		public static extern void SetVisualizationEnable(Bus* bus, bool enable); // @edit
+		public static extern void SetVisualizationEnable(Bus* bus, int32 enable);
 
 		[LinkName("Bus_annexSound")]
 		public static extern void AnnexSound(Bus* bus, uint32 voiceHandle);
@@ -613,19 +637,19 @@ namespace SoLoud
 		public static extern uint32 GetActiveVoiceCount(Bus* bus);
 
 		[LinkName("Bus_getResampler")]
-		public static extern uint32 GetResampler(Bus* bus);
+		public static extern Resampler GetResampler(Bus* bus);
 
 		[LinkName("Bus_setResampler")]
-		public static extern void SetResampler(Bus* bus, uint32 resampler);
+		public static extern void SetResampler(Bus* bus, Resampler resampler);
 
 		[LinkName("Bus_setVolume")]
 		public static extern void SetVolume(Bus* bus, float volume);
 
 		[LinkName("Bus_setLooping")]
-		public static extern void SetLooping(Bus* bus, bool loop); // @edit
+		public static extern void SetLooping(Bus* bus, int32 loop);
 
 		[LinkName("Bus_setAutoStop")]
-		public static extern void SetAutoStop(Bus* bus, bool autoStop); // @edit
+		public static extern void SetAutoStop(Bus* bus, int32 autoStop);
 
 		[LinkName("Bus_set3dMinMaxDistance")]
 		public static extern void Set3dMinMaxDistance(Bus* bus, float minDistance, float maxDistance);
@@ -652,7 +676,7 @@ namespace SoLoud
 		public static extern void Set3dAttenuator(Bus* bus, void* attenuator);
 
 		[LinkName("Bus_setInaudibleBehavior")]
-		public static extern void SetInaudibleBehavior(Bus* bus, bool mustTick, bool kill); // @edit
+		public static extern void SetInaudibleBehavior(Bus* bus, int32 mustTick, int32 kill);
 
 		[LinkName("Bus_setLoopPoint")]
 		public static extern void SetLoopPoint(Bus* bus, double loopPoint);
@@ -856,7 +880,7 @@ namespace SoLoud
 		public static extern SoLoudResult SetParams(Monotone* monotone, int32 hardwareChannels);
 
 		[LinkName("Monotone_setParamsEx")]
-		public static extern SoLoudResult SetParams(Monotone* monotone, int32 hardwareChannels, int32 waveform);
+		public static extern SoLoudResult SetParams(Monotone* monotone, int32 hardwareChannels, Waveform waveform);
 
 		[LinkName("Monotone_load")]
 		public static extern SoLoudResult Load(Monotone* monotone, char8* filename);
@@ -1153,7 +1177,7 @@ namespace SoLoud
 		public static extern float GetParamMin(RobotizeFilter* robotizefilter, RobotizeFilterParameters param);
 
 		[LinkName("RobotizeFilter_setParams")]
-		public static extern void SetParams(RobotizeFilter* robotizefilter, float freq, int32 waveform);
+		public static extern void SetParams(RobotizeFilter* robotizefilter, float freq, Waveform waveform);
 
 		[LinkName("RobotizeFilter_create")]
 		public static extern RobotizeFilter* Create();
@@ -1251,7 +1275,7 @@ namespace SoLoud
 		public static extern SoLoudResult SetParams(Speech* speech);
 
 		[LinkName("Speech_setParamsEx")]
-		public static extern SoLoudResult SetParams(Speech* speech, uint32 baseFrequency, float baseSpeed, float baseDeclination, int32 baseWaveform);
+		public static extern SoLoudResult SetParams(Speech* speech, uint32 baseFrequency, float baseSpeed, float baseDeclination, Waveform baseWaveform);
 
 		[LinkName("Speech_setVolume")]
 		public static extern void SetVolume(Speech* speech, float volume);
@@ -1519,7 +1543,7 @@ namespace SoLoud
 		public static extern SoLoudResult LoadMem(Wav* wav, uint8* mem, uint32 length);
 
 		[LinkName("Wav_loadMemEx")]
-		public static extern SoLoudResult LoadMem(Wav* wav, uint8* mem, uint32 length, bool copy, bool takeOwnership); // @edit: copy and takeOwnership should be bool instead of int32
+		public static extern SoLoudResult LoadMem(Wav* wav, uint8* mem, uint32 length, int32 copy, int32 takeOwnership);
 
 		//[LinkName("Wav_loadFile")]
 		//public static extern SoLoudResult LoadFile(Wav* wav, void* file);
@@ -1540,7 +1564,7 @@ namespace SoLoud
 		public static extern SoLoudResult LoadRawWave(Wav* wav, float* mem, uint32 length);
 
 		[LinkName("Wav_loadRawWaveEx")]
-		public static extern SoLoudResult LoadRawWave(Wav* wav, float* mem, uint32 length, float samplerate, uint32 channels, bool copy, bool takeOwnership); // @edit
+		public static extern SoLoudResult LoadRawWave(Wav* wav, float* mem, uint32 length, float samplerate, uint32 channels, int32 copy, int32 takeOwnership);
 
 		[LinkName("Wav_getLength")]
 		public static extern double GetLength(Wav* wav);
@@ -1549,10 +1573,10 @@ namespace SoLoud
 		public static extern void SetVolume(Wav* wav, float volume);
 
 		[LinkName("Wav_setLooping")]
-		public static extern void SetLooping(Wav* wav, bool loop); // @edit
+		public static extern void SetLooping(Wav* wav, int32 loop);
 
 		[LinkName("Wav_setAutoStop")]
-		public static extern void SetAutoStop(Wav* wav, bool autoStop); // @edit
+		public static extern void SetAutoStop(Wav* wav, int32 autoStop);
 		[LinkName("Wav_set3dMinMaxDistance")]
 		public static extern void Set3dMinMaxDistance(Wav* wav, float minDistance, float maxDistance);
 

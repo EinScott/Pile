@@ -25,6 +25,8 @@ namespace Pile
 			// TODO: 3d audio stuff
 
 			public abstract void Play(AudioClip clip);
+
+			public abstract void Stop();
 		}
 
 		internal readonly Platform platform ~ delete _;
@@ -131,6 +133,11 @@ namespace Pile
 			Debug.Assert(clip != null, "AudioClip was null");
 
 			platform.Play(clip);
+		}
+
+		public void Stop()
+		{
+			platform.Stop();
 		}
 	}
 }
