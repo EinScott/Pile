@@ -31,7 +31,7 @@ namespace Pile
 		internal readonly Platform platform ~ delete _;
 		internal MixingBus output;
 
-		float volume;
+		float volume = 1;
 
 		/// Returns Audio.MasterBus by default. Won't be null
 		public MixingBus Output => output;

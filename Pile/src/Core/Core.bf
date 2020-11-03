@@ -14,7 +14,8 @@ using internal Pile;
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  */
 
-// TODO before public: more default importers (aseprite, png, audioClip), font support/spritefonts/batcher font drawing, finish png writing, turn "./Example/" into some basic application that draws a square with batch [update readme]
+// TODO before public:  complete audio stuff, do gl instanced rendering, more importers (aseprite, png, audioClip), font support/batcher drawing (spritefonts?)
+//						finish png writing, turn "./Example/" into some basic application that draws a square with batch [update readme]
 // TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into bgfx graphics (or similar for implementations)
 
 namespace Pile

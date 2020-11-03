@@ -32,9 +32,9 @@ namespace Pile
 		internal readonly Platform platform ~ delete _;
 		internal MixingBus output;
 
-		float volume;
+		float volume = 1;
 		float pan;
-		float speed;
+		float speed = 1;
 		bool looping;
 		bool paused;
 
