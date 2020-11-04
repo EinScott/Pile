@@ -11,6 +11,8 @@ namespace Pile
 		public uint meshIndexStart;
 		public uint meshIndexCount;
 
+		public uint meshInstanceCount;
+
 		public BlendMode blendMode;
 		public CullMode cullMode;
 		public Compare depthFunction;
@@ -26,6 +28,7 @@ namespace Pile
 
 			meshIndexStart = 0;
 			meshIndexCount = mesh.IndexCount;
+			meshInstanceCount = mesh.InstanceCount;
 
 			scissor = null;
 			blendMode = .Normal;

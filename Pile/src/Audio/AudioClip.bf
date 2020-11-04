@@ -9,7 +9,7 @@ namespace Pile
 	{
 		internal abstract class Platform
 		{
-			public abstract void Initialize(Span<uint8> data);
+			internal abstract void Initialize(Span<uint8> data);
 		}
 
 		internal readonly Platform platform ~ delete _;

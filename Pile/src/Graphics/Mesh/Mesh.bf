@@ -9,14 +9,19 @@ namespace Pile
 	{
 		internal abstract class Platform
 		{
-			internal abstract void Setup(Span<uint8> vertices, Span<uint8> indices, VertexFormat format);
+			internal abstract void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
+			internal abstract void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
+			internal abstract void SetIndices(Span<uint8> rawIndexData);
 		}
 
 		internal readonly Platform platform ~ delete _;
 
 		public uint VertexCount { get; private set; }
-		public uint IndexCount { get; private set; } 
+		public uint InstanceCount { get; private set; }
+		public uint IndexCount { get; private set; }
+
 		public VertexFormat VertexFormat { get; private set; }
+		public VertexFormat InstanceFormat { get; private set; }
 		public IndexType IndexType { get; private set; }
 
 		public this()
@@ -26,12 +31,32 @@ namespace Pile
 			platform = Core.Graphics.CreateMesh();
 		}
 
-		public void Setup<TVertex, TIndex>(Span<TVertex> vertices, Span<TIndex> indices, VertexFormat format) where TIndex : IInteger, IUnsigned, struct
+		public void SetVertices<T>(Span<T> vertices, VertexFormat format) where T : struct
 		{
-			VertexFormat = format;
+			Debug.Assert(format != null, "Vertex format cannot be null");
 
-			// Determin index format
-			switch (typeof(TIndex))
+			VertexFormat = format;
+			VertexCount = (.)vertices.Length;
+
+			var _vertices = vertices.ToRawData();
+			platform.SetVertices(_vertices, format);
+		}
+
+		public void SetInstances<T>(Span<T> vertices, VertexFormat format) where T : struct
+		{
+			Debug.Assert(format != null, "Vertex format cannot be null");
+
+			VertexFormat = format;
+			VertexCount = (.)vertices.Length;
+
+			var _vertices = vertices.ToRawData();
+			platform.SetInstances(_vertices, format);
+		}
+
+		public void SetIndices<T>(Span<T> indices) where T : IInteger, IUnsigned, struct
+		{
+			// Determine index type
+			switch (typeof(T))
 			{
 			case typeof(uint16): IndexType = .UnsignedShort;
 			case typeof(uint32): IndexType = .UnsignedInt;
@@ -40,12 +65,10 @@ namespace Pile
 				IndexType = .UnsignedInt;
 			}
 
-			VertexCount = (uint)vertices.Length;
 			IndexCount = (uint)indices.Length;
 
-			var _vertices = vertices.ToRawData();
 			var _indices = indices.ToRawData();
-			platform.Setup(_vertices, _indices, format);
+			platform.SetIndices(_indices);
 		}
 	}
 }

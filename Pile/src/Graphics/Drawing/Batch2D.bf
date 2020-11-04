@@ -141,7 +141,8 @@ namespace Pile
 			{
 			    if (dirty)
 			    {
-					Mesh.Setup(Span<Vertex>(vertices), Span<uint32>(indices), VertexFormat);
+					Mesh.SetVertices(Span<Vertex>(vertices), VertexFormat);
+					Mesh.SetIndices(Span<uint32>(indices));
 
 			        dirty = false;
 			    }

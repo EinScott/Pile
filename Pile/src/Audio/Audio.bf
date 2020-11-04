@@ -13,6 +13,9 @@ namespace Pile
 
 		public abstract MixingBus MasterBus { get; }
 
+		public abstract uint SoundCount { get; }
+		public abstract uint AudibleSoundCount { get; }
+
 		internal ~this() {}
 
 		internal abstract Result<void> Initialize();
@@ -20,13 +23,5 @@ namespace Pile
 		internal abstract AudioSource.Platform CreateAudioSource();
 		internal abstract AudioClip.Platform CreateAudioClip();
 		internal abstract MixingBus.Platform CreateMixingBus();
-
-
-		// handle mixing?? - well.. central internal stuff, dont know if this is going to happen here yet
-
-		// Generic class for filters that can work for all? -- yeah should probably do something like that
-		// question is, how does the implementation acutally hook filters up to that interface?
-
-		// dont hand out handles
 	}
 }

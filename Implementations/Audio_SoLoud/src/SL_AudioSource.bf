@@ -18,7 +18,7 @@ namespace Pile.Implementations
 		AudioSource api;
 		bool prioritized;
 
-		public override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group) && !api.Paused;
+		internal override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group) && !api.Paused;
 
 		internal this()
 		{
@@ -41,14 +41,14 @@ namespace Pile.Implementations
 			SL_Bus.Destroy(bus);
 		}
 
-		public override void Initialize(AudioSource source)
+		internal override void Initialize(AudioSource source)
 		{
 			prioritized = source.Prioritized;
 
 			this.api = source;
 		}
 
-		public override void Play(AudioClip clip)
+		internal override void Play(AudioClip clip)
 		{
 			let platform = clip.platform as SL_AudioClip;
 			let handle = SL_Bus.Play(bus, platform.audio, 1, api.Pan, SL_TRUE);
@@ -68,32 +68,32 @@ namespace Pile.Implementations
 			SL_Soloud.AddVoiceToGroup(audio.slPtr, group, handle);
 		}
 
-		public override void SetVolume(float volume)
+		internal override void SetVolume(float volume)
 		{
 			SL_Bus.SetVolume(bus, volume);
 		}
 
-		public override void SetPan(float pan)
+		internal override void SetPan(float pan)
 		{
 			SL_Soloud.SetPan(audio.slPtr, group, pan);
 		}
 
-		public override void SetSpeed(float speed)
+		internal override void SetSpeed(float speed)
 		{
 			SL_Soloud.SetRelativePlaySpeed(audio.slPtr, group, speed);
 		}
 
-		public override void SetLooping(bool looping)
+		internal override void SetLooping(bool looping)
 		{
 			SL_Soloud.SetLooping(audio.slPtr, group, looping ? SL_TRUE : SL_FALSE);
 		}
 
-		public override void SetPaused(bool paused)
+		internal override void SetPaused(bool paused)
 		{
 			SL_Soloud.SetPause(audio.slPtr, group, paused ? SL_TRUE : SL_FALSE);
 		}
 
-		public override void Stop()
+		internal override void Stop()
 		{
 			SL_Soloud.Stop(audio.slPtr, group);
 		}

@@ -376,7 +376,15 @@ namespace Pile.Implementations
 					glIndexType = GL_UNSIGNED_INT;
 				}
 
-				glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart));
+				if (pass.meshInstanceCount == 0)
+				{
+					glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart));
+				}
+				else
+				{
+					glDrawElementsInstanced(GL_TRIANGLES, (int)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart), (int)pass.meshInstanceCount);
+				}
+
 				glBindVertexArray(0);
 			}
 

@@ -11,22 +11,22 @@ namespace Pile
 
 		internal abstract class Platform
 		{
-			public abstract bool Playing { get; }
+			internal abstract bool Playing { get; }
 
-			public abstract void Initialize(AudioSource source);
-			public abstract void SetVolume(float volume);
-			public abstract void SetPan(float pan);
-			public abstract void SetSpeed(float speed);
-			public abstract void SetLooping(bool looping);
-			public abstract void SetPaused(bool paused);
+			internal abstract void Initialize(AudioSource source);
+			internal abstract void SetVolume(float volume);
+			internal abstract void SetPan(float pan);
+			internal abstract void SetSpeed(float speed);
+			internal abstract void SetLooping(bool looping);
+			internal abstract void SetPaused(bool paused);
 
 			// TODO: fading
 
-			// TODO: 3d audio stuff
+			// TODO: 3d audio stuff -- somwhow integrate propertly, do just something like "bool spacial"?, how do we change/get position/space (do we need something audioListener?)
 
-			public abstract void Play(AudioClip clip);
+			internal abstract void Play(AudioClip clip);
 
-			public abstract void Stop();
+			internal abstract void Stop();
 		}
 
 		internal readonly Platform platform ~ delete _;

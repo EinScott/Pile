@@ -7,17 +7,18 @@ namespace Pile.Implementations
 {
 	public class GL_Mesh : Mesh.Platform
 	{
-		// TODO: does not currently support instanced rendering/instance buffers
-
 		uint32 vertexArrayID;
 
 		uint32 indexBufferID;
 		uint32 vertexBufferID;
+		uint32 instanceBufferID;
 
 		uint64 indexBufferSize;
 		uint64 vertexBufferSize;
+		uint64 instanceBufferSize;
 
-		VertexFormat vertexFormat;
+		VertexFormat lastVertexFormat;
+		VertexFormat lastInstanceFormat;
 
 		Material lastMaterial;
 		Shader lastShader;
@@ -40,35 +41,53 @@ namespace Pile.Implementations
 			if (vertexArrayID > 0) graphics.vertexArraysToDelete.Add(vertexArrayID);
 
 			if (vertexBufferID > 0) graphics.buffersToDelete.Add(vertexBufferID);
+			if (instanceBufferID > 0) graphics.buffersToDelete.Add(instanceBufferID);
 			if (indexBufferID > 0) graphics.buffersToDelete.Add(indexBufferID);
 
 			vertexArrayID = 0;
 
 			vertexBufferID = 0;
+			instanceBufferID = 0;
 			indexBufferID = 0;
 			bound = false;
 		}
 
-		internal override void Setup(Span<uint8> vertices, Span<uint8> indices, VertexFormat format)
+		
+		internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
 		{
-			if (vertexFormat != format)
+			if (lastVertexFormat != format)
 			{
 				bound = false;
-				vertexFormat = format;
+				lastVertexFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, vertices.Ptr, vertices.Length);
-			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, indices.Ptr, indices.Length);
+			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length);
+		}
 
-			void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
+		internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
+		{
+			if (lastInstanceFormat != format)
 			{
-				if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
-
-				GL.glBindBuffer(glBufferType, bufferID);
-				GL.glBufferData(glBufferType, length, data, GL.GL_DYNAMIC_DRAW); // TODO: This could probably be better
-
-				GL.glBindBuffer(glBufferType, 0);
+				bound = false;
+				lastInstanceFormat = format;
 			}
+
+			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length);
+		}
+
+		internal override void SetIndices(Span<uint8> rawIndexData)
+		{
+			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, rawIndexData.Length);
+		}
+
+		void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
+		{
+			if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
+
+			GL.glBindBuffer(glBufferType, bufferID);
+			GL.glBufferData(glBufferType, length, data, GL.GL_DYNAMIC_DRAW); // TODO: This could probably be better
+
+			GL.glBindBuffer(glBufferType, 0);
 		}
 
 		public void Bind(Material material)
@@ -83,35 +102,50 @@ namespace Pile.Implementations
 			{
 				bound = true;
 
-
-				// Bind vertex buffer
-				GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBufferID);
-
-				// Determine active attributes
-				if (vertexFormat != null)
-					for (let attribute in material.Shader.Attributes)
+				for (let attribute in material.Shader.Attributes)
+				{
+					if (lastVertexFormat != null)
 					{
-						if (!SetupAttributePointer(attribute, vertexFormat))
-							GL.glDisableVertexAttribArray(attribute.Location);
+						// Bind vertex buffer
+						GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBufferID);
+
+						// Determine active attributes
+						if (TrySetupAttributePointer(attribute, lastVertexFormat, 0))
+							continue;
 					}
+
+					if (lastInstanceFormat != null)
+					{
+						// Bind vertex buffer
+						GL.glBindBuffer(GL.GL_ARRAY_BUFFER, instanceBufferID);
+
+						// Determine active attributes
+						if (TrySetupAttributePointer(attribute, lastInstanceFormat, 1))
+							continue;
+					}
+
+					// Disable unused attributes
+					GL.glDisableVertexAttribArray(attribute.Location);
+				}
 
 				// Bind index buffer
 				GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 			}
 
-			bool SetupAttributePointer(ShaderAttribute attribute, VertexFormat format)
+			bool TrySetupAttributePointer(ShaderAttribute attribute, VertexFormat format, uint32 divisor)
 			{
 				if (format.TryGetAttribute(attribute.Name, let vertexAttr, var offset))
 				{
-					// this is kind of messy because some attributes can take up multiple slots
+					// this is kind of messy because some attributes can take up multiple slots [FOSTERCOMMENT]
 					// ex. a marix4x4 actually takes up 4 (size 16)
 					for (int i = 0, uint64 loc = 0; i < (int)vertexAttr.Components; i += 4, loc++)
 					{
 						let componentsInLoc = Math.Min((int)vertexAttr.Components - i, 4);
 						let location = (uint)(attribute.Location + loc);
 
-						GL.glVertexAttribPointer(location, componentsInLoc, ToVertexType(vertexAttr.Type), vertexAttr.Normalized, format.Stride, (void*)offset);
 						GL.glEnableVertexAttribArray(location);
+						GL.glVertexAttribPointer(location, componentsInLoc, ToVertexType(vertexAttr.Type), vertexAttr.Normalized, format.Stride, (void*)offset);
+						GL.glVertexAttribDivisor(location, divisor);
 
 						offset += componentsInLoc * vertexAttr.ComponentSize;
 					}

@@ -8,7 +8,7 @@ namespace Pile.Implementations
 {
 	public class SL_MixingBus : MixingBus.Platform
 	{
-		public override bool IsMasterBus => false;
+		internal override bool IsMasterBus => false;
 
 		readonly SL_Audio audio;
 
@@ -33,17 +33,17 @@ namespace Pile.Implementations
 			SL_Bus.Destroy(bus);
 		}
 
-		public override void Initialize(MixingBus mixingBus)
+		internal override void Initialize(MixingBus mixingBus)
 		{
 			api = mixingBus;
 		}
 
-		public override void SetVolume(float volume)
+		internal override void SetVolume(float volume)
 		{
 			SL_Bus.SetVolume(bus, volume);
 		}
 
-		public override void AddBus(MixingBus mixingBus)
+		internal override void AddBus(MixingBus mixingBus)
 		{
 			let slBus = (mixingBus.platform as SL_MixingBus);
 			slBus.busHandle = SL_Bus.Play(bus, slBus.bus);
@@ -51,7 +51,7 @@ namespace Pile.Implementations
 			busInputs.Add(mixingBus);
 		}
 
-		public override void RemoveBus(MixingBus mixingBus)
+		internal override void RemoveBus(MixingBus mixingBus)
 		{
 			let slBus = (mixingBus.platform as SL_MixingBus);
 			SL_Soloud.Stop(audio.slPtr, slBus.busHandle);
@@ -59,7 +59,7 @@ namespace Pile.Implementations
 			busInputs.Remove(mixingBus);
 		}
 
-		public override void AddSource(AudioSource source)
+		internal override void AddSource(AudioSource source)
 		{
 			let slSource = (source.platform as SL_AudioSource);
 			slSource.busHandle = SL_Bus.Play(bus, slSource.bus);
@@ -67,7 +67,7 @@ namespace Pile.Implementations
 			sourceInputs.Add(source);
 		}
 
-		public override void RemoveSource(AudioSource source)
+		internal override void RemoveSource(AudioSource source)
 		{
 			let slSource = (source.platform as SL_AudioSource);
 			SL_Soloud.Stop(audio.slPtr, slSource.busHandle);
@@ -75,7 +75,7 @@ namespace Pile.Implementations
 			sourceInputs.Remove(source);
 		}
 
-		public override void RedirectInputsToMaster()
+		internal override void RedirectInputsToMaster()
 		{
 			for (let mixingBus in busInputs)
 			{
