@@ -16,7 +16,7 @@ There are also some useful structs, like Vector2&3, Point2&4 or Rect (of intager
 ## Platforms
 Pile is currently Win64 only due to two factors while in principal the design allows for cross platform support:
 
-- SDL2 and SoLoud are only compiled for Win64&32 currently. Contribution of compiled binaries and general testing for other platforms is welcome.
+- FreeType2, SDL2 and SoLoud are only compiled for Win64&32 currently. Contribution of compiled binaries and general testing for other platforms is welcome.
 - The OpenGL module crashes on Win32 and acts weired. Should investigate at some point. We probably need a few other Graphics modules for certain platforms.
 
 ## Getting started
@@ -88,20 +88,20 @@ namespace ExampleGameProject
 I try to keep the code clean and commented where needed, but documentation will also follow at some point.
 See Sample_BeefProj.toml for reference on using Packages.
 
-## Library Credits
+# Library Credits
 
-# FreeType2 Library
+## FreeType2 Library
 Portions of this software are copyright © 2020 The FreeType Project (www.freetype.org).  All rights reserved.
 [Website](https://www.freetype.org)
 
 Binaries found in Pile/dist/*
 
-# SDL2 Library
+## SDL2 Library
 [Website](https://www.libsdl.org/license.php)
 
 Binaries found in Implementations/System_SDL/dist/*
 
-# SoLoud
+## SoLoud
 [Website](http://sol.gfxile.net/soloud/index.html)
 
 Binaries found in Implementations/Audio_SoLoud/dist/*
