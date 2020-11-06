@@ -26,7 +26,7 @@ namespace Pile
 
 		static this()
 		{
-		    // create the CRC table
+		    // create the CRC table [FOSTERCOMMENT]
 		    // taken from libpng format specification: http://www.libpng.org/pub/png/spec/1.2/PNG-CRCAppendix.html
 
 		    for (int32 n = 0; n < 256; n++)

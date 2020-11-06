@@ -28,7 +28,7 @@ Pile has its own entry point. While you can still have your own main function, a
 To use it:
 - set your projects startup object (found in (right click on project) > Properties... > General/Beef > General/Startup Object) to "Pile.EntryPoint"
 - you have to make sure your game class is included at all, since it is never referenced by Pile, with [AlwaysInclude]
-- use the static constructor to tell Pile what to do on startup (See example below). Make sure to register all your Importers (if any) in there as well (todo, ref Assets & Packages wiki).
+- use the static constructor to tell Pile what to do on startup (See example below). Make sure to register all your Importers (if any) in there as well.
 
 To run Pile (in Run()), simply initialize it with implementations of all core modules. To do this, add implementation projects, like Pile_OpenGL, Pile_SDL2 and Pile_SoLoud to your dependencies and create the instances as follows. Finally, start Pile with your game instance.
 
@@ -87,3 +87,21 @@ namespace ExampleGameProject
 ## Documentation
 I try to keep the code clean and commented where needed, but documentation will also follow at some point.
 See Sample_BeefProj.toml for reference on using Packages.
+
+## Library Credits
+
+# FreeType2 Library
+Portions of this software are copyright © 2020 The FreeType Project (www.freetype.org).  All rights reserved.
+[Website](https://www.freetype.org)
+
+Binaries found in Pile/dist/*
+
+# SDL2 Library
+[Website](https://www.libsdl.org/license.php)
+
+Binaries found in Pile/Implementations/System_SDL/dist/*
+
+# SoLoud
+[Website](http://sol.gfxile.net/soloud/index.html)
+
+Binaries found in Pile/Implementations/Audio_SoLoud/dist/*

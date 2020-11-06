@@ -10,8 +10,8 @@ Name = "Pile_SoLoud"
 [Configs.Debug.Win64]
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
-LibPaths = ["$(ProjectDir)/dist64/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist64/soloud.dll\")"]
+LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
 [[Configs.Debug.Win64.DistinctOptions]]
 Filter = "SoLoud.*"
@@ -21,8 +21,8 @@ EmitDynamicCastCheck = false
 EmitObjectAccessCheck = false
 
 [Configs.Release.Win64]
-LibPaths = ["$(ProjectDir)/dist64/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist64/soloud.dll\")"]
+LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
 [[Configs.Release.Win64.DistinctOptions]]
 Filter = "SoLoud.*"
@@ -36,8 +36,8 @@ EmitObjectAccessCheck = false
 [Configs.Debug.Win32]
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
-LibPaths = ["$(ProjectDir)/dist32/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist32/soloud.dll\")"]
+LibPaths = ["$(ProjectDir)/dist/win32/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win32/soloud.dll\")"]
 
 [[Configs.Debug.Win32.DistinctOptions]]
 Filter = "SoLoud.*"
@@ -47,8 +47,8 @@ EmitDynamicCastCheck = false
 EmitObjectAccessCheck = false
 
 [Configs.Release.Win32]
-LibPaths = ["$(ProjectDir)/dist32/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist32/soloud.dll\")"]
+LibPaths = ["$(ProjectDir)/dist/win32/soloud.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win32/soloud.dll\")"]
 
 [[Configs.Release.Win32.DistinctOptions]]
 Filter = "SoLoud.*"
