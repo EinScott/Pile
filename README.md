@@ -99,9 +99,9 @@ Binaries found in Pile/dist/*
 # SDL2 Library
 [Website](https://www.libsdl.org/license.php)
 
-Binaries found in Pile/Implementations/System_SDL/dist/*
+Binaries found in Implementations/System_SDL/dist/*
 
 # SoLoud
 [Website](http://sol.gfxile.net/soloud/index.html)
 
-Binaries found in Pile/Implementations/Audio_SoLoud/dist/*
+Binaries found in Implementations/Audio_SoLoud/dist/*
