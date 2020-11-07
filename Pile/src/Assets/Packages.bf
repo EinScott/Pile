@@ -18,15 +18,17 @@ namespace Pile
 
 			internal class ImportData
 			{
-				public readonly String path ~ delete _;
-				public readonly String importer ~ delete _;
-				public readonly String namePrefix ~ DeleteNotNull!(_);
+				public readonly String Path ~ delete _;
+				public readonly String Importer ~ delete _;
+				public readonly String NamePrefix ~ DeleteNotNull!(_);
+				public readonly JSONObject Config ~ DeleteNotNull!(_);
 
-				internal this(StringView path, StringView importer, StringView? namePrefix)
+				internal this(StringView path, StringView importer, StringView? namePrefix, JSONObject config)
 				{
-					this.path = new String(path);
-					this.importer = new String(importer);
-					if (namePrefix != null) this.namePrefix = new String(namePrefix.Value);
+					Path = new String(path);
+					Importer = new String(importer);
+					if (namePrefix != null) NamePrefix = new String(namePrefix.Value);
+					Config = config;
 				}
 			}
 		}
@@ -365,7 +367,15 @@ namespace Pile
  							LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error getting object 'namePrefix' of object at position {} of 'imports' array: {}", packagePath, i, err));
 					}
 
-					packageData.imports.Add(new PackageData.ImportData(path, importer, namePrefix == null ? null : StringView(namePrefix)));
+					JSONObject config = null;
+					if (entry.ContainsKey("config") && entry.GetValueType("config") == .OBJECT)
+					{
+						ress = entry.Get("config", ref config);
+						if (ress case .Err(let err))
+							LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error getting object 'config' of object at position {} of 'imports' array: {}", packagePath, i, err));
+					}
+
+					packageData.imports.Add(new PackageData.ImportData(path, importer, namePrefix == null ? null : StringView(namePrefix), config == null ? null : new JSONObject(config)));
 
 					entry = null;
 				}
@@ -384,13 +394,13 @@ namespace Pile
 				Importer importer;
 
 				// Try to find importer
-				if (importers.ContainsKey(import.importer)) importer = importers[import.importer];
-				else LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Couln't find importer '{}'", packagePath, import.importer));
+				if (importers.ContainsKey(import.Importer)) importer = importers[import.Importer];
+				else LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Couln't find importer '{}'", packagePath, import.Importer));
 
 				bool importerUsed = false;
 
 				// Interpret path string (put all final paths in importPaths)
-				for (var path in import.path.Split(';'))
+				for (var path in import.Path.Split(';'))
 				{
 					path.Trim();
 
@@ -496,16 +506,16 @@ namespace Pile
 					// Read file
 					let res = File.ReadAllBytes(filePath);
 					if (res case .Err(let err))
-						LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error reading file at {} with {}: {}", packagePath, filePath, import.importer, err));
+						LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error reading file at {} with {}: {}", packagePath, filePath, import.Importer, err));
 					uint8[] data = res;
 
-					// Run through importer
-					let ress = importer.Build(data, let node);
+					// Run through importer -- config may be null
+					let ress = importer.Build(data, import.Config, let node);
 					if (ress case .Err(let err))
-						LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error importing file at {} with {}: {}", packagePath, filePath, import.importer, err));
+						LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error importing file at {} with {}: {}", packagePath, filePath, import.Importer, err));
 					uint8[] builtData = ress;
 					if (builtData.Count <= 0)
-						LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error importing file at {} with {}: Length of returned data cannot be 0", packagePath, filePath, import.importer));
+						LogErrorReturn!(scope String()..AppendF("Couldn't build package at {}. Error importing file at {} with {}: Length of returned data cannot be 0", packagePath, filePath, import.Importer));
 
 					delete data;
 
@@ -525,7 +535,7 @@ namespace Pile
 
 					// Make name
 					s.Clear();
-					if (import.namePrefix != null) s.Append(import.namePrefix);
+					if (import.NamePrefix != null) s.Append(import.NamePrefix);
 					Path.GetFileNameWithoutExtension(filePath, s);
 
 					// Check if name exists
@@ -546,7 +556,7 @@ namespace Pile
 				importPaths.Clear();
 
 				if (importerUsed)
-					importerNames.Add(new String(import.importer));
+					importerNames.Add(new String(import.Importer));
 			}
 			duplicateNameLookup.Clear();
 

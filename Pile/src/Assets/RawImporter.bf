@@ -12,7 +12,7 @@ namespace Pile
 			return SubmitAsset(name, asset);
 		}
 
-		public override Result<uint8[]> Build(Span<uint8> data, out JSONObject dataNode)
+		public override Result<uint8[]> Build(Span<uint8> data, JSONObject config, out JSONObject dataNode)
 		{
 			dataNode = null;
 
