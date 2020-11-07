@@ -15,7 +15,7 @@ namespace Pile
 
 		public this(int32 width, int32 height, Color[] pixels)
 		{
-			Debug.Assert(width > 0 && height > 0 && width * height <= pixels.Count, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
+			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Count, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
 			Pixels = new Color[width * height];
 			pixels.CopyTo(Pixels);
@@ -28,7 +28,7 @@ namespace Pile
 
 		public this(int32 width, int32 height)
 		{
-			Debug.Assert(width > 0 && height > 0);
+			Runtime.Assert(width > 0 && height > 0);
 
 			Pixels = new Color[width * height];
 
