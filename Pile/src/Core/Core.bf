@@ -14,7 +14,7 @@ using internal Pile;
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  */
 
-// TODO before public:  font support/batcher drawing (spritefonts?)
+// TODO before public:  font support/batcher drawing (spritefonts?), better integration of audioclip and font, etc with assets => importers!
 //						turn "./Example/" into some basic application that draws a square with batch [update readme]
 // TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into other implementations (bgfx, ...), finish audio stuff (3d, filters, (fading))
 

@@ -92,7 +92,6 @@ See Sample_BeefProj.toml for reference on using Packages.
 
 ## FreeType2 Library
 Portions of this software are copyright © 2020 The FreeType Project (www.freetype.org).  All rights reserved.
-[Website](https://www.freetype.org)
 
 Binaries found in Pile/dist/*
 
