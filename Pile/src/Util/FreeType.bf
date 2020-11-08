@@ -153,6 +153,26 @@ namespace FreeType
 		GLYPH_FORMAT_PLOTTER = ((uint32)'p' << 24) | ((uint32)'l' << 16) | ((uint32)'o' << 8) | (uint32)'t'
 	}
 
+	public enum FT_Face_Flags : int32
+	{
+		FACE_FLAG_SCALABLE = 1 << 0,
+		FACE_FLAG_FIXED_SIZES = 1 << 1,
+		FACE_FLAG_FIXED_WIDTH = 1 << 2,
+		FACE_FLAG_SFNT = 1 << 3,
+		FACE_FLAG_HORIZONTAL = 1 << 4,
+		FACE_FLAG_VERTICAL = 1 << 5,
+		FACE_FLAG_KERNING = 1 << 6,
+		FACE_FLAG_FAST_GLYPHS = 1 << 7,
+		FACE_FLAG_MULTIPLE_MASTERS = 1 << 8,
+		FACE_FLAG_GLYPH_NAMES = 1 << 9,
+		FACE_FLAG_EXTERNAL_STREAM = 1 << 10,
+		FACE_FLAG_HINTER = 1 << 11,
+		FACE_FLAG_CID_KEYED = 1 << 12,
+		FACE_FLAG_TRICKY = 1 << 13,
+		FACE_FLAG_COLOR = 1 << 14,
+		FACE_FLAG_VARIATION = 1 << 15
+	}
+
 	public struct FT_Library; // = LibraryRec*
 
 	public typealias FT_Face = FT_FaceRec*;
@@ -406,6 +426,9 @@ namespace FreeType
 		public static extern FT_Result Done(FT_Library* library);
 
 		[LinkName("FT_New_Memory_Face")]
-		public static extern FT_Result NewFace(FT_Library* library, uint8* data, int32 length, int32 faceIndex, out FT_Face* face);
+		public static extern FT_Result NewFace(FT_Library* library, uint8* data, int32 length, int32 faceIndex, out FT_Face face);
+
+		[LinkName("FT_Done_Face")]
+		public static extern FT_Result DoneFace(FT_Face* face);
 	}
 }
