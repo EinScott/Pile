@@ -221,15 +221,15 @@ namespace Pile
 			else fileLog.Append("START OF LOG OUTPUT");
 
 			fileLog.Append(Environment.NewLine);
-			DateTime.Now.ToString(fileLog);
-			fileLog.Append(Environment.NewLine);
+			DateTime.UtcNow.ToString(fileLog, "yyyy-MM-dd\"T\"HH:mm:ss\" UTC (Local offset: \"");
+			TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).Hours.ToString(fileLog);
+			fileLog..Append(")").Append(Environment.NewLine);
 
 			// Save and empty log
 
 			// writeIndex is where we *would* write next, and since the newest output (index before this)
 			// is printed last, we start here at the (if existant) oldest and go around once
-			//int i = writeIndex;
-			for (int x = 0, int i = writeIndex; x < LOG_RECORD_COUNT; x++, i = 1 < LOG_RECORD_COUNT ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
+			for (int x = 0, int i = writeIndex; x < LOG_RECORD_COUNT; x++, i = (i + 1) < LOG_RECORD_COUNT ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
 			{
 				// Skip empty/cleared lines
 				if (record[i].Length == 0)
@@ -241,11 +241,11 @@ namespace Pile
 			}
 			ClearRecord();
 
-			fileLog.Append(Environment.NewLine);
-
 			// Append possibly existing file
 			if (File.Exists(filePath))
 			{
+				fileLog.Append(Environment.NewLine);
+
 				var existingFile = scope String();
 				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) Runtime.FatalError(scope String()..AppendF("Couldn't append log to file, couldn't read existing file: {}", res));
 

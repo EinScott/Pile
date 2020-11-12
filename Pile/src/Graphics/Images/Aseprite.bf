@@ -47,7 +47,7 @@ namespace Pile
 	    public this(Stream stream)
 	    {
 	        if (Parse(stream) case .Err)
-				Log.Error("Reading .ase from stream failed. See error above");
+				Log.Warning("Reading .ase from stream failed. See error above");
 	    }
 
 	    #region Data Structures
