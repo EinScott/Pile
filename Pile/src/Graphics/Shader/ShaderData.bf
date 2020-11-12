@@ -11,7 +11,7 @@ namespace Pile
 		public String fragmentSource = new .() ~ delete _;
 		public String geometrySource = new .() ~ delete _;
 
-		public this(StringView vertexShader, StringView fragmentShader, StringView geometryShader = "")
+		public this(StringView vertexShader, StringView fragmentShader, StringView geometryShader = String.Empty)
 		{
 			vertexSource.Set(vertexShader);
 			fragmentSource.Set(fragmentShader);

@@ -76,7 +76,7 @@ namespace Pile
 	            PingPong = 2
 	        }
 
-	        public String Name = new String("") ~ delete _;
+	        public String Name = new String() ~ delete _;
 	        public LoopDirections LoopDirection;
 	        public int32 From;
 	        public int32 To;
@@ -92,7 +92,7 @@ namespace Pile
 	    public class Slice : IUserData
 	    {
 	        public uint32 Frame;
-	        public String Name = new String("") ~ delete _;
+	        public String Name = new String() ~ delete _;
 	        public int32 OriginX;
 	        public int32 OriginY;
 	        public uint32 Width;
@@ -102,7 +102,7 @@ namespace Pile
 	        public String UserDataText { get; set; }
 	        public Color UserDataColor { get; set; }
 
-			public this() => UserDataText = new String("");
+			public this() => UserDataText = new String();
 
 			public ~this()
 			{
@@ -130,7 +130,7 @@ namespace Pile
 	            Layer = layer;
 	            Pixels = new Color[pixels.Count];
 				pixels.CopyTo(Pixels);
-				UserDataText = new String("");
+				UserDataText = new String();
 	        }
 
 			public ~this()
@@ -160,7 +160,7 @@ namespace Pile
 
 	        public Flags Flag;
 	        public Types Type;
-	        public String Name = new String("") ~ delete _;
+	        public String Name = new String() ~ delete _;
 	        public int32 ChildLevel;
 	        public int32 BlendMode;
 	        public float Alpha;
@@ -175,7 +175,7 @@ namespace Pile
 	        public String UserDataText { get; set; }
 	        public Color UserDataColor { get; set; }
 
-			public this() => UserDataText = new String("");
+			public this() => UserDataText = new String();
 			public ~this()
 			{
 				delete UserDataText;

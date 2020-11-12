@@ -59,6 +59,8 @@ namespace Pile
 		static readonly String logBuf = new String(64) ~ delete _;
 		static readonly String[] record = new String[LOG_RECORD_COUNT];
 
+		static String logPath ~ DeleteNotNull!(_); // Only assigned when first used
+
 		static this()
 		{
 			for (int i = 0; i < LOG_RECORD_COUNT; i++)
@@ -95,9 +97,10 @@ namespace Pile
 			
 			if (SaveOnError)
 			{
-				var s = scope String();
-				Path.InternalCombine(s, Core.System.UserPath, @"log.txt");
-				AppendToFile(s);
+				if (logPath == null)
+					CreateLogPathString();
+
+				SaveToFile(logPath);
 			}
 		}
 		public static void Error(Object message)
@@ -106,11 +109,18 @@ namespace Pile
 
 			if (SaveOnError)
 			{
-				var s = scope String();
-				Path.InternalCombine(s, Core.System.UserPath, @"log.txt");
-				AppendToFile(s);
+				if (logPath == null)
+					CreateLogPathString();
+
+				SaveToFile(logPath);
 			}
 		}
+
+		static void CreateLogPathString()
+		{
+			logPath = new String();
+			Path.InternalCombine(logPath, Core.System.UserPath, @"log.txt");
+		}	
 
 		// Actually log lines
 
@@ -196,7 +206,7 @@ namespace Pile
 
 		// Save log record (and clear record)
 
-		public static void AppendToFile(String filePath)
+		public static void SaveToFile(String filePath)
 		{
 			var directory = scope String();
 			Runtime.Assert(Path.GetDirectoryPath(filePath, directory) case .Ok, "Couldn't append log to file, invalid path");

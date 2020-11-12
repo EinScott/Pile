@@ -219,7 +219,7 @@ namespace Pile
 			}
 
 			let package = new Package();
-			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, "", package.name);
+			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, String.Empty, package.name);
 			else package.name.Set(packageName);
 
 			// Import each package node

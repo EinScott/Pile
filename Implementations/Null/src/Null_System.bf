@@ -9,7 +9,7 @@ namespace Pile.Implementations
 		public override uint32 MajorVersion => 1;
 		public override uint32 MinorVersion => 0;
 		public override String ApiName => "Null System";
-		public override String Info => "";
+		public override String Info => String.Empty;
 
 		internal override Input CreateInput()
 		{

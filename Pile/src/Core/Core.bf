@@ -15,8 +15,8 @@ using internal Pile;
  */
 
 // TODO before public:  font support/batcher drawing (spritefonts?), better integration of audioclip and font, etc with assets => importers!
-//						turn "./Example/" into some basic application that draws a square with batch [update readme]
-// TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into other implementations (bgfx, ...), finish audio stuff (3d, filters, (fading))
+//						turn "./Example/" into some basic application that draws a square with batch (and maybe demostrates texture loading and [text] asset handling) [update readme]
+// TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into other implementations (bgfx, ...), finish audio stuff (3d, filters, (fading)), support some mesh format?
 
 namespace Pile
 {

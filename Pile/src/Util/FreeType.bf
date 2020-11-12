@@ -2,7 +2,7 @@ using System;
 
 namespace FreeType
 {
-	public enum FT_Result : int32
+	public enum FT_Error : int32
 	{
 		// Generic errors
 		Ok                               = 0x00,
@@ -120,7 +120,7 @@ namespace FreeType
 		Corrupted_Font_Glyphs            = 0xBA
 	}
 
-	public enum FT_Encoding : uint32
+	public enum FT_Encoding : int32
 	{
 	    ENCODING_NONE = 0,
 
@@ -143,7 +143,7 @@ namespace FreeType
 	    ENCODING_APPLE_ROMAN = ((uint32)'a' << 24) | ((uint32)'r' << 16) | ((uint32)'m' << 8) | (uint32)'n'
 	}
 
-	public enum FT_Glyph_Format : uint32
+	public enum FT_Glyph_Format : int32
 	{
 		GLYPH_FORMAT_NONE = 0,
 
@@ -173,48 +173,65 @@ namespace FreeType
 		FACE_FLAG_VARIATION = 1 << 15
 	}
 
-	public struct FT_Library; // = LibraryRec*
+	public enum FT_Pixel_Mode : uint8
+	{
+		PIXEL_MODE_NONE = 0,
+		PIXEL_MODE_MONO = 1,
+		PIXEL_MODE_GRAY = 2,
+		PIXEL_MODE_GRAY2 = 3,
+		PIXEL_MODE_GRAY4 = 4,
+		PIXEL_MODE_LCD = 5,
+		PIXEL_MODE_LCD_V = 6,
+		PIXEL_MODE_BGRA = 7,
+
+		PIXEL_MODE_MAX = 8
+	}
+
+	public typealias FT_Library = void*; // FT_LibraryRec*
 
 	public typealias FT_Face = FT_FaceRec*;
 	public typealias FT_CharMap = FT_CharMapRec*;
 	public typealias FT_GlyphSlot = FT_GlyphSlotRec*;
+	public typealias FT_SubGlyph = FT_SubGlyphRec*;
 	public typealias FT_Size = FT_SizeRec*;
 
 	public typealias FT_Face_Internal = void*;
 	public typealias FT_Size_Internal = void*;
+	public typealias FT_Slot_Internal = void*;
+
+	public typealias FT_ListNode = void*;
+
+	public typealias FT_Pos = int64;
+	public typealias FT_Fixed = int64;
+
+	public function void FT_Generic_Finalizer(void* object);
 
 	[CRepr]
 	public struct FT_Generic
 	{
 		public uint8* data;
-		public void* finalizer;
+		public FT_Generic_Finalizer finalizer;
 	}
 
 	[CRepr]
 	public struct FT_BBox
 	{
-		// IDK
-		public int xMin;
-		public int yMin;
-
-		public int xMax;
-		public int yMax;
+		public FT_Pos xMin, yMin;
+		public FT_Pos xMax, yMax;
 	}
 
 	[CRepr]
 	public struct FT_Vector
 	{
-		public void* x;
-		public void* y;
+		public FT_Pos x;
+		public FT_Pos y;
 	}
 
 	[CRepr]
 	public struct FT_Matrix
 	{
-		public void* xx;
-		public void* xy;
-		public void* yx;
-		public void* yy;
+		public FT_Fixed xx, xy;
+		public FT_Fixed yx, yy;
 	}
 
 	[CRepr]
@@ -237,10 +254,10 @@ namespace FreeType
 		public uint32 width;
 		public int32 pitch;
 		public uint8* buffer;
-		public uint16 numGrays;
-		public uint8 pixelMode;
-		public uint8 paletteMode;
-		public void* palette;
+		public uint16 numGrays; // used only with pixelModeGray
+		public FT_Pixel_Mode pixelMode;
+		public uint8 paletteMode; // unused
+		public void* palette; // unused
 	}
 
 	[CRepr]
@@ -249,31 +266,28 @@ namespace FreeType
 		public uint16 x_ppem;
 		public uint16 y_ppem;
 
-		// FT_Fixed... whatver this is
-		public void* xScale;
-		public void* yScale;
+		public FT_Fixed xScale;
+		public FT_Fixed yScale;
 
-		// FT_Pos pointer speculation
-		public int16* ascender;
-		public int16* descender;
-		public int16* height;
-		public int16* maxAdvance;
+		public FT_Pos ascender;
+		public FT_Pos descender;
+		public FT_Pos height;
+		public FT_Pos maxAdvance;
 	}
 
 	[CRepr]
 	public struct FT_Glyph_Metrics
 	{
-		// FT_Pos ... ???
-		public void* width;
-		public void* height;
+		public FT_Pos width;
+		public FT_Pos height;
 
-		public void* horiBearingX;
-		public void* horiBearingY;
-		public void* horiAdvance;
+		public FT_Pos horiBearingX;
+		public FT_Pos horiBearingY;
+		public FT_Pos horiAdvance;
 
-		public void* vertBearingX;
-		public void* vertBearingY;
-		public void* vertAdvance;
+		public FT_Pos vertBearingX;
+		public FT_Pos vertBearingY;
+		public FT_Pos vertAdvance;
 	}
 
 	[CRepr]
@@ -282,19 +296,17 @@ namespace FreeType
 		public int16 height;
 		public int16 width;
 
-		// FT_Pos.. whatever that is
-		public void* size;
+		public FT_Pos size;
 
-		// FT_Pos pointer speculation
-		public uint16* x_ppem;
-		public uint16* y_ppem;
+		public FT_Pos x_ppem;
+		public FT_Pos y_ppem;
 	}
 	
 	[CRepr]
 	public struct FT_ListRec
 	{
-		public void* head;
-		public void* tail;
+		public FT_ListNode head;
+		public FT_ListNode tail;
 	}
 
 	[CRepr]
@@ -336,31 +348,31 @@ namespace FreeType
 		public FT_Generic generic;
 
 		public FT_Glyph_Metrics metrics;
-		public void* linearHoriAdvance; // FT_Fixed
-		public void* linearVertAdvance;
+		public FT_Fixed linearHoriAdvance;
+		public FT_Fixed linearVertAdvance;
 		public FT_Vector advance;
 
 		public FT_Glyph_Format format;
 
 		public FT_Bitmap bitmap;
-		public int32 bitmap_left;
-		public int32 bitmap_top;
+		public int32 bitmapLeft;
+		public int32 bitmapTop;
 
 		public FT_Outline outline;
 
 		// Array
 		public uint32 numSubglyphs;
-		public FT_SubGlyphRec* subglyphs;
+		public FT_SubGlyph subglyphs;
 
 		public void* controlData;
-		public void* controlLen; // FT_Pos (only this one though)
+		public int64 controlLen;
 
-		public void* lsbDelta; // FT_Pos
-		public void* rsbDelta;
+		public FT_Pos lsbDelta;
+		public FT_Pos rsbDelta;
 
 		public void* other;
 
-		public void* _internal;
+		public FT_Slot_Internal _internal;
 	}
 
 	[CRepr]
@@ -387,6 +399,7 @@ namespace FreeType
 
 		public FT_Generic generic;
 
+		// -- only relevant for scalable outlines
 		public FT_BBox bbox;
 
 		public uint16 unitsPerEM;
@@ -399,6 +412,7 @@ namespace FreeType
 
 		public int16 underlinePosition;
 		public int16 underlineThickness;
+		// --
 
 		public FT_GlyphSlot glyph;
 		public FT_Size size;
@@ -412,7 +426,7 @@ namespace FreeType
 		FT_ListRec sizesList;
 
 		FT_Generic autohint;
-		void* _extension;
+		void* extensions; // unused
 
 		FT_Face_Internal _internal;
 	}
@@ -420,15 +434,15 @@ namespace FreeType
 	public static class FreeType
 	{
 		[LinkName("FT_Init_FreeType")]
-		public static extern FT_Result Init(out FT_Library* library);
+		public static extern FT_Error Init(out FT_Library library);
 
 		[LinkName("FT_Done_FreeType")]
-		public static extern FT_Result Done(FT_Library* library);
+		public static extern FT_Error Done(FT_Library library);
 
 		[LinkName("FT_New_Memory_Face")]
-		public static extern FT_Result NewFace(FT_Library* library, uint8* data, int32 length, int32 faceIndex, out FT_Face face);
+		public static extern FT_Error NewFace(FT_Library library, uint8* data, int32 length, int32 faceIndex, out FT_Face face);
 
 		[LinkName("FT_Done_Face")]
-		public static extern FT_Result DoneFace(FT_Face* face);
+		public static extern FT_Error DoneFace(FT_Face face);
 	}
 }
