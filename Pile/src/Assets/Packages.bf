@@ -102,6 +102,8 @@ namespace Pile
 
 		public static Result<Package> LoadPackage(StringView packageName)
 		{
+			Debug.Assert(packagesPath != null, "Initialize Core first!");
+
 			for (int i = 0; i < loadedPackages.Count; i++)
 				if (loadedPackages[i].Name == packageName)
 					LogErrorReturn!(scope String()..AppendF("Package {} is already loaded", packageName));

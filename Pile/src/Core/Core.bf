@@ -15,7 +15,7 @@ using internal Pile;
  */
 
 // TODO before public:  font support/batcher drawing (spritefonts?), better integration of audioclip and font, etc with assets => importers!
-//						finish example project, update readme (remove more doc, make exampleGame better), make readmes for each implementation and example game
+//						finish example project, update/simplify readme, make readmes for each implementation and example game
 // TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into other implementations (bgfx, ...), finish audio stuff (3d, filters, (fading)), support some mesh format?
 
 namespace Pile
@@ -87,7 +87,7 @@ namespace Pile
 				
 				Window = System.CreateWindow(windowWidth, windowHeight);
 				Input = System.CreateInput();
-				System.DetermineDataPaths(title);
+				System.DetermineDataPaths(Title);
 
 				Directory.SetCurrentDirectory(System.DataPath);
 			}
@@ -150,12 +150,14 @@ namespace Pile
 				Graphics.Step();
 				Input.Step();
 				System.Step();
-				Game.[Friend]Step();
 
 				if (Time.freeze > double.Epsilon)
 				{
 					// Freeze time
 					Time.freeze -= Time.RawDelta;
+
+					Time.Delta = 0;
+					Game.[Friend]Step();
 
 					if (Time.freeze <= double.Epsilon)
 						Time.freeze = 0;
@@ -167,6 +169,7 @@ namespace Pile
 					Time.Delta = Time.RawDelta * Time.Scale;
 	
 					// Update
+					Game.[Friend]Step();
 					Game.[Friend]Update();
 				}
 
