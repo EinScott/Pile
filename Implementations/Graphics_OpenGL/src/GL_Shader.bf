@@ -37,7 +37,7 @@ namespace Pile.Implementations
 					var s = new char8[len];
 
 					GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
-					Runtime.FatalError(scope String()..AppendF("Error linking program: {}", StringView(&s[0], len)));
+					Runtime.FatalError(scope $"Error linking program: {StringView(&s[0], len)}");
 				}
 			}
 

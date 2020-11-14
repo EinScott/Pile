@@ -467,7 +467,7 @@ namespace Pile.Implementations
 			s.Append(": ");
 
 			// Add message
-			String.QuoteString(message, length, s);
+			s.Append(message, length);
 
 			if (severity == GL_DEBUG_SEVERITY_HIGH || type == GL_DEBUG_TYPE_ERROR) Log.Error(s);
 			else Log.Warning(s);

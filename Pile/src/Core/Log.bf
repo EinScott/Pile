@@ -213,7 +213,7 @@ namespace Pile
 
 			if (directory.Length != 0 && !Directory.Exists(directory))
 			{
-				if (Directory.CreateDirectory(directory) case .Err(let res)) Runtime.FatalError(scope String()..AppendF("Couldn't append log to file, couldn't create missing directory: {}", res));
+				if (Directory.CreateDirectory(directory) case .Err(let res)) Runtime.FatalError(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
 			}
 
 			let fileLog = scope String();
@@ -247,7 +247,7 @@ namespace Pile
 				fileLog.Append(Environment.NewLine);
 
 				var existingFile = scope String();
-				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) Runtime.FatalError(scope String()..AppendF("Couldn't append log to file, couldn't read existing file: {}", res));
+				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) Runtime.FatalError(scope $"Couldn't append log to file, couldn't read existing file: {res}");
 
 				fileLog.Append(existingFile);
 			}

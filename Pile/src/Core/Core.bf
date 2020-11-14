@@ -14,8 +14,8 @@ using internal Pile;
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  */
 
-// TODO before public:  font support/batcher drawing (spritefonts?), better integration of audioclip and font, etc with assets => importers!
-//						finish example project, update/simplify readme, make readmes for each implementation and example game
+// TODO before public:  font support/batcher drawing (spritefonts?), audioclip (mp3... etc to AudioClip) and font (font (=> to Font) and spritefont (=> to SpriteFont) importer) importers!
+//						finish example project, update/simplify readme
 // TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into other implementations (bgfx, ...), finish audio stuff (3d, filters, (fading)), support some mesh format?
 
 namespace Pile
@@ -40,7 +40,7 @@ namespace Pile
 			delete System;
 		}
 
-		static readonly Version Version = .(0, 3);
+		static readonly Version Version = .(0, 4);
 
 		static bool running;
 		static bool exiting;
@@ -65,7 +65,7 @@ namespace Pile
 #if DEBUG
 			Console.WriteLine();
 #endif
-			Log.Message(scope String()..AppendF("Initializing Pile {}.{}", Version.Major, Version.Minor));
+			Log.Message(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
 			Title = title;
 			System = system;
@@ -77,13 +77,13 @@ namespace Pile
 				let s = scope String();
 				Environment.OSVersion.ToString(s);
 
-				Log.Message(scope String()..AppendF("Platform: {} (bfp: {})", s, Environment.OSVersion.Platform));
+				Log.Message(scope $"Platform: {s} (bfp: {Environment.OSVersion.Platform})");
 			}
 
 			// System init
 			{
 				System.Initialize();
-				Log.Message(scope String()..AppendF("System: {} {}.{} ({})", System.ApiName, System.MajorVersion, system.MinorVersion, system.Info));
+				Log.Message(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
 				
 				Window = System.CreateWindow(windowWidth, windowHeight);
 				Input = System.CreateInput();
@@ -95,20 +95,20 @@ namespace Pile
 			// Graphics init
 			{
 				Graphics.Initialize();
-				Log.Message(scope String()..AppendF("Graphics: {} {}.{} ({})", Graphics.ApiName, Graphics.MajorVersion, Graphics.MinorVersion, Graphics.Info));
+				Log.Message(scope $"Graphics: {Graphics.ApiName} {Graphics.MajorVersion}.{Graphics.MinorVersion} ({Graphics.Info})");
 			}
 
 			// Audio init
 			{
 				Audio.Initialize();
-				Log.Message(scope String()..AppendF("Audio: {} {}.{} ({})", Audio.ApiName, Audio.MajorVersion, Audio.MinorVersion, Audio.Info));
+				Log.Message(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
 			}
 
 			// Packages init
 			Packages.Initialize();
 
 			w.Stop();
-			Log.Message(scope String()..AppendF("Pile initialized (took {}ms)", w.Elapsed.Milliseconds));
+			Log.Message(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
 
 			initialized = true;
 			return .Ok;

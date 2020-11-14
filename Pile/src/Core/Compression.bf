@@ -18,7 +18,7 @@ namespace Pile
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
 			case .BUF_ERROR: LogErrorReturn!("[MINIZ::BUF_ERR] Invalid buffer");
 				// Default case
-			default: LogErrorReturn!(scope String()..AppendF("MiniZ error: {}", s));
+			default: LogErrorReturn!(scope $"MiniZ error: {s}");
 			}
 		}
 
@@ -66,7 +66,7 @@ namespace Pile
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
 			case .DATA_ERROR: LogErrorReturn!("[MINIZ::DATA_ERROR] Data is invalid or incomplete");
 				// Default case
-			default: LogErrorReturn!(scope String()..AppendF("MiniZ error: {}", s));
+			default: LogErrorReturn!(scope $"MiniZ error: {s}");
 			}
 		}
 

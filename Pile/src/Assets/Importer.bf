@@ -26,7 +26,7 @@ namespace Pile
 			{
 				delete nameString;
 
-				LogErrorReturn!(scope String()..AppendF("Couldn't submit asset {}: An object of this type ({}) is already registered under this name", name, type));
+				LogErrorReturn!(scope $"Couldn't submit asset {name}: An object of this type ({type}) is already registered under this name");
 			}
 
 			// Add object in assets
@@ -53,7 +53,7 @@ namespace Pile
 			{
 				delete nameString;
 
-				LogErrorReturn!(scope String()..AppendF("Couldn't submit texture {}: A texture is already registered under this name", name));
+				LogErrorReturn!(scope $"Couldn't submit texture {name}: A texture is already registered under this name");
 			}
 
 			// Add object in assets

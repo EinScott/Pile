@@ -35,7 +35,7 @@ namespace Pile.Implementations
 				context = new SDL_Context(this);
 
 				if (*SDL.GetError() != '\0')
-					Log.Error(scope String()..AppendF("Error while creating window: {}", SDL.GetError()));
+					Log.Error(scope $"Error while creating window: {StringView(SDL.GetError())}");
 			}
 
 			// Scale to dpi

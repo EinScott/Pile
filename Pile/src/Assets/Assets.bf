@@ -136,16 +136,16 @@ namespace Pile
 			Debug.Assert(Core.initialized);
 
 			if (!type.HasDestructor)
-				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} of type {}, because only classes can be treated as assets", name, object.GetType()));
+				LogErrorReturn!(scope $"Couldn't add asset {name} of type {object.GetType()}, because only classes can be treated as assets");
 
 			if (!object.GetType().IsSubtypeOf(type))
-				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} of type {}, because it is not assignable to given type {}", name, object.GetType(), type));
+				LogErrorReturn!(scope $"Couldn't add asset {name} of type {object.GetType()}, because it is not assignable to given type {type}");
 
 			if (!assets.ContainsKey(type))
 				assets.Add(type, new Dictionary<String, Object>());
 
 			else if (assets.GetValue(type).Get().ContainsKey(name))
-				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} to dictionary for type {}, because the name is already taken for this type", name, type));
+				LogErrorReturn!(scope $"Couldn't add asset {name} to dictionary for type {type}, because the name is already taken for this type");
 
 			assets.GetValue(type).Get().Add(name, object);
 
@@ -189,7 +189,7 @@ namespace Pile
 				assets.Add(type, new Dictionary<String, Object>());
 
 			else if (assets.GetValue(type).Get().ContainsKey(name))
-				LogErrorReturn!(scope String()..AppendF("Couldn't add asset {} to dictionary for type {}, because the name is already taken for this type", name, type));
+				LogErrorReturn!(scope $"Couldn't add asset {name} to dictionary for type {type}, because the name is already taken for this type");
 
 			let tex = new Subtexture();
 			assets.GetValue(type).Get().Add(name, tex); // Will be filled in on PackAndUpdate()

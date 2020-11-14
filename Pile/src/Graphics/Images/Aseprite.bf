@@ -346,7 +346,7 @@ namespace Pile
 
 									if (Compression.Decompress(source, temp) case .Err(let err))
 									{
-										LogErrorReturn!(scope String()..AppendF("Error decompressing ASE COMPRESSED Cell: {}", err));
+										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cell: {err}");
 									}
 								}
 

@@ -113,7 +113,7 @@ namespace Pile
 							if (res case .Err)
 								launch = false;
 						}
-						else Log.Warning(scope String()..AppendF("Unknown launch option: {}", args[i]));
+						else Log.Warning(scope $"Unknown launch option: {args[i]}");
 					}
 				}
 
@@ -167,7 +167,7 @@ namespace Pile
 					outPath = arg;
 					outPath.RemoveFromStart(4);
 				}
-				else Log.Warning(scope String()..AppendF("Unknown packager argument: {}", arg));
+				else Log.Warning(scope $"Unknown packager argument: {arg}");
 			}
 
 			if (inPath.Length == 0 || outPath.Length == 0)
@@ -189,7 +189,7 @@ namespace Pile
 
 				if (Packages.BuildPackage(path, outPath) case .Err)
 				{
-					Log.Warning(scope String()..AppendF("Failed building package {}. Skipping", path));
+					Log.Warning(scope $"Failed building package {path}. Skipping");
 					continue;
 				}
 			}

@@ -12,7 +12,7 @@ namespace Pile
 		static this()
 		{
 			let res = FreeType.Init(out lib);
-			Runtime.Assert(res == .Ok, scope String()..AppendF("Error while initializing FreeType2: {}", res));
+			Runtime.Assert(res == .Ok, scope $"Error while initializing FreeType2: {res}");
 		}
 
 		static ~this()
@@ -20,7 +20,7 @@ namespace Pile
 			if (lib != null)
 			{
 				let res = FreeType.Done(lib);
-				Debug.Assert(res == .Ok, scope String()..AppendF("Error while deleting FreeType2: {}", res));
+				Debug.Assert(res == .Ok, scope $"Error while deleting FreeType2: {res}");
 			}
 		}
 
@@ -34,13 +34,13 @@ namespace Pile
 			data.CopyTo(dataBuffer);
 
 			let res = FreeType.NewFace(lib, &dataBuffer[0], (.)dataBuffer.Count, faceIndex, out face);
-			Runtime.Assert(res == .Ok, scope String()..AppendF("Error while creating Face: {}", res));
+			Runtime.Assert(res == .Ok, scope $"Error while creating Face: {res}");
 		}
 
 		public ~this()
 		{
 			let res = FreeType.DoneFace(face);
-			Debug.Assert(res == .Ok, scope String()..AppendF("Error while deleting Face: {}", res));
+			Debug.Assert(res == .Ok, scope $"Error while deleting Face: {res}");
 		}
 
 		// not.. accurrate?? look into spritefonts, then look back at this
@@ -57,5 +57,7 @@ namespace Pile
 		public bool HasKerning => HasFaceFlag((.)FT_Face_Flags.FACE_FLAG_KERNING);*/
 
 		//public bool HasFaceFlag(int flag) => (((int)face.faceFlags) & flag) != 0;
+
+		//public Result<void> GetGlyph(...)
 	}
 }

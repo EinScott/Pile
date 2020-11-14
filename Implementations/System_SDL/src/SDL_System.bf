@@ -149,19 +149,19 @@ namespace Pile.Implementations
 
 				if (*SDL.GetError() != '\0')
 				{
-					Log.Warning(scope String()..AppendF("SDL error while processing event {}: {}", event.type, scope String(SDL.GetError())));
+					Log.Warning(scope $"SDL error while processing event {event.type}: {StringView(SDL.GetError())}");
 					SDL.ClearError();
 				}
 			}
 		}
 
-		[Hide]
+		[NoShow]
 		public void* GetGLProcAddress(StringView procName)
 		{
 			return SDL.SDL_GL_GetProcAddress(procName.ToScopeCStr!());
 		}
 
-		[Hide]
+		[NoShow]
 		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples)
 		{
 			SDL.GL_SetAttribute(.GL_DEPTH_SIZE, depthSize);
