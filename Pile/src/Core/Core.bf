@@ -6,17 +6,33 @@ using System.IO;
 
 using internal Pile;
 
-/* 
- * DEFINES:
+/* DEFINES:
  * PILE_LONG_LOG_RECORD - increases amount of output log lines Log remembers from 16 to 128
  * PILE_DISABLE_LOG_MESSAGES - adds [SkipCall] attribute to Log.Message functions
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  */
 
-// TODO before public:  font support/batcher drawing (spritefonts?), audioclip (mp3... etc to AudioClip) and font (font (=> to Font) and spritefont (=> to SpriteFont) importer) importers!
-//						finish example project, update/simplify readme
-// TODO: support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds), look into other implementations (bgfx, ...), finish audio stuff (3d, filters, (fading)), support some mesh format?
+// --TODO before public--
+// SpriteFont constructor
+// directly batch normal Strings (not hard, but need basically copied methods)
+// make more importers (SpriteFont, Font, PNG (subtexture), AudioClip)
+// Draw with batcher
+// More options on fonts (members, like name)
+
+// translation/localisation stuff (in char16)
+//  char8 key, char16 value
+// conversion from char8 for hardcoded stuff?
+
+// readme simplification
+// Example project todo
+
+/* TODO
+ * support more platforms (build soloud & sdl for linux etc, investigate what is crashing win32 builds)
+ * look into other implementations (bgfx, ...)
+ * finish audio stuff (3d, filters http://sol.gfxile.net/soloud/filters.html, (fading))
+ * support some mesh format? (obj, ...)
+ */
 
 namespace Pile
 {

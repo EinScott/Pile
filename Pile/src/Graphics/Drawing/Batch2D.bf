@@ -1058,7 +1058,75 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		// TODO: text here
+		// do some tests
+		// TODO: char8 and char16 clash a bit, this would probably cause confusion. Should do something with Encoding at some point
+		/*public void Text(SpriteFont font, StringView text, Color color)
+		{
+			let enc = System.Text.Encoding.DetectEncoding(text, let bomSize)
+
+		    Text(font, text, color);
+		}*/
+
+		public void Text(SpriteFont font, Span<char16> text, Color color)
+		{
+		    var position = Vector2(0, font.Ascent);
+
+		    for (int i = 0; i < text.Length; i++)
+		    {
+		        if (text[i] == '\n')
+		        {
+		            position.X = 0;
+		            position.Y += font.LineHeight;
+		            continue;
+		        }
+
+		        if (!font.Charset.TryGetValue(text[i], let ch))
+		            continue;
+
+		        if (ch.Image != null)
+		        {
+		            var at = position + ch.Offset;
+
+		            if (i < text.Length - 1 && text[i + 1] != '\n')
+		            {
+		                if (ch.Kerning.TryGetValue(text[i + 1], let kerning))
+		                    at.X += kerning;
+		            }
+
+		            Image(ch.Image, at, color, true);
+		        }
+
+		        position.X += ch.Advance;
+		    }
+		}
+
+		/*public void Text(SpriteFont font, string text, Vector2 position, Color color)
+		{
+		    PushMatrix(position);
+		    Text(font, text.AsSpan(), color);
+		    PopMatrix();
+		}*/
+
+		public void Text(SpriteFont font, Span<char16> text, Vector2 position, Color color)
+		{
+		    PushMatrix(Matrix3x2.FromTransform(position, .One, 0));
+		    Text(font, text, color);
+		    PopMatrix();
+		}
+
+		/*public void Text(SpriteFont font, string text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
+		{
+		    PushMatrix(position, scale, origin, rotation);
+		    Text(font, text.AsSpan(), color);
+		    PopMatrix();
+		}*/
+
+		public void Text(SpriteFont font, Span<char16> text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
+		{
+		    PushMatrix(Matrix3x2.FromTransform(position, origin, scale, rotation));
+		    Text(font, text, color);
+		    PopMatrix();
+		}
 
 		public void CheckeredPattern(Rect bounds, float cellWidth, float cellHeight, Color a, Color b)
 		{

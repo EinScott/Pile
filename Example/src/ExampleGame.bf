@@ -3,6 +3,8 @@ using System;
 
 namespace Game
 {
+	// TODO examples for... using audio, fonts, packages, selecting assets/packages based on localized strings
+
 	[AlwaysInclude]
 	class ExampleGame : Game<ExampleGame>
 	{
