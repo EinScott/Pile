@@ -206,16 +206,16 @@ namespace Pile
 
 		// Save log record (and clear record)
 
-		public static void SaveToFile(String filePath)
+		public static Result<void> SaveToFile(String filePath)
 		{
 			var directory = scope String();
-			Runtime.Assert(Path.GetDirectoryPath(filePath, directory) case .Ok, "Couldn't append log to file, invalid path");
+			if (Path.GetDirectoryPath(filePath, directory) case .Err) LogErrorReturn!("Couldn't append log to file, invalid path");
 
 			if (directory.Length != 0 && !Directory.Exists(directory))
 			{
-				if (Directory.CreateDirectory(directory) case .Err(let res)) Runtime.FatalError(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
+				if (Directory.CreateDirectory(directory) case .Err(let res)) LogErrorReturn!(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
 			}
-
+			
 			let fileLog = scope String();
 			if (discontinued) fileLog.Append("CONTINUES LOG FROM BELOW");
 			else fileLog.Append("START OF LOG OUTPUT");
@@ -247,13 +247,15 @@ namespace Pile
 				fileLog.Append(Environment.NewLine);
 
 				var existingFile = scope String();
-				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) Runtime.FatalError(scope $"Couldn't append log to file, couldn't read existing file: {res}");
+				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) LogErrorReturn!(scope $"Couldn't append log to file, couldn't read existing file: {res}");
 
 				fileLog.Append(existingFile);
 			}
 
 			// Write
-			Runtime.Assert(File.WriteAllText(filePath, fileLog) case .Ok, "Couldn't append log to file, couldn't write file");
+			if (File.WriteAllText(filePath, fileLog) case .Err) LogErrorReturn!("Couldn't append log to file, couldn't write file");
+
+			return .Ok;
 		}
 	}
 }

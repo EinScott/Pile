@@ -24,9 +24,10 @@ namespace Pile
 			}
 		}
 
-		uint8[] dataBuffer ~ delete _;
-
 		internal FT_Face face;
+
+		uint8[] dataBuffer ~ delete _;
+		uint32 currentSize = 0;
 
 		public this(Span<uint8> data, int32 faceIndex = 0)
 		{
@@ -43,42 +44,52 @@ namespace Pile
 			Debug.Assert(res == .Ok, scope $"Error while deleting Face: {res}");
 		}
 
-		// not.. accurrate?? look into spritefonts, then look back at this
-		public StringView FamilyName => StringView(face.familyName ?? "Unknown");
+		public StringView FamilyName => StringView(face.familyName ?? "Unknown"); // get this the other way, this seems to be null always
 		public StringView StyleName => StringView(face.styleName ?? "Unknown");
 
-		public int32 Ascent => (.)face.size.metrics.ascender >> 6;
-		public int32 Descent => (.)face.size.metrics.descender >> 6;
-		public int32 LineSpacing => (.)face.size.metrics.height >> 6;
+		public int32 Ascent => 0; // scale all of these and figure out what they are
+		public int32 Descent => 0;
+		public int32 LineSpacing => 0;
 
 		public bool Scalable => HasFaceFlag(.FACE_FLAG_SCALABLE);
 		public bool FixedSizes => HasFaceFlag(.FACE_FLAG_FIXED_SIZES);
 		public bool HasColor => HasFaceFlag(.FACE_FLAG_COLOR);
 		public bool HasKerning => HasFaceFlag(.FACE_FLAG_KERNING);
-		public bool IsVertical => HasFaceFlag(.FACE_FLAG_VERTICAL);
 
-		public bool HasFaceFlag(FT_FaceFlags flag) => (face.faceFlags & flag.Underlying) != 0;
+		bool HasFaceFlag(FT_FaceFlags flag) => (face.faceFlags & flag.Underlying) != 0;
 
-		uint32 currentSize = 0;
-
-		public Result<void> RenderChar(uint32 size, char16 unicode)
+		public Result<void> RenderChar(uint32 size, char16 unicode, ref Bitmap glyph, out bool hasGlyph, out Point2 offset, out uint32 advance)
 		{
+			hasGlyph = false;
+			offset = .Zero;
+			advance = 0;
+
 			if (size == 0) LogErrorReturn!("Font size must be greater than 0");
 
 			// Set size if it changed
 			if (size != currentSize)
 			{
-				FT_Error res;
-				if (!IsVertical)
-					res = FreeType.SetPixelSize(face, 0, size);
-				else res = FreeType.SetPixelSize(face, size, 0);
-
+				let res = FreeType.SetPixelSize(face, 0, size);
 				if (res != .Ok) LogErrorReturn!(scope $"Error while setting Font pixel size to {size}: {res}");
 			}
 
+			// todo: font charmaps/encoding?
+			
 			// Load the char
 			let res = FreeType.LoadChar(face, (uint64)unicode, .LOAD_RENDER);
-			if (res != .Ok) LogErrorReturn!(scope $"Error while loading char '{unicode}': {res}");
+			if (res != .Ok || face.glyph == null) LogErrorReturn!(scope $"Error while loading char '{unicode}': {res}");
+
+			// TODO: scale all return values
+
+			// Glyph bitmap
+			if (face.glyph.bitmap.width > 0 && face.glyph.bitmap.rows > 0)
+			{
+				glyph.Reset((.)face.glyph.bitmap.width, (.)face.glyph.bitmap.rows, Span<Color>((Color*)face.glyph.bitmap.buffer, face.glyph.bitmap.width * face.glyph.bitmap.rows));
+				hasGlyph = true;
+			}
+
+			offset.Set(face.glyph.bitmapLeft, face.glyph.bitmapTop);
+			advance = (.)face.glyph.advance.x;
 
 			return .Ok;
 		}

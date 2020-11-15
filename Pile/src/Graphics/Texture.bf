@@ -83,8 +83,6 @@ namespace Pile
 
 		public Result<void> Set(Bitmap bitmap)
 		{
-			if (bitmap.Empty) LogErrorReturn!("Bitmap is empty");
-
 			if ((bitmap.Width != Width || bitmap.Height != Height) && ResizeAndClear(bitmap.Width, bitmap.Height) case .Err) return .Err;
 			platform.SetData(scope Span<Color>(bitmap.Pixels));
 

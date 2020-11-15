@@ -40,7 +40,14 @@ namespace Pile
 
 		public this(Font font, int32 size, Span<char16> charset, TextureFilter filter = .Linear)
 		{
-			
+			// set names
+
+			// scale all of these --- indirectly scale them by getting them from font without using .face at all and making it not internal anymore
+			Size = size;
+			Ascent = font.face.size.metrics.ascender;
+			Descent = font.face.size.metrics.descender;
+			LineSpacing = font.face.size.metrics.xScale;
+			Height = font.face.size.metrics.height;
 
 		}
 

@@ -17,7 +17,7 @@ namespace Pile.Implementations
 		{
 			audio = SL_Wav.Create();
 
-			Debug.Assert(audio != null, "Failed to create SL_AudioClip (Wav)");
+			Runtime.Assert(audio != null, "Failed to create SL_AudioClip (Wav)");
 		}
 
 		public ~this()
