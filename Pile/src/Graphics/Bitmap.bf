@@ -10,35 +10,28 @@ namespace Pile
 		public int32 Width { get; private set; }
 		public int32 Height { get; private set; }
 
-		bool initialized;
-		public bool Empty => !initialized;
-
-		public this(int32 width, int32 height, Color[] pixels)
+		public this(int32 width, int32 height, Span<Color> pixels)
 		{
-			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Count, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
-
-			Pixels = new Color[width * height];
-			pixels.CopyTo(Pixels);
+			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
 			Width = width;
 			Height = height;
 
-			initialized = true;
+			Pixels = new Color[width * height];
+			pixels.CopyTo(Pixels);
 		}
 
 		public this(int32 width, int32 height)
 		{
-			Runtime.Assert(width > 0 && height > 0);
-
-			Pixels = new Color[width * height];
+			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 
 			Width = width;
 			Height = height;
 
-			initialized = true;
+			Pixels = new Color[width * height];
 		}
 
-		public this() { } // Unitialized
+		public this() : this(1, 1, Span<Color>(&Color(0, 0, 0, 0), 1)) {}
 
 		public ~this()
 		{
@@ -47,7 +40,6 @@ namespace Pile
 
 		public void Premultiply()
 		{
-			if (!initialized) return;
 			uint8* rgba = (uint8*)&Pixels[0];
 
 			let len = Pixels.Count * 4;
@@ -59,34 +51,41 @@ namespace Pile
 			}
 		}
 
-		public void Clear()
+		public void Reset(int32 width, int32 height, Span<Color> pixels)
 		{
-			if (!initialized) return;
-			Array.Clear(&Pixels[0], Pixels.Count);
-		}
+			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
-		public void ResizeAndClear(int32 width, int32 height)
-		{
 			Width = width;
 			Height = height;
 
 			if (Pixels != null) delete Pixels;
 			Pixels = new Color[width * height];
+			pixels.CopyTo(Pixels);
+		}
 
-			initialized = true;
+		public void ResizeAndClear(int32 width, int32 height)
+		{
+			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
+
+			Width = width;
+			Height = height;
+
+			if (Pixels != null) delete Pixels;
+			Pixels = new Color[width * height];
+		}
+
+		public void Clear()
+		{
+			Array.Clear(&Pixels[0], Pixels.Count);
 		}
 
 		public void SetPixels(Span<Color> source)
 		{
-			if (!initialized) return;
-
 			source.CopyTo(Pixels);
 		}
 
 		public void SetPixels(Rect destination, Span<Color> source)
 		{
-			if (!initialized) return;
-
 			let dst = Span<Color>(Pixels);
 
 			for (int y = 0; y < destination.Height; y++)
@@ -100,8 +99,6 @@ namespace Pile
 
 		public void GetPixels(Span<Color> dest, Rect destRect, Rect sourceRect)
 		{
-			if (!initialized) return;
-
 			Span<Color> src = Span<Color>(Pixels);
 			var sr = sourceRect;
 
@@ -128,16 +125,12 @@ namespace Pile
 
 		public void GetSubBitmap(Rect source, Bitmap sub)
 		{
-			if (!initialized) return;
-
 			sub.ResizeAndClear((int32)source.Width, (int32)source.Height);
 			GetPixels(sub.Pixels, Rect(0, 0, source.Width, source.Height), source);
 		}
 
 		public void CopyTo(Bitmap bitmap)
 		{
-			if (!initialized) return;
-
 			bitmap.ResizeAndClear(Width, Height);
 			bitmap.SetPixels(Pixels);
 		}
