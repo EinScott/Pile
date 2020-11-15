@@ -1,5 +1,8 @@
 using System;
 using System.Collections;
+using FreeType;
+
+using internal Pile;
 
 namespace Pile
 {
@@ -37,6 +40,7 @@ namespace Pile
 
 		public this(Font font, int32 size, Span<char16> charset, TextureFilter filter = .Linear)
 		{
+			
 
 		}
 

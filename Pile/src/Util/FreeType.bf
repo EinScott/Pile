@@ -143,7 +143,7 @@ namespace FreeType
 	    ENCODING_APPLE_ROMAN = ((uint32)'a' << 24) | ((uint32)'r' << 16) | ((uint32)'m' << 8) | (uint32)'n'
 	}
 
-	public enum FT_Glyph_Format : int32
+	public enum FT_GlyphFormat : int32
 	{
 		GLYPH_FORMAT_NONE = 0,
 
@@ -153,7 +153,7 @@ namespace FreeType
 		GLYPH_FORMAT_PLOTTER = ((uint32)'p' << 24) | ((uint32)'l' << 16) | ((uint32)'o' << 8) | (uint32)'t'
 	}
 
-	public enum FT_Face_Flags : int32
+	public enum FT_FaceFlags : int32
 	{
 		FACE_FLAG_SCALABLE = 1 << 0,
 		FACE_FLAG_FIXED_SIZES = 1 << 1,
@@ -173,7 +173,31 @@ namespace FreeType
 		FACE_FLAG_VARIATION = 1 << 15
 	}
 
-	public enum FT_Pixel_Mode : uint8
+	public enum FT_GlyphLoadFlags : int32
+	{
+		LOAD_DEFAULT = 0x0,
+		LOAD_NO_SCALE = (1 << 0),
+		LOAD_NO_HINTING = (1 << 1),
+		LOAD_RENDER = (1 << 2),
+		LOAD_NO_BITMAP = (1 << 3),
+		LOAD_VERTICAL_LAYOUT = (1 << 4),
+		LOAD_FORCE_AUTOHINT = (1 << 5),
+		LOAD_CROP_BITMAP = (1 << 6),
+		LOAD_PEDANTIC = (1 << 7),
+		LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH = (1 << 9),
+		LOAD_NO_RECURSE = (1 << 10),
+		LOAD_IGNORE_TRANSFORM = (1 << 11),
+		LOAD_MONOCHROME = (1 << 12),
+		LOAD_LINEAR_DESIGN = (1 << 13),
+		LOAD_NO_AUTOHINT = (1 << 15),
+		LOAD_COLOR = (1 << 20),
+		LOAD_COMPUTE_METRICS = (1 << 21),
+		LOAD_BITMAP_METRICS_ONLY = (1 << 22),
+		LOAD_ADVANCE_ONLY = (1 << 8),
+		LOAD_SBITS_ONLY = (1 << 14)
+	}
+
+	public enum FT_PixelMode : uint8
 	{
 		PIXEL_MODE_NONE = 0,
 		PIXEL_MODE_MONO = 1,
@@ -255,7 +279,7 @@ namespace FreeType
 		public int32 pitch;
 		public uint8* buffer;
 		public uint16 numGrays; // used only with pixelModeGray
-		public FT_Pixel_Mode pixelMode;
+		public FT_PixelMode pixelMode;
 		public uint8 paletteMode; // unused
 		public void* palette; // unused
 	}
@@ -352,7 +376,7 @@ namespace FreeType
 		public FT_Fixed linearVertAdvance;
 		public FT_Vector advance;
 
-		public FT_Glyph_Format format;
+		public FT_GlyphFormat format;
 
 		public FT_Bitmap bitmap;
 		public int32 bitmapLeft;
@@ -444,5 +468,11 @@ namespace FreeType
 
 		[LinkName("FT_Done_Face")]
 		public static extern FT_Error DoneFace(FT_Face face);
+
+		[LinkName("FT_Set_Pixel_Sizes")]
+		public static extern FT_Error SetPixelSize(FT_Face face, uint32 pixelWidth, uint32 pixelHeight);
+
+		[LinkName("FT_Load_Char")]
+		public static extern FT_Error LoadChar(FT_Face face, uint64 charCode, FT_GlyphLoadFlags loadFlags);
 	}
 }

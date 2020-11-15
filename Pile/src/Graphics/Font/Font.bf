@@ -26,7 +26,7 @@ namespace Pile
 
 		uint8[] dataBuffer ~ delete _;
 
-		FT_Face face;
+		internal FT_Face face;
 
 		public this(Span<uint8> data, int32 faceIndex = 0)
 		{
@@ -44,20 +44,43 @@ namespace Pile
 		}
 
 		// not.. accurrate?? look into spritefonts, then look back at this
-		/*public StringView FamilyName => StringView(face.familyName ?? "Unknown");
+		public StringView FamilyName => StringView(face.familyName ?? "Unknown");
 		public StringView StyleName => StringView(face.styleName ?? "Unknown");
 
 		public int32 Ascent => (.)face.size.metrics.ascender >> 6;
 		public int32 Descent => (.)face.size.metrics.descender >> 6;
 		public int32 LineSpacing => (.)face.size.metrics.height >> 6;
 
-		public bool Scalable => HasFaceFlag((.)FT_Face_Flags.FACE_FLAG_SCALABLE);
-		public bool FixedSizes => HasFaceFlag((.)FT_Face_Flags.FACE_FLAG_FIXED_SIZES);
-		public bool HasColor => HasFaceFlag((.)FT_Face_Flags.FACE_FLAG_COLOR);
-		public bool HasKerning => HasFaceFlag((.)FT_Face_Flags.FACE_FLAG_KERNING);*/
+		public bool Scalable => HasFaceFlag(.FACE_FLAG_SCALABLE);
+		public bool FixedSizes => HasFaceFlag(.FACE_FLAG_FIXED_SIZES);
+		public bool HasColor => HasFaceFlag(.FACE_FLAG_COLOR);
+		public bool HasKerning => HasFaceFlag(.FACE_FLAG_KERNING);
+		public bool IsVertical => HasFaceFlag(.FACE_FLAG_VERTICAL);
 
-		//public bool HasFaceFlag(int flag) => (((int)face.faceFlags) & flag) != 0;
+		public bool HasFaceFlag(FT_FaceFlags flag) => (face.faceFlags & flag.Underlying) != 0;
 
-		//public Result<void> GetGlyph(...)
+		uint32 currentSize = 0;
+
+		public Result<void> RenderChar(uint32 size, char16 unicode)
+		{
+			if (size == 0) LogErrorReturn!("Font size must be greater than 0");
+
+			// Set size if it changed
+			if (size != currentSize)
+			{
+				FT_Error res;
+				if (!IsVertical)
+					res = FreeType.SetPixelSize(face, 0, size);
+				else res = FreeType.SetPixelSize(face, size, 0);
+
+				if (res != .Ok) LogErrorReturn!(scope $"Error while setting Font pixel size to {size}: {res}");
+			}
+
+			// Load the char
+			let res = FreeType.LoadChar(face, (uint64)unicode, .LOAD_RENDER);
+			if (res != .Ok) LogErrorReturn!(scope $"Error while loading char '{unicode}': {res}");
+
+			return .Ok;
+		}
 	}
 }
