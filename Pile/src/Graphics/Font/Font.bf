@@ -58,11 +58,17 @@ namespace Pile
 
 		bool HasFaceFlag(FT_FaceFlags flag) => (face.faceFlags & flag.Underlying) != 0;
 
-		public Result<void> RenderChar(uint32 size, char16 unicode, ref Bitmap glyph, out bool hasGlyph, out Point2 offset, out uint32 advance)
+		public struct CharacterInfo
 		{
-			hasGlyph = false;
-			offset = .Zero;
-			advance = 0;
+			public bool hasGlyph;
+			public Point2 offset;
+			public uint32 advance;
+		}
+
+		// resetBitmap will resize the bitmap to fit perfectly, this reallocating. Otherwise the glyph will be placed origin-to-origin at the top left corner and only reallocate if necessary to fit
+		public Result<void> RenderChar(uint32 size, char16 unicode, Bitmap glyph, out CharacterInfo info, bool resetBitmap = true)
+		{
+			info = CharacterInfo();
 
 			if (size == 0) LogErrorReturn!("Font size must be greater than 0");
 
@@ -84,12 +90,19 @@ namespace Pile
 			// Glyph bitmap
 			if (face.glyph.bitmap.width > 0 && face.glyph.bitmap.rows > 0)
 			{
-				glyph.Reset((.)face.glyph.bitmap.width, (.)face.glyph.bitmap.rows, Span<Color>((Color*)face.glyph.bitmap.buffer, face.glyph.bitmap.width * face.glyph.bitmap.rows));
-				hasGlyph = true;
+				if (resetBitmap || face.glyph.bitmap.width > glyph.Width || face.glyph.bitmap.rows > glyph.Height)
+					glyph.Reset((.)face.glyph.bitmap.width, (.)face.glyph.bitmap.rows, Span<Color>((Color*)face.glyph.bitmap.buffer, face.glyph.bitmap.width * face.glyph.bitmap.rows));
+				else
+				{
+					glyph.Clear();
+					glyph.SetPixels(Rect(0, 0, face.glyph.bitmap.width, face.glyph.bitmap.rows), Span<Color>((Color*)face.glyph.bitmap.buffer, face.glyph.bitmap.width * face.glyph.bitmap.rows));
+				}
+
+				info.hasGlyph = true;
 			}
 
-			offset.Set(face.glyph.bitmapLeft, face.glyph.bitmapTop);
-			advance = (.)face.glyph.advance.x;
+			info.offset.Set(face.glyph.bitmapLeft, face.glyph.bitmapTop);
+			info.advance = (.)face.glyph.advance.x;
 
 			return .Ok;
 		}

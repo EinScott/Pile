@@ -50,8 +50,8 @@ namespace Pile
 		bool hasUnpackedData;
 
 		public bool trim = true;
-		public int32 maxSize = 8192;
-		public int32 padding = 1;
+		public uint32 maxSize = 8192;
+		public uint32 padding = 1;
 		public bool powerOfTwo = false;
 		public bool combineDuplicates = false;
 
@@ -66,7 +66,7 @@ namespace Pile
 				AddPixels(name, bitmap.Width, bitmap.Height, bitmap.Pixels);
 		}
 
-		public void AddPixels(StringView name, int32 width, int32 height, Span<Color> pixels)
+		public void AddPixels(StringView name, uint32 width, uint32 height, Span<Color> pixels)
 		{
 			hasUnpackedData = true;
 
@@ -332,7 +332,7 @@ namespace Pile
 		        }
 
 		        // get page size
-		        int32 pageWidth, pageHeight;
+		        uint32 pageWidth, pageHeight;
 		        if (powerOfTwo)
 		        {
 		            pageWidth = 2;
@@ -344,8 +344,8 @@ namespace Pile
 		        }
 		        else
 		        {
-		            pageWidth = (int32)rootPtr.Rect.Width;
-		            pageHeight = (int32)rootPtr.Rect.Height;
+		            pageWidth = (.)rootPtr.Rect.Width;
+		            pageHeight = (.)rootPtr.Rect.Height;
 		        }
 
 		        // create each page

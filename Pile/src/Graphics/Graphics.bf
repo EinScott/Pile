@@ -78,8 +78,8 @@ namespace Pile
 		[Unchecked]
 		protected abstract void RenderInternal(ref RenderPass pass);
 
-		internal abstract Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format);
-		internal abstract FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments);
+		internal abstract Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format);
+		internal abstract FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments);
 		internal abstract Mesh.Platform CreateMesh();
 		internal abstract Shader.Platform CreateShader(ShaderData source);
 	}

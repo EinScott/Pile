@@ -95,7 +95,7 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
 		}
 
-		internal override void ResizeAndClear(int32 width, int32 height)
+		internal override void ResizeAndClear(uint32 width, uint32 height)
 		{
 			Delete();
 			Create();

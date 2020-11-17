@@ -10,16 +10,14 @@ namespace Pile
 	{
 		public class Character
 		{
-			public readonly char16 Unicode;
 			public readonly Subtexture Image;
 			public readonly Vector2 Offset;
 			public readonly float Advance;
 
 			public readonly Dictionary<char16, float> Kerning = new Dictionary<char16, float>() ~ delete _;
 
-			public this(char16 unicode, Subtexture image, Vector2 offset, float advance)
+			public this(Subtexture image, Vector2 offset, float advance)
 			{
-				Unicode = unicode;
 				Image = image;
 				Offset = offset;
 				Advance = advance;
@@ -31,15 +29,16 @@ namespace Pile
 		//public String FamilyName = new String() ~ delete _;
 		//public String StyleName = new String() ~ delete _;
 
-		public readonly int32 Size;
+		public readonly uint32 Size;
 		public readonly float Ascent;
 		public readonly float Descent;
 		public readonly float LineSpacing; // Vertical gap between lines
 		public readonly float Height; // Ascent - Descent (font height)
 		public readonly float LineHeight; // Ascent + Descent (height of a line, includes line gap)
 
-		public this(Font font, int32 size, Span<char16> charset, TextureFilter filter = .Linear)
+		public this(Font font, uint32 size, Span<char16> charset, TextureFilter filter = .Linear)
 		{
+			// this feels more like an importer, how do we integrate this into assets??
 			// set names
 
 			// scale all of these --- indirectly scale them by getting them from font without using .face at all and making it not internal anymore
@@ -49,6 +48,30 @@ namespace Pile
 			LineSpacing = font.face.size.metrics.xScale;
 			Height = font.face.size.metrics.height;
 
+			let packer = new Packer();
+			var buffer = scope Bitmap(size * 2, size * 2);
+			let charStr = scope String(2);
+
+			// Process each char
+			for (let char in charset)
+			{
+				charStr.Append(char);
+				Runtime.Assert(font.RenderChar(size, char, buffer, let info, false) case .Ok, scope $"Failed to render character {char} while creating SpriteFont");
+
+				// Pack
+				if (info.hasGlyph) packer.AddBitmap(charStr, buffer);
+
+				// Character
+				let character = new Character(new Subtexture(), info.offset, info.advance);
+				Charset.Add(char, character);
+
+				charStr.Clear();
+			}
+
+			let res = packer.Pack();
+			Runtime.Assert(res case .Ok, scope $"Failed to pack character bitmaps");
+			
+			delete packer;
 		}
 
 		public float WidthOf(Span<char16> text)

@@ -35,8 +35,8 @@ namespace Pile
 	    }
 
 	    public Modes Mode { get; private set; }
-	    public int32 Width { get; private set; }
-	    public int32 Height { get; private set; }
+	    public uint32 Width { get; private set; }
+	    public uint32 Height { get; private set; }
 	    private int frameCount;
 
 	    public readonly List<Layer> Layers = new List<Layer>() ~ DeleteContainerAndItems!(_);
@@ -574,12 +574,12 @@ namespace Pile
 	        if (cel.Layer.BlendMode < BlendModes.Count)
 	            blend = BlendModes[cel.Layer.BlendMode];
 
-	        for (int sx = Math.Max(0, -cel.X), int right = Math.Min(cel.Width, frame.Sprite.Width - cel.X); sx < right; sx++)
+	        for (int sx = Math.Max(0, -cel.X), int right = Math.Min(cel.Width, (.)frame.Sprite.Width - cel.X); sx < right; sx++)
 	        {
 	            int dx = cel.X + sx;
-	            int dy = cel.Y * frame.Sprite.Width;
+	            int dy = cel.Y * (.)frame.Sprite.Width;
 
-	            for (int sy = Math.Max(0, -cel.Y), int bottom = Math.Min(cel.Height, frame.Sprite.Height - cel.Y); sy < bottom; sy++, dy += frame.Sprite.Width)
+	            for (int sy = Math.Max(0, -cel.Y), int bottom = Math.Min(cel.Height, (.)frame.Sprite.Height - cel.Y); sy < bottom; sy++, dy += frame.Sprite.Width)
 	            {
 	                if (dx + dy >= 0 && dx + dy < pxLen)
 	                    blend(ref frame.Bitmap.Pixels[dx + dy], cel.Pixels[sx + sy * cel.Width], opacity);

@@ -14,11 +14,14 @@ using internal Pile;
  */
 
 // --TODO before public--
-// SpriteFont constructor
-// directly batch normal Strings (not hard, but need basically copied methods)
+// scale all freetype values correctly (in font, use them in spritefont constructor)
+// SpriteFont constructor packer output processing
+// how will the resulting texture be handled with Assets?
+// directly batch normal Strings (not hard, but need basically copied methods) -- investigate further how best to handle utf16 encoding and char16 strings
 // make more importers (SpriteFont, Font, PNG (subtexture), AudioClip)
 // Draw with batcher
 // More options on fonts (members, like name)
+// statically link?
 
 // translation/localisation stuff (in char16)
 //  char8 key, char16 value

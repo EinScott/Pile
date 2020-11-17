@@ -10,7 +10,7 @@ namespace Pile.Implementations
 		internal override void Initialize(Texture texture) {}
 
 		[SkipCall]
-		internal override void ResizeAndClear(int32 width, int32 height) {}
+		internal override void ResizeAndClear(uint32 width, uint32 height) {}
 
 		[SkipCall]
 		internal override void SetFilter(TextureFilter filter) {}

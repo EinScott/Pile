@@ -11,7 +11,7 @@ namespace Pile
 		internal abstract class Platform
 		{
 			internal readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
-			internal abstract void ResizeAndClear(int32 width, int32 height);
+			internal abstract void ResizeAndClear(uint32 width, uint32 height);
 		}
 
 		internal readonly Platform platform ~ delete _;
@@ -21,10 +21,10 @@ namespace Pile
 		public override Point2 RenderSize => renderSize;
 		Point2 renderSize;
 
-		public this(int32 width, int32 height)
+		public this(uint32 width, uint32 height)
 			: this(width, height, .Color) {}
 
-		public this(int32 width, int32 height, params TextureFormat[] attachments)
+		public this(uint32 width, uint32 height, params TextureFormat[] attachments)
 		{
 			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependant objects");
 
@@ -41,7 +41,7 @@ namespace Pile
 			get => platform.Attachments[index];
 		}
 
-		public Result<void> ResizeAndClear(int32 width, int32 height)
+		public Result<void> ResizeAndClear(uint32 width, uint32 height)
 		{
 			if (width <= 0 || height <= 0)
 				LogErrorReturn!("FrameBuffer size must be larger than 0");

@@ -11,7 +11,7 @@ namespace Pile.Implementations
 
 		uint32 frameBufferID;
 
-		internal this(GL_Graphics graphics, int32 width, int32 height, TextureFormat[] attachments)
+		internal this(GL_Graphics graphics, uint32 width, uint32 height, TextureFormat[] attachments)
 		{
 			this.graphics = graphics;
 
@@ -28,7 +28,7 @@ namespace Pile.Implementations
 			Delete();
 		}
 
-		internal override void ResizeAndClear(int32 width, int32 height)
+		internal override void ResizeAndClear(uint32 width, uint32 height)
 		{
 			Delete();
 

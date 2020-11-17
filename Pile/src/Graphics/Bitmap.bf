@@ -7,10 +7,10 @@ namespace Pile
 	public class Bitmap
 	{
 		public Color[] Pixels { get; private set; }
-		public int32 Width { get; private set; }
-		public int32 Height { get; private set; }
+		public uint32 Width { get; private set; }
+		public uint32 Height { get; private set; }
 
-		public this(int32 width, int32 height, Span<Color> pixels)
+		public this(uint32 width, uint32 height, Span<Color> pixels)
 		{
 			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
@@ -21,7 +21,7 @@ namespace Pile
 			pixels.CopyTo(Pixels);
 		}
 
-		public this(int32 width, int32 height)
+		public this(uint32 width, uint32 height)
 		{
 			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 
@@ -51,7 +51,7 @@ namespace Pile
 			}
 		}
 
-		public void Reset(int32 width, int32 height, Span<Color> pixels)
+		public void Reset(uint32 width, uint32 height, Span<Color> pixels)
 		{
 			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
@@ -63,7 +63,7 @@ namespace Pile
 			pixels.CopyTo(Pixels);
 		}
 
-		public void ResizeAndClear(int32 width, int32 height)
+		public void ResizeAndClear(uint32 width, uint32 height)
 		{
 			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 
@@ -125,7 +125,7 @@ namespace Pile
 
 		public void GetSubBitmap(Rect source, Bitmap sub)
 		{
-			sub.ResizeAndClear((int32)source.Width, (int32)source.Height);
+			sub.ResizeAndClear((.)source.Width, (.)source.Height);
 			GetPixels(sub.Pixels, Rect(0, 0, source.Width, source.Height), source);
 		}
 

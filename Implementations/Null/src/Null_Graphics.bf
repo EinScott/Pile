@@ -36,12 +36,12 @@ namespace Pile.Implementations
 		[Unchecked]
 		protected override void RenderInternal(ref RenderPass pass) {}
 
-		internal override Texture.Platform CreateTexture(int32 width, int32 height, TextureFormat format)
+		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format)
 		{
 			return new Null_Texture();
 		}
 
-		internal override FrameBuffer.Platform CreateFrameBuffer(int32 width, int32 height, TextureFormat[] attachments)
+		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments)
 		{
 			return new Null_Framebuffer();
 		}

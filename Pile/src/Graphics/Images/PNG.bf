@@ -131,7 +131,7 @@ namespace Pile
 		            interlace.UnderlyingRef = stream.Read<uint8>();
 		            hasTransparency = color == Colors.GreyscaleAlpha || color == Colors.TruecolorAlpha;
 
-					bitmap.ResizeAndClear(width, height);
+					bitmap.ResizeAndClear((.)width, (.)height);
 
 		            if (color == Colors.Greyscale || color == Colors.Indexed)
 		                components = 1;
@@ -412,7 +412,7 @@ namespace Pile
 		public static Result<void> Write(Stream stream, Bitmap bitmap)
 			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
 
-		public static Result<void> Write(Stream stream, int32 width, int32 height, Color[] pixels)
+		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
 		{
 			// TODO: finish deflation
 			var s = 1; // (just so we dont get a warning)

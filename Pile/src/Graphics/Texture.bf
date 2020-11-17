@@ -10,7 +10,7 @@ namespace Pile
 		internal abstract class Platform
 		{
 			internal abstract void Initialize(Texture texture);
-			internal abstract void ResizeAndClear(int32 width, int32 height);
+			internal abstract void ResizeAndClear(uint32 width, uint32 height);
 			internal abstract void SetFilter(TextureFilter filter);
 			internal abstract void SetWrap(TextureWrap x, TextureWrap y);
 			internal abstract void SetData(void* buffer);
@@ -23,10 +23,10 @@ namespace Pile
 		internal readonly Platform platform ~ delete _;
 		public readonly TextureFormat format;
 
-		public int32 Width { get; private set; }
-		public int32 Height { get; private set; }
+		public uint32 Width { get; private set; }
+		public uint32 Height { get; private set; }
 
-		public int32 Size => Width * Height * format.Size();
+		public uint32 Size => Width * Height * format.Size();
 
 		TextureFilter filter;
 		public TextureFilter Filter
@@ -51,7 +51,7 @@ namespace Pile
 
 		public bool IsFrameBuffer => platform.IsFrameBuffer();
 
-		public this(int32 width, int32 height, TextureFormat format = .Color)
+		public this(uint32 width, uint32 height, TextureFormat format = .Color)
 		{
 			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependant objects");
 
@@ -89,7 +89,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		public Result<void> ResizeAndClear(int32 width, int32 height)
+		public Result<void> ResizeAndClear(uint32 width, uint32 height)
 		{
 			if (width <= 0 || height <= 0)
 				LogErrorReturn!("Texture size must be larger than 0");
