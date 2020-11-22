@@ -13,6 +13,7 @@ namespace Pile.Implementations
 
 		public override String Info => String.Empty;
 
+		bool createMaster = true;
 		MixingBus masterBus ~ delete _;
 		public override MixingBus MasterBus => masterBus;
 
@@ -23,7 +24,7 @@ namespace Pile.Implementations
 		internal override Result<void> Initialize()
 		{
 			masterBus = new MixingBus();
-			(masterBus.platform as Null_MixingBus).masterBus = true;
+			createMaster = false;
 
 			return .Ok;
 		}
@@ -32,6 +33,6 @@ namespace Pile.Implementations
 
 		internal override AudioClip.Platform CreateAudioClip() => new Null_AudioClip();
 
-		internal override MixingBus.Platform CreateMixingBus() => new Null_MixingBus();
+		internal override MixingBus.Platform CreateMixingBus() => new Null_MixingBus(createMaster);
 	}
 }

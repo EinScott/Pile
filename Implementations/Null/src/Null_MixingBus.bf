@@ -6,8 +6,13 @@ namespace Pile.Implementations
 {
 	class Null_MixingBus : MixingBus.Platform
 	{
-		internal bool masterBus;
+		bool masterBus;
 		internal override bool IsMasterBus => masterBus;
+
+		internal this(bool isMasterBus)
+		{
+			masterBus = isMasterBus;
+		}
 
 		[SkipCall]
 		internal override void Initialize(MixingBus bus) {}
