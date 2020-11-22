@@ -93,13 +93,3 @@ Binaries found in Implementations/Audio_SoLoud/dist/*
 [Source](https://github.com/nothings/stb/blob/master/stb_truetype.h)
 
 A beef port of this public domain header is used for font handeling.
-
-## MiniZ
-[Source](https://github.com/beefytech/Beef/tree/master/BeefLibs/MiniZ)
-
-The official MiniZ port that comes with Beef.
-
-## JSON_Beef
-[Source](https://github.com/Jonathan-Racaud/JSON_Beef)
-
-A nice beef JSON reading and writing library. Mostly used for Assets related things.

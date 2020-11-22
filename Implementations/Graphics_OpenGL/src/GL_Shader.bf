@@ -23,7 +23,7 @@ namespace Pile.Implementations
 			let shaders = scope uint[2];
 			shaders[0] = PrepareShader(source.vertexSource, GL.GL_VERTEX_SHADER);
 			shaders[1] = PrepareShader(source.fragmentSource, GL.GL_FRAGMENT_SHADER);
-			// TODO: geometry shader is ignored (also update error logging down below)
+			shaders[1] = source.geometrySource == String.Empty ? 0 : PrepareShader(source.geometrySource, GL.GL_GEOMETRY_SHADER);
 
 			GL.glLinkProgram(programID);
 
@@ -37,7 +37,7 @@ namespace Pile.Implementations
 					var s = new char8[len];
 
 					GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
-					Runtime.FatalError(scope $"Error linking program: {StringView(&s[0], len)}");
+					Runtime.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
 				}
 			}
 
@@ -141,13 +141,24 @@ namespace Pile.Implementations
 	
 						GL.glGetShaderInfoLog(id, len, &len, &s[0]);
 
- 						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", (glShaderType == GL.GL_VERTEX_SHADER ? "vertex" : "fragment"), StringView(&s[0], len)));
+ 						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(&s[0], len)));
 					}
 				}
 
 				GL.glAttachShader(programID, id);
 
 				return id;
+			}
+
+			StringView GetShaderTypeName(uint glShaderType)
+			{
+				switch (glShaderType)
+				{
+				case GL.GL_VERTEX_SHADER: return "vertex";
+				case GL.GL_FRAGMENT_SHADER: return "fragment";
+				case GL.GL_GEOMETRY_SHADER: return "geometry";
+				default: return "<unknown type>";
+				}
 			}
 		}
 
