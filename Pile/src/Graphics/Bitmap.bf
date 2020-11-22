@@ -74,6 +74,22 @@ namespace Pile
 			Pixels = new Color[width * height];
 		}
 
+		// Will only reallocate if pixel buffer isnt long enough
+		public void ResizeAndClearBuffered(uint32 width, uint32 height)
+		{
+			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
+
+			Width = width;
+			Height = height;
+
+			if (Width * Height > Pixels.Count)
+			{
+				if (Pixels != null) delete Pixels;
+				Pixels = new Color[width * height];
+			}
+			else Clear();
+		}
+
 		public void Clear()
 		{
 			Array.Clear(&Pixels[0], Pixels.Count);
@@ -125,7 +141,7 @@ namespace Pile
 
 		public void GetSubBitmap(Rect source, Bitmap sub)
 		{
-			sub.ResizeAndClear((.)source.Width, (.)source.Height);
+			sub.ResizeAndClear((uint32)source.Width, (uint32)source.Height);
 			GetPixels(sub.Pixels, Rect(0, 0, source.Width, source.Height), source);
 		}
 

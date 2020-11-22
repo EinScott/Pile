@@ -1,110 +1,96 @@
 using System;
+using System.Text;
 using System.Collections;
 using System.Diagnostics;
-using FreeType;
+using stbtt;
 
 namespace Pile
 {
 	public class Font
 	{
-		static FT_Library lib;
+		internal readonly stbtt_fontinfo fontInfo ~ delete _;
 
-		static this()
+		private readonly uint8[] fontBuffer ~ delete _;
+		private readonly Dictionary<char16, int32> glyphs = new Dictionary<char16, int32>() ~ delete _;
+
+		public readonly String FamilyName = new .() ~ delete _;
+		public readonly String StyleName = new .() ~ delete _;
+		public readonly int32 Ascent;
+		public readonly int32 Descent;
+		public readonly int32 LineGap;
+		public readonly int32 Height; // The Height of the Font (Ascent - Descent)
+		public readonly int32 LineHeight; // The Line Height of the Font (Height + LineGap). This is the total height of a single line, including the line gap
+
+		public this(uint8[] buffer)
 		{
-			let res = FreeType.Init(out lib);
-			Runtime.Assert(res == .Ok, scope $"Error while initializing FreeType2: {res}");
-		}
+			Runtime.Assert(buffer != null && buffer.Count > 0 && stbtt.stbtt__isfont(&buffer[0]) == 1, "Invalid font buffer");
 
-		static ~this()
-		{
-			if (lib != null)
-			{
-				let res = FreeType.Done(lib);
-				Debug.Assert(res == .Ok, scope $"Error while deleting FreeType2: {res}");
-			}
-		}
+		    fontBuffer = new uint8[buffer.Count];
+			buffer.CopyTo(fontBuffer);
+		    fontInfo = new stbtt_fontinfo();
 
-		internal FT_Face face;
+		    stbtt.stbtt_InitFont(fontInfo, &fontBuffer[0], 0); // do error handling!! + look if data is font
 
-		uint8[] dataBuffer ~ delete _;
-		uint32 currentSize = 0;
+		    GetName(fontInfo, 1, FamilyName);
+		    GetName(fontInfo, 2, StyleName);
 
-		public this(Span<uint8> data, int32 faceIndex = 0)
-		{
-			dataBuffer = new uint8[data.Length];
-			data.CopyTo(dataBuffer);
+		    // properties
+		    int32 ascent = ?, descent = ?, linegap = ?;
+		    stbtt.stbtt_GetFontVMetrics(fontInfo, &ascent, &descent, &linegap);
+		    Ascent = ascent;
+		    Descent = descent;
+		    LineGap = linegap;
+		    Height = Ascent - Descent;
+		    LineHeight = Height + LineGap;
 
-			let res = FreeType.NewFace(lib, &dataBuffer[0], (.)dataBuffer.Count, faceIndex, out face);
-			Runtime.Assert(res == .Ok, scope $"Error while creating Face: {res}");
-		}
+		    void GetName(stbtt_fontinfo fontInfo, int32 nameID, String buffer)
+		    {
+		        int32 length = 0;
 
-		public ~this()
-		{
-			let res = FreeType.DoneFace(face);
-			Debug.Assert(res == .Ok, scope $"Error while deleting Face: {res}");
-		}
+		        int8* ptr = stbtt.stbtt_GetFontNameString(fontInfo, &length,
+		            stbtt.STBTT_PLATFORM_ID_MICROSOFT,
+		            stbtt.STBTT_MS_EID_UNICODE_BMP,
+		            stbtt.STBTT_MS_LANG_ENGLISH,
+		            nameID);
 
-		public StringView FamilyName => StringView(face.familyName ?? "Unknown"); // get this the other way, this seems to be null always
-		public StringView StyleName => StringView(face.styleName ?? "Unknown");
-
-		public int32 Ascent => 0; // scale all of these and figure out what they are
-		public int32 Descent => 0;
-		public int32 LineSpacing => 0;
-
-		public bool Scalable => HasFaceFlag(.FACE_FLAG_SCALABLE);
-		public bool FixedSizes => HasFaceFlag(.FACE_FLAG_FIXED_SIZES);
-		public bool HasColor => HasFaceFlag(.FACE_FLAG_COLOR);
-		public bool HasKerning => HasFaceFlag(.FACE_FLAG_KERNING);
-
-		bool HasFaceFlag(FT_FaceFlags flag) => (face.faceFlags & flag.Underlying) != 0;
-
-		public struct CharacterInfo
-		{
-			public bool hasGlyph;
-			public Point2 offset;
-			public uint32 advance;
-		}
-
-		// resetBitmap will resize the bitmap to fit perfectly, this reallocating. Otherwise the glyph will be placed origin-to-origin at the top left corner and only reallocate if necessary to fit
-		public Result<void> RenderChar(uint32 size, char16 unicode, Bitmap glyph, out CharacterInfo info, bool resetBitmap = true)
-		{
-			info = CharacterInfo();
-
-			if (size == 0) LogErrorReturn!("Font size must be greater than 0");
-
-			// Set size if it changed
-			if (size != currentSize)
-			{
-				let res = FreeType.SetPixelSize(face, 0, size);
-				if (res != .Ok) LogErrorReturn!(scope $"Error while setting Font pixel size to {size}: {res}");
-			}
-
-			// todo: font charmaps/encoding?
-			
-			// Load the char
-			let res = FreeType.LoadChar(face, (uint64)unicode, .LOAD_RENDER);
-			if (res != .Ok || face.glyph == null) LogErrorReturn!(scope $"Error while loading char '{unicode}': {res}");
-
-			// TODO: scale all return values
-
-			// Glyph bitmap
-			if (face.glyph.bitmap.width > 0 && face.glyph.bitmap.rows > 0)
-			{
-				if (resetBitmap || face.glyph.bitmap.width > glyph.Width || face.glyph.bitmap.rows > glyph.Height)
-					glyph.Reset((.)face.glyph.bitmap.width, (.)face.glyph.bitmap.rows, Span<Color>((Color*)face.glyph.bitmap.buffer, face.glyph.bitmap.width * face.glyph.bitmap.rows));
-				else
+		        if (length > 0)
 				{
-					glyph.Clear();
-					glyph.SetPixels(Rect(0, 0, face.glyph.bitmap.width, face.glyph.bitmap.rows), Span<Color>((Color*)face.glyph.bitmap.buffer, face.glyph.bitmap.width * face.glyph.bitmap.rows));
+					let span = Span<uint8>((uint8*)ptr, length);
+
+					// Swap (big endian)
+					for (int i = 0; i < span.Length + 1; i += 2)
+					{
+						if (i + 1 >= span.Length)
+							break;
+
+						let swap = span[i + 1];
+						span[i + 1] = span[i];
+						span[i] = swap;
+					}
+
+					// Decode normal little endian
+					Encoding.UTF16.DecodeToUTF8(span, buffer);
 				}
+				else buffer.Append("Unknown");
+		    }
+		}
 
-				info.hasGlyph = true;
-			}
+		// Gets the Scale of the Font for a given Height. This value can then be used to scale proprties of a Font for the given Height
+		public float GetScale(int height)
+		{
+		    return stbtt.stbtt_ScaleForPixelHeight(fontInfo, height);
+		}
 
-			info.offset.Set(face.glyph.bitmapLeft, face.glyph.bitmapTop);
-			info.advance = (.)face.glyph.advance.x;
+		// Gets the Glyph code for a given Unicode value, if it exists, or 0 otherwise
+		public int32 GetGlyph(char16 unicode)
+		{
+		    if (!glyphs.TryGetValue(unicode, var glyph))
+		    {
+		        glyph = stbtt.stbtt_FindGlyphIndex(fontInfo, (int32)unicode);
+		        glyphs.Add(unicode, glyph);
+		    }
 
-			return .Ok;
+		    return glyph;
 		}
 	}
 }

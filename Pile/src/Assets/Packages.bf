@@ -159,7 +159,7 @@ namespace Pile
 					for (uint32 i = 0; i < importerNameCount; i++)
 					{
 						let importerNameLength = ReadUInt();
-						importerNames.Add(new String((char8*)&file[readByte], (.)importerNameLength));
+						importerNames.Add(new String((char8*)&file[readByte], importerNameLength));
 						readByte += (.)importerNameLength;
 					}
 
@@ -171,7 +171,7 @@ namespace Pile
 						let uncompSize = ReadUInt();
 						let node = scope uint8[uncompSize];
 						int position = 0;
-						if (Compression.Decompress(Span<uint8>(&file[readByte], (.)zLibSize), node) case .Err(let err))
+						if (Compression.Decompress(Span<uint8>(&file[readByte], zLibSize), node) case .Err(let err))
 							LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error decompressing node data: {err}");
 						readByte += (.)zLibSize;
 
@@ -187,21 +187,21 @@ namespace Pile
 
 						let nameLength = ReadArrayUInt();
 						let name = new uint8[nameLength];
-						Span<uint8>(&node[position], (.)nameLength).CopyTo(name);
-						position += (.)nameLength;
+						Span<uint8>(&node[position], nameLength).CopyTo(name);
+						position += nameLength;
 
 						let dataLength = ReadArrayUInt();
 						let data = new uint8[dataLength];
-						Span<uint8>(&node[position], (.)dataLength).CopyTo(data);
-						position += (.)dataLength;
+						Span<uint8>(&node[position], dataLength).CopyTo(data);
+						position += dataLength;
 
 						let nodeDataLength = ReadArrayUInt();
 						let nodeData = new uint8[nodeDataLength];
 
 						if (nodeDataLength > 0) // This might be 0
-							Span<uint8>(&node[position], (.)nodeDataLength).CopyTo(nodeData);
+							Span<uint8>(&node[position], nodeDataLength).CopyTo(nodeData);
 
-						position += (.)nodeDataLength;
+						position += nodeDataLength;
 
 						nodes.Add(new PackageNode(importerIndex, name, data, nodeData));
 					}
@@ -362,11 +362,11 @@ namespace Pile
 
 					// Option parameters
 					String namePrefix = null;
-					if (entry.ContainsKey("namePrefix") && entry.GetValueType("namePrefix") == .STRING)
+					if (entry.ContainsKey("name_prefix") && entry.GetValueType("name_prefix") == .STRING)
 					{
-						ress = entry.Get("namePrefix", ref namePrefix);
+						ress = entry.Get("name_prefix", ref namePrefix);
 						if (ress case .Err(let err))
- 							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error getting object 'namePrefix' of object at position {i} of 'imports' array: {err}");
+ 							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error getting object 'name_prefix' of object at position {i} of 'imports' array: {err}");
 					}
 
 					JSONObject config = null;

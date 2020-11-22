@@ -16,7 +16,7 @@ namespace Pile.Implementations
 			return new Null_Input();
 		}
 
-		internal override Window CreateWindow(int32 width, int32 height)
+		internal override Window CreateWindow(uint32 width, uint32 height)
 		{
 			return new Null_Window(width, height);
 		}

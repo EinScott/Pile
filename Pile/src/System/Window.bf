@@ -8,6 +8,8 @@ namespace Pile
 	{
 		public bool Closed { get; internal set; }
 
+		internal this() {}
+
 		public ~this()
 		{
 			OnResized.Dispose();
@@ -22,7 +24,7 @@ namespace Pile
 		public abstract void GetTitle(String buffer);
 		
 		public abstract Point2 Position { get; set; }
-		public abstract Point2 Size { get; set; }
+		public abstract UPoint2 Size { get; set; }
 		public abstract Vector2 ContentScale { get; }
 
 		public abstract bool Resizable { get; set; }

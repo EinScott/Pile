@@ -14,14 +14,14 @@ namespace Pile.Implementations
 
 		internal SDL_Context context = null;
 
-		internal this(String title, int32 width, int32 height, SDL_System system)
+		internal this(String title, uint32 width, uint32 height, SDL_System system)
 		{
 			this.system = system;
 
 			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
 			if (system.glGraphics) flags |= .OpenGL;
 
-			window = SDL.CreateWindow(title, .Centered, .Centered, width, height, flags);
+			window = SDL.CreateWindow(title, .Centered, .Centered, (.)width, (.)height, flags);
 			windowID = SDL.GetWindowID(window);
 
 			// Set current values
@@ -88,8 +88,8 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal Point2 size;
-		public override Point2 Size
+		internal UPoint2 size;
+		public override UPoint2 Size
 		{
 			get => size;
 
@@ -103,7 +103,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		public override Point2 RenderSize
+		public override UPoint2 RenderSize
 		{
 			get
 			{
@@ -114,7 +114,7 @@ namespace Pile.Implementations
 				else
 					SDL.GetWindowSize(window, out w, out h);
 
-				return Point2(w, h);
+				return UPoint2((.)w, (.)h);
 			}
 		}
 

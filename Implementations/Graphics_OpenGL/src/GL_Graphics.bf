@@ -168,7 +168,7 @@ namespace Pile.Implementations
 
 			// update the viewport
 			{
-			    viewport.Y = target.RenderSize.Y - viewport.Y - viewport.Height;
+			    viewport.Y = (int)target.RenderSize.Y - viewport.Y - viewport.Height;
 
 			    if (graphics.viewport != viewport)
 			    {
@@ -327,7 +327,7 @@ namespace Pile.Implementations
 				}
 			}
 
-			let size = pass.target.RenderSize;
+			let size = (Point2)pass.target.RenderSize;
 
 			// Viewport
 			var viewport = pass.viewport ?? Rect(0, 0, size.X, size.Y);

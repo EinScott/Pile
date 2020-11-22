@@ -8,7 +8,7 @@ namespace Pile.Implementations
 {
 	public class SL_Audio : Audio
 	{
-		// TODO: support things like queue, maybe voice and other sources [also 3d, filters and faders, see to.dos elsewhere], maybe some debug mode (SL_Bus.SetVisualizationEnable(bus, true);) like graphics
+		// TODO: support things like queue (not possible because queue is global), maybe voice and other sources [also 3d, filters and faders, see to.dos elsewhere], maybe some debug mode (SL_Bus.SetVisualizationEnable(bus, true);) like graphics
 
 		uint32 majVer;
 		uint32 minVer;

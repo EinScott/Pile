@@ -4,6 +4,6 @@ namespace Pile
 	{
 		public bool Renderable { get; protected set; }
 
-		public abstract Point2 RenderSize { get; }
+		public abstract UPoint2 RenderSize { get; }
 	}
 }

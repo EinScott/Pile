@@ -39,7 +39,7 @@ namespace Pile.Implementations
 			else return input;
 		}
 
-		internal override Window CreateWindow(int32 width, int32 height)
+		internal override Window CreateWindow(uint32 width, uint32 height)
 		{
 			// Only one window
 			if (window == null)
@@ -103,8 +103,8 @@ namespace Pile.Implementations
 
 						// Size
 						case .Resized: // Only resize through external causes
-							window.size.X = event.window.data1;
-							window.size.Y = event.window.data2;
+							window.size.X = (.)event.window.data1;
+							window.size.Y = (.)event.window.data2;
 							window.OnUserResized();
 		
 						// Moved

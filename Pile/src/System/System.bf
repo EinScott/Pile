@@ -63,7 +63,7 @@ namespace Pile
 		}
 
 		internal abstract Input CreateInput();
-		internal abstract Window CreateWindow(int32 width, int32 height);
+		internal abstract Window CreateWindow(uint32 width, uint32 height);
 
 		internal abstract void Initialize();
 		internal abstract void Step();

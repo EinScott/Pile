@@ -76,7 +76,7 @@ namespace Pile.Implementations
 			GL.glGenTextures(1, &textureID);
 			Prepare();
 
-			// TODO: optional mipmapos?
+			// TODO: optional mipmaps?
 			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, texture.Width, texture.Height, 0, glFormat, glType, null);
 			int glTexFilter = (int)(texture.Filter == .Nearest ? GL.GL_NEAREST : GL.GL_LINEAR);
 			int glTexWrapX = (int)(texture.WrapX == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);

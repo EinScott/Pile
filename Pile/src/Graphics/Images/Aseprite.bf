@@ -240,7 +240,7 @@ namespace Pile
 	        }
 
 	        // temporary variables
-	        var temp = scope uint8[Width * Height * (int)Mode];
+	        var temp = scope uint8[Width * Height * (uint)Mode];
 	        var palette = scope Color[256];
 	        IUserData last = null;
 
@@ -336,7 +336,7 @@ namespace Pile
 		                        // DEFLATE
 		                        else
 		                        {
-									let source = scope uint8[(.)(chunkEnd - stream.Position)]; // Read to end of chunk
+									let source = scope uint8[chunkEnd - stream.Position]; // Read to end of chunk
 									let res = stream.TryRead(source);
 									if (res case .Err)
 										LogErrorReturn!("Error reading ASE COMPRESSED Cell: Error reading");
@@ -399,7 +399,7 @@ namespace Pile
 		                    for (int p = 0; p < (end - start) + 1; p++)
 		                    {
 		                        var hasName = WORD();
-		                        palette[(.)start + p] = Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
+		                        palette[start + p] = Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
 
 		                        if (Math.IsBitSet(hasName, 0))
 		                            STRING!();
@@ -472,7 +472,7 @@ namespace Pile
 
 		                        // pivot point
 		                        if (Math.IsBitSet(flags, 1))
-		                            slice.Pivot = Point2((.)DWORD(), (.)DWORD());
+		                            slice.Pivot = Point2(DWORD(), DWORD());
 		                        
 		                        last = slice;
 		                        Slices.Add(slice);

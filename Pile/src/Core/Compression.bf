@@ -12,7 +12,7 @@ namespace Pile
 
 			switch (s)
 			{
-			case .OK: return .Ok((.)destL);
+			case .OK: return .Ok(destL);
 				// The errors that could realistically happen
 			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
@@ -60,7 +60,7 @@ namespace Pile
 
 			switch (s)
 			{
-			case .OK: return .Ok((.)destL);
+			case .OK: return .Ok(destL);
 				// The errors that could realistically happen
 			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");

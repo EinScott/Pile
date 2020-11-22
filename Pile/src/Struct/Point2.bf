@@ -55,6 +55,9 @@ namespace Pile
 		public static Point2 operator*(Point2 a, int b) => Point2(a.X * b, a.Y * b);
 		public static Point2 operator/(Point2 a, int b) => Point2(a.X / b, a.Y / b);
 
+		public static Point2 operator*(Point2 a, uint b) => Point2(a.X * (.)b, a.Y * (.)b);
+		public static Point2 operator/(Point2 a, uint b) => Point2(a.X / (.)b, a.Y / (.)b);
+
 		public static Point2 operator-(Point2 a) => Point2(-a.X, -a.Y);
 
 		public bool Equals(Point2 a) => a.X == X && a.Y == Y;

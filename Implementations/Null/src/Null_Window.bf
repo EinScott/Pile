@@ -6,13 +6,13 @@ namespace Pile.Implementations
 	{
 		String title = new String() ~ delete _;
 
-		public this(int32 width, int32 height)
+		public this(uint32 width, uint32 height)
 		{
-			Size = Point2(width, height);
+			Size = UPoint2(width, height);
 			Visible = true;
 		}
 
-		public override Point2 RenderSize => Size;
+		public override UPoint2 RenderSize => Size;
 
 		public override void SetTitle(StringView title)
 		{
@@ -26,7 +26,7 @@ namespace Pile.Implementations
 
 		public override Point2 Position { get; set; }
 
-		public override Point2 Size { get; set; }
+		public override UPoint2 Size { get; set; }
 
 		public override Vector2 ContentScale => .One;
 

@@ -107,7 +107,7 @@ namespace Pile
 		public Result<void> SetColor(ref Span<Color> buffer) => SetData<Color>(ref buffer);
 		public Result<void> SetData<T>(ref Span<T> buffer)
 		{
-			if (sizeof(T) * buffer.Length * sizeof(T) < Size)
+			if (sizeof(T) * buffer.Length * sizeof(T) < (.)Size)
 				LogErrorReturn!("Buffer is smaller than the Size of the Texture");
 
 			platform.SetData(&buffer[0]);
@@ -117,7 +117,7 @@ namespace Pile
 		public Result<void> GetColor(ref Span<Color> buffer) => GetData<Color>(ref buffer);
 		public Result<void> GetData<T>(ref Span<T> buffer)
 		{
-			if (sizeof(T) * buffer.Length * sizeof(T) < Size)
+			if (sizeof(T) * buffer.Length * sizeof(T) < (.)Size)
 				LogErrorReturn!("Buffer is smaller than the Size of the Texture");
 
 			platform.GetData(&buffer[0]);

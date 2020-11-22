@@ -33,6 +33,22 @@ namespace Pile
 			Height = size.Y;
 		}
 
+		public this(int x, int y, uint width, uint height)
+		{
+			X = x;
+			Y = y;
+			Width = (.)width;
+			Height = (.)height;
+		}
+
+		public this(Point2 position, UPoint2 size)
+		{
+			X = position.X;
+			Y = position.Y;
+			Width = (.)size.X;
+			Height = (.)size.Y;
+		}
+
 		public Point2 Position
 		{
 			[Inline]

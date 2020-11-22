@@ -13,12 +13,6 @@ Textures are merged into one big atlas. Currently this cannot be turned off, but
 
 There are also some useful structs, like Vector2 & 3, Point2 & 3 or Rect (of intagers) as well as some extensions to corelib classes, especially Math.
 
-## Platforms
-Pile is currently Win64 only due to two factors while in principal the design allows for cross platform support:
-
-- FreeType2, SDL2 and SoLoud are only compiled for Win64&32 currently. Contribution of compiled binaries and general testing for other platforms is welcome.
-- The OpenGL module crashes on Win32 and acts weired. Should investigate at some point. We probably need a few other Graphics modules for certain platforms.
-
 ## Getting started
 Pile depends on [JSON_Beef](https://github.com/Jonathan-Racaud/JSON_Beef).
 
@@ -79,12 +73,11 @@ namespace ExampleGameProject
 See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) project for further reference.
 I try to keep the code clean and commented where needed, but documentation will also follow at some point.
 
+# Platforms
+32-Bit Archetictures are not supported.
+Windows binaries are already included. Binaries for other platforms are missing (currently SDL2 and SoLoud). Contribution of compiled binaries and general testing for other platforms is welcome.
+
 # Library Credits
-
-## FreeType2 Library
-Portions of this software are copyright © 2020 The FreeType Project (www.freetype.org).  All rights reserved.
-
-Binaries found in Pile/dist/*
 
 ## SDL2 Library
 [Website](https://www.libsdl.org/license.php)
@@ -95,3 +88,18 @@ Binaries found in Implementations/System_SDL/dist/*
 [Website](http://sol.gfxile.net/soloud/index.html)
 
 Binaries found in Implementations/Audio_SoLoud/dist/*
+
+## STB_TrueType
+[Source](https://github.com/nothings/stb/blob/master/stb_truetype.h)
+
+A beef port of this public domain header is used for font handeling.
+
+## MiniZ
+[Source](https://github.com/beefytech/Beef/tree/master/BeefLibs/MiniZ)
+
+The official MiniZ port that comes with Beef.
+
+## JSON_Beef
+[Source](https://github.com/Jonathan-Racaud/JSON_Beef)
+
+A nice beef JSON reading and writing library. Mostly used for Assets related things.

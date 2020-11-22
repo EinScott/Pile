@@ -159,7 +159,7 @@ namespace Pile
 		        else if (Check("PLTE", fourbytes))
 		        {
 		            hasPLTE = true;
-		            palette = scope:: uint8[(.)chunkLength];
+		            palette = scope:: uint8[chunkLength];
 
 		            let res = stream.TryRead(palette);
 					if (res case .Err)
@@ -175,7 +175,7 @@ namespace Pile
 
 		            for (int i = 0; i < chunkLength; i += idatChunk.Length)
 		            {
-		                int size = (.)Math.Min(idatChunk.Length, chunkLength - i);
+		                int size = Math.Min(idatChunk.Length, chunkLength - i);
 
 						let sizedChunk = idatChunk.Slice(0, size);
 						let res = stream.TryRead(sizedChunk);
@@ -193,7 +193,7 @@ namespace Pile
 		        {
 		            if (color == .Indexed)
 		            {
-		                alphaPalette = scope:: uint8[(.)chunkLength];
+		                alphaPalette = scope:: uint8[chunkLength];
 
 						let res = stream.TryRead(alphaPalette);
 						if (res case .Err)
@@ -423,7 +423,7 @@ namespace Pile
 		    Result<void> Chunk(Stream stream, String title, Span<uint8> buffer)
 		    {
 		        // write chunk
-	            HandleWrite!(stream.Write(SwapEndian((.)buffer.Length)));
+	            HandleWrite!(stream.Write(SwapEndian((int32)buffer.Length)));
 	            HandleWrite!(stream.Write(Span<uint8>((uint8*)&title[0], title.Length)));
 	            HandleWrite!(stream.Write(buffer));
 

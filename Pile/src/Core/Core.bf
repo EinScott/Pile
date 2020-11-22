@@ -14,14 +14,20 @@ using internal Pile;
  */
 
 // --TODO before public--
-// scale all freetype values correctly (in font, use them in spritefont constructor)
-// SpriteFont constructor packer output processing
-// how will the resulting texture be handled with Assets?
+
+/** Fonts
+1)
+	have font be something lib specific (like ttf_font)
+2)
+	have an internal Platform layer for font
+
+!fontsize should not be lib specific and just call functions on this
+- actually, it should probably not exists at all then, it just seems like a weired temp product
+*/
+
+// how will the resulting texture be handled with Assets? -- construction spritefonts feels like an importer
 // directly batch normal Strings (not hard, but need basically copied methods) -- investigate further how best to handle utf16 encoding and char16 strings
 // make more importers (SpriteFont, Font, PNG (subtexture), AudioClip)
-// Draw with batcher
-// More options on fonts (members, like name)
-// statically link?
 
 // translation/localisation stuff (in char16)
 //  char8 key, char16 value
@@ -76,7 +82,7 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void> Initialize(String title, System system, Graphics graphics, Audio audio, int32 windowWidth, int32 windowHeight)
+		public static Result<void> Initialize(String title, System system, Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight)
 		{
 			if (initialized) LogErrorReturn!("Core is already initialized");
 			if (system == null || graphics == null || audio == null) LogErrorReturn!("Core modules cannot be null");
