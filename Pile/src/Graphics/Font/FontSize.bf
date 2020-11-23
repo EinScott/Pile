@@ -96,7 +96,7 @@ namespace Pile
 	        if (Charset.TryGetValue(unicode, let ch) && ch.HasGlyph)
 	        {
 				// Prepare bitmap
-				if (resizeBitmapBuffered) bitmap.ResizeAndClearBuffered(ch.Width, ch.Height);
+				if (resizeBitmapBuffered) bitmap.ResizeAndClear(ch.Width, ch.Height, true);
 				else bitmap.ResizeAndClear(ch.Width, ch.Height);
 
                 // we actually use the bitmap buffer as our temporary buffer, and fill the pixels out backwards after [FOSTERCOMMENT]
