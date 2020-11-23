@@ -31,7 +31,7 @@ namespace Pile.Implementations
 		{
 			if (textureID != 0)
 			{
-				graphics.texturesToDelete.Add(uint32(textureID));
+				graphics.texturesToDelete.Add(textureID);
 				textureID = 0;
 			}
 		}
