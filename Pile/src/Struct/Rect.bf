@@ -51,10 +51,7 @@ namespace Pile
 
 		public Point2 Position
 		{
-			[Inline]
 			get => .(X, Y);
-
-			[Inline]
 			set mut
 			{
 				X = value.X;
@@ -64,10 +61,7 @@ namespace Pile
 
 		public Point2 Size
 		{
-			[Inline]
 			get => .(Width, Height);
-
-			[Inline]
 			set mut
 			{
 				Width = value.X;
@@ -75,40 +69,133 @@ namespace Pile
 			}
 		}
 
-		public int Left
+		public Point2 TopLeft
+		{
+		    get => Point2(Left, Top);
+		    set mut
+		    {
+		        Left = value.X;
+		        Top = value.Y;
+		    }
+		}
+
+		public Point2 TopCenter
+		{
+		    get => Point2(CenterX, Top);
+		    set mut
+		    {
+		        CenterX = value.X;
+		        Top = value.Y;
+		    }
+		}
+
+		public Point2 TopRight
+		{
+		    get => Point2(Right, Top);
+		    set mut
+		    {
+		        Right = value.X;
+		        Top = value.Y;
+		    }
+		}
+
+		public Point2 CenterLeft
+		{
+		    get => Point2(Left, CenterY);
+		    set mut
+		    {
+		        Left = value.X;
+		        CenterY = value.Y;
+		    }
+		}
+
+		public Point2 Center
 		{
 			[Inline]
-			get => X;
+		    get => Point2(CenterX, CenterY);
 
 			[Inline]
+		    set mut
+		    {
+		        CenterX = value.X;
+		        CenterY = value.Y;
+		    }
+		}
+
+		public Point2 CenterRight
+		{
+		    get => Point2(Right, CenterY);
+		    set mut
+		    {
+		        Right = value.X;
+		        CenterY = value.Y;
+		    }
+		}
+
+		public Point2 BottomLeft
+		{
+		    get => Point2(Left, Bottom);
+		    set mut
+		    {
+		        Left = value.X;
+		        Bottom = value.Y;
+		    }
+		}
+
+		public Point2 BottomCenter
+		{
+		    get => Point2(CenterX, Bottom);
+		    set mut
+		    {
+		        CenterX = value.X;
+		        Bottom = value.Y;
+		    }
+		}
+
+		public Point2 BottomRight
+		{
+		    get => Point2(Right, Bottom);
+		    set mut
+		    {
+		        Right = value.X;
+		        Bottom = value.Y;
+		    }
+		}
+
+		public int Left
+		{
+			get => X;
 			set	mut => X = value;
 		}
 
 		public int Right
 		{
-			[Inline]
 			get => X + Width;
-
-			[Inline]
 			set	mut => X = value - Width;
 		}
 
 		public int Top
 		{
-			[Inline]
 			get => Y;
-
-			[Inline]
 			set mut => Y = value;
 		}
 
 		public int Bottom
 		{
-			[Inline]
 			get => Y + Height;
-
-			[Inline]
 			set mut => Y = value - Height;
+		}
+
+		public int CenterX
+		{
+		    get => X + Width / 2;
+		    set mut => X = value - Width / 2;
+		}
+
+		public int CenterY
+		{
+		    get => Y + Height / 2;
+		    set mut => Y = value - Height / 2;
 		}
 
 		public Rect MirrorX(int axis = 0)
@@ -128,6 +215,18 @@ namespace Pile
 		public Rect Inflate(int amount)
 		{
 			return Rect(X - amount, Y - amount, Width + amount * 2, Height + amount * 2);
+		}
+
+		public Rect Inflate(int left, int top, int right, int bottom)
+		{
+		    var rect = this;
+		    rect.Left -= left;
+		    rect.Top -= top;
+		    rect.Right += right;
+		    rect.Bottom += bottom;
+		    rect.Width += left + right;
+		    rect.Height += top + bottom;
+		    return rect;
 		}
 
 		public bool Overlaps(Rect rect)
@@ -193,18 +292,24 @@ namespace Pile
 
 		public Rect OverlapRect(Rect against)
 		{
-		    if (Overlaps(against))
-		    {
-		        return Rect()
-		        {
-		            Left = Math.Max(Left, against.Left),
-		            Top = Math.Max(Top, against.Top),
-		            Right = Math.Min(Right, against.Right),
-		            Bottom = Math.Min(Bottom, against.Bottom)
-		        };
-		    }
+		    var overlapX = X + Width > against.X && X < against.X + against.Width;
+			var overlapY = Y + Height > against.Y && Y < against.Y + against.Height;
 
-		    return Rect(0, 0, 0, 0);
+			var r = Rect();
+
+			if (overlapX)
+			{
+			    r.Left = Math.Max(Left, against.Left);
+			    r.Width = Math.Min(Right, against.Right) - r.Left;
+			}
+
+			if (overlapY)
+			{
+			    r.Top = Math.Max(Top, against.Top);
+			    r.Height = Math.Min(Bottom, against.Bottom) - r.Top;
+			}
+
+			return r;
 		}
 
 		public override void ToString(String strBuffer)

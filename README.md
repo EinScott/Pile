@@ -80,7 +80,7 @@ Windows binaries are already included. Binaries for other platforms are missing 
 # Library Credits
 
 ## SDL2 Library
-[Website](https://www.libsdl.org/license.php)
+[Website](https://www.libsdl.org/)
 
 Binaries found in Implementations/System_SDL/dist/*
 
