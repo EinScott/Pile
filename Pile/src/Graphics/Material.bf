@@ -38,7 +38,7 @@ namespace Pile
 
 			public Result<void> SetTexture(Texture value, int index = 0)
 			{
-				if (AssertParameters(.Sampler, index) case .Err) return .Err;
+				Try!(AssertParameters(.Sampler, index));
 
 				if (let val = Value as Texture[])
 					val[index] = value;
@@ -48,7 +48,7 @@ namespace Pile
 
 			public Result<Texture> GetTexture(int index = 0)
 			{
-				if (AssertParameters(.Sampler, index) case .Err) return .Err;
+				Try!(AssertParameters(.Sampler, index));
 
 				if (let val = Value as Texture[])
 					return val[index];
@@ -57,7 +57,7 @@ namespace Pile
 
 			public Result<void> SetInt(int32 value, int index = 0)
 			{
-				if (AssertParameters(.Int, index) case .Err) return .Err;
+				Try!(AssertParameters(.Int, index));
 
 				if (let val = Value as int32[])
 					val[index] = value;
@@ -67,7 +67,7 @@ namespace Pile
 
 			public Result<int32> GetInt(int index = 0)
 			{
-				if (AssertParameters(.Int, index) case .Err) return .Err;
+				Try!(AssertParameters(.Int, index));
 
 				if (let val = Value as int32[])
 					return val[index];
@@ -77,7 +77,7 @@ namespace Pile
 
 			public Result<void> SetFloat(float value, int index = 0)
 			{
-				if (AssertParameters(.Float, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float, index));
 
 				if (let val = Value as float[])
 					val[index] = value;
@@ -87,7 +87,7 @@ namespace Pile
 
 			public Result<float> GetFloat(int index = 0)
 			{
-				if (AssertParameters(.Float, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float, index));
 
 				if (let val = Value as float[])
 					return val[index];
@@ -98,7 +98,7 @@ namespace Pile
 			public Result<void> SetFloat2((float, float) value, int index = 0)
 			{
 				let offset = index * 2;
-				if (AssertParameters(.Float2, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float2, index));
 
 				if (let val = Value as float[])
 				{
@@ -112,7 +112,7 @@ namespace Pile
 			public Result<void> SetFloat2(Vector2 value, int index = 0)
 			{
 				let offset = index * 2;
-				if (AssertParameters(.Float2, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float2, index));
 
 				if (let val = Value as float[])
 				{
@@ -126,7 +126,7 @@ namespace Pile
 			public Result<Vector2> GetFloat2(int index = 0)
 			{
 				let offset = index * 2;
-				if (AssertParameters(.Float2, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float2, index));
 
 				if (let val = Value as float[])
 				{
@@ -139,7 +139,7 @@ namespace Pile
 			public Result<void> SetFloat3((float, float, float) value, int index = 0)
 			{
 				let offset = index * 3;
-				if (AssertParameters(.Float3, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float3, index));
 
 				if (let val = Value as float[])
 				{
@@ -154,7 +154,7 @@ namespace Pile
 			public Result<void> SetFloat3(Vector3 value, int index = 0)
 			{
 				let offset = index * 3;
-				if (AssertParameters(.Float3, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float3, index));
 
 				if (let val = Value as float[])
 				{
@@ -169,7 +169,7 @@ namespace Pile
 			public Result<Vector3> GetFloat3(int index = 0)
 			{
 				let offset = index * 3;
-				if (AssertParameters(.Float3, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float3, index));
 
 				if (let val = Value as float[])
 				{
@@ -182,7 +182,7 @@ namespace Pile
 			public Result<void> SetFloat4((float, float, float, float) value, int index = 0)
 			{
 				let offset = index * 4;
-				if (AssertParameters(.Float4, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float4, index));
 
 				if (let val = Value as float[])
 				{
@@ -198,7 +198,7 @@ namespace Pile
 			public Result<(float, float, float, float)> GetFloat4(int index = 0)
 			{
 				let offset = index * 4;
-				if (AssertParameters(.Float4, index) case .Err) return .Err;
+				Try!(AssertParameters(.Float4, index));
 
 				if (let val = Value as float[])
 				{
@@ -211,7 +211,7 @@ namespace Pile
 			public Result<void> SetMat3x2(Matrix3x2 value, int index = 0)
 			{
 				let offset = index * 6;
-				if (AssertParameters(.Matrix3x2, index) case .Err) return .Err;
+				Try!(AssertParameters(.Matrix3x2, index));
 
 				if (let val = Value as float[])
 				{
@@ -229,7 +229,7 @@ namespace Pile
 			public Result<Matrix3x2> GetMat3x2(int index = 0)
 			{
 				let offset = index * 6;
-				if (AssertParameters(.Matrix3x2, index) case .Err) return .Err;
+				Try!(AssertParameters(.Matrix3x2, index));
 
 				if (let val = Value as float[])
 				{
@@ -242,7 +242,7 @@ namespace Pile
 			public Result<void> SetMatrix4x4(Matrix4x4 value, int index = 0)
 			{
 				let offset = index * 16;
-				if (AssertParameters(.Matrix4x4, index) case .Err) return .Err;
+				Try!(AssertParameters(.Matrix4x4, index));
 
 				if (let val = Value as float[])
 				{
@@ -270,7 +270,7 @@ namespace Pile
 			public Result<Matrix4x4> GetMatrix4x4(int index = 0)
 			{
 				let offset = index * 16;
-				if (AssertParameters(.Matrix4x4, index) case .Err) return .Err;
+				Try!(AssertParameters(.Matrix4x4, index));
 
 				if (let val = Value as float[])
 				{

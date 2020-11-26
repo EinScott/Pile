@@ -24,16 +24,9 @@ namespace Pile
 
 		public static Result<void> Compress(Span<uint8> source, ref Span<uint8> destination,  MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
-			let res = Compress(source, destination, level);
-
-			switch (res)
-			{
-			case .Ok(let val):
-				destination.Length = val;
-				return .Ok;
-			case .Err(let err):
-				return .Err(err);
-			}
+			let length = Try!(Compress(source, destination, level));
+			destination.Length = length;
+			return .Ok;
 		}
 
 		public static Result<void> Compress(Span<uint8> source, uint8[] destination,  MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
@@ -41,16 +34,9 @@ namespace Pile
 			if (destination == null)
 				LogErrorReturn!("Destination array cannot be null");
 
-			let res = Compress(source, Span<uint8>(destination), level);
-
-			switch (res)
-			{
-			case .Ok(let val):
-				destination.Count = val;
-				return .Ok;
-			case .Err(let err):
-				return .Err(err);
-			}
+			let length = Try!(Compress(source, Span<uint8>(destination), level));
+			destination.Count = length;
+			return .Ok;
 		}
 
 		public static Result<int> Decompress(Span<uint8> source, Span<uint8> destination)
@@ -72,16 +58,9 @@ namespace Pile
 
 		public static Result<void> Decompress(Span<uint8> source, ref Span<uint8> destination)
 		{
-			let res = Decompress(source, destination);
-
-			switch (res)
-			{
-			case .Ok(let val):
-				destination.Length = val;
-				return .Ok;
-			case .Err(let err):
-				return .Err(err);
-			}
+			let length = Try!(Decompress(source, destination));
+			destination.Length = length;
+			return .Ok;
 		}
 
 		public static Result<void> Decompress(Span<uint8> source, uint8[] destination)
@@ -89,16 +68,9 @@ namespace Pile
 			if (destination == null)
 				LogErrorReturn!("Destination array cannot be null");
 
-			let res = Decompress(source, Span<uint8>(destination));
-
-			switch (res)
-			{
-			case .Ok(let val):
-				destination.Count = val;
-				return .Ok;
-			case .Err(let err):
-				return .Err(err);
-			}
+			let length = Try!(Decompress(source, Span<uint8>(destination)));
+			destination.Count = length;
+			return .Ok;
 		}
 	}
 }

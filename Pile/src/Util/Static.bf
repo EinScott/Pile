@@ -6,11 +6,21 @@ namespace Pile
 {
 	static
 	{
-		public static mixin LogErrorReturn(String err)
+		public static mixin LogErrorReturn(String errMsg)
 		{
-			Log.Error(err);
-			
+			Log.Error(errMsg);
 			return .Err(default);
+		}
+
+		public static mixin LogErrorTry(var result, String errMsg)
+		{
+			if (result case .Err(var err))
+			{
+				Log.Error(err);
+				return .Err((.)err);
+			}	
+
+			result.Get()
 		}
 
 		public static mixin DeleteNotNull(var instance)

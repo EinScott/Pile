@@ -30,7 +30,7 @@ namespace Pile
 			}
 
 			// Add object in assets
-			if (Assets.AddAsset(type, nameString, asset) case .Err) return .Err;
+			Try!(Assets.AddAsset(type, nameString, asset));
 
 			// Add object location in package
 			if (!package.ownedAssets.ContainsKey(type))
@@ -57,7 +57,7 @@ namespace Pile
 			}
 
 			// Add object in assets
-			if (Assets.AddPackerTexture(nameString, bitmap) case .Err) return .Err;
+			Try!(Assets.AddPackerTexture(nameString, bitmap));
 
 			// Add object location in package
 			package.ownedPackerTextures.Add(nameString);

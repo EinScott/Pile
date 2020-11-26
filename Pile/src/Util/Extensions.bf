@@ -574,9 +574,7 @@ namespace System
 			public static Result<void> WriteAllBytes(StringView path, Span<uint8> data)
 			{
 				FileStream fs = scope FileStream();
-				var result = fs.Open(path, .Create, .Write);
-				if (result case .Err)
-					return .Err;
+				Try!(fs.Open(path, .Create, .Write));
 				fs.TryWrite(data);
 				return .Ok;
 			}

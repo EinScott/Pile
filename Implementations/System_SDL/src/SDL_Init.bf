@@ -13,9 +13,7 @@ namespace Pile.Implementations
 			if (initialized) return .Ok;
 
 			if (SDL.Init(InitFlags) != 0)
-			{
 				LogErrorReturn!(scope String(SDL.GetError()));
-			}
 			else initialized = true;
 
 			return .Ok;

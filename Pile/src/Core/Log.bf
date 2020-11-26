@@ -100,7 +100,7 @@ namespace Pile
 				if (logPath == null)
 					CreateLogPathString();
 
-				SaveToFile(logPath);
+				SaveToFile(logPath).IgnoreError();
 			}
 		}
 		public static void Error(Object message)
@@ -112,7 +112,7 @@ namespace Pile
 				if (logPath == null)
 					CreateLogPathString();
 
-				SaveToFile(logPath);
+				SaveToFile(logPath).IgnoreError();
 			}
 		}
 
@@ -209,12 +209,18 @@ namespace Pile
 		public static Result<void> SaveToFile(String filePath)
 		{
 			var directory = scope String();
-			if (Path.GetDirectoryPath(filePath, directory) case .Err) LogErrorReturn!("Couldn't append log to file, invalid path");
-
-			if (directory.Length != 0 && !Directory.Exists(directory))
+			if (Path.GetDirectoryPath(filePath, directory) case .Err)
 			{
-				if (Directory.CreateDirectory(directory) case .Err(let res)) LogErrorReturn!(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
+				Log.Warning("Couldn't append log to file, invalid path");
+				return .Err;
 			}
+
+			if (!Directory.Exists(directory))
+				if (Directory.CreateDirectory(directory) case .Err(let res))
+				{
+					Log.Warning(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
+					return .Err;
+				}
 			
 			let fileLog = scope String();
 			if (discontinued) fileLog.Append("CONTINUES LOG FROM BELOW");
@@ -247,13 +253,21 @@ namespace Pile
 				fileLog.Append(Environment.NewLine);
 
 				var existingFile = scope String();
-				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res)) LogErrorReturn!(scope $"Couldn't append log to file, couldn't read existing file: {res}");
+				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res))
+				{
+					Log.Warning(scope $"Couldn't append log to file, couldn't read existing file: {res}");
+					return .Err;
+				}
 
 				fileLog.Append(existingFile);
 			}
 
 			// Write
-			if (File.WriteAllText(filePath, fileLog) case .Err) LogErrorReturn!("Couldn't append log to file, couldn't write file");
+			if (File.WriteAllText(filePath, fileLog) case .Err)
+			{
+				Log.Warning("Couldn't append log to file, couldn't write file");
+				return .Err;
+			}
 
 			return .Ok;
 		}

@@ -65,14 +65,12 @@ namespace Pile
 
 		static mixin HandleRead(Result<int> res)
 		{
-			if (res case .Err)
-				LogErrorReturn!("Error reading PNG: Couldn't read span");
+			LogErrorTry!(res, "Error reading PNG: Couldn't read span");
 		}
 
 		static mixin HandleWrite(Result<void> res)
 		{
-			if (res case .Err)
-				LogErrorReturn!("Error writing PNG: Couldn't write span");
+			LogErrorTry!(res, "Error writing PNG: Couldn't write span");
 		}
 
 		public static Result<void> Read(Stream stream, Bitmap bitmap)
@@ -161,12 +159,9 @@ namespace Pile
 		            hasPLTE = true;
 		            palette = scope:: uint8[chunkLength];
 
-		            let res = stream.TryRead(palette);
-					if (res case .Err)
-						LogErrorReturn!("Error reading PNG: Couldn't read PLTE chunk");
-					else if (res case .Ok(let val))
-						if (val != palette.Count)
-							LogErrorReturn!("Error reading PNG: PLTE chunk was not of expected size");
+		            let length = LogErrorTry!(stream.TryRead(palette), "Error reading PNG: Couldn't read PLTE chunk");
+					if (length != palette.Count)
+						LogErrorReturn!("Error reading PNG: PLTE chunk was not of expected size");
 		        }
 		        // IDAT Chunk (Image Data)
 		        else if (Check("IDAT", fourbytes))
@@ -178,12 +173,9 @@ namespace Pile
 		                int size = Math.Min(idatChunk.Length, chunkLength - i);
 
 						let sizedChunk = idatChunk.Slice(0, size);
-						let res = stream.TryRead(sizedChunk);
-		                if (res case .Err)
-							LogErrorReturn!("Error reading PNG: Couldn't read IDAT chunk");
-						else if (res case .Ok(let val))
-							if (val != sizedChunk.Length)
-								LogErrorReturn!("Error reading PNG: IDAT chunk was not of expected size");
+						let length = LogErrorTry!(stream.TryRead(sizedChunk), "Error reading PNG: Couldn't read IDAT chunk");
+		                if (length != sizedChunk.Length)
+							LogErrorReturn!("Error reading PNG: IDAT chunk was not of expected size");
 
 		                idat.Write(sizedChunk);
 		            }
@@ -195,12 +187,9 @@ namespace Pile
 		            {
 		                alphaPalette = scope:: uint8[chunkLength];
 
-						let res = stream.TryRead(alphaPalette);
-						if (res case .Err)
-							LogErrorReturn!("Error reading PNG: Couldn't read tRNS chunk");
-						else if (res case .Ok(let val))
-							if (val != alphaPalette.Count)
-								LogErrorReturn!("Error reading PNG: tRNS chunk was not of expected size");
+						let length = LogErrorTry!(stream.TryRead(alphaPalette), "Error reading PNG: Couldn't read tRNS chunk");
+						if (length != alphaPalette.Count)
+							LogErrorReturn!("Error reading PNG: tRNS chunk was not of expected size");
 		            }
 		            else if (color == .Greyscale)
 		            {
@@ -270,24 +259,16 @@ namespace Pile
 		                {
 		                    Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                    for (int x = bpp; x < lineLength; x++)
-		                    {
-		                        buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - bpp]);
-		                    }
+		                    	buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - bpp]);
 		                }
 		                // 2 - Up
 		                else if (lineFilter == 2)
 		                {
 		                    if (y <= 0)
-		                    {
-		                        Array.Copy(buffer, source, buffer, dest, lineLength);
-		                    }
+								Array.Copy(buffer, source, buffer, dest, lineLength);
 		                    else
-		                    {
 		                        for (int x = 0; x < lineLength; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - lineLength]);
-		                        }
-		                    }
 		                }
 		                // 3 - Average
 		                else if (lineFilter == 3)
@@ -296,21 +277,15 @@ namespace Pile
 		                    {
 		                        Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                        for (int x = bpp; x < lineLength; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + ((int)buffer[dest + x - bpp] / 2));
-		                        }
 		                    }
 		                    else
 		                    {
 		                        for (int x = 0; x < bpp; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + ((int)buffer[dest + x - lineLength] / 2));
-		                        }
 
 		                        for (int x = bpp; x < lineLength; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (((int)buffer[dest + x - bpp] + (int)buffer[dest + x - lineLength]) / 2));
-								}
 		                    }
 		                }
 		                // 4 - Paeth
@@ -320,21 +295,15 @@ namespace Pile
 		                    {
 		                        Array.Copy(buffer, source, buffer, dest, Math.Min(bpp, lineLength));
 		                        for (int x = bpp; x < lineLength; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - bpp]);
-		                        }
 		                    }
 		                    else
 		                    {
 		                        for (int x = 0, int c = Math.Min(bpp, lineLength); x < c; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + (int)buffer[dest + x - lineLength]);
-		                        }
 
 		                        for (int x = bpp; x < lineLength; x++)
-		                        {
 		                            buffer[dest + x] = (uint8)((int)buffer[source + x] + PaethPredictor(buffer[dest + x - bpp], buffer[dest + x - lineLength], buffer[dest + x - bpp - lineLength]));
-		                        }
 		                    }
 		                }
 
@@ -344,9 +313,7 @@ namespace Pile
 
 		        // if the bit-depth isn't 8, convert it
 		        if (depth != 8)
-		        {
 		            LogErrorReturn!("Non 8-bit PNGs not Implemented");
-		        }
 
 		        // Convert bytes to RGBA data
 		        // We work backwards as to not overwrite data
@@ -409,14 +376,14 @@ namespace Pile
 		    return .Ok;
 		}
 
+		[Obsolete("Unfinished implementation", true)]
 		public static Result<void> Write(Stream stream, Bitmap bitmap)
-			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
+			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Ok;
 
+		[Obsolete("Unfinished implementation", true)]
 		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
 		{
 			// TODO: finish deflation
-			var s = 1; // (just so we dont get a warning)
-			if (s + 1 == 2) LogErrorReturn!("Unfinished implementation");
 
 		    const int32 MaxIDATChunkLength = 8192;
 
@@ -451,8 +418,7 @@ namespace Pile
 		        {
 		            int32 amount = Math.Min(remainder, MaxIDATChunkLength);
 
-		            if (Chunk(stream, "IDAT", zlib.Slice(offset, amount)) case .Err(let err))
-						return .Err(err);
+		            Try!(Chunk(stream, "IDAT", zlib.Slice(offset, amount)));
 		            offset += amount;
 		            remainder -= amount;
 		        }

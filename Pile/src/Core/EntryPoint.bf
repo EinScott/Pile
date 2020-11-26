@@ -65,7 +65,7 @@ namespace Pile
 					{
 						let content = scope String();
 						if (File.ReadAllText(path, content) case .Err(let err))
-							Log.Warning("launch.dat exists but couldn't be read");
+							Log.Warning(scope $"launch.dat exists but couldn't be read: {err}");
 
 						if (content.Length > 0)
 						{
@@ -133,7 +133,8 @@ namespace Pile
 			OnStart();
 			OnStart.Dispose();
 
-			RunGame();
+			if (RunGame() case .Err)
+				return -1;
 
 			return 0;
 		}
@@ -144,8 +145,7 @@ namespace Pile
 				LogErrorReturn!("EntryPoint.GameMain cannot be null. Register a function for it in static construction and call Core.Initialize and Core.Start");
 
 			// Run GameMain
-			if (GameMain() case .Err)
-				return .Err;
+			LogErrorTry!(GameMain(), "Error while executing EntryPoint.GameMain");
 
 			return .Ok;
 		}

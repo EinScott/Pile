@@ -197,12 +197,11 @@ namespace Pile
 	        mixin STRING()
 			{
 				let buf = scope uint8[WORD()];
-				let res = stream.TryRead(buf); // BYTES(count) is here
-				if (res case .Err)
-					return .Err;
-				else if (res case .Ok(let val))
-					if (val != buf.Count)
-						LogErrorReturn!("Couldn't load Aseprite: Unexpected string size");
+				let length = Try!(stream.TryRead(buf)); // BYTES(count) is here
+
+				if (length != buf.Count)
+					LogErrorReturn!("Couldn't load Aseprite: Unexpected string size");
+
 				let s = scope:mixin String((char8*)&buf[0], buf.Count);
 				s
 			}
@@ -326,28 +325,20 @@ namespace Pile
 		                        // RAW
 		                        if (celType == 0)
 		                        {
-		                            let res = stream.TryRead(temp);
-									if (res case .Err)
-										LogErrorReturn!("Error reading ASE RAW Cell: Error reading");
-									else if (res case .Ok(let val))
-										if (val != temp.Count - 1)
-											LogErrorReturn!("Error reading ASE RAW Cell: Unexpected size");
+		                            let length = LogErrorTry!(stream.TryRead(temp), "Error reading ASE RAW Cell: Error reading");
+									if (length != temp.Count - 1)
+										LogErrorReturn!("Error reading ASE RAW Cell: Unexpected size");
 		                        }
 		                        // DEFLATE
 		                        else
 		                        {
 									let source = scope uint8[chunkEnd - stream.Position]; // Read to end of chunk
-									let res = stream.TryRead(source);
-									if (res case .Err)
-										LogErrorReturn!("Error reading ASE COMPRESSED Cell: Error reading");
-									else if (res case .Ok(let val))
-										if (val != source.Count)
-											LogErrorReturn!("Error reading ASE COMPRESSED Cell: Unexpected size");
+									let length = LogErrorTry!(stream.TryRead(source), "Error reading ASE COMPRESSED Cell: Error reading");
+									if (length != source.Count)
+										LogErrorReturn!("Error reading ASE COMPRESSED Cell: Unexpected size");
 
 									if (Compression.Decompress(source, temp) case .Err(let err))
-									{
 										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cell: {err}");
-									}
 								}
 
 		                        // get pixel data

@@ -113,14 +113,14 @@ namespace Pile
 
 			// Read file
 			{
+				// Normalize path
 				let packagePath = scope String();
 				Path.InternalCombineViews(packagePath, packagesPath, packageName);
-				if (!packageName.EndsWith(".bin")) Path.ChangeExtension(scope String(packagePath), ".bin", packagePath);
-				let res = File.ReadAllBytes(packagePath);
-				if (res case .Err)
-				  LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error reading file from {packagePath}");
+				if (!packageName.EndsWith(".bin"))
+					Path.ChangeExtension(scope String(packagePath), ".bin", packagePath);
 
-				let file = res.Value;
+				// Get file
+				let file = LogErrorTry!(File.ReadAllBytes(packagePath), scope $"Couldn't loat package {packageName}. Error reading file from {packagePath}");
 
 				// HEADER (3 bytes + one reserved)
 				// FILESIZE (4 bytes, uint32)
@@ -692,9 +692,8 @@ namespace Pile
 				Path.GetFileNameWithoutExtension(scope String(packagePath), packageName);
 				Path.InternalCombine(outPath, scope String(outputPath), packageName);
 				Path.ChangeExtension(scope String(outPath), ".bin", outPath);
-				let res = File.WriteAllBytes(outPath, file);
-				if (res case .Err)
-					LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error writing file to {outPath}");
+
+				LogErrorTry!(File.WriteAllBytes(outPath, file), scope $"Couldn't build package at {packagePath}. Error writing file to {outPath}");
 
 				t.Stop();
 				Log.Message(scope $"Built package {packageName} in {t.ElapsedMilliseconds}ms");
