@@ -69,8 +69,8 @@ namespace Pile
 					stbtt.stbtt_GetGlyphHMetrics(font.fontInfo, glyph, &advance, &offsetX);
 					stbtt.stbtt_GetGlyphBitmapBox(font.fontInfo, glyph, Scale, Scale, &x0, &y0, &x1, &y1);
 
-					uint32 w = (.)(x1 - x0);
-					uint32 h = (.)(y1 - y0);
+					uint32 w = (uint32)(x1 - x0);
+					uint32 h = (uint32)(y1 - y0);
 
 					// Define character
 					let ch = Character(unicode, glyph, w, h, advance * Scale, offsetX * Scale, y0,

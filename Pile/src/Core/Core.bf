@@ -15,23 +15,10 @@ using internal Pile;
 
 // --TODO before public--
 
-/** Fonts
-1)
-	have font be something lib specific (like ttf_font)
-2)
-	have an internal Platform layer for font
+// how will the SpriteFont texture be handled with Assets? -- construction spritefonts feels like an importer
+// -> how do we make an importer for spritefonts, eg access the texture (and data, not the problem)
 
-!fontsize should not be lib specific and just call functions on this
-- actually, it should probably not exists at all then, it just seems like a weired temp product
-*/
-
-// how will the resulting texture be handled with Assets? -- construction spritefonts feels like an importer
-// directly batch normal Strings (not hard, but need basically copied methods) -- investigate further how best to handle utf16 encoding and char16 strings
-// make more importers (SpriteFont, Font, PNG (subtexture), AudioClip)
-
-// translation/localisation stuff (in char16)
-//  char8 key, char16 value
-// conversion from char8 for hardcoded stuff?
+// make SpriteFont importer when that problem is solved?
 
 // readme simplification
 // Example project todo
@@ -41,6 +28,8 @@ using internal Pile;
  * look into other implementations (bgfx, ...)
  * finish audio stuff (3d, filters http://sol.gfxile.net/soloud/filters.html, (fading))
  * support some mesh format? (obj, ...)
+ * make more importers? (for prerendered SpriteFonts..., Aseprite -> basically create ase instance, save that, and then load from that?)
+ * include some builtin way of keeping and accessing translatable strings?
  */
 
 namespace Pile

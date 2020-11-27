@@ -63,6 +63,23 @@ namespace Pile
 		    return isPng;
 		}
 
+		public static bool IsValid(Span<uint8> data)
+		{
+			if (data.Length < 8)
+				return false;
+
+		    // check PNG header
+		    return
+		        data[0] == header[0] && // 8-bit format
+		        data[1] == header[1] && // P
+		        data[2] == header[2] && // N
+		        data[3] == header[3] && // G
+		        data[4] == header[4] && // Carriage Return
+		        data[5] == header[5] && // Line Feed
+		        data[6] == header[6] && // Ctrl-Z
+		        data[7] == header[7];   // Line Feed
+		}
+
 		static mixin HandleRead(Result<int> res)
 		{
 			LogErrorTry!(res, "Error reading PNG: Couldn't read span");
