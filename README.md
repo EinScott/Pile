@@ -5,7 +5,9 @@ This is still in active development, suggestions & contributions for changes and
 ## What it does
 Pile handles window management, input, rendering and audio through a few abstract core modules that can be implemented for each platform: System, Graphics, Audio.
 Currently, there are SDL2 System, simple OpenGL 3.3+ Graphics and SoLoud Audio modules. Custom implementations are possible.
+
 Apart from that, Pile features an extendable asset management pipeline and supports UTF8 unicode text rendering via STB_TrueType fonts.
+
 There are also some useful structs, like Vector2 & 3, Point2 & 3 or Rect (of intagers) as well as some extensions to corelib classes, especially Math.
 
 ## Getting started
@@ -62,6 +64,7 @@ namespace ExampleGameProject
 
 ## Documentation
 Documentation is still WIP.
+
 See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) project for further reference.
 
 # Platforms
@@ -74,8 +77,7 @@ You may suggest to change stuff to make the framework nicer to work with or add 
 # Library Credits
 
 ## Foster
-This project is based on and partly an almost direct port of [Foster](https://github.com/NoelFB/Foster).
-See FOSTER.LICENSE.txt
+This project is based on and partly an almost direct port of [Foster](https://github.com/NoelFB/Foster). See FOSTER.LICENSE.txt
 
 ## SDL2 Library
 [Website](https://www.libsdl.org/)
