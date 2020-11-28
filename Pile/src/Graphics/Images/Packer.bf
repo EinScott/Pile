@@ -240,25 +240,18 @@ namespace Pile
 			if (sources.Count <= 0)
 			    return .Err;
 
-			// sort the sources by size
+			// Sort the sources by size
 			sources.Sort(scope (a, b) => b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height);
 
-			// make sure the largest isn't too large
+			// Make sure the largest isn't too large
 			if (sources[0].packed.Width > maxSize || sources[0].packed.Height > maxSize)
 			    LogErrorReturn!("Source image is larger than max atlas size");
 
-			// why do we sometimes need more than source images * 3? [FOSTERCOMMENT]
-			// for safety I've just made it 4 ... but it should really only be 3?
-			// --> changed this to 3 to look into it. If this crashes here, investigate further or change back
-
-			int nodeCount = sources.Count * 3;
-			Span<PackingNode> buffer = scope PackingNode[nodeCount];
+			int nodeCount = sources.Count * 4;
+			let buffer = new PackingNode[nodeCount];
 
 			var padding = Math.Max(0, padding);
 			let output = new Output();
-
-			// using pointer operations here was faster
-			PackingNode* nodes = buffer.Ptr;
 
 		    int32 packed = 0, page = 0;
 		    while (packed < sources.Count)
@@ -270,7 +263,7 @@ namespace Pile
 		        }
 
 		        let from = packed;
-		        var nodePtr = nodes;
+		        var nodePtr = &buffer[0];
 		        var rootPtr = ResetNode(nodePtr++, 0, 0, sources[from].packed.Width + padding, sources[from].packed.Height + padding);
 
 		        while (packed < sources.Count)
@@ -372,6 +365,8 @@ namespace Pile
 
 		        page++;
 		    }
+
+			delete buffer;
 
 			// make sure duplicates have entries
 			if (combineDuplicates)

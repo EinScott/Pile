@@ -11,7 +11,7 @@ namespace Pile
 	    // A single Font Character
 	    public struct Character
 	    {
-	        public readonly char16 Unicode;
+	        public readonly char32 Unicode;
 	        public readonly int32 Glyph;
 	        public readonly uint32 Width;
 	        public readonly uint32 Height;
@@ -20,7 +20,7 @@ namespace Pile
 	        public readonly float OffsetY;
 	        public readonly bool HasGlyph;
 
-			public this(char16 unicode, int32 glyph, uint32 width, uint32 height, float advance, float offsetX, float offsetY, bool hasGlyph)
+			public this(char32 unicode, int32 glyph, uint32 width, uint32 height, float advance, float offsetX, float offsetY, bool hasGlyph)
 			{
 				Unicode = unicode;
 				Glyph = glyph;
@@ -43,9 +43,9 @@ namespace Pile
 	    public readonly float LineHeight; // This is the Font.LineHeight * our Scale
 	    public readonly float Scale;
 
-	    public readonly Dictionary<char16, Character> Charset = new Dictionary<char16, Character>() ~ delete _;
+	    public readonly Dictionary<char32, Character> Charset = new Dictionary<char32, Character>() ~ delete _;
 
-	    public this(Font font, uint32 size, Span<char16> charset)
+	    public this(Font font, uint32 size, Span<char32> charset)
 	    {
 	        Font = font;
 	        Size = size;
@@ -82,7 +82,7 @@ namespace Pile
 	    }
 
 	    // Gets the Kerning Value between two Unicode characters at the Font Size, or 0 if there is no Kerning
-	    public float GetKerning(char16 unicode0, char16 unicode1)
+	    public float GetKerning(char32 unicode0, char32 unicode1)
 	    {
 	        if (Charset.TryGetValue(unicode0, let char0) && Charset.TryGetValue(unicode1, let char1))
 	        	return stbtt.stbtt_GetGlyphKernAdvance(Font.fontInfo, char0.Glyph, char1.Glyph) * Scale;
@@ -91,7 +91,7 @@ namespace Pile
 	    }
 
 	    // Renders the Unicode character to a buffer at the Font Size, and returns true on success. The bitmap will be cleared before rendering to it
-	    public bool Render(char16 unicode, Bitmap bitmap, bool resizeBitmapBuffered = false)
+	    public bool Render(char32 unicode, Bitmap bitmap, bool resizeBitmapBuffered = false)
 	    {
 	        if (Charset.TryGetValue(unicode, let ch) && ch.HasGlyph)
 	        {

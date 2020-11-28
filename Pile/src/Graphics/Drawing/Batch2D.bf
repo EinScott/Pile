@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Text;
 
 namespace Pile
 {
@@ -1058,32 +1059,70 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
+		// Render an UTF8 string
 		public void Text(SpriteFont font, StringView text, Color color)
 		{
 		    var position = Vector2(0, font.Ascent);
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
-		        if (text[i] == '\n')
+				char32 char = ?;
+
+				// Encoded unicode char
+				if (UTF8.GetDecodedLength(text[i]) > 1)
+				{
+					let res = UTF8.Decode(&text[i], Math.Min(5, text.Length - i));
+					
+					i += res.length - 1;
+
+					if (res.c == (char32)-1)
+						continue; // Invalid
+
+					char = res.c;
+				}
+				else char = text[i];
+
+		        if (char == '\n')
 		        {
 		            position.X = 0;
 		            position.Y += font.LineHeight;
 		            continue;
 		        }
 
-		        if (!font.Charset.TryGetValue(text[i], let ch))
+		        if (!font.Charset.TryGetValue(char, let ch))
 		            continue;
 
+				// Image offset/kerning
 		        if (ch.Image != null)
 		        {
 		            var at = position + ch.Offset;
 
-		            if (i < text.Length - 1 && text[i + 1] != '\n')
-		            {
-		                if (ch.Kerning.TryGetValue(text[i + 1], let kerning))
-		                    at.X += kerning;
-		            }
+					// Look ahead
+					do
+					{
+			            if (i < text.Length - 1 && text[i + 1] != '\n')
+			            {
+							// Look up next char
+							char32 nextChar = ?;
+	
+							// Encoded unicode char
+							if (UTF8.GetDecodedLength(text[i + 1]) > 1)
+							{
+								let res = UTF8.Decode(&text[i + 1], Math.Min(5, text.Length - i));
+	
+								if (res.c == (char32)-1)
+									break;
+	
+								nextChar = res.c;
+							}
+							else nextChar = text[i + 1];
+	
+			                if (ch.Kerning.TryGetValue(nextChar, let kerning))
+			                    at.X += kerning;
+			            }
+					}
 
+					// Render glyph
 		            Image(ch.Image, at, color, true);
 		        }
 
@@ -1091,39 +1130,7 @@ namespace Pile
 		    }
 		}
 
-		public void Text(SpriteFont font, Span<char16> text, Color color)
-		{
-		    var position = Vector2(0, font.Ascent);
-
-		    for (int i = 0; i < text.Length; i++)
-		    {
-		        if (text[i] == '\n')
-		        {
-		            position.X = 0;
-		            position.Y += font.LineHeight;
-		            continue;
-		        }
-
-		        if (!font.Charset.TryGetValue(text[i], let ch))
-		            continue;
-
-		        if (ch.Image != null)
-		        {
-		            var at = position + ch.Offset;
-
-		            if (i < text.Length - 1 && text[i + 1] != '\n')
-		            {
-		                if (ch.Kerning.TryGetValue(text[i + 1], let kerning))
-		                    at.X += kerning;
-		            }
-
-		            Image(ch.Image, at, color, true);
-		        }
-
-		        position.X += ch.Advance;
-		    }
-		}
-
+		// Render an UTF8 string
 		public void Text(SpriteFont font, StringView text, Vector2 position, Color color)
 		{
 		    PushMatrix(Matrix3x2.FromTransform(position, .One, 0));
@@ -1131,21 +1138,8 @@ namespace Pile
 		    PopMatrix();
 		}
 
-		public void Text(SpriteFont font, Span<char16> text, Vector2 position, Color color)
-		{
-		    PushMatrix(Matrix3x2.FromTransform(position, .One, 0));
-		    Text(font, text, color);
-		    PopMatrix();
-		}
-
+		// Render an UTF8 string
 		public void Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
-		{
-		    PushMatrix(Matrix3x2.FromTransform(position, origin, scale, rotation));
-		    Text(font, text, color);
-		    PopMatrix();
-		}
-
-		public void Text(SpriteFont font, Span<char16> text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
 		{
 		    PushMatrix(Matrix3x2.FromTransform(position, origin, scale, rotation));
 		    Text(font, text, color);

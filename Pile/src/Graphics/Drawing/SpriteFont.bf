@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Text;
 
 namespace Pile
 {
@@ -11,7 +12,7 @@ namespace Pile
 			public readonly Vector2 Offset;
 			public readonly float Advance;
 
-			public readonly Dictionary<char16, float> Kerning = new Dictionary<char16, float>() ~ delete _;
+			public readonly Dictionary<char32, float> Kerning = new Dictionary<char32, float>() ~ delete _;
 
 			public this(Subtexture image, Vector2 offset, float advance)
 			{
@@ -21,7 +22,7 @@ namespace Pile
 			}
 		}
 
-		public readonly Dictionary<char16, Character> Charset = new Dictionary<char16, Character>() ~ DeleteDictionaryAndItems!(_);
+		public readonly Dictionary<char32, Character> Charset = new Dictionary<char32, Character>() ~ DeleteDictionaryAndItems!(_);
 
 		public String FamilyName = new .() ~ delete _;
 		public String StyleName = new .() ~ delete _;
@@ -36,7 +37,7 @@ namespace Pile
 
 		Texture[] tex ~ DeleteContainerAndItems!(_); // temp
 
-		public this(Font font, uint32 size, Span<char16> charset, TextureFilter filter = .Linear)
+		public this(Font font, uint32 size, Span<char32> charset, TextureFilter filter = .Linear)
 			: this(scope FontSize(font, size, charset), filter) {}
 
 		public this(FontSize fontSize, TextureFilter filter = .Linear)
@@ -100,7 +101,23 @@ namespace Pile
 			        if (entry.Page != i)
 			            continue;
 
-			        if (Charset.TryGetValue(entry.Name[0], let character))
+					// Get char
+					char32 char = ?;
+
+					// Encoded unicode char
+					if (UTF8.GetDecodedLength(entry.Name[0]) > 1)
+					{
+						let ress = UTF8.Decode(&entry.Name[0], entry.Name.Length);
+
+						if (ress.c == (char32)-1)
+							continue; // Invalid
+
+						char = ress.c;
+					}
+					else char = entry.Name[0];
+
+					// Update character Subtexture
+			        if (Charset.TryGetValue(char, let character))
 			            character.Image.Reset(texture, entry.Source, entry.Frame);
 			    }
 
@@ -110,14 +127,31 @@ namespace Pile
 			delete packer;
 		}
 
-		public float WidthOf(Span<char16> text)
+		// Redo these with stringviews
+
+		public float WidthOf(StringView text)
 		{
 		    var width = 0f;
 		    var line = 0f;
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
-		        if (text[i] == '\n')
+				// Get char
+				char32 char = ?;
+
+				// Encoded unicode char
+				if (UTF8.GetDecodedLength(text[i]) > 1)
+				{
+					let ress = UTF8.Decode(&text[i], Math.Min(5, text.Length));
+
+					if (ress.c == (char32)-1)
+						continue; // Invalid
+
+					char = ress.c;
+				}
+				else char = text[i];
+
+		        if (char == '\n')
 		        {
 		            if (line > width)
 		                width = line;
@@ -125,7 +159,7 @@ namespace Pile
 		            continue;
 		        }
 
-		        if (!Charset.TryGetValue(text[i], let ch))
+		        if (!Charset.TryGetValue(char, let ch))
 		            continue;
 
 		        line += ch.Advance;
@@ -134,31 +168,7 @@ namespace Pile
 		    return Math.Max(width, line);
 		}
 
-		public float WidthOf(Span<char8> text)
-		{
-		    var width = 0f;
-		    var line = 0f;
-
-		    for (int i = 0; i < text.Length; i++)
-		    {
-		        if (text[i] == '\n')
-		        {
-		            if (line > width)
-		                width = line;
-		            line = 0;
-		            continue;
-		        }
-
-		        if (!Charset.TryGetValue((char16)text[i], let ch))
-		            continue;
-
-		        line += ch.Advance;
-		    }
-
-		    return Math.Max(width, line);
-		}
-
-		public float HeightOf(Span<char16> text)
+		public float HeightOf(StringView text)
 		{
 		    if (text.Length <= 0)
 		        return 0;
@@ -167,35 +177,19 @@ namespace Pile
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
-		        if (text[i] == '\n')
+				let len = UTF8.GetDecodedLength(text[i]);
+				if (len > 1)
+				{
+					i += len - 1;
+				}
+		        else if (text[i] == '\n')
 		            height += LineHeight;
 		    }
 
 		    return height;
 		}
 
-		public float HeightOf(Span<char8> text)
-		{
-		    if (text.Length <= 0)
-		        return 0;
-
-		    var height = Height;
-
-		    for (int i = 0; i < text.Length; i++)
-		    {
-		        if (text[i] == '\n')
-		            height += LineHeight;
-		    }
-
-		    return height;
-		}
-
-		public Vector2 SizeOf(Span<char16> text)
-		{
-		    return Vector2(WidthOf(text), HeightOf(text));
-		}
-
-		public Vector2 SizeOf(Span<char8> text)
+		public Vector2 SizeOf(StringView text)
 		{
 		    return Vector2(WidthOf(text), HeightOf(text));
 		}

@@ -11,7 +11,7 @@ namespace Pile
 		internal readonly stbtt_fontinfo fontInfo ~ delete _;
 
 		private readonly uint8[] fontBuffer ~ delete _;
-		private readonly Dictionary<char16, int32> glyphs = new Dictionary<char16, int32>() ~ delete _;
+		private readonly Dictionary<char32, int32> glyphs = new Dictionary<char32, int32>() ~ delete _;
 
 		public readonly String FamilyName = new .() ~ delete _;
 		public readonly String StyleName = new .() ~ delete _;
@@ -79,13 +79,13 @@ namespace Pile
 		}
 
 		// Gets the Scale of the Font for a given Height. This value can then be used to scale proprties of a Font for the given Height
-		public float GetScale(int height)
+		public float GetScale(uint32 height)
 		{
 		    return stbtt.stbtt_ScaleForPixelHeight(fontInfo, height);
 		}
 
 		// Gets the Glyph code for a given Unicode value, if it exists, or 0 otherwise
-		public int32 GetGlyph(char16 unicode)
+		public int32 GetGlyph(char32 unicode)
 		{
 		    if (!glyphs.TryGetValue(unicode, var glyph))
 		    {
