@@ -51,7 +51,7 @@ namespace Pile
 			LineHeight = fontSize.LineHeight;
 
 			let packer = new Packer();
-			var buffer = scope Bitmap(Size * 2, Size * 2);
+			var buffer = new Bitmap(Size * 2, Size * 2);
 			let name = scope String(2);
 
 			// Process all chars
@@ -77,6 +77,7 @@ namespace Pile
 
 				name.Clear();
 			}
+			delete buffer;
 
 			let res = packer.Pack();
 			Runtime.Assert(res case .Ok, scope $"Failed to pack character bitmaps");

@@ -49,6 +49,8 @@ namespace Pile
 				DataNode = dataNode;
 			}
 		}
+		
+		const int32 MAXCHUNK = 32767;
 
 		static Dictionary<String, Importer> importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndItems!(_);
 		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
@@ -108,8 +110,8 @@ namespace Pile
 				if (loadedPackages[i].Name == packageName)
 					LogErrorReturn!(scope $"Package {packageName} is already loaded");
 
-			List<PackageNode> nodes = scope List<PackageNode>();
-			List<String> importerNames = scope List<String>();
+			List<PackageNode> nodes = new List<PackageNode>();
+			List<String> importerNames = new List<String>();
 
 			// Read file
 			{
@@ -135,16 +137,19 @@ namespace Pile
 
 				// NODEDATAARRAY
 				//		ELEMENT:
-				//		ZLIB SIZE (uint32)
 				//		ZLIB UNCOMPRESSED SIZE (uint32)
-				//		ZLIBARRAY: (decompressed) =>
-				// 			IMPORTERNAMEINDEX (uint32)
-				// 			NAME (uint32)
-				// 			NAMEDATA
-				// 			DATAARRAYLENGTH (uint32)
-				// 			DATAARRAY (of bytes)
-				// 			DATANODEARRAYLENGTH (uint32)
-				// 			DATANODEARRAY (of bytes)
+				//		NUM ZLIB CHUNKS (uint32)
+				//		ZLIB ARRAY:
+				//			ELEMENT:
+				//			ZLIB CHUNK SIZE (uint32)
+				//			ZLIB CHUNK (compressed) =>
+				// 				IMPORTERNAMEINDEX (uint32)
+				// 				NAME (uint32)
+				// 				NAMEDATA
+				// 				DATAARRAYLENGTH (uint32)
+				// 				DATAARRAY (of bytes)
+				// 				DATANODEARRAYLENGTH (uint32)
+				// 				DATANODEARRAY (of bytes)
 
 				int32 readByte = 4; // Start after header
 
@@ -167,19 +172,38 @@ namespace Pile
 					for (uint32 i = 0; i < nodeCount; i++)
 					{
 						// Decompress
-						let zLibSize = ReadUInt();
 						let uncompSize = ReadUInt();
-						let node = scope uint8[uncompSize];
+						let numChunks = ReadUInt();
+
+						let nodeRaw = new uint8[uncompSize];
+						var writeStart = 0;
+
+						// Decompress every chunk
+						for (int j = 0; j < numChunks; j++)
+						{
+							var chunkSize = (int32)ReadUInt();
+							let uncompChunkSize = LogErrorTry!(Compression.Decompress(Span<uint8>(&file[readByte], chunkSize), Span<uint8>(&nodeRaw[writeStart], nodeRaw.Count - writeStart)), scope $"Couldn't loat package {packageName}. Error decompressing node data");
+							readByte += chunkSize;
+
+							writeStart += uncompChunkSize;
+						}
+
+						if (uncompSize != writeStart)
+						{
+							delete file;
+							delete nodeRaw;
+							delete nodes;
+							delete importerNames;
+							LogErrorReturn!(scope $"Couldn't loat package {packageName}. Uncompressed node data wasn't of expected size");
+						}
+
 						int position = 0;
-						if (Compression.Decompress(Span<uint8>(&file[readByte], zLibSize), node) case .Err(let err))
-							LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error decompressing node data: {err}");
-						readByte += (.)zLibSize;
 
 						uint32 ReadArrayUInt()
 						{
 							let startIndex = position;
 							position += 4;
-							return (((uint32)node[startIndex] << 24) | (((uint32)node[startIndex + 1]) << 16) | (((uint32)node[startIndex + 2]) << 8) | (uint32)node[startIndex + 3]);
+							return (((uint32)nodeRaw[startIndex] << 24) | (((uint32)nodeRaw[startIndex + 1]) << 16) | (((uint32)nodeRaw[startIndex + 2]) << 8) | (uint32)nodeRaw[startIndex + 3]);
 						}
 
 						// Read from decompressed array
@@ -187,28 +211,35 @@ namespace Pile
 
 						let nameLength = ReadArrayUInt();
 						let name = new uint8[nameLength];
-						Span<uint8>(&node[position], nameLength).CopyTo(name);
+						Span<uint8>(&nodeRaw[position], nameLength).CopyTo(name);
 						position += nameLength;
 
 						let dataLength = ReadArrayUInt();
 						let data = new uint8[dataLength];
-						Span<uint8>(&node[position], dataLength).CopyTo(data);
+						Span<uint8>(&nodeRaw[position], dataLength).CopyTo(data);
 						position += dataLength;
 
 						let nodeDataLength = ReadArrayUInt();
 						let nodeData = new uint8[nodeDataLength];
 
 						if (nodeDataLength > 0) // This might be 0
-							Span<uint8>(&node[position], nodeDataLength).CopyTo(nodeData);
+							Span<uint8>(&nodeRaw[position], nodeDataLength).CopyTo(nodeData);
 
 						position += nodeDataLength;
 
 						nodes.Add(new PackageNode(importerIndex, name, data, nodeData));
+
+						delete nodeRaw;
 					}
 				}
 
 				if (readByte != file.Count)
+				{
+					delete file;
+					delete nodes;
+					delete importerNames;
 					LogErrorReturn!(scope $"Couldn't loat package {packageName}. The file contains {file.Count} bytes, but the end of data was at {readByte}");
+				}	
 
 				delete file;
 
@@ -257,9 +288,13 @@ namespace Pile
 			loadedPackages.Add(package);
 
 			// Clear up
+			delete nodes;
+
 			for (let s in importerNames)
 				delete s;
+			delete importerNames;
 
+			// Finish
 			Assets.PackAndUpdate();
 
 			OnLoadPackage(package);
@@ -310,7 +345,7 @@ namespace Pile
 		public static Result<void> BuildPackage(StringView packagePath, StringView outputPath = packagesPath)
 		{
 			let t = scope Stopwatch(true);
-			PackageData packageData = scope PackageData();
+			PackageData packageData = new PackageData();
 
 			{
 				// Read package file
@@ -384,183 +419,186 @@ namespace Pile
 			}
 
 			// Resolve imports
-			List<PackageNode> nodes = scope List<PackageNode>();
-			List<String> importerNames = scope List<String>();
+			List<PackageNode> nodes = new List<PackageNode>();
+			List<String> importerNames = new List<String>();
 
-			List<StringView> duplicateNameLookup = scope List<StringView>();
-			List<String> importPaths = scope List<String>(); // All of these paths exist
-			let rootPath = scope String();
-			Path.GetDirectoryPath(packagePath, rootPath);
-			for (let import in packageData.imports)
 			{
-				Importer importer;
-
-				// Try to find importer
-				if (importers.ContainsKey(import.Importer)) importer = importers[import.Importer];
-				else LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Couln't find importer '{import.Importer}'");
-
-				bool importerUsed = false;
-
-				// Interpret path string (put all final paths in importPaths)
-				for (var path in import.Path.Split(';'))
+				List<StringView> duplicateNameLookup = scope List<StringView>();
+				List<String> importPaths = scope List<String>(); // All of these paths exist
+				let rootPath = scope String();
+				Path.GetDirectoryPath(packagePath, rootPath);
+				for (let import in packageData.imports)
 				{
-					path.Trim();
-
-					let fullPath = scope String();
-					Path.InternalCombineViews(fullPath, rootPath, path);
-
-					// Check if containing folder exists
-					let dirPath = scope String();
-					Path.GetDirectoryPath(fullPath, dirPath);
-
-					if (!Directory.Exists(dirPath))
-						LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Failed to find containing directory of {path} at {dirPath}");
-
-					// Import everything - recursively
-					if (Path.SamePath(fullPath, dirPath))
+					Importer importer;
+	
+					// Try to find importer
+					if (importers.ContainsKey(import.Importer)) importer = importers[import.Importer];
+					else LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Couln't find importer '{import.Importer}'");
+	
+					bool importerUsed = false;
+	
+					// Interpret path string (put all final paths in importPaths)
+					for (var path in import.Path.Split(';'))
 					{
-						let importDirs = scope List<String>();
-						importDirs.Add(new String(dirPath));
-
-						String currImportPath;
-						repeat // For each entry in import dirs
+						path.Trim();
+	
+						let fullPath = scope String();
+						Path.InternalCombineViews(fullPath, rootPath, path);
+	
+						// Check if containing folder exists
+						let dirPath = scope String();
+						Path.GetDirectoryPath(fullPath, dirPath);
+	
+						if (!Directory.Exists(dirPath))
+							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Failed to find containing directory of {path} at {dirPath}");
+	
+						// Import everything - recursively
+						if (Path.SamePath(fullPath, dirPath))
 						{
-							currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
-							currImportPath..Append(Path.DirectorySeparatorChar)..Append('*');
-
-							for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
+							let importDirs = scope List<String>();
+							importDirs.Add(new String(dirPath));
+	
+							String currImportPath;
+							repeat // For each entry in import dirs
 							{
-								let path = new String();
-								entry.GetFilePath(path);
-
-								// Add matching files in this directory to import list
-								if (!entry.IsDirectory)
-									importPaths.Add(path);
-								// Look for matching sub dirs and add to importDirs list
-								else
-									importDirs.Add(path);
-							}
-
-							// Tidy up
-							importDirs.PopBack();
-							delete currImportPath;
-						}
-						while (importDirs.Count > 0);
-					}
-					// Import everything that matches - recursively
-					else
-					{
-						let wildCard = scope String();
-						Path.GetFileName(fullPath, wildCard);
-
-						let importDirs = scope List<String>();
-						importDirs.Add(new String(dirPath));
-
-						String currImportPath;
-						let searchPath = scope String();
-						let wildCardPath = scope String();
-						repeat // For each entry in import dirs
-						{
-							let current = importDirs.Count - 1;
-							currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
-
-							searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append('*');
-							wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
-
-							bool match = false;
-							for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
-							{
-								let dirFilePath = new String();
-								entry.GetFilePath(dirFilePath);
-
-								if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
+								currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
+								currImportPath..Append(Path.DirectorySeparatorChar)..Append('*');
+	
+								for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
 								{
-									match = true;
-
+									let path = new String();
+									entry.GetFilePath(path);
+	
 									// Add matching files in this directory to import list
 									if (!entry.IsDirectory)
-										importPaths.Add(dirFilePath);
+										importPaths.Add(path);
 									// Look for matching sub dirs and add to importDirs list
 									else
-										importDirs.Add(dirFilePath);
-
-									continue; // Dont delete the string if we keep using it
+										importDirs.Add(path);
 								}
-								delete dirFilePath;
+	
+								// Tidy up
+								importDirs.PopBack();
+								delete currImportPath;
 							}
-
-							if (!match)
-								Log.Warning(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
-
-							// Tidy up
-							importDirs.RemoveAtFast(current);
-							delete currImportPath;
+							while (importDirs.Count > 0);
 						}
-						while (importDirs.Count > 0);
+						// Import everything that matches - recursively
+						else
+						{
+							let wildCard = scope String();
+							Path.GetFileName(fullPath, wildCard);
+	
+							let importDirs = scope List<String>();
+							importDirs.Add(new String(dirPath));
+	
+							String currImportPath;
+							let searchPath = scope String();
+							let wildCardPath = scope String();
+							repeat // For each entry in import dirs
+							{
+								let current = importDirs.Count - 1;
+								currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
+	
+								searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append('*');
+								wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
+	
+								bool match = false;
+								for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
+								{
+									let dirFilePath = new String();
+									entry.GetFilePath(dirFilePath);
+	
+									if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
+									{
+										match = true;
+	
+										// Add matching files in this directory to import list
+										if (!entry.IsDirectory)
+											importPaths.Add(dirFilePath);
+										// Look for matching sub dirs and add to importDirs list
+										else
+											importDirs.Add(dirFilePath);
+	
+										continue; // Dont delete the string if we keep using it
+									}
+									delete dirFilePath;
+								}
+	
+								if (!match)
+									Log.Warning(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
+	
+								// Tidy up
+								importDirs.RemoveAtFast(current);
+								delete currImportPath;
+							}
+							while (importDirs.Count > 0);
+						}
 					}
-				}
-
-				// Import all files found for this import statement with this importer
-				for (var filePath in importPaths)
-				{
-					Log.Message(scope $"Importing {filePath}");
-
-					// Read file
-					let res = File.ReadAllBytes(filePath);
-					if (res case .Err(let err))
-						LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error reading file at {filePath} with {import.Importer}: {err}");
-					uint8[] data = res;
-
-					// Run through importer -- config may be null
-					let ress = importer.Build(data, import.Config, let node);
-					if (ress case .Err(let err))
-						LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error importing file at {filePath} with {import.Importer}: {err}");
-					uint8[] builtData = ress;
-					if (builtData.Count <= 0)
-						LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error importing file at {filePath} with {import.Importer}: Length of returned data cannot be 0");
-
-					delete data;
-
-					// Convert node string to bytes
-					let s = scope String();
-					if (node != null)
-						node.ToString(s); // Node might be null
-
-					let nodeData = new uint8[s.Length]; // Array might be empty, and that is valid
-					
-					if (node != null)
+	
+					// Import all files found for this import statement with this importer
+					for (var filePath in importPaths)
 					{
-						// Fill array
-						Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(nodeData);
-						delete node;
+						Log.Message(scope $"Importing {filePath}");
+	
+						// Read file
+						let res = File.ReadAllBytes(filePath);
+						if (res case .Err(let err))
+							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error reading file at {filePath} with {import.Importer}: {err}");
+						uint8[] data = res;
+	
+						// Run through importer -- config may be null
+						let ress = importer.Build(data, import.Config, let node);
+						if (ress case .Err(let err))
+							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error importing file at {filePath} with {import.Importer}: {err}");
+						uint8[] builtData = ress;
+						if (builtData.Count <= 0)
+							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error importing file at {filePath} with {import.Importer}: Length of returned data cannot be 0");
+	
+						delete data;
+	
+						// Convert node string to bytes
+						let s = scope String();
+						if (node != null)
+							node.ToString(s); // Node might be null
+	
+						let nodeData = new uint8[s.Length]; // Array might be empty, and that is valid
+						
+						if (node != null)
+						{
+							// Fill array
+							Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(nodeData);
+							delete node;
+						}
+	
+						// Make name
+						s.Clear();
+						if (import.NamePrefix != null) s.Append(import.NamePrefix);
+						Path.GetFileNameWithoutExtension(filePath, s);
+	
+						// Check if name exists
+						if (duplicateNameLookup.Contains(s))
+							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error importing file at {filePath}: Entry with name {s} has already been imported");
+	
+						// Add to node and duplicate lookup
+						let name = new uint8[s.Length];
+						Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(name);
+						duplicateNameLookup.Add(StringView((char8*)name.CArray(), name.Count)); // Add name data interpreted as string back to duplicate lookup
+	
+						// Add data
+						importerUsed = true;
+						nodes.Add(new PackageNode((uint32)importerNames.Count, name, builtData, nodeData));
+	
+						delete filePath;
 					}
-
-					// Make name
-					s.Clear();
-					if (import.NamePrefix != null) s.Append(import.NamePrefix);
-					Path.GetFileNameWithoutExtension(filePath, s);
-
-					// Check if name exists
-					if (duplicateNameLookup.Contains(s))
-						LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error importing file at {filePath}: Entry with name {s} has already been imported");
-
-					// Add to node and duplicate lookup
-					let name = new uint8[s.Length];
-					Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(name);
-					duplicateNameLookup.Add(StringView((char8*)name.CArray(), name.Count)); // Add name data interpreted as string back to duplicate lookup
-
-					// Add data
-					importerUsed = true;
-					nodes.Add(new PackageNode((uint32)importerNames.Count, name, builtData, nodeData));
-
-					delete filePath;
+					importPaths.Clear();
+	
+					if (importerUsed)
+						importerNames.Add(new String(import.Importer));
 				}
-				importPaths.Clear();
-
-				if (importerUsed)
-					importerNames.Add(new String(import.Importer));
+	
+				delete packageData; // We're done processing all raw package data
 			}
-			duplicateNameLookup.Clear();
 
 			// Put it all in a file
 			{
@@ -577,18 +615,21 @@ namespace Pile
 
 				// NODEDATAARRAY
 				//		ELEMENT:
-				//		ZLIB SIZE (uint32)
 				//		ZLIB UNCOMPRESSED SIZE (uint32)
-				//		ZLIBARRAY: (decompressed) =>
-				// 			IMPORTERNAMEINDEX (uint32)
-				// 			NAME (uint32)
-				// 			NAMEDATA
-				// 			DATAARRAYLENGTH (uint32)
-				// 			DATAARRAY (of bytes)
-				// 			DATANODEARRAYLENGTH (uint32)
-				// 			DATANODEARRAY (of bytes)
+				//		NUM ZLIB CHUNKS (uint32)
+				//		ZLIB ARRAY:
+				//			ELEMENT:
+				//			ZLIB CHUNK SIZE (uint32)
+				//			ZLIB CHUNK (compressed) =>
+				// 				IMPORTERNAMEINDEX (uint32)
+				// 				NAME (uint32)
+				// 				NAMEDATA
+				// 				DATAARRAYLENGTH (uint32)
+				// 				DATAARRAY (of bytes)
+				// 				DATANODEARRAYLENGTH (uint32)
+				// 				DATANODEARRAY (of bytes)
 
-				List<uint8> file = scope List<uint8>();
+				List<uint8> file = new List<uint8>();
 				file.Add(0x50); // Head
 				file.Add(0x4C);
 				file.Add(0x50);
@@ -606,28 +647,28 @@ namespace Pile
 					delete s;
 				}
 
+				delete importerNames; // We're done with this data
+
 				// All data in order
 				WriteUInt((uint32)nodes.Count);
 				for (let node in nodes)
 				{
-					let sizeNumPos = file.Count;
-					WriteUInt((uint32)0);
-					let zLib = scope uint8[sizeof(uint32) * 4 + node.Name.Count + node.Data.Count + node.DataNode.Count];
+					let zLibInput = new uint8[sizeof(uint32) * 4 + node.Name.Count + node.Data.Count + node.DataNode.Count];
 					int position = 0;
 
 					void WriteArrayUInt(uint32 uint)
 					{
-						zLib[position] = (uint8)((uint >> 24) & 0xFF);
-						zLib[position + 1] = (uint8)((uint >> 16) & 0xFF);
-						zLib[position + 2] = (uint8)((uint >> 8) & 0xFF);
-						zLib[position + 3] = (uint8)(uint & 0xFF);
+						zLibInput[position] = (uint8)((uint >> 24) & 0xFF);
+						zLibInput[position + 1] = (uint8)((uint >> 16) & 0xFF);
+						zLibInput[position + 2] = (uint8)((uint >> 8) & 0xFF);
+						zLibInput[position + 3] = (uint8)(uint & 0xFF);
 						position += 4;
 					}
 
 					void WriteArraySpan(Span<uint8> span)
 					{
 						var span;
-						let dest = Span<uint8>((&zLib[position - 1]) + 1, Math.Min(zLib.Count, span.Length));
+						let dest = Span<uint8>((&zLibInput[position - 1]) + 1, Math.Min(zLibInput.Count, span.Length));
 						if (span.Length != dest.Length)
 						{
 							Log.Warning(scope $"Span to write to zlib input array was longer ({span.Length}) than arrayLenght - currentArrayPosition ({dest.Length})");
@@ -646,32 +687,49 @@ namespace Pile
 					WriteArrayUInt((uint32)node.DataNode.Count);
 					WriteArraySpan(node.DataNode);
 
-					// Write uncompressed size
-					WriteUInt((uint32)zLib.Count);
+					// Write uncompressed size & numChunks into file
+					WriteUInt((uint32)zLibInput.Count);
+					let chunks = (uint32)Math.Ceiling((double)zLibInput.Count / MAXCHUNK);
+					WriteUInt(chunks);
 
-					// Compress
-					let zLibStart = file.Count;
-					file.Count += zLib.Count; // Reserve original size of data
-					var compSize = 0;
-					let res = Compression.Compress(zLib, Span<uint8>(&file[zLibStart], file.Count));
-					switch (res)
+					var readStart = 0;
+					int compSize = sizeof(uint32) * chunks; // Also include size of chunk size ints, since this is the size of the whole array
+
+					var writeStart = file.Count;
+					let zLibFileSize = zLibInput.Count + sizeof(uint32) * chunks;
+					file.Count += zLibFileSize; // Reserve original size of data + space for chunk size ints
+
+					// Compress node in chunks
+					for (uint32 i = 0; i < chunks; i++)
 					{
-					case .Err (let err):
-						LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error compressing node data: {err}");
-					case .Ok(let val):
-						compSize = val;
+						let writeSizeIndex = writeStart; // Reserve space for chunk size
+						writeStart += sizeof(uint32);
+
+						let chunkReadSize = Math.Min(MAXCHUNK, zLibInput.Count - readStart);
+						
+						let res = Compression.Compress(Span<uint8>(&zLibInput[readStart], chunkReadSize), Span<uint8>(&file[writeStart], file.Count - writeStart));
+						var chunkWriteSize = 0;
+						switch (res)
+						{
+						case .Err (let err):
+							LogErrorReturn!(scope $"Couldn't build package at {packagePath}. Error compressing node data: {err}");
+						case .Ok(let val):
+							chunkWriteSize = val;
+							compSize += val;
+						}
+
+						readStart += chunkReadSize;
+						writeStart += chunkWriteSize;
+						ReplaceUInt(writeSizeIndex, (uint32)chunkWriteSize);
 					}
-					file.Count -= zLib.Count - compSize; // Remove unneeded reserved space
 
-					// Insert real size
-					file[sizeNumPos] = (uint8)((compSize >> 24) & 0xFF);
-					file[sizeNumPos + 1] = (uint8)((compSize >> 16) & 0xFF);
-					file[sizeNumPos + 2] = (uint8)((compSize >> 8) & 0xFF);
-					file[sizeNumPos + 3] = (uint8)(compSize & 0xFF);
+					file.Count -= zLibFileSize - compSize; // Remove unneeded reserved space
 
+					delete zLibInput;
 					delete node;
 				}
-				nodes.Clear();
+				
+				delete nodes; // We're done with this data
 
 				void WriteUInt(uint32 uint)
 				{
@@ -681,11 +739,16 @@ namespace Pile
 					file.Add((uint8)(uint & 0xFF));
 				}
 
+				void ReplaceUInt(int at, uint32 uint)
+				{
+					file[at] = (uint8)((uint >> 24) & 0xFF);
+					file[at + 1] = (uint8)((uint >> 16) & 0xFF);
+					file[at + 2] = (uint8)((uint >> 8) & 0xFF);
+					file[at + 3] = (uint8)(uint & 0xFF);
+				}
+
 				// Fill in size
-				file[4] = (uint8)((file.Count >> 24) & 0xFF);
-				file[5] = (uint8)((file.Count >> 16) & 0xFF);
-				file[6] = (uint8)((file.Count >> 8) & 0xFF);
-				file[7] = (uint8)(file.Count & 0xFF);
+				ReplaceUInt(4, (uint32)file.Count);
 
 				let outPath = scope String();
 				let packageName = scope String();
@@ -694,6 +757,8 @@ namespace Pile
 				Path.ChangeExtension(scope String(outPath), ".bin", outPath);
 
 				LogErrorTry!(File.WriteAllBytes(outPath, file), scope $"Couldn't build package at {packagePath}. Error writing file to {outPath}");
+
+				delete file;
 
 				t.Stop();
 				Log.Message(scope $"Built package {packageName} in {t.ElapsedMilliseconds}ms");

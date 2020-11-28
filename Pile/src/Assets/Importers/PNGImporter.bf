@@ -12,7 +12,7 @@ namespace Pile
 			Try!(mem.TryWrite(data));
 			mem.Position = 0;
 
-			let asset = scope Bitmap();
+			let asset = new Bitmap();
 			Try!(PNG.Read(mem, asset));
 
 			return SubmitPackerTexture(name, asset);
