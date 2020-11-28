@@ -34,8 +34,7 @@ namespace Pile
 		public readonly float Height; // Ascent - Descent (font height)
 		public readonly float LineHeight; // Ascent + Descent (height of a line, includes line gap)
 		
-
-		Texture[] tex ~ DeleteContainerAndItems!(_); // temp
+		Texture[] tex ~ DeleteContainerAndItems!(_); // todo: I don't really like storing this here... suggest something better
 
 		public this(Font font, uint32 size, Span<char32> charset, TextureFilter filter = .Linear)
 			: this(scope FontSize(font, size, charset), filter) {}
@@ -81,17 +80,15 @@ namespace Pile
 			delete buffer;
 
 			let res = packer.Pack();
-			Runtime.Assert(res case .Ok, scope $"Failed to pack character bitmaps");
+			Runtime.Assert(res case .Ok, "Failed to pack character bitmaps");
 
 			// Link textures
 			let output = res.Get();
 
-			tex = new Texture[output.Pages.Count];// TEMP
+			tex = new Texture[output.Pages.Count];
 
 			for (int i = 0; i < output.Pages.Count; i++)
 			{
-				// todo: integrate with assets
-
 			    var texture = new Texture(output.Pages[i]);
 			    texture.Filter = filter;
 				tex[i] = texture;
@@ -120,14 +117,11 @@ namespace Pile
 			        if (Charset.TryGetValue(char, let character))
 			            character.Image.Reset(texture, entry.Source, entry.Frame);
 			    }
-
 			}
 
 			delete output;
 			delete packer;
 		}
-
-		// Redo these with stringviews
 
 		public float WidthOf(StringView text)
 		{

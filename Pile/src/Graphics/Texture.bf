@@ -18,7 +18,7 @@ namespace Pile
 			internal abstract bool IsFrameBuffer();
 		}
 
-		public static TextureFilter DefaultTextureFilter = TextureFilter.Nearest;
+		public static TextureFilter DefaultTextureFilter = TextureFilter.Linear;
 
 		internal readonly Platform platform ~ delete _;
 		public readonly TextureFormat format;
