@@ -128,7 +128,7 @@ namespace Pile
 
 			let timer = scope Stopwatch(true);
 			var frameCount = 0;
-			var frameTicks = 0L;
+			var lastCounted = 0L;
 
 			int64 lastTime = 0;
 			int64 currTime;
@@ -141,7 +141,7 @@ namespace Pile
 
 			while(running)
 			{
-				// step time and diff
+				// Step time and diff
 				currTime = timer.[Friend]GetElapsedDateTimeTicks();
 				diffTime = Math.Min(Time.maxTicks, currTime - lastTime);
 				lastTime = currTime;
@@ -150,12 +150,12 @@ namespace Pile
 				Time.RawDuration += diffTime;
 				Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
 
-				// Update engine
+				// Update core modules
 				Graphics.Step();
 				Input.Step();
 				System.Step();
 
-				if (Time.freeze > double.Epsilon)
+				if (Time.freeze > float.Epsilon)
 				{
 					// Freeze time
 					Time.freeze -= Time.RawDelta;
@@ -163,16 +163,16 @@ namespace Pile
 					Time.Delta = 0;
 					Game.[Friend]Step();
 
-					if (Time.freeze <= double.Epsilon)
+					if (Time.freeze <= float.Epsilon)
 						Time.freeze = 0;
 				}
 				else
 				{
-					// Scaled time vars
+					// Scaled time
 					Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
 					Time.Delta = Time.RawDelta * Time.Scale;
 	
-					// Update
+					// Update game
 					Game.[Friend]Step();
 					Game.[Friend]Update();
 				}
@@ -186,10 +186,10 @@ namespace Pile
 
 				// Count FPS
 				frameCount++;
-				if ((double)(timer.[Friend]GetElapsedDateTimeTicks() - frameTicks) / TimeSpan.TicksPerSecond >= 1)
+				if ((float)(timer.[Friend]GetElapsedDateTimeTicks() - lastCounted) / TimeSpan.TicksPerSecond >= 1)
 				{
 					Time.FPS = frameCount;
-					frameTicks = timer.[Friend]GetElapsedDateTimeTicks();
+					lastCounted = timer.[Friend]GetElapsedDateTimeTicks();
 					frameCount = 0;
 				}
 
@@ -199,7 +199,7 @@ namespace Pile
 					let sleep = Time.targetTicks - (timer.[Friend]GetElapsedDateTimeTicks() - currTime);
 					
 					if (sleep > 0)
-						Thread.Sleep((int32)((double)sleep / TimeSpan.TicksPerMillisecond));
+						Thread.Sleep((int32)((float)sleep / TimeSpan.TicksPerMillisecond));
 				}
 			}
 
