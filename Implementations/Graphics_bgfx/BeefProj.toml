@@ -7,7 +7,7 @@ Name = "Pile_bgfx"
 [Configs.Debug.Win64]
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
-LibPaths = ["$(ProjectDir)/dist/win64/bgfx.lib", "$(ProjectDir)/dist/win64/bx.lib"]
+LibPaths = ["$(ProjectDir)/dist/win64/bx.lib", "$(ProjectDir)/dist/win64/bimg.lib", "$(ProjectDir)/dist/win64/bimg_decode.lib", "$(ProjectDir)/dist/win64/bgfx.lib"]
 
 [Configs.Release.Win64]
-LibPaths = ["$(ProjectDir)/dist/win64/bgfx.lib", "$(ProjectDir)/dist/win64/bx.lib"]
+LibPaths = ["$(ProjectDir)/dist/win64/bx.lib", "$(ProjectDir)/dist/win64/bimg.lib", "$(ProjectDir)/dist/win64/bimg_decode.lib", "$(ProjectDir)/dist/win64/bgfx.lib"]

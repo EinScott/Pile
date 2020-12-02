@@ -79,3 +79,7 @@ Windows binaries are already included. Binaries for other platforms are missing 
 
 ## Contributing
 You may suggest to change stuff to make the framework nicer to work with or add features. More specifically, major TODOs are in Core.bf, minor TODOs in other comments marked with TODO (CTRL+SHIFT+F).
+
+# License
+Pile is licensed under the ZLIB license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
+See [ATTRIBUTIONS.md](https://github.com/EinBurgbauer/Pile/blob/master/ATTRIBUTIONS.md) for info on and licenses of all libraries used.
