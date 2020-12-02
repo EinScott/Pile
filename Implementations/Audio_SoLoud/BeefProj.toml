@@ -13,21 +13,6 @@ BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
-[[Configs.Debug.Win64.DistinctOptions]]
-Filter = "SoLoud.*"
-BfOptimizationLevel = "O3"
-RuntimeChecks = false
-EmitDynamicCastCheck = false
-EmitObjectAccessCheck = false
-
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
-
-[[Configs.Release.Win64.DistinctOptions]]
-Filter = "SoLoud.*"
-BfOptimizationLevel = "O3"
-EmitDebugInfo = "No"
-RuntimeChecks = false
-EmitDynamicCastCheck = false
-EmitObjectAccessCheck = false

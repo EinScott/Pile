@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", corlib = "*", JSON_Beef = "*", MiniZ = "*"}
+Dependencies = {corlib = "*", JSON_Beef = "*", MiniZ = "*"}
 
 [Project]
 Name = "Pile"

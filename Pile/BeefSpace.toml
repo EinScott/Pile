@@ -1,18 +1,5 @@
 FileVersion = 1
-Projects = {Pile = {Path = "."}, Pile_SoLoud = {Path = "../Implementations/Audio_SoLoud"}, Pile_OpenGL = {Path = "../Implementations/Graphics_OpenGL"}, Pile_Null = {Path = "../Implementations/Null"}, Pile_SDL2 = {Path = "../Implementations/System_SDL"}}
+Projects = {Pile = {Path = "."}, Pile_SoLoud = {Path = "../Implementations/Audio_SoLoud"}, Pile_OpenGL = {Path = "../Implementations/Graphics_OpenGL"}, Pile_bgfx = {Path = "../Implementations/Graphics_bgfx"}, Pile_Null = {Path = "../Implementations/Null"}, Pile_SDL2 = {Path = "../Implementations/System_SDL"}}
 
 [Workspace]
 StartupProject = "Pile"
-
-# there are not tests, but this makes more sense than building a *library* *alone*
-[Configs.Debug.Win64]
-BuildKind = "Test"
-
-[Configs.Debug.Win32]
-BuildKind = "Test"
-
-[Configs.Test.Win64]
-BuildKind = "Test"
-
-[Configs.Test.Win32]
-BuildKind = "Test"
