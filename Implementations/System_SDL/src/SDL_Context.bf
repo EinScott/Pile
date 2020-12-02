@@ -16,18 +16,14 @@ namespace Pile.Implementations
 			context = SDL.GL_CreateContext(window.window);
 		}
 
-		public override void Dispose()
+		internal ~this()
 		{
 			SDL.GL_DeleteContext(context);
-			disposed = true;
 		}
 
 		public override void MakeCurrent()
 		{
 			SDL.SDL_GL_MakeCurrent(window.window, context);
 		}
-
-		bool disposed;
-		public override bool Disposed => disposed;
 	}
 }

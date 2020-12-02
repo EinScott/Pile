@@ -6,18 +6,9 @@ namespace Pile
 	{
 		public abstract class Context
 		{
-			protected this()
-			{
+			internal this() {}
+			internal ~this() {}
 
-			}
-
-			public ~this()
-			{
-				if (!Disposed) Dispose();
-			}
-
-			public abstract bool Disposed { get; }
-			public abstract void Dispose();
 			public abstract void MakeCurrent();
 		}
 

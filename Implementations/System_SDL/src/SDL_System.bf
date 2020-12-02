@@ -69,10 +69,10 @@ namespace Pile.Implementations
 
 			if (Core.Graphics is IGraphicsOpenGL)
 			{
-				SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, Core.Graphics.MajorVersion);
-				SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, Core.Graphics.MinorVersion);
-				SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, (uint32)(Core.Graphics as IGraphicsOpenGL).Profile);
-				SDL.GL_SetAttribute(.GL_CONTEXT_FLAGS, (uint32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+				SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Core.Graphics.MajorVersion);
+				SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Core.Graphics.MinorVersion);
+				SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
+				SDL.GL_SetAttribute(.GL_CONTEXT_FLAGS, (int32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				SDL.GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
 				glGraphics = true;
 			}
@@ -164,10 +164,10 @@ namespace Pile.Implementations
 		[NoShow]
 		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples)
 		{
-			SDL.GL_SetAttribute(.GL_DEPTH_SIZE, depthSize);
-			SDL.GL_SetAttribute(.GL_STENCIL_SIZE, stencilSize);
-			SDL.GL_SetAttribute(.GL_MULTISAMPLEBUFFERS, multisamplerBuffers);
-			SDL.GL_SetAttribute(.GL_MULTISAMPLESAMPLES, multisamplerSamples);
+			SDL.GL_SetAttribute(.GL_DEPTH_SIZE, (int32)depthSize);
+			SDL.GL_SetAttribute(.GL_STENCIL_SIZE, (int32)stencilSize);
+			SDL.GL_SetAttribute(.GL_MULTISAMPLEBUFFERS, (int32)multisamplerBuffers);
+			SDL.GL_SetAttribute(.GL_MULTISAMPLESAMPLES, (int32)multisamplerSamples);
 		}
 
 		public ISystemOpenGL.Context GetGLContext()

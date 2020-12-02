@@ -2,6 +2,7 @@ using Pile;
 using SDL2;
 using System;
 
+using internal Pile;
 using internal Pile.Implementations;
 
 namespace Pile.Implementations

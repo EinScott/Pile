@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
+Dependencies = {corlib = "*", corlib = "*", Pile = "*", SDL2 = "*"}
 
 [Project]
 Name = "Pile_SDL2"
