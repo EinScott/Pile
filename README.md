@@ -13,11 +13,17 @@ There are also some useful structs, like Vector2 & 3, Point2 & 3 or Rect (of int
 ## Getting started
 Pile depends on [JSON_Beef](https://github.com/Jonathan-Racaud/JSON_Beef).
 
+To add Pile to your project:
+- add the projects you need to your workspace (right click on your project > add from installed../add existing project.. (depending on how you installed Pile)):
+  - Pile (the main project), found in ./Pile/
+  - one Graphics, Audio and System implementation, found in ./Implementations/(list of all implementation projects)
+- add those to your dependencies (right click on your project > Properties.. > General/Dependencies) by ticking the boxes of all related Pile projects
+
 First, you need to override `Game<T>`. `T` should be the class itself. This is used for nothing but supplying a reference to the active game instance with the right type.
 
 Pile has its own entry point. While you can still have your own main function, and start pile like shown in `Run()`, it might be  more conveniant to use `Pile.EntryPoint`, especially when you are using Packages.
 To use it:
-- set your projects startup object (found in (right click on project) > Properties... > General/Beef > General/Startup Object) to `Pile.EntryPoint`
+- set your projects startup object (right click on your project > Properties... > General/Beef > General/Startup Object) to `Pile.EntryPoint`
 - you have to make sure your game class is included at all, since it is never referenced by Pile, with `[AlwaysInclude]`
 - use the static constructor to tell Pile what to do on startup (See example below). Make sure to register all your Importers (if any) in there as well.
 
@@ -73,23 +79,3 @@ Windows binaries are already included. Binaries for other platforms are missing 
 
 ## Contributing
 You may suggest to change stuff to make the framework nicer to work with or add features. More specifically, major TODOs are in Core.bf, minor TODOs in other comments marked with TODO (CTRL+SHIFT+F).
-
-# Library Credits
-
-## Foster
-This project is based on and partly an almost direct port of [Foster](https://github.com/NoelFB/Foster). See FOSTER.LICENSE.txt
-
-## SDL2 Library
-[Website](https://www.libsdl.org/)
-
-Binaries found in Implementations/System_SDL/dist/*
-
-## SoLoud
-[Website](http://sol.gfxile.net/soloud/index.html)
-
-Binaries found in Implementations/Audio_SoLoud/dist/*
-
-## STB_TrueType
-[Source](https://github.com/nothings/stb/blob/master/stb_truetype.h)
-
-A beef port of this public domain header is used for font handeling.

@@ -125,7 +125,7 @@ namespace Pile.Implementations
 			DeleteResources(deleteFrameBuffer, frameBuffersToDelete);
 		}
 
-		[Unchecked]
+		[DisableChecks]
 		[DisableObjectAccessChecks]
 		private void DeleteResources(DeleteResource deleter, List<uint32> list)
 		{
@@ -142,7 +142,6 @@ namespace Pile.Implementations
 			glFlush();
 		}
 
-		[Unchecked]
 		[DisableChecks]
 		[DisableObjectAccessChecks]
 		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
@@ -206,7 +205,6 @@ namespace Pile.Implementations
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-		[Unchecked]
 		[DisableChecks]
 		[DisableObjectAccessChecks]
 		protected override void RenderInternal(ref RenderPass pass)

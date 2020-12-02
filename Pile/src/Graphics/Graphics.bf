@@ -39,12 +39,11 @@ namespace Pile
 			let bounds = Rect(0, 0, size.X, size.Y);
 			let clamped = viewport.OverlapRect(bounds);
 
-			[Unchecked]ClearInternal(target, flags, color, depth, stencil, clamped);
+			ClearInternal(target, flags, color, depth, stencil, clamped);
 
 			return .Ok;
 		}
 
-		[Unchecked]
 		protected abstract void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
 		public Result<void> Render(ref RenderPass pass)
@@ -71,11 +70,10 @@ namespace Pile
 				pass.viewport = pass.viewport.Value.OverlapRect(bounds);
 			}
 
-			[Unchecked]RenderInternal(ref pass);
+			RenderInternal(ref pass);
 			return .Ok;
 		}
 
-		[Unchecked]
 		protected abstract void RenderInternal(ref RenderPass pass);
 
 		internal abstract Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format);

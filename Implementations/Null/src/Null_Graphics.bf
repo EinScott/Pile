@@ -29,11 +29,9 @@ namespace Pile.Implementations
 		internal override void AfterRender() {}
 
 		[SkipCall]
-		[Unchecked] // If this is not given, beef will not count this method as overridden!
 		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
 
 		[SkipCall]
-		[Unchecked]
 		protected override void RenderInternal(ref RenderPass pass) {}
 
 		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format)
