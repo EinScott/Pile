@@ -77,7 +77,7 @@ See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) proj
 32-Bit Archetictures are not supported.
 Windows binaries are already included. Binaries for other platforms are missing (See ./Implementations/(any)/dist/).
 
-## Contributing
+# Contributing
 You may suggest to change stuff to make the framework nicer to work with or add features. More specifically, major TODOs are in Core.bf, minor TODOs in other comments marked with TODO (CTRL+SHIFT+F).
 
 # License
