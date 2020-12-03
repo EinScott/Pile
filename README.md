@@ -1,5 +1,5 @@
 # Pile
-Pile is a small game framework made in [Beef Language](https://github.com/beefytech/Beef), similar to frameworks like MonoGame/FNA.
+Pile is a small game framework made in [Beef Language](https://github.com/beefytech/Beef), similar to frameworks like MonoGame/FNA and directly inspired by [Foster](https://github.com/NoelFB/Foster).
 This is still in active development, suggestions & contributions for changes and fixes are welcome.
 
 ## What it does
@@ -75,11 +75,18 @@ See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) proj
 
 # Platforms
 32-Bit Archetictures are not supported.
-Windows binaries are already included. Binaries for other platforms are missing (currently SDL2 and SoLoud). Contribution of compiled binaries and general testing for other platforms is welcome.
+Windows binaries are already included. Binaries for other platforms are missing (See ./Implementations/(any)/dist/).
 
 ## Contributing
 You may suggest to change stuff to make the framework nicer to work with or add features. More specifically, major TODOs are in Core.bf, minor TODOs in other comments marked with TODO (CTRL+SHIFT+F).
 
 # License
 Pile is licensed under the ZLIB license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
-See [ATTRIBUTIONS.md](https://github.com/EinBurgbauer/Pile/blob/master/ATTRIBUTIONS.md) for info on and licenses of all libraries used.
+Other open source libraries used:
+- [stb_truetype](https://github.com/nothings/stb/blob/master/stb_truetype.h) - Font handeling
+- [SDL2](https://www.libsdl.org/) - System Implementation
+- [SoLoud](http://sol.gfxile.net/soloud/index.html) - Audio Implementation
+- [bgfx](https://github.com/bkaradzic/bgfx) - Graphics Implementation
+
+The licenses for the binaries of each library used in Implementation projects can be found in `./Implementations/(name)/dist/LICENSE.txt`.
+stb_truetype is licensed under the Unlicense.
