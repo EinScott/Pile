@@ -16,20 +16,12 @@ namespace Pile.Implementations
 		String info = new String() ~ delete _;
 		public override String Info => info;
 
+		// doesnt do anything right now
 		DebugDrawMode mode;
 		public override DebugDrawMode DebugDraw
 		{
-			get
-			{
-				Log.Error("NOT IMPLEMENTED");
-				return mode;
-			}
-
-			set
-			{
-				Log.Error("NOT IMPLEMENTED");
-				mode = value;
-			}
+			get => mode;
+			set => mode = value;
 		}
 
 		internal override Result<void> Initialize()
