@@ -295,7 +295,7 @@ namespace Pile
 			delete importerNames;
 
 			// Finish
-			Assets.PackAndUpdate();
+			Assets.PackAndUpdateTextures();
 
 			OnLoadPackage(package);
 			return .Ok(package);
@@ -321,9 +321,9 @@ namespace Pile
 					Assets.RemoveAsset(assetType, assetName);
 
 			for (let textureName in package.ownedPackerTextures)
-				Assets.RemovePackerTexture(textureName);
+				Assets.RemoveTextureAsset(textureName);
 
-			Assets.PackAndUpdate();
+			Assets.PackAndUpdateTextures();
 
 			delete package;
 			return .Ok;

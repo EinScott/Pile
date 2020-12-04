@@ -44,7 +44,10 @@ namespace Pile
 			delete System;
 		}
 
-		static readonly Version Version = .(0, 4);
+		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
+		// '.Minor' should be incremented for changes incompatible with older versions.
+		// '.Major' is incremented at milestones or big changes.
+		static readonly Version Version = .(0, 5);
 
 		static bool running;
 		static bool exiting;

@@ -15,7 +15,7 @@ namespace Pile
 			let asset = new Bitmap();
 			Try!(PNG.Read(mem, asset));
 
-			return SubmitPackerTexture(name, asset);
+			return SubmitTextureAsset(name, asset);
 		}
 
 		public override Result<uint8[]> Build(Span<uint8> data, JSONObject config, out JSONObject dataNode)

@@ -14,6 +14,7 @@ namespace Pile
 		static Packer packer = new Packer() { combineDuplicates = true };
 		static List<Texture> atlas = new List<Texture>();
 		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
+		static Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>();
 		static bool shutdown = false;
 
 		public static int TextureCount => packer.SourceImageCount;
@@ -38,6 +39,8 @@ namespace Pile
 
 		internal static void Shutdown()
 		{
+			DeleteDictionaryAndItems!(dynamicAssets);
+
 			delete packer;
 			DeleteContainerAndItems!(atlas);
 
@@ -129,37 +132,141 @@ namespace Pile
 			return assets.GetValue(type).Get().Values;
 		}
 
-		/** The name string passed here will be directly referenced in the dictionary, so take a fresh one, ideally the same that is also referenced in package owned assets.
-		*/
-		internal static Result<void> AddAsset(Type type, String name, Object object)
+		// Use Packages for static assets, use this for ones you don't know at compile time.
+		public static Result<void> AddDynamicAsset(StringView name, Object asset)
 		{
-			Debug.Assert(Core.initialized);
+			let type = asset.GetType();
 
-			if (!type.HasDestructor)
-				LogErrorReturn!(scope $"Couldn't add asset {name} of type {object.GetType()}, because only classes can be treated as assets");
+			// Add object in assets
+			let nameView = Try!(Assets.AddAsset(type, name, asset));
 
-			if (!object.GetType().IsSubtypeOf(type))
-				LogErrorReturn!(scope $"Couldn't add asset {name} of type {object.GetType()}, because it is not assignable to given type {type}");
+			// Add object location in dynamic lookup
+			if (!dynamicAssets.ContainsKey(type))
+				dynamicAssets.Add(type, new List<StringView>());
 
-			if (!assets.ContainsKey(type))
-				assets.Add(type, new Dictionary<String, Object>());
-
-			else if (assets.GetValue(type).Get().ContainsKey(name))
-				LogErrorReturn!(scope $"Couldn't add asset {name} to dictionary for type {type}, because the name is already taken for this type");
-
-			assets.GetValue(type).Get().Add(name, object);
+			dynamicAssets.GetValue(type).Get().Add(nameView);
 
 			return .Ok;
 		}
 
-		internal static void RemoveAsset(Type type, String name)
+		// Use Packages for static assets, use this for ones you don't know at compile time.
+		// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
+		public static Result<void> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
-			if (!assets.ContainsKey(type))
-				return;
-			else if (!assets.GetValue(type).Get().ContainsKey(name))
+			// Add object in assets
+			let nameView = Try!(Assets.AddTextureAsset(name, bitmap));
+
+			// Add object location in dynamic lookup
+			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
+				dynamicAssets.Add(typeof(Subtexture), new List<StringView>());
+
+			dynamicAssets.GetValue(typeof(Subtexture)).Get().Add(nameView);
+
+			if (packAndUpdateTextures)
+				PackAndUpdateTextures();
+
+			return .Ok;
+		}
+
+		public static void RemoveDynamicAsset(Type type, StringView name)
+		{
+			if (!dynamicAssets.ContainsKey(type))
 				return;
 
-			let pair = assets.GetValue(type).Get().GetAndRemove(name).Get();
+			// Remove asset if dynamics assets contained one with the name
+			if (dynamicAssets.GetValue(type).Get().Remove(name))
+				RemoveAsset(type, name);
+		}
+
+		// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
+		public static void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
+		{
+			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
+				return;
+
+			// Remove asset if dynamics assets contained one with the name
+			if (dynamicAssets.GetValue(typeof(Subtexture)).Get().Remove(name))
+				RemoveTextureAsset(name);
+
+			if (packAndUpdateTextures)
+				PackAndUpdateTextures();
+		}
+
+		internal static Result<StringView> AddAsset(Type type, StringView name, Object object)
+		{
+			Debug.Assert(Core.initialized);
+
+			let nameString = new String(name);
+
+			// Check if assets contains this name already
+			if (Assets.Has(type, nameString))
+			{
+				delete nameString;
+
+				LogErrorReturn!(scope $"Couldn't submit asset {name}: An object of this type ({type}) is already registered under this name");
+			}
+
+			if (!type.HasDestructor)
+				LogErrorReturn!(scope $"Couldn't add asset {nameString} of type {object.GetType()}, because only classes can be treated as assets");
+
+			if (!object.GetType().IsSubtypeOf(type))
+				LogErrorReturn!(scope $"Couldn't add asset {nameString} of type {object.GetType()}, because it is not assignable to given type {type}");
+
+			if (!assets.ContainsKey(type))
+				assets.Add(type, new Dictionary<String, Object>());
+			else if (assets.GetValue(type).Get().ContainsKey(nameString))
+				LogErrorReturn!(scope $"Couldn't add asset {nameString} to dictionary for type {type}, because the name is already taken for this type");
+
+			assets.GetValue(type).Get().Add(nameString, object);
+
+			return .Ok(nameString);
+		}
+
+		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap)
+		{
+			Debug.Assert(Core.initialized);
+
+			let nameString = new String(name);
+
+			// Check if assets contains this name already
+			if (Assets.Has(typeof(Subtexture), nameString))
+			{
+				delete nameString;
+
+				LogErrorReturn!(scope $"Couldn't submit texture {name}: A texture is already registered under this name");
+			}
+
+			// Add to packer
+			packer.AddBitmap(nameString, bitmap);
+
+			// Even if somebody decides to have their own asset type for subtextures like class Sprite { Subtexture subtex; }
+			// It's still good to store them here, because they would need to be in some lookup for updating on packer pack anyways
+			// If you want to get the subtexture (even inside the importer function), just do Assets.Get<Subtexture>(name); (this also makes it clear that you are not the one to delete it)
+
+			// Add to assets
+			let type = typeof(Subtexture);
+			if (!assets.ContainsKey(type))
+				assets.Add(type, new Dictionary<String, Object>());
+			else if (assets.GetValue(type).Get().ContainsKey(nameString))
+				LogErrorReturn!(scope $"Couldn't add asset {nameString} to dictionary for type {type}, because the name is already taken for this type");
+
+			let tex = new Subtexture();
+			assets.GetValue(type).Get().Add(nameString, tex); // Will be filled in on PackAndUpdate()
+
+			return .Ok(nameString);
+		}
+
+		internal static void RemoveAsset(Type type, StringView name)
+		{
+			let string = scope String(name);
+
+			if (!assets.ContainsKey(type))
+				return;
+
+			let res = assets.GetValue(type).Get().GetAndRemove(string);
+			if (res case .Err) return; // Asset doesnt exist
+
+			let pair = res.Get();
 
 			delete pair.key;
 			delete pair.value;
@@ -172,33 +279,10 @@ namespace Pile
 			}
 		}
 
-		internal static Result<void> AddPackerTexture(String name, Bitmap bitmap)
+		internal static void RemoveTextureAsset(StringView name)
 		{
-			Debug.Assert(Core.initialized);
+			let string = scope String(name);
 
-			// Add to packer
-			packer.AddBitmap(name, bitmap);
-
-			// Even if somebody decides to have their own asset type for subtextures like class Sprite { Subtexture subtex; }
-			// It's still good to store them here, because they would need to be in some lookup for updating on packer pack anyways
-			// If you want to get the subtexture (even inside the importer function), just do Assets.Get<Subtexture>(name); (this also makes it clear that you are not the one to delete it)
-
-			// Add to assets
-			let type = typeof(Subtexture);
-			if (!assets.ContainsKey(type))
-				assets.Add(type, new Dictionary<String, Object>());
-
-			else if (assets.GetValue(type).Get().ContainsKey(name))
-				LogErrorReturn!(scope $"Couldn't add asset {name} to dictionary for type {type}, because the name is already taken for this type");
-
-			let tex = new Subtexture();
-			assets.GetValue(type).Get().Add(name, tex); // Will be filled in on PackAndUpdate()
-
-			return .Ok;
-		}
-
-		internal static void RemovePackerTexture(String name)
-		{
 			// Remove from packer
 			packer.RemoveSource(name);
 
@@ -206,10 +290,11 @@ namespace Pile
 			let type = typeof(Subtexture);
 			if (!assets.ContainsKey(type))
 				return;
-			else if (!assets.GetValue(type).Get().ContainsKey(name))
-				return;
 
-			let pair = assets.GetValue(type).Get().GetAndRemove(name).Get();
+			let res = assets.GetValue(type).Get().GetAndRemove(string);
+			if (res case .Err) return; // Asset doesnt exist
+
+			let pair = res.Get();
 
 			delete pair.key;
 			delete pair.value;
@@ -222,7 +307,7 @@ namespace Pile
 			}
 		}
 		
-		internal static void PackAndUpdate()
+		internal static void PackAndUpdateTextures()
 		{
 			Debug.Assert(Core.initialized);
 
