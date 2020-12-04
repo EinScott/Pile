@@ -47,6 +47,9 @@ namespace Pile
 		{
 		    var pos = stream.Position;
 
+			if (stream.Length < 8)
+				return false;
+
 		    // check PNG header
 		    bool isPng =
 		        stream.Read<uint8>() == header[0] && // 8-bit format
@@ -102,10 +105,10 @@ namespace Pile
 		    Interlace interlace = Interlace.None;
 		    var components = 4;
 
-		    MemoryStream idat = scope MemoryStream(); // Close() does nothing on this
-		    Span<uint8> idatChunk = scope uint8[4096];
-		    uint8[] palette = scope uint8[0];
-		    uint8[] alphaPalette = scope uint8[0];
+		    MemoryStream idat = new MemoryStream(); // Close() does nothing on this
+		    uint8[] idatChunk = new uint8[4096];
+		    uint8[] palette = new uint8[0];
+		    uint8[] alphaPalette = new uint8[0];
 		    uint8[4] fourbytes = uint8[4]();
 
 		    bool hasIHDR = false, hasPLTE = false, hasIDAT = false;
@@ -174,7 +177,8 @@ namespace Pile
 		        else if (Check("PLTE", fourbytes))
 		        {
 		            hasPLTE = true;
-		            palette = scope:: uint8[chunkLength];
+					delete palette;
+		            palette = new uint8[chunkLength];
 
 		            let length = LogErrorTry!(stream.TryRead(palette), "Error reading PNG: Couldn't read PLTE chunk");
 					if (length != palette.Count)
@@ -185,11 +189,11 @@ namespace Pile
 		        {
 		            hasIDAT = true;
 
-		            for (int i = 0; i < chunkLength; i += idatChunk.Length)
+		            for (int i = 0; i < chunkLength; i += idatChunk.Count)
 		            {
-		                int size = Math.Min(idatChunk.Length, chunkLength - i);
+		                int size = Math.Min(idatChunk.Count, chunkLength - i);
 
-						let sizedChunk = idatChunk.Slice(0, size);
+						let sizedChunk = ((Span<uint8>)idatChunk).Slice(0, size);
 						let length = LogErrorTry!(stream.TryRead(sizedChunk), "Error reading PNG: Couldn't read IDAT chunk");
 		                if (length != sizedChunk.Length)
 							LogErrorReturn!("Error reading PNG: IDAT chunk was not of expected size");
@@ -202,7 +206,8 @@ namespace Pile
 		        {
 		            if (color == .Indexed)
 		            {
-		                alphaPalette = scope:: uint8[chunkLength];
+						delete alphaPalette;
+		                alphaPalette = new uint8[chunkLength];
 
 						let length = LogErrorTry!(stream.TryRead(alphaPalette), "Error reading PNG: Couldn't read tRNS chunk");
 						if (length != alphaPalette.Count)
@@ -242,7 +247,7 @@ namespace Pile
 
 		    // Parse the IDAT data into Pixels
 		    {
-		        uint8[] buffer = scope uint8[width * height * (depth == 16 ? 2 : 1) * 4 + height];
+		        uint8[] buffer = new uint8[width * height * (depth == 16 ? 2 : 1) * 4 + height];
 
 		        // decompress the image data
 		        {
@@ -388,7 +393,14 @@ namespace Pile
 		            let pixels = Span<Color>((Color*)&buffer[0], width * height);
 					bitmap.SetPixels(pixels);
 		        }
+
+				delete buffer;
 		    }
+
+			delete alphaPalette;
+			delete palette;
+			delete idatChunk;
+			delete idat;
 
 		    return .Ok;
 		}

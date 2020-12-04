@@ -566,8 +566,9 @@ namespace System
 				FileStream s = scope FileStream();
 				if (s.Open(path) case .Err(let err))
 					return .Err(.FileOpenError(err));
-				outData.Reserve((.)s.Length);
-				if (s.TryRead(outData) case .Err)
+				let start = outData.Count;
+				outData.Count += s.Length;
+				if (s.TryRead(Span<uint8>(&outData[start], s.Length)) case .Err)
 					return .Err(.FileReadError(.Unknown));
 
 				return .Ok;
