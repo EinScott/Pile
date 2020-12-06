@@ -28,7 +28,7 @@ namespace Pile
 	{
 		static ~this()
 		{
-			if (initialized) Delete();
+			if (run) Delete();
 		}
 
 		static void Delete()
@@ -47,11 +47,10 @@ namespace Pile
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
 		// '.Minor' should be incremented for changes incompatible with older versions.
 		// '.Major' is incremented at milestones or big changes.
-		static readonly Version Version = .(0, 5);
+		static readonly Version Version = .(0, 6);
 
-		static bool running;
+		internal static bool run;
 		static bool exiting;
-		internal static bool initialized;
 
 		public static String Title { get; private set; }
 
@@ -64,17 +63,19 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void> Initialize(String title, System system, Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight)
+		public static Result<void> Run(System system, Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
 		{
-			if (initialized) LogErrorReturn!("Core is already initialized");
-			if (system == null || graphics == null || audio == null) LogErrorReturn!("Core modules cannot be null");
+			Debug.Assert(!run, "Core was already run");
+			Debug.Assert(system != null && graphics != null && audio != null, "Core modules cannot be null");
+			Debug.Assert(game != null, "Game cannot be null");
 
+			run = true;
 #if DEBUG
 			Console.WriteLine();
 #endif
 			Log.Message(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
-			Title = title;
+			Title.Set(gameTitle);
 			System = system;
 			Graphics = graphics;
 			Audio = audio;
@@ -117,16 +118,7 @@ namespace Pile
 			w.Stop();
 			Log.Message(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
 
-			initialized = true;
-			return .Ok;
-		}
-
-		public static Result<void> Start(Game game, bool deleteGameOnShutdown = true)
-		{
-			if (running || exiting) LogErrorReturn!("A game is already running");
-			else if (!initialized) LogErrorReturn!("Core needs to be initialized first");
-			else if (game == null) LogErrorReturn!("Game cannot be null");
-
+			// Prepare for running game
 			Game = game;
 
 			let timer = scope Stopwatch(true);
@@ -137,12 +129,10 @@ namespace Pile
 			int64 currTime;
 			int64 diffTime;
 
-			running = true;
-
 			// Startup game
 			Game.[Friend]Startup();
 
-			while(running)
+			while(!exiting)
 			{
 				// Step time and diff
 				currTime = timer.[Friend]GetElapsedDateTimeTicks();
@@ -210,18 +200,14 @@ namespace Pile
 			Game.[Friend]Shutdown();
 
 			if (deleteGameOnShutdown) delete Game;
-			Game = null;
-
-			exiting = false;
 			return .Ok;
 		}
 
 		public static void Exit()
 		{
-			if (running && !exiting)
+			if (run && !exiting)
 			{
 				exiting = true;
-				running = false;
 			}
 		}
 

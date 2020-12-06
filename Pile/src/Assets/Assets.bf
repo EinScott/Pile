@@ -194,7 +194,7 @@ namespace Pile
 
 		internal static Result<StringView> AddAsset(Type type, StringView name, Object object)
 		{
-			Debug.Assert(Core.initialized);
+			Debug.Assert(Core.run);
 
 			let nameString = new String(name);
 
@@ -224,7 +224,7 @@ namespace Pile
 
 		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap)
 		{
-			Debug.Assert(Core.initialized);
+			Debug.Assert(Core.run);
 
 			let nameString = new String(name);
 
@@ -309,7 +309,7 @@ namespace Pile
 		
 		internal static void PackAndUpdateTextures()
 		{
-			Debug.Assert(Core.initialized);
+			Debug.Assert(Core.run);
 
 			// Pack sources
 			let res = packer.Pack();

@@ -27,7 +27,7 @@ To use it:
 - you have to make sure your game class is included at all, since it is never referenced by Pile, with `[AlwaysInclude]`
 - use the static constructor to tell Pile what to do on startup (See example below). Make sure to register all your Importers (if any) in there as well.
 
-To run Pile (in `Run()`), simply initialize it with implementations of all core modules. To do this, add implementation projects, like `Pile_OpenGL`, `Pile_SDL2` and `Pile_SoLoud` to your dependencies and create the instances as follows. Finally, start Pile with your game instance.
+To run Pile (in `Run()`), simply run it with implementations of all core modules and your game. To do this, add implementation projects, like `Pile_OpenGL`, `Pile_SDL2` and `Pile_SoLoud` to your dependencies and create the instances. See `ExampleGame.Run`.
 
 ```cs
 using Pile;
@@ -48,13 +48,13 @@ namespace ExampleGameProject
     static Result<void> Run()
     {
       // Start pile with an instance of our game
-      Core.Initialize("Example Game Window",
+      Core.Run(
         new SDL_System(),
         new GL_Graphics(),
         new SL_Audio(),
-        1280, 720);
-
-      Core.Start(new ExampleGame());
+        1280, 720,
+        new ExampleGame(),
+        "Example Game");
 
       return .Ok;
     }

@@ -20,13 +20,13 @@ namespace Game
 		static Result<void> Run()
 		{
 			// Start pile with an instance of our game
-			Core.Initialize("Example Game Window",
+			Core.Run(
 				new Pile.Implementations.SDL_System(),
 				new Pile.Implementations.GL_Graphics(),
 				new Pile.Implementations.SL_Audio(),
-				1280, 720);
-
-			Core.Start(new ExampleGame());
+				1280, 720,
+				new ExampleGame(),
+				"Example Game");
 		
 			return .Ok;
 		}
