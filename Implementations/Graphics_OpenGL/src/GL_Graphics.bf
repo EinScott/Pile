@@ -425,7 +425,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new GL_Texture(this);
+		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new GL_Texture(this, width, height, format);
 
 		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new GL_FrameBuffer(this, width, height, attachments);
 		

@@ -12,14 +12,36 @@ namespace Pile.Implementations
 		readonly GL_Graphics graphics;
 		internal bool isFrameBuffer;
 
-		Texture texture;
 		uint glInternalFormat;
 		uint glFormat;
 		uint glType;
 
-		internal this(GL_Graphics graphics)
+		uint32 currWidth;
+		uint32 currHeight;
+
+		internal this(GL_Graphics graphics, uint32 width, uint32 height, TextureFormat format)
 		{
 			this.graphics = graphics;
+
+			switch (format)
+			{
+			case .R: glInternalFormat = glFormat = GL.GL_RED;
+			case .RG: glInternalFormat = glFormat = GL.GL_RG;
+			case .RGB: glInternalFormat = glFormat = GL.GL_RGB;
+			case .Color: glInternalFormat = glFormat = GL.GL_RGBA;
+			case .DepthStencil:
+				glInternalFormat = GL.GL_DEPTH24_STENCIL8;
+				glFormat = GL.GL_DEPTH_STENCIL;
+			}
+
+			switch (format)
+			{
+			case .R, .RG, .RGB, .Color: glType = GL.GL_UNSIGNED_BYTE;
+			case .DepthStencil: glType = GL.GL_UNSIGNED_INT_24_8;
+			}
+
+			// GL create texture
+			Create(width, height, Texture.DefaultTextureFilter, default, default); // Defaults for values we dont know/can be set yet
 		}
 
 		public ~this()
@@ -36,51 +58,19 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override void Initialize(Texture texture)
+		private void Create(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
 		{
-			this.texture = texture;
+			currWidth = width;
+			currHeight = height;
 
-			switch (texture.format)
-			{
-			case .R: glInternalFormat = GL.GL_RED;
-			case .RG: glInternalFormat = GL.GL_RG;
-			case .RGB: glInternalFormat = GL.GL_RGB;
-			case .Color: glInternalFormat = GL.GL_RGBA;
-			case .DepthStencil: glInternalFormat = GL.GL_DEPTH24_STENCIL8;
-			}
-
-			switch (texture.format)
-			{
-			case .R: glFormat = GL.GL_RED;
-			case .RG: glFormat = GL.GL_RG;
-			case .RGB: glFormat = GL.GL_RGB;
-			case .Color: glFormat = GL.GL_RGBA;
-			case .DepthStencil: glFormat = GL.GL_DEPTH_STENCIL;
-			}
-
-			switch (texture.format)
-			{
-			case .R: glType = GL.GL_UNSIGNED_BYTE;
-			case .RG: glType = GL.GL_UNSIGNED_BYTE;
-			case .RGB: glType = GL.GL_UNSIGNED_BYTE;
-			case .Color: glType = GL.GL_UNSIGNED_BYTE;
-			case .DepthStencil: glType = GL.GL_UNSIGNED_INT_24_8;
-			}
-
-			// GL create texture
-			Create();
-		}
-
-		private void Create()
-		{
 			GL.glGenTextures(1, &textureID);
 			Prepare();
 
 			// TODO: optional mipmaps?
-			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, texture.Width, texture.Height, 0, glFormat, glType, null);
-			int glTexFilter = (int)(texture.Filter == .Nearest ? GL.GL_NEAREST : GL.GL_LINEAR);
-			int glTexWrapX = (int)(texture.WrapX == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
-			int glTexWrapY = (int)(texture.WrapY == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
+			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, width, height, 0, glFormat, glType, null);
+			int glTexFilter = (int)(filter == .Nearest ? GL.GL_NEAREST : GL.GL_LINEAR);
+			int glTexWrapX = (int)(wrapX == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
+			int glTexWrapY = (int)(wrapY == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, glTexFilter);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, glTexFilter);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
@@ -95,10 +85,10 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
 		}
 
-		internal override void ResizeAndClear(uint32 width, uint32 height)
+		internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
 		{
 			Delete();
-			Create();
+			Create(width, height, filter, wrapX, wrapY);
 		}
 
 		internal override void SetFilter(TextureFilter filter)
@@ -115,8 +105,8 @@ namespace Pile.Implementations
 		internal override void SetWrap(TextureWrap x, TextureWrap y)
 		{
 			Prepare();
-			int glTexWrapX = (int)(texture.WrapX == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
-			int glTexWrapY = (int)(texture.WrapY == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
+			int glTexWrapX = (int)(x == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
+			int glTexWrapY = (int)(y == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
 
@@ -126,7 +116,7 @@ namespace Pile.Implementations
 		internal override void SetData(void* buffer)
 		{
 			Prepare();
-			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, texture.Width, texture.Height, 0, glFormat, glType, buffer);
+			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, currWidth, currHeight, 0, glFormat, glType, buffer);
 
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}

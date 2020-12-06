@@ -8,10 +8,20 @@ namespace Pile.Implementations
 	class BGFX_Graphics : Graphics
 	{
 		// Do some more bgfx, then decide which api stuff could be changed
-		// - should window not be overridden? (and store window handle)
+		// - should window not be overridden? (and store window handle) NO IS FINE
 		// 		-> let wd = new window(); system.init(wd); graphics.init(wd);
+		// overriding is probably still a good idea. Maybe add a platform to it finally, same with input
+		// but having window more integrated with graphics would still be good
+
 		// re-form some things to work better with bgfx, opengl impl. should be fine either way
 		// put opengl impl. in different repo?
+
+		// tests for system.glGraphics in sld impl shouldnt be there
+		// have rendererBackend enum for graphics to test that instead
+
+		// try to remove interfaces IOpenGLGraphics/System
+		// would be nicer if the graphics just called a func on system to see if they are compatible
+		// - probably you wouldnt need to ever get the glcontext publicly. try to solve that differently?
 
 		public override uint32 MajorVersion => 0;
 
@@ -32,6 +42,8 @@ namespace Pile.Implementations
 
 		internal override Result<void> Initialize()
 		{
+			Core.Window.OnResized.Add(new => Resized);
+
 			var platformData = bgfx.PlatformData();
 			platformData.ndt = null;
 			platformData.nwh = Core.System.GetNativeWindowHandle();
@@ -41,6 +53,9 @@ namespace Pile.Implementations
 			init.type = .Count;
 			init.resolution.format = bgfx.TextureFormat.RGBA8;
 			init.resolution.numBackBuffers = 2;
+			init.resolution.width = (uint32)Core.Window.RenderSize.X;
+			init.resolution.height = (uint32)Core.Window.RenderSize.Y;
+			init.resolution.reset = (uint32)Core.Window.VSync;
 
 			init.limits.maxEncoders = 8;
 			init.limits.minResourceCbSize = 65536;
@@ -49,6 +64,12 @@ namespace Pile.Implementations
 
 			bgfx.init(&init);
 			return .Ok;
+		}
+
+		void Resized()
+		{
+			let rendSize = Core.Window.RenderSize; // TODO: not checking for vsync chage!!
+			bgfx.reset((uint32)rendSize.X, (uint32)rendSize.Y, (uint32)Core.Window.VSync, bgfx.TextureFormat.Count);
 		}
 
 		internal ~this()
@@ -63,7 +84,7 @@ namespace Pile.Implementations
 
 		internal override void AfterRender()
 		{
-
+			bgfx.frame(false);
 		}
 
 		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
@@ -76,24 +97,12 @@ namespace Pile.Implementations
 
 		}
 
-		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format)
-		{
-			return default;
-		}
+		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new BGFX_Texture(this, width, height, format);
 
-		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments)
-		{
-			return default;
-		}
+		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new BGFX_FrameBuffer(this, width, height, attachments);
 
-		internal override Mesh.Platform CreateMesh()
-		{
-			return default;
-		}
+		internal override Mesh.Platform CreateMesh() => new BGFX_Mesh(this);
 
-		internal override Shader.Platform CreateShader(ShaderData source)
-		{
-			return default;
-		}
+		internal override Shader.Platform CreateShader(ShaderData source) => new BGFX_Shader(this, source);
 	}
 }

@@ -11,9 +11,9 @@ namespace Pile.Implementations
 
 		MixingBus api;
 
-		internal this()
+		internal this(SL_Audio audio)
 		{
-			audio = Core.Audio as SL_Audio;
+			this.audio = audio;
 		}
 
 		internal override void Initialize(MixingBus bus)

@@ -20,9 +20,9 @@ namespace Pile.Implementations
 
 		internal override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group) && !api.Paused;
 
-		internal this()
+		internal this(SL_Audio audio)
 		{
-			audio = Core.Audio as SL_Audio;
+			this.audio = audio;
 
 			bus = SL_Bus.Create();
 			SL_Bus.SetInaudibleBehavior(bus, SL_TRUE, SL_FALSE);

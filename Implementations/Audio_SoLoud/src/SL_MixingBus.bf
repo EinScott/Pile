@@ -19,9 +19,9 @@ namespace Pile.Implementations
 		List<AudioSource> sourceInputs = new List<AudioSource>() ~ delete _;
 		MixingBus api;
 
-		internal this()
+		internal this(SL_Audio audio)
 		{
-			audio = Core.Audio as SL_Audio;
+			this.audio = audio;
 
 			bus = SL_Bus.Create();
 

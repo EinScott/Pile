@@ -7,10 +7,7 @@ namespace Pile.Implementations
 	public class Null_Texture : Texture.Platform
 	{
 		[SkipCall]
-		internal override void Initialize(Texture texture) {}
-
-		[SkipCall]
-		internal override void ResizeAndClear(uint32 width, uint32 height) {}
+		internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY) {}
 
 		[SkipCall]
 		internal override void SetFilter(TextureFilter filter) {}

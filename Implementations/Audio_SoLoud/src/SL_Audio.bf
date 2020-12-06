@@ -64,8 +64,8 @@ namespace Pile.Implementations
 			return .Ok;
 		}
 
-		internal override AudioSource.Platform CreateAudioSource() => new SL_AudioSource();
+		internal override AudioSource.Platform CreateAudioSource() => new SL_AudioSource(this);
 		internal override AudioClip.Platform CreateAudioClip() => new SL_AudioClip();
-		internal override MixingBus.Platform CreateMixingBus() => !createMaster ? new SL_MixingBus() : new SL_MasterBus();
+		internal override MixingBus.Platform CreateMixingBus() => !createMaster ? new SL_MixingBus(this) : new SL_MasterBus(this);
 	}
 }
