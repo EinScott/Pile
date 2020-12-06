@@ -16,8 +16,8 @@ namespace Pile
 	        }
 	    }
 
-	    private Point2 viewport;
-	    public Point2 Viewport
+	    private UPoint2 viewport;
+	    public UPoint2 Viewport
 	    {
 	        get => viewport;
 	        set
@@ -95,10 +95,10 @@ namespace Pile
 	        }
 	    }
 
-	    public int Top => point.Y - (viewport.Y / 2);
-	    public int Bottom => point.Y + (viewport.Y / 2);
-	    public int Left => point.X - (viewport.X / 2);
-	    public int Right => point.X + (viewport.X / 2);
+	    public int Top => point.Y - (int)(viewport.Y / 2);
+	    public int Bottom => point.Y + (int)(viewport.Y / 2);
+	    public int Left => point.X - (int)(viewport.X / 2);
+	    public int Right => point.X + (int)(viewport.X / 2);
 
 	    private void UpdateMatrix()
 	    {
