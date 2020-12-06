@@ -75,6 +75,14 @@ namespace Pile
 		}
 
 		// Logging shorthands
+#if !DEBUG
+		[SkipCall]
+#endif
+		public static void Debug(String message) => Log(Types.Message, message);
+#if !DEBUG
+		[SkipCall]
+#endif
+		public static void Debug(Object message) => Log(Types.Message, message);
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
