@@ -174,5 +174,30 @@ namespace Pile.Implementations
 		{
 			return window.context;
 		}
+
+		internal override void* GetNativeWindowHandle()
+		{
+			var info = SDL.SDL_SysWMinfo();
+			SDL.GetWindowWMInfo(window.window, ref info);
+
+#if BF_PLATFORM_WINDOWS
+			if (info.info.winrt.window != null)
+				return info.info.winrt.window;
+			return (void*)(int)info.info.win.window;
+#endif
+#if BF_PLATFORM_LINUX
+			if (info.info.wl.shell_surface != null)
+				return info.info.wl.shell_surface;
+			if (info.info.x11.window != null)
+				return info.info.x11.window;
+			if (info.info.android.window != null)
+				return info.info.android.window;
+			return null;
+			Log.Error("Native window handle couldn't be retrieved");
+#endif
+#if BF_PLATFORM_MACOS
+			return info.info.cocoa.window;
+#endif
+		}
 	}
 }

@@ -68,7 +68,7 @@ namespace Pile.Implementations
 
 		internal override Result<void> Initialize()
 		{
-			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must be present and support openGL");
+			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must support openGL");
 			system = Core.System as ISystemOpenGL;
 
 			// Config gl on system

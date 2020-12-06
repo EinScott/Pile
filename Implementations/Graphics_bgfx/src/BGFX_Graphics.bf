@@ -7,6 +7,12 @@ namespace Pile.Implementations
 {
 	class BGFX_Graphics : Graphics
 	{
+		// Do some more bgfx, then decide which api stuff could be changed
+		// - should window not be overridden? (and store window handle)
+		// 		-> let wd = new window(); system.init(wd); graphics.init(wd);
+		// re-form some things to work better with bgfx, opengl impl. should be fine either way
+		// put opengl impl. in different repo?
+
 		public override uint32 MajorVersion => 0;
 
 		public override uint32 MinorVersion => 0;
@@ -26,9 +32,28 @@ namespace Pile.Implementations
 
 		internal override Result<void> Initialize()
 		{
+			var platformData = bgfx.PlatformData();
+			platformData.ndt = null;
+			platformData.nwh = Core.System.GetNativeWindowHandle();
+
 			var init = bgfx.Init();
+			init.platformData = platformData;
+			init.type = .Count;
+			init.resolution.format = bgfx.TextureFormat.RGBA8;
+			init.resolution.numBackBuffers = 2;
+
+			init.limits.maxEncoders = 8;
+			init.limits.minResourceCbSize = 65536;
+			init.limits.transientVbSize = 6291456;
+			init.limits.transientIbSize = 2097152;
+
 			bgfx.init(&init);
 			return .Ok;
+		}
+
+		internal ~this()
+		{
+
 		}
 
 		internal override void Step()

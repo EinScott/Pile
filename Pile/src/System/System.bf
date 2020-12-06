@@ -27,33 +27,34 @@ namespace Pile
 			String lowerTitle = scope String(title)..Replace(Path.DirectorySeparatorChar, '_')..Replace(Path.AltDirectorySeparatorChar, '_')..Replace(Path.VolumeSeparatorChar, '_')..ToLower();
 			String userPath = scope .();
 			String userDir = new .();
-			switch (Environment.OSVersion.Platform)
+
+#if BF_PLATFORM_WINDOWS
+			Environment.GetEnvironmentVariable("APPDATA", userPath);
+			if (!userPath.IsEmpty)
+				Path.InternalCombine(userDir, userPath, lowerTitle);
+#endif
+#if BF_PLATFORM_LINUX
+			Environment.GetEnvironmentVariable("XDG_DATA_HOME", userPath);
+			if (!userPath.IsEmpty)
 			{
-			case .WinCE, .Win32Windows, .Win32S, .Win32NT, .Xbox:
-				Environment.GetEnvironmentVariable("APPDATA", userPath);
-				if (!userPath.IsEmpty)
-					Path.InternalCombine(userDir, userPath, lowerTitle);
-			case .Unix:
-				Environment.GetEnvironmentVariable("XDG_DATA_HOME", userPath);
-				if (!userPath.IsEmpty)
-				{
-					Path.InternalCombine(userDir, userPath, lowerTitle);
-				}
-				else
-				{
-					Environment.GetEnvironmentVariable("HOME", userPath);
-					if (!userPath.IsEmpty)
-						Path.InternalCombine(userDir, userPath, ".local", "share", lowerTitle);
-				}
-			case .MacOSX:
+				Path.InternalCombine(userDir, userPath, lowerTitle);
+			}
+			else
+			{
 				Environment.GetEnvironmentVariable("HOME", userPath);
 				if (!userPath.IsEmpty)
-					Path.InternalCombine(userDir, userPath, "Library", "Application Support", lowerTitle);
+					Path.InternalCombine(userDir, userPath, ".local", "share", lowerTitle);
 			}
+#endif
+#if BF_PLATFORM_MACOS
+			Environment.GetEnvironmentVariable("HOME", userPath);
+			if (!userPath.IsEmpty)
+				Path.InternalCombine(userDir, userPath, "Library", "Application Support", lowerTitle);
+#endif
 
 			if (userDir.IsEmpty)
 			{
-				Log.Warning("Couldn't determine UserPath");
+				Log.Error("Couldn't determine UserPath");
 				userDir.Set(exeDir);
 			}
 			UserPath = userDir;
@@ -67,6 +68,7 @@ namespace Pile
 
 		internal abstract void Initialize();
 		internal abstract void Step();
+		internal abstract void* GetNativeWindowHandle();
 
 		public String DataPath { get; private set; }
 		public String UserPath { get; private set; }
