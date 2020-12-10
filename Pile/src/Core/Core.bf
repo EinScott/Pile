@@ -26,6 +26,11 @@ namespace Pile
 {
 	public static class Core
 	{
+		static this()
+		{
+			Title = new .();
+		}
+
 		static ~this()
 		{
 			if (run) Delete();
@@ -42,6 +47,8 @@ namespace Pile
 			delete Audio;
 			delete Graphics;
 			delete System;
+
+			delete Title;
 		}
 
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
