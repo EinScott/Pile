@@ -132,7 +132,7 @@ namespace Pile
 			return assets.GetValue(type).Get().Values;
 		}
 
-		// Use Packages for static assets, use this for ones you don't know at compile time.
+		/// Use Packages for static assets, use this for ones you don't know at compile time.
 		public static Result<void> AddDynamicAsset(StringView name, Object asset)
 		{
 			let type = asset.GetType();
@@ -149,8 +149,8 @@ namespace Pile
 			return .Ok;
 		}
 
-		// Use Packages for static assets, use this for ones you don't know at compile time.
-		// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
+		/// Use Packages for static assets, use this for ones you don't know at compile time.
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
 		public static Result<void> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
 			// Add object in assets
@@ -178,7 +178,7 @@ namespace Pile
 				RemoveAsset(type, name);
 		}
 
-		// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
 		public static void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
 		{
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))

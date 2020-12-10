@@ -8,7 +8,7 @@ namespace Pile
 {
 	public class FontSize
 	{
-	    // A single Font Character
+	    /// A single Font Character
 	    public struct Character
 	    {
 	        public readonly char32 Unicode;
@@ -81,7 +81,7 @@ namespace Pile
 	        }
 	    }
 
-	    // Gets the Kerning Value between two Unicode characters at the Font Size, or 0 if there is no Kerning
+	    /// Gets the Kerning Value between two Unicode characters at the Font Size, or 0 if there is no Kerning
 	    public float GetKerning(char32 unicode0, char32 unicode1)
 	    {
 	        if (Charset.TryGetValue(unicode0, let char0) && Charset.TryGetValue(unicode1, let char1))
@@ -90,7 +90,7 @@ namespace Pile
 	        return 0f;
 	    }
 
-	    // Renders the Unicode character to a buffer at the Font Size, and returns true on success. The bitmap will be cleared before rendering to it
+	    /// Renders the Unicode character to a buffer at the Font Size, and returns true on success. The bitmap will be cleared before rendering to it
 	    public bool Render(char32 unicode, Bitmap bitmap, bool resizeBitmapBuffered = false)
 	    {
 	        if (Charset.TryGetValue(unicode, let ch) && ch.HasGlyph)

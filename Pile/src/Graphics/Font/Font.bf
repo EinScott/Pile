@@ -78,13 +78,13 @@ namespace Pile
 		    }
 		}
 
-		// Gets the Scale of the Font for a given Height. This value can then be used to scale proprties of a Font for the given Height
+		/// Gets the Scale of the Font for a given Height. This value can then be used to scale proprties of a Font for the given Height
 		public float GetScale(uint32 height)
 		{
 		    return stbtt.stbtt_ScaleForPixelHeight(fontInfo, height);
 		}
 
-		// Gets the Glyph code for a given Unicode value, if it exists, or 0 otherwise
+		/// Gets the Glyph code for a given Unicode value, if it exists, or 0 otherwise
 		public int32 GetGlyph(char32 unicode)
 		{
 		    if (!glyphs.TryGetValue(unicode, var glyph))

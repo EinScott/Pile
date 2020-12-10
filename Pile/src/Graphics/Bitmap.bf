@@ -51,7 +51,7 @@ namespace Pile
 			}
 		}
 
-		// Buffered will only reallocate if pixel buffer isnt long enough
+		/// Buffered will only reallocate if pixel buffer isnt long enough
 		public void Reset(uint32 width, uint32 height, Span<Color> pixels, bool buffered = false)
 		{
 			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
@@ -68,7 +68,7 @@ namespace Pile
 			pixels.CopyTo(Pixels);
 		}
 
-		// Buffered will only reallocate if pixel buffer isnt long enough
+		/// Buffered will only reallocate if pixel buffer isnt long enough
 		public void ResizeAndClear(uint32 width, uint32 height, bool buffered = false)
 		{
 			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
@@ -137,14 +137,14 @@ namespace Pile
 			}
 		}
 
-		// Buffered will only reallocate if pixel buffer isnt long enough
+		/// Buffered will only reallocate if pixel buffer isnt long enough
 		public void GetSubBitmap(Rect source, Bitmap sub, bool buffered = false)
 		{
 			sub.ResizeAndClear((uint32)source.Width, (uint32)source.Height, buffered);
 			GetPixels(sub.Pixels, Rect(0, 0, source.Width, source.Height), source);
 		}
 
-		// Buffered will only reallocate if pixel buffer isnt long enough
+		/// Buffered will only reallocate if pixel buffer isnt long enough
 		public void CopyTo(Bitmap bitmap, bool buffered = false)
 		{
 			bitmap.Reset(Width, Height, Pixels, buffered);
