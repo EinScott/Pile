@@ -20,9 +20,9 @@ namespace Pile
 
 		internal ~this() {}
 
-		internal abstract Result<void> Initialize();
-		internal abstract void Step();
-		internal abstract void AfterRender();
+		protected internal abstract Result<void> Initialize();
+		protected internal abstract void Step();
+		protected internal abstract void AfterRender();
 
 		public Result<void> Clear(RenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
@@ -76,9 +76,9 @@ namespace Pile
 
 		protected abstract void RenderInternal(ref RenderPass pass);
 
-		internal abstract Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format);
-		internal abstract FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments);
-		internal abstract Mesh.Platform CreateMesh();
-		internal abstract Shader.Platform CreateShader(ShaderData source);
+		protected internal abstract Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format);
+		protected internal abstract FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments);
+		protected internal abstract Mesh.Platform CreateMesh();
+		protected internal abstract Shader.Platform CreateShader(ShaderData source);
 	}
 }

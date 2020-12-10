@@ -7,9 +7,9 @@ namespace Pile
 {
 	public class AudioClip
 	{
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
-			internal abstract void Initialize(Span<uint8> data);
+			protected internal abstract void Initialize(Span<uint8> data);
 		}
 
 		internal readonly Platform platform ~ delete _;

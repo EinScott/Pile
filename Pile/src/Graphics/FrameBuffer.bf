@@ -8,10 +8,10 @@ namespace Pile
 {
 	public class FrameBuffer : RenderTarget
 	{
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
 			internal readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
-			internal abstract void ResizeAndClear(uint32 width, uint32 height);
+			protected internal abstract void ResizeAndClear(uint32 width, uint32 height);
 		}
 
 		internal readonly Platform platform ~ delete _;

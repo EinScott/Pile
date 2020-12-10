@@ -11,23 +11,23 @@ namespace Pile.Implementations
 		public override String ApiName => "Null System";
 		public override String Info => String.Empty;
 
-		internal override Input CreateInput()
+		protected internal override Input CreateInput()
 		{
 			return new Null_Input();
 		}
 
-		internal override Window CreateWindow(uint32 width, uint32 height)
+		protected internal override Window CreateWindow(uint32 width, uint32 height)
 		{
 			return new Null_Window(width, height);
 		}
 
 		[SkipCall]
-		internal override void Initialize() {}
+		protected internal override void Initialize() {}
 
 		[SkipCall]
-		internal override void Step() {}
+		protected internal override void Step() {}
 
-		internal override void DetermineDataPaths(StringView title)
+		protected internal override void DetermineDataPaths(StringView title)
 		{
 			base.DetermineDataPaths(title); // It's probably best to leave this as is
 		}
@@ -40,5 +40,7 @@ namespace Pile.Implementations
 		Null_Context context = new Null_Context() ~ delete _;
 
 		public ISystemOpenGL.Context GetGLContext() => context;
+
+		protected internal override void* GetNativeWindowHandle() => null;
 	}
 }

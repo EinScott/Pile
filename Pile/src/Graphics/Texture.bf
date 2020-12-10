@@ -7,15 +7,14 @@ namespace Pile
 {
 	public class Texture
 	{
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
-			internal abstract void Initialize(Texture texture);
-			internal abstract void ResizeAndClear(uint32 width, uint32 height);
-			internal abstract void SetFilter(TextureFilter filter);
-			internal abstract void SetWrap(TextureWrap x, TextureWrap y);
-			internal abstract void SetData(void* buffer);
-			internal abstract void GetData(void* buffer);
-			internal abstract bool IsFrameBuffer();
+			protected internal abstract void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY);
+			protected internal abstract void SetFilter(TextureFilter filter);
+			protected internal abstract void SetWrap(TextureWrap x, TextureWrap y);
+			protected internal abstract void SetData(void* buffer);
+			protected internal abstract void GetData(void* buffer);
+			protected internal abstract bool IsFrameBuffer();
 		}
 
 		public static TextureFilter DefaultTextureFilter = TextureFilter.Linear;
@@ -62,7 +61,6 @@ namespace Pile
 			this.format = format;
 
 			platform = Core.Graphics.CreateTexture(width, height, format);
-			platform.Initialize(this);
 
 			filter = DefaultTextureFilter;
 		}
@@ -99,7 +97,7 @@ namespace Pile
 				Width = width;
 				Height = height;
 
-				platform.ResizeAndClear(width, height);
+				platform.ResizeAndClear(width, height, filter, wrapX, wrapY);
 			}
 			return .Ok;
 		}

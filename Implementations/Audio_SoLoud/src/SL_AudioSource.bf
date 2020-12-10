@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile.Implementations
 {
-	public class SL_AudioSource : AudioSource.Platform
+	class SL_AudioSource : AudioSource.Platform
 	{
 		// slightly confusingly, Pile.AudioSource doesnt correspond to a SoLoud AudioSource, but rather something like a Voice playing interface
 
@@ -18,11 +18,11 @@ namespace Pile.Implementations
 		AudioSource api;
 		bool prioritized;
 
-		internal override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group) && !api.Paused;
+		protected internal override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(audio.slPtr, group) && !api.Paused;
 
-		internal this()
+		internal this(SL_Audio audio)
 		{
-			audio = Core.Audio as SL_Audio;
+			this.audio = audio;
 
 			bus = SL_Bus.Create();
 			SL_Bus.SetInaudibleBehavior(bus, SL_TRUE, SL_FALSE);
@@ -41,14 +41,14 @@ namespace Pile.Implementations
 			SL_Bus.Destroy(bus);
 		}
 
-		internal override void Initialize(AudioSource source)
+		protected internal override void Initialize(AudioSource source)
 		{
 			prioritized = source.Prioritized;
 
 			this.api = source;
 		}
 
-		internal override void Play(AudioClip clip)
+		protected internal override void Play(AudioClip clip)
 		{
 			let platform = clip.platform as SL_AudioClip;
 			let handle = SL_Bus.Play(bus, platform.audio, 1, api.Pan, SL_TRUE);
@@ -68,32 +68,32 @@ namespace Pile.Implementations
 			SL_Soloud.AddVoiceToGroup(audio.slPtr, group, handle);
 		}
 
-		internal override void SetVolume(float volume)
+		protected internal override void SetVolume(float volume)
 		{
 			SL_Bus.SetVolume(bus, volume);
 		}
 
-		internal override void SetPan(float pan)
+		protected internal override void SetPan(float pan)
 		{
 			SL_Soloud.SetPan(audio.slPtr, group, pan);
 		}
 
-		internal override void SetSpeed(float speed)
+		protected internal override void SetSpeed(float speed)
 		{
 			SL_Soloud.SetRelativePlaySpeed(audio.slPtr, group, speed);
 		}
 
-		internal override void SetLooping(bool looping)
+		protected internal override void SetLooping(bool looping)
 		{
 			SL_Soloud.SetLooping(audio.slPtr, group, looping ? SL_TRUE : SL_FALSE);
 		}
 
-		internal override void SetPaused(bool paused)
+		protected internal override void SetPaused(bool paused)
 		{
 			SL_Soloud.SetPause(audio.slPtr, group, paused ? SL_TRUE : SL_FALSE);
 		}
 
-		internal override void Stop()
+		protected internal override void Stop()
 		{
 			SL_Soloud.Stop(audio.slPtr, group);
 		}

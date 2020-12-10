@@ -53,7 +53,7 @@ namespace Pile.Implementations
 		}
 
 		
-		internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
+		protected internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
 		{
 			if (lastVertexFormat != format)
 			{
@@ -64,7 +64,7 @@ namespace Pile.Implementations
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length);
 		}
 
-		internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
+		protected internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
 		{
 			if (lastInstanceFormat != format)
 			{
@@ -75,7 +75,7 @@ namespace Pile.Implementations
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length);
 		}
 
-		internal override void SetIndices(Span<uint8> rawIndexData)
+		protected internal override void SetIndices(Span<uint8> rawIndexData)
 		{
 			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, rawIndexData.Length);
 		}

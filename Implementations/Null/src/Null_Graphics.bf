@@ -20,13 +20,13 @@ namespace Pile.Implementations
 		}
 
 		[SkipCall]
-		internal override Result<void> Initialize() => .Ok;
+		protected internal override Result<void> Initialize() => .Ok;
 
 		[SkipCall]
-		internal override void Step() {}
+		protected internal override void Step() {}
 
 		[SkipCall]
-		internal override void AfterRender() {}
+		protected internal override void AfterRender() {}
 
 		[SkipCall]
 		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
@@ -34,22 +34,22 @@ namespace Pile.Implementations
 		[SkipCall]
 		protected override void RenderInternal(ref RenderPass pass) {}
 
-		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format)
+		protected internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format)
 		{
 			return new Null_Texture();
 		}
 
-		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments)
+		protected internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments)
 		{
 			return new Null_Framebuffer();
 		}
 
-		internal override Mesh.Platform CreateMesh()
+		protected internal override Mesh.Platform CreateMesh()
 		{
 			return new Null_Mesh();
 		}
 
-		internal override Shader.Platform CreateShader(ShaderData source)
+		protected internal override Shader.Platform CreateShader(ShaderData source)
 		{
 			return new Null_Shader();
 		}

@@ -181,7 +181,7 @@ namespace Pile.Implementations
 
 			for (int i = 0; i < material.ParameterCount; i++)
 			{
-				let parameter = material.parameters[i];
+				let parameter = material[i];
 				let uniform = parameter.Uniform;
 
 				switch (uniform.Type)

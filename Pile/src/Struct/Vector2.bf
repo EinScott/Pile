@@ -87,6 +87,7 @@ namespace Pile
 		public static operator Vector2((float X, float Y) tuple) => Vector2(tuple.X, tuple.Y);
 		public static operator Vector2(Point2 a) => Vector2(a.X, a.Y);
 
+		[Commutable]
 		public static bool operator==(Vector2 a, Vector2 b) => a.X == b.X && a.Y == b.Y;
 
 		public static Vector2 operator+(Vector2 a, Vector2 b) => Vector2(a.X + b.X, a.Y + b.Y);

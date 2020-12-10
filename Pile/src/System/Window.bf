@@ -64,6 +64,6 @@ namespace Pile
 			Renderable = false;
 		}
 
-		internal abstract void Present();
+		protected internal abstract void Present();
 	}
 }

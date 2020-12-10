@@ -28,7 +28,7 @@ namespace Pile.Implementations
 			Delete();
 		}
 
-		internal override void ResizeAndClear(uint32 width, uint32 height)
+		protected internal override void ResizeAndClear(uint32 width, uint32 height)
 		{
 			Delete();
 

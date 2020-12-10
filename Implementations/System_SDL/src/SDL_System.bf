@@ -32,14 +32,14 @@ namespace Pile.Implementations
 			SDL_Init.InitFlags |= .Video | .Joystick | .GameController | .Events;
 		}
 
-		internal override Input CreateInput()
+		protected internal override Input CreateInput()
 		{
 			// Only one input
 			if (input == null) return input = new .(window);
 			else return input;
 		}
 
-		internal override Window CreateWindow(uint32 width, uint32 height)
+		protected internal override Window CreateWindow(uint32 width, uint32 height)
 		{
 			// Only one window
 			if (window == null)
@@ -51,7 +51,7 @@ namespace Pile.Implementations
 			else return window;
 		}
 
-		internal override void Initialize()
+		protected internal override void Initialize()
 		{
 #if BF_PLATFORM_WINDOWS 
 			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -78,7 +78,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override void Step()
+		protected internal override void Step()
 		{
 			SDL.Event event;
 			while (SDL.PollEvent(out event) != 0)
@@ -173,6 +173,31 @@ namespace Pile.Implementations
 		public ISystemOpenGL.Context GetGLContext()
 		{
 			return window.context;
+		}
+
+		protected internal override void* GetNativeWindowHandle()
+		{
+			var info = SDL.SDL_SysWMinfo();
+			SDL.GetWindowWMInfo(window.window, ref info);
+
+#if BF_PLATFORM_WINDOWS
+			if (info.info.winrt.window != null)
+				return info.info.winrt.window;
+			return (void*)(int)info.info.win.window;
+#endif
+#if BF_PLATFORM_LINUX
+			if (info.info.wl.shell_surface != null)
+				return info.info.wl.shell_surface;
+			if (info.info.x11.window != null)
+				return info.info.x11.window;
+			if (info.info.android.window != null)
+				return info.info.android.window;
+			return null;
+			Log.Error("Native window handle couldn't be retrieved");
+#endif
+#if BF_PLATFORM_MACOS
+			return info.info.cocoa.window;
+#endif
 		}
 	}
 }

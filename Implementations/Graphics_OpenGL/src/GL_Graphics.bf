@@ -66,9 +66,9 @@ namespace Pile.Implementations
 			delete deleteFrameBuffer;
 		}
 
-		internal override Result<void> Initialize()
+		protected internal override Result<void> Initialize()
 		{
-			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must be present and support openGL");
+			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must support openGL");
 			system = Core.System as ISystemOpenGL;
 
 			// Config gl on system
@@ -110,7 +110,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override void Step()
+		protected internal override void Step()
 		{
 			RunDeleteLists();
 		}
@@ -137,7 +137,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override void AfterRender()
+		protected internal override void AfterRender()
 		{
 			glFlush();
 		}
@@ -425,13 +425,13 @@ namespace Pile.Implementations
 			}
 		}
 
-		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new GL_Texture(this);
+		protected internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new GL_Texture(this, width, height, format);
 
-		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new GL_FrameBuffer(this, width, height, attachments);
+		protected internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new GL_FrameBuffer(this, width, height, attachments);
 		
-		internal override Mesh.Platform CreateMesh() => new GL_Mesh(this);
+		protected internal override Mesh.Platform CreateMesh() => new GL_Mesh(this);
 
-		internal override Shader.Platform CreateShader(ShaderData source) => new GL_Shader(this, source);
+		protected internal override Shader.Platform CreateShader(ShaderData source) => new GL_Shader(this, source);
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)
 		{

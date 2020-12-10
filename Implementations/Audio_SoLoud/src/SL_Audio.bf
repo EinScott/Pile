@@ -43,7 +43,7 @@ namespace Pile.Implementations
 			Destroy(slPtr);
 		}
 
-		internal override Result<void> Initialize()
+		protected internal override Result<void> Initialize()
 		{
 			// Create master bus (cant do earlier since we need to have Core.Auio assigned)
 			master = new MixingBus(); // Will get special MixingBus.Platform, because retMaster == true
@@ -64,8 +64,8 @@ namespace Pile.Implementations
 			return .Ok;
 		}
 
-		internal override AudioSource.Platform CreateAudioSource() => new SL_AudioSource();
-		internal override AudioClip.Platform CreateAudioClip() => new SL_AudioClip();
-		internal override MixingBus.Platform CreateMixingBus() => !createMaster ? new SL_MixingBus() : new SL_MasterBus();
+		protected internal override AudioSource.Platform CreateAudioSource() => new SL_AudioSource(this);
+		protected internal override AudioClip.Platform CreateAudioClip() => new SL_AudioClip();
+		protected internal override MixingBus.Platform CreateMixingBus() => !createMaster ? new SL_MixingBus(this) : new SL_MasterBus(this);
 	}
 }
