@@ -372,7 +372,7 @@ namespace Pile
 		        // dictionary.count+1 could be negative if dictionary.count is Int32.MaxValue
 				while ((uint)mIndex < (uint)mDictionary.[Friend]mCount)
 				{
-					if (mDictionary.mEntries[mIndex].mHashCode >= 0)
+					if (mDictionary.[Friend]mEntries[mIndex].mHashCode >= 0)
 					{
 						mCurrent = (TAsset)mDictionary.[Friend]mEntries[mIndex].mValue;
 						mIndex++;
@@ -395,7 +395,7 @@ namespace Pile
 			{
 				get
 				{
-					return ref mDictionary.mEntries[mIndex].mKey;
+					return ref mDictionary.[Friend]mEntries[mIndex].mKey;
 				}
 			}
 
