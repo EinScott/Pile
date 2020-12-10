@@ -13,7 +13,7 @@ namespace Pile
 			public abstract bool Down { get; }
 			public abstract bool Released { get; }
 			public abstract bool Repeated(float delay, float interval);
-			internal abstract void Update();
+			protected internal abstract void Update();
 		}
 
 		public class KeyNode : Node
@@ -38,7 +38,7 @@ namespace Pile
 		    public override bool Down => input.Keyboard.Down(key);
 		    public override bool Released => input.Keyboard.Released(key);
 		    public override bool Repeated(float delay, float interval) => input.Keyboard.Repeated(key, delay, interval);
-		    internal override void Update() { }
+		    protected internal override void Update() { }
 
 		    internal this(Input input, Keys key)
 		    {
@@ -69,7 +69,7 @@ namespace Pile
 		    public override bool Down => input.Mouse.Down(mouseButton);
 		    public override bool Released => input.Mouse.Released(mouseButton);
 		    public override bool Repeated(float delay, float interval) => input.Mouse.Repeated(mouseButton, delay, interval);
-		    internal override void Update() { }
+		    protected internal override void Update() { }
 
 		    internal this(Input input, MouseButtons mouseButton)
 		    {
@@ -101,7 +101,7 @@ namespace Pile
 		    public override bool Down => input.state.controllers[index].Down(button);
 		    public override bool Released => input.state.controllers[index].Released(button);
 		    public override bool Repeated(float delay, float interval) => input.state.controllers[index].Repeated(button, delay, interval);
-		    internal override void Update() { }
+		    protected internal override void Update() { }
 
 		    internal this(Input input, int controller, Buttons button)
 		    {
@@ -175,7 +175,7 @@ namespace Pile
 		        return (input.lastState.controllers[index].Axis(axis) < threshold && input.state.controllers[index].Axis(axis) >= threshold);
 		    }
 
-		    internal override void Update()
+		    protected internal override void Update()
 		    {
 		        if (Pressed())
 		            pressedTimestamp = input.state.controllers[index].Timestamp(axis);

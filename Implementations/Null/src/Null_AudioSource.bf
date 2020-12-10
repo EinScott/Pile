@@ -6,30 +6,30 @@ namespace Pile.Implementations
 {
 	class Null_AudioSource : AudioSource.Platform
 	{
-		internal override bool Playing => false;
+		protected internal override bool Playing => false;
 
 		[SkipCall]
-		internal override void Initialize(AudioSource source) {}
+		protected internal override void Initialize(AudioSource source) {}
 
 		[SkipCall]
-		internal override void SetVolume(float volume) {}
+		protected internal override void SetVolume(float volume) {}
 
 		[SkipCall]
-		internal override void SetPan(float pan) {}
+		protected internal override void SetPan(float pan) {}
 
 		[SkipCall]
-		internal override void SetSpeed(float speed) {}
+		protected internal override void SetSpeed(float speed) {}
 
 		[SkipCall]
-		internal override void SetLooping(bool looping) {}
+		protected internal override void SetLooping(bool looping) {}
 
 		[SkipCall]
-		internal override void SetPaused(bool paused) {}
+		protected internal override void SetPaused(bool paused) {}
 
 		[SkipCall]
-		internal override void Play(AudioClip clip) {}
+		protected internal override void Play(AudioClip clip) {}
 
 		[SkipCall]
-		internal override void Stop() {}
+		protected internal override void Stop() {}
 	}
 }

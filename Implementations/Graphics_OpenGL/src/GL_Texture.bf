@@ -85,13 +85,13 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
 		}
 
-		internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
+		protected internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
 		{
 			Delete();
 			Create(width, height, filter, wrapX, wrapY);
 		}
 
-		internal override void SetFilter(TextureFilter filter)
+		protected internal override void SetFilter(TextureFilter filter)
 		{
 			Prepare();
 			int glTexFilter = filter == .Nearest ? GL.GL_NEAREST : GL.GL_LINEAR;
@@ -102,7 +102,7 @@ namespace Pile.Implementations
 
 		}
 
-		internal override void SetWrap(TextureWrap x, TextureWrap y)
+		protected internal override void SetWrap(TextureWrap x, TextureWrap y)
 		{
 			Prepare();
 			int glTexWrapX = (int)(x == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
@@ -113,7 +113,7 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
-		internal override void SetData(void* buffer)
+		protected internal override void SetData(void* buffer)
 		{
 			Prepare();
 			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, currWidth, currHeight, 0, glFormat, glType, buffer);
@@ -121,7 +121,7 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
-		internal override void GetData(void* buffer)
+		protected internal override void GetData(void* buffer)
 		{
 			Prepare();
 			GL.glGetTexImage(GL.GL_TEXTURE_2D, 0, glInternalFormat, glType, buffer);
@@ -129,6 +129,6 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
-		internal override bool IsFrameBuffer() => isFrameBuffer;
+		protected internal override bool IsFrameBuffer() => isFrameBuffer;
 	}
 }

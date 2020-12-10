@@ -227,7 +227,7 @@ namespace Pile.Implementations
 			SDL.RaiseWindow(window);
 		}
 
-		internal override void Present()
+		protected internal override void Present()
 		{
 			if (system.glGraphics)
 			{

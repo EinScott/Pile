@@ -21,7 +21,7 @@ namespace Pile.Implementations
 
 		public override uint AudibleSoundCount => 0;
 
-		internal override Result<void> Initialize()
+		protected internal override Result<void> Initialize()
 		{
 			masterBus = new MixingBus();
 			createMaster = false;
@@ -29,10 +29,10 @@ namespace Pile.Implementations
 			return .Ok;
 		}
 
-		internal override AudioSource.Platform CreateAudioSource() => new Null_AudioSource();
+		protected internal override AudioSource.Platform CreateAudioSource() => new Null_AudioSource();
 
-		internal override AudioClip.Platform CreateAudioClip() => new Null_AudioClip();
+		protected internal override AudioClip.Platform CreateAudioClip() => new Null_AudioClip();
 
-		internal override MixingBus.Platform CreateMixingBus() => new Null_MixingBus(createMaster);
+		protected internal override MixingBus.Platform CreateMixingBus() => new Null_MixingBus(createMaster);
 	}
 }

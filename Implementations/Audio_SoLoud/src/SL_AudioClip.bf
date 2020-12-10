@@ -25,7 +25,7 @@ namespace Pile.Implementations
 			SL_Wav.Destroy(audio);
 		}
 
-		internal override void Initialize(Span<uint8> data)
+		protected internal override void Initialize(Span<uint8> data)
 		{
 			SL_Wav.LoadMem(audio, data.Ptr, (.)data.Length, SL_TRUE, SL_TRUE);
 		}

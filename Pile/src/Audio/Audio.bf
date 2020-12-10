@@ -18,10 +18,10 @@ namespace Pile
 
 		internal ~this() {}
 
-		internal abstract Result<void> Initialize();
+		protected internal abstract Result<void> Initialize();
 
-		internal abstract AudioSource.Platform CreateAudioSource();
-		internal abstract AudioClip.Platform CreateAudioClip();
-		internal abstract MixingBus.Platform CreateMixingBus();
+		protected internal abstract AudioSource.Platform CreateAudioSource();
+		protected internal abstract AudioClip.Platform CreateAudioClip();
+		protected internal abstract MixingBus.Platform CreateMixingBus();
 	}
 }

@@ -12,7 +12,7 @@ namespace Pile
 		public readonly ReadOnlySpan<ShaderAttribute> Attributes;
 		public readonly ReadOnlySpan<ShaderUniform> Uniforms;
 
-		internal class Platform
+		protected internal class Platform
 		{
 			internal readonly List<ShaderAttribute> Attributes = new List<ShaderAttribute>() ~ DeleteContainerAndItems!(_);
 			internal readonly List<ShaderUniform> Uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);

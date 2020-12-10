@@ -7,14 +7,14 @@ namespace Pile
 {
 	public class Texture
 	{
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
-			internal abstract void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY);
-			internal abstract void SetFilter(TextureFilter filter);
-			internal abstract void SetWrap(TextureWrap x, TextureWrap y);
-			internal abstract void SetData(void* buffer);
-			internal abstract void GetData(void* buffer);
-			internal abstract bool IsFrameBuffer();
+			protected internal abstract void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY);
+			protected internal abstract void SetFilter(TextureFilter filter);
+			protected internal abstract void SetWrap(TextureWrap x, TextureWrap y);
+			protected internal abstract void SetData(void* buffer);
+			protected internal abstract void GetData(void* buffer);
+			protected internal abstract bool IsFrameBuffer();
 		}
 
 		public static TextureFilter DefaultTextureFilter = TextureFilter.Linear;

@@ -16,7 +16,7 @@ namespace Pile
 			delete UserPath;
 		}
 
-		internal virtual void DetermineDataPaths(StringView title)
+		protected internal virtual void DetermineDataPaths(StringView title)
 		{
 			String exePath = scope .();
 			Environment.GetExecutableFilePath(exePath);
@@ -63,12 +63,12 @@ namespace Pile
 				Directory.CreateDirectory(userDir);
 		}
 
-		internal abstract Input CreateInput();
-		internal abstract Window CreateWindow(uint32 width, uint32 height);
+		protected internal abstract Input CreateInput();
+		protected internal abstract Window CreateWindow(uint32 width, uint32 height);
 
-		internal abstract void Initialize();
-		internal abstract void Step();
-		internal abstract void* GetNativeWindowHandle();
+		protected internal abstract void Initialize();
+		protected internal abstract void Step();
+		protected internal abstract void* GetNativeWindowHandle();
 
 		public String DataPath { get; private set; }
 		public String UserPath { get; private set; }

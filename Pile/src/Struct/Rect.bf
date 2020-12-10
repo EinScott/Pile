@@ -337,6 +337,7 @@ namespace Pile
 		    return rect;
 		}
 
+		[Commutable]
 		public static bool operator==(Rect a, Rect b) => a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
 
 		public static Rect operator+(Rect a, Point2 b) => Rect(a.X + b.X, a.Y + b.Y, a.Width, a.Height);

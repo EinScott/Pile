@@ -7,20 +7,20 @@ namespace Pile.Implementations
 	public class Null_Texture : Texture.Platform
 	{
 		[SkipCall]
-		internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY) {}
+		protected internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY) {}
 
 		[SkipCall]
-		internal override void SetFilter(TextureFilter filter) {}
+		protected internal override void SetFilter(TextureFilter filter) {}
 
 		[SkipCall]
-		internal override void SetWrap(TextureWrap x, TextureWrap y) {}
+		protected internal override void SetWrap(TextureWrap x, TextureWrap y) {}
 
 		[SkipCall]
-		internal override void SetData(void* buffer) {}
+		protected internal override void SetData(void* buffer) {}
 
 		[SkipCall]
-		internal override void GetData(void* buffer) {}
+		protected internal override void GetData(void* buffer) {}
 
-		internal override bool IsFrameBuffer() => false;
+		protected internal override bool IsFrameBuffer() => false;
 	}
 }

@@ -86,6 +86,7 @@ namespace Pile
 	    public static readonly BlendMode Multiply = BlendMode(BlendOperations.Add, BlendFactors.DstColor, BlendFactors.OneMinusSrcAlpha);
 	    public static readonly BlendMode Screen = BlendMode(BlendOperations.Add, BlendFactors.One, BlendFactors.OneMinusSrcColor);
 
+		[Commutable]
 	    public static bool operator ==(BlendMode a, BlendMode b)
 	    {
 	        return

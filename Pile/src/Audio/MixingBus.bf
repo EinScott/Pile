@@ -7,23 +7,23 @@ namespace Pile
 {
 	public class MixingBus
 	{
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
-			internal abstract bool IsMasterBus { get; }
+			protected internal abstract bool IsMasterBus { get; }
 
-			internal abstract void Initialize(MixingBus bus);
-			internal abstract void SetVolume(float volume);
+			protected internal abstract void Initialize(MixingBus bus);
+			protected internal abstract void SetVolume(float volume);
 
 			// Called from other MixingBusses
-			internal abstract void AddBus(MixingBus bus);
-			internal abstract void RemoveBus(MixingBus bus);
+			protected internal abstract void AddBus(MixingBus bus);
+			protected internal abstract void RemoveBus(MixingBus bus);
 
 			// Called from AudioSource
-			internal abstract void AddSource(AudioSource source);
-			internal abstract void RemoveSource(AudioSource source);
+			protected internal abstract void AddSource(AudioSource source);
+			protected internal abstract void RemoveSource(AudioSource source);
 
 			// When this is deleted, things feeding into this bus need to be redirected
-			internal abstract void RedirectInputsToMaster();
+			protected internal abstract void RedirectInputsToMaster();
 
 			// TODO: Filterstuff -- create some abstraction... somewhat like material?
 		}

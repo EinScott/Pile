@@ -9,24 +9,24 @@ namespace Pile
 	{
 		// Can play multiple sounds at once
 
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
-			internal abstract bool Playing { get; }
+			protected internal abstract bool Playing { get; }
 
-			internal abstract void Initialize(AudioSource source);
-			internal abstract void SetVolume(float volume);
-			internal abstract void SetPan(float pan);
-			internal abstract void SetSpeed(float speed);
-			internal abstract void SetLooping(bool looping);
-			internal abstract void SetPaused(bool paused);
+			protected internal abstract void Initialize(AudioSource source);
+			protected internal abstract void SetVolume(float volume);
+			protected internal abstract void SetPan(float pan);
+			protected internal abstract void SetSpeed(float speed);
+			protected internal abstract void SetLooping(bool looping);
+			protected internal abstract void SetPaused(bool paused);
 
 			// TODO: fading
 
 			// TODO: 3d audio stuff -- somwhow integrate propertly, do just something like "bool spacial"?, how do we change/get position/space (do we need something audioListener?)
 
-			internal abstract void Play(AudioClip clip);
+			protected internal abstract void Play(AudioClip clip);
 
-			internal abstract void Stop();
+			protected internal abstract void Stop();
 		}
 
 		internal readonly Platform platform ~ delete _;

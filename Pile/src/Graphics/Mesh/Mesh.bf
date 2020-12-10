@@ -7,11 +7,11 @@ namespace Pile
 {
 	public class  Mesh
 	{
-		internal abstract class Platform
+		protected internal abstract class Platform
 		{
-			internal abstract void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
-			internal abstract void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
-			internal abstract void SetIndices(Span<uint8> rawIndexData);
+			protected internal abstract void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
+			protected internal abstract void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
+			protected internal abstract void SetIndices(Span<uint8> rawIndexData);
 		}
 
 		internal readonly Platform platform ~ delete _;
