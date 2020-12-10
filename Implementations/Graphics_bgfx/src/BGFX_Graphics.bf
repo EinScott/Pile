@@ -40,7 +40,7 @@ namespace Pile.Implementations
 			set => mode = value;
 		}
 
-		internal override Result<void> Initialize()
+		protected internal override Result<void> Initialize()
 		{
 			Core.Window.OnResized.Add(new => Resized);
 
@@ -77,12 +77,12 @@ namespace Pile.Implementations
 
 		}
 
-		internal override void Step()
+		protected internal override void Step()
 		{
 
 		}
 
-		internal override void AfterRender()
+		protected internal override void AfterRender()
 		{
 			bgfx.frame(false);
 		}
@@ -97,12 +97,13 @@ namespace Pile.Implementations
 
 		}
 
-		internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new BGFX_Texture(this, width, height, format);
+		// Special function for renderTextures? - part of framebuffer CreateFrameBufferTexture(), called from BGFX_Framebuffer ctor
+		protected internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new BGFX_Texture(this, width, height, format);
 
-		internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new BGFX_FrameBuffer(this, width, height, attachments);
+		protected internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new BGFX_FrameBuffer(this, width, height, attachments);
 
-		internal override Mesh.Platform CreateMesh() => new BGFX_Mesh(this);
+		protected internal override Mesh.Platform CreateMesh() => new BGFX_Mesh(this);
 
-		internal override Shader.Platform CreateShader(ShaderData source) => new BGFX_Shader(this, source);
+		protected internal override Shader.Platform CreateShader(ShaderData source) => new BGFX_Shader(this, source);
 	}
 }

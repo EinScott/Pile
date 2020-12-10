@@ -11,17 +11,17 @@ namespace Pile.Implementations
 
 		}
 
-		internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
+		protected internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
 		{
 
 		}
 
-		internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
+		protected internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
 		{
 
 		}
 
-		internal override void SetIndices(Span<uint8> rawIndexData)
+		protected internal override void SetIndices(Span<uint8> rawIndexData)
 		{
 
 		}
