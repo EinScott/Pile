@@ -46,7 +46,9 @@ namespace Pile
 		public static bool operator==(UPoint2 a, UPoint2 b) => a.X == b.X && a.Y == b.Y;
 
 		public static UPoint2 operator+(UPoint2 a, UPoint2 b) => UPoint2(a.X + b.X, a.Y + b.Y);
-		public static UPoint2 operator-(UPoint2 a, UPoint2 b) => UPoint2((.)a.X - b.X, (.)a.Y - b.Y); // Cast here because on 32 bit for some reason this equates to uint64
+		public static Point2 operator+(Point2 a, UPoint2 b) => Point2(a.X + (.)b.X, a.Y + (.)b.Y);
+		public static UPoint2 operator-(UPoint2 a, UPoint2 b) => UPoint2(a.X - b.X, a.Y - b.Y);
+		public static Point2 operator-(Point2 a, UPoint2 b) => Point2(a.X - (.)b.X, a.Y - (.)b.Y);
 
 		public static UPoint2 operator*(UPoint2 a, uint b) => UPoint2(a.X * b, a.Y * b);
 		public static UPoint2 operator/(UPoint2 a, uint b) => UPoint2(a.X / b, a.Y / b);
