@@ -1,9 +1,7 @@
 All 3rd party software used by Pile Implementation projects, which
 are at ./Implementations/(any)/dist/ (if that project uses a 3rd party
-library), have their own license inside that (dist) directory.
-The following license applies to all other contents of this reposetory,
-as all 3rd party software included elsewhere is also licensed under the
-ZLIB license or in the public domain.
+library), have their own license located inside that (dist) directory.
+The following license applies to all other contents of this reposetory.
 
 
 Copyright (c) 2020 EinBurgbauer
