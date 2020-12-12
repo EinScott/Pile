@@ -112,5 +112,29 @@ namespace Pile
 	    }
 
 		public static explicit operator Matrix4x4(Camera2D cam) => cam.Matrix;
+
+		public Vector2 ScreenToCamera(Vector2 position)
+		{
+		    return Vector2.Transform(position, Matrix.Inverse()); // Not very... performant.. probably
+		}
+
+		public Vector2 CameraToScreen(Vector2 position)
+		{
+		    return Vector2.Transform(position, Matrix);
+		}
+
+		public void Approach(Vector2 position, float ease)
+		{
+		    Position += (position - Position) * ease;
+		}
+
+		public void Approach(Vector2 position, float ease, float maxDistance)
+		{
+		    Vector2 move = (position - Position) * ease;
+		    if (move.LengthSquared > maxDistance * maxDistance)
+		        Position += move.Normalized() * maxDistance;
+		    else
+		        Position += move;
+		}
 	}
 }
