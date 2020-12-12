@@ -23,6 +23,13 @@ namespace Pile
 			this = default;
 		}
 
+		public this(float all)
+		{
+			X = all;
+			Y = all;
+			Z = all;
+		}
+
 		public this(float x, float y, float z)
 		{
 			X = x;

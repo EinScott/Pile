@@ -23,6 +23,13 @@ namespace Pile
 			this = default;
 		}
 
+		public this(int all)
+		{
+			X = all;
+			Y = all;
+			Z = all;
+		}
+
 		public this(int x, int y, int z)
 		{
 			X = x;
