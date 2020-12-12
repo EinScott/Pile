@@ -40,7 +40,7 @@ namespace Pile
 		}
 
 		public static operator UPoint2((uint X, uint Y) tuple) => UPoint2(tuple.X, tuple.Y);
-		public static explicit operator Point2(UPoint2 a) => Point2((int)a.X, (int)a.Y);
+		public static operator Point2(UPoint2 a) => Point2((int)a.X, (int)a.Y);
 
 		[Commutable]
 		public static bool operator==(UPoint2 a, UPoint2 b) => a.X == b.X && a.Y == b.Y;
