@@ -27,28 +27,6 @@ namespace Pile
 	        }
 	    }
 
-		float zoom = 1;
-		public float Zoom
-		{
-			get => zoom;
-			set
-			{
-				zoom = value;
-				dirty = true;
-			}
-		}
-
-		float rotation = 0;
-		public float Rotation
-		{
-			get => rotation;
-			set
-			{
-				rotation = value;
-				dirty = true;
-			}
-		}
-
 	    private Vector2 remainder;
 	    private Point2 point;
 	    public Vector2 Position
