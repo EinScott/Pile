@@ -15,6 +15,9 @@ namespace Pile
 		public static readonly Point2 Zero = .(0, 0);
 		public static readonly Point2 One = .(1, 1);
 
+		public static readonly Point2 NegateX = .(-1, 1);
+		public static readonly Point2 NegateY = .(1, -1);
+
 		public int X;
 		public int Y;
 
@@ -51,6 +54,8 @@ namespace Pile
 		}
 
 		public static operator Point2((int X, int Y) tuple) => Point2(tuple.X, tuple.Y);
+		public static operator Point2(UPoint2 a) => Point2((int)a.X, (int)a.Y);
+
 		public static explicit operator Point2(Vector2 a) => Point2((int)Math.Round(a.X), (int)Math.Round(a.Y));
 
 		[Commutable]
@@ -64,6 +69,9 @@ namespace Pile
 
 		public static Point2 operator*(Point2 a, uint b) => Point2(a.X * (.)b, a.Y * (.)b);
 		public static Point2 operator/(Point2 a, uint b) => Point2(a.X / (.)b, a.Y / (.)b);
+
+		public static Point2 operator*(Point2 a, Point2 b) => Point2(a.X * b.X, a.Y * b.Y);
+		public static Point2 operator/(Point2 a, Point2 b) => Point2(a.X / b.X, a.Y / b.Y);
 
 		public static Point2 operator-(Point2 a) => Point2(-a.X, -a.Y);
 

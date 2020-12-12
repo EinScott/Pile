@@ -8,11 +8,12 @@ namespace Pile
 		public static readonly Vector3 UnitX = .(1, 0, 0);
 		public static readonly Vector3 UnitY = .(0, 1, 0);
 		public static readonly Vector3 UnitZ = .(0, 0, 1);
-		public static readonly Vector3 UnitNegativeX = .(-1, 0, 0);
-		public static readonly Vector3 UnitNegativeY = .(0, -1, 0);
-		public static readonly Vector3 UnitNegativeZ = .(0, 0, -1);
 		public static readonly Vector3 Zero = .(0, 0, 0);
 		public static readonly Vector3 One = .(1, 1, 1);
+
+		public static readonly Vector3 NegateX = .(-1, 1, 1);
+		public static readonly Vector3 NegateY = .(1, -1, 1);
+		public static readonly Vector3 NegateZ = .(1, 1, -1);
 
 		public float X;
 		public float Y;
@@ -74,6 +75,15 @@ namespace Pile
 			return this == .Zero ? .Zero : this / Length;
 		}
 
+		public override void ToString(String strBuffer)
+		{
+			strBuffer.Set("Vector [ ");
+			X.ToString(strBuffer);
+			strBuffer.Append(", ");
+			Y.ToString(strBuffer);
+			strBuffer.Append(" ]");
+		}
+
 		public static Vector3 Lerp(Vector3 a, Vector3 b, float t)
 		{
 			if (t == 0)
@@ -84,13 +94,18 @@ namespace Pile
 				return a + (b - a) * t;
 		}
 
-		public override void ToString(String strBuffer)
+		public static Vector3 Approach(Vector3 from, Vector3 target, float amount)
 		{
-			strBuffer.Set("Vector [ ");
-			X.ToString(strBuffer);
-			strBuffer.Append(", ");
-			Y.ToString(strBuffer);
-			strBuffer.Append(" ]");
+		    if (from == target)
+		        return target;
+		    else
+		    {
+		        var diff = target - from;
+		        if (diff.Length <= amount * amount)
+		            return target;
+		        else
+		            return from + diff.Normalized() * amount;
+		    }
 		}
 
 		public static operator Vector3((float X, float Y, float Z) tuple) => Vector3(tuple.X, tuple.Y, tuple.Z);

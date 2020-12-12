@@ -8,11 +8,12 @@ namespace Pile
 		public static readonly Point3 UnitX = .(1, 0, 0);
 		public static readonly Point3 UnitY = .(0, 1, 0);
 		public static readonly Point3 UnitZ = .(0, 0, 1);
-		public static readonly Point3 UnitNegativeX = .(-1, 0, 0);
-		public static readonly Point3 UnitNegativeY = .(0, -1, 0);
-		public static readonly Point3 UnitNegativeZ = .(0, 0, -1);
 		public static readonly Point3 Zero = .(0, 0, 0);
 		public static readonly Point3 One = .(1, 1, 1);
+
+		public static readonly Point3 NegateX = .(-1, 1, 1);
+		public static readonly Point3 NegateY = .(1, -1, 1);
+		public static readonly Point3 NegateZ = .(1, 1, -1);
 
 		public int X;
 		public int Y;

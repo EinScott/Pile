@@ -15,6 +15,9 @@ namespace Pile
 		public static readonly Vector2 Zero = .(0, 0);
 		public static readonly Vector2 One = .(1, 1);
 
+		public static readonly Vector2 NegateX = .(-1, 1);
+		public static readonly Vector2 NegateY = .(1, -1);
+
 		public float X;
 		public float Y;
 
@@ -90,8 +93,84 @@ namespace Pile
 			strBuffer.Append(" ]");
 		}
 
+		public static float Dot(Vector2 val1, Vector2 val2)
+		{
+			return val1.X * val2.X + val1.Y * val2.Y;
+		}
+
+		public static float Angle(Vector2 vec)
+		{
+		    return Math.Atan2(vec.Y, vec.X);
+		}
+
+		public static float Angle(Vector2 from, Vector2 to)
+		{
+		    return Math.Atan2(to.Y - from.Y, to.X - from.X);
+		}
+
+		public static Vector2 AngleToVector(float angle, float length = 1)
+		{
+		    return Vector2(Math.Cos(angle) * length, Math.Sin(angle) * length);
+		}
+
+		public static Vector2 Approach(Vector2 from, Vector2 target, float amount)
+		{
+		    if (from == target)
+		        return target;
+		    else
+		    {
+		        var diff = target - from;
+		        if (diff.Length <= amount * amount)
+		            return target;
+		        else
+		            return from + diff.Normalized() * amount;
+		    }
+		}
+
+		public static Vector2 Max(Vector2 value1, Vector2 value2)
+		{
+		    return Vector2(
+		        (value1.X > value2.X) ? value1.X : value2.X,
+		        (value1.Y > value2.Y) ? value1.Y : value2.Y);
+		}
+
+		public static Vector2 Min(Vector2 value1, Vector2 value2)
+		{
+		    return Vector2(
+		        (value1.X < value2.X) ? value1.X : value2.X,
+		        (value1.Y < value2.Y) ? value1.Y : value2.Y);
+		}
+
+		public static float Distance(Vector2 value1, Vector2 value2)
+		{
+		    Vector2 difference = value1 - value2;
+			float ls = difference.LengthSquared;
+			return Math.Sqrt(ls);
+		}
+
+		public static float DistanceSquared(Vector2 value1, Vector2 value2)
+		{
+		    Vector2 difference = value1 - value2;
+			return difference.LengthSquared;
+		}
+
+		public static Vector2 Transform(Vector2 position, Matrix3x2 matrix)
+		{
+		    return Vector2(
+		        position.X * matrix.m11 + position.Y * matrix.m21 + matrix.m31,
+		        position.X * matrix.m12 + position.Y * matrix.m22 + matrix.m32);
+		}
+
+		public static Vector2 Transform(Vector2 position, Matrix4x4 matrix)
+		{
+		    return Vector2(
+		        position.X * matrix.m11 + position.Y * matrix.m21 + matrix.m41,
+		        position.X * matrix.m12 + position.Y * matrix.m22 + matrix.m42);
+		}
+
 		public static operator Vector2((float X, float Y) tuple) => Vector2(tuple.X, tuple.Y);
 		public static operator Vector2(Point2 a) => Vector2(a.X, a.Y);
+		public static operator Vector2(UPoint2 a) => Vector2(a.X, a.Y);
 
 		[Commutable]
 		public static bool operator==(Vector2 a, Vector2 b) => a.X == b.X && a.Y == b.Y;
@@ -103,6 +182,9 @@ namespace Pile
 		public static Vector2 operator*(Vector2 a, double b) => Vector2((.)(a.X * b), (.)(a.Y * b));
 		public static Vector2 operator/(Vector2 a, float b) => Vector2(a.X / b, a.Y / b);
 		public static Vector2 operator/(Vector2 a, double b) => Vector2((.)(a.X / b), (.)(a.Y / b));
+
+		public static Vector2 operator*(Vector2 a, Vector2 b) => Vector2(a.X * b.X, a.Y * b.Y);
+		public static Vector2 operator/(Vector2 a, Vector2 b) => Vector2(a.X / b.X, a.Y / b.Y);
 
 		public static Vector2 operator-(Vector2 a) => Vector2(-a.X, -a.Y);
 

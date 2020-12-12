@@ -810,11 +810,11 @@ namespace Pile
 
 		public void SemiCircle(Vector2 center, float startRadians, float endRadians, float radius, int steps, Color centerColor, Color edgeColor)
 		{
-		    var last = Math.AngleToVector(startRadians, radius);
+		    var last = Vector2.AngleToVector(startRadians, radius);
 
 		    for (int i = 1; i <= steps; i++)
 		    {
-		        let next = Math.AngleToVector(startRadians + (endRadians - startRadians) * (i / (float)steps), radius);
+		        let next = Vector2.AngleToVector(startRadians + (endRadians - startRadians) * (i / (float)steps), radius);
 		        Triangle(center + last, center + next, center, edgeColor, edgeColor, centerColor);
 		        last = next;
 		    }
@@ -827,11 +827,11 @@ namespace Pile
 
 		public void Circle(Vector2 center, float radius, int steps, Color centerColor, Color edgeColor)
 		{
-		    var last = Math.AngleToVector(0, radius);
+		    var last = Vector2.AngleToVector(0, radius);
 
 		    for (int i = 1; i <= steps; i++)
 		    {
-		        let next = Math.AngleToVector((i / (float)steps) * Math.TAU_f, radius);
+		        let next = Vector2.AngleToVector((i / (float)steps) * Math.TAU_f, radius);
 		        Triangle(center + last, center + next, center, edgeColor, edgeColor, centerColor);
 		        last = next;
 		    }
@@ -839,11 +839,11 @@ namespace Pile
 
 		public void HollowCircle(Vector2 center, float radius, float thickness, int steps, Color color)
 		{
-		    var last = Math.AngleToVector(0, radius);
+		    var last = Vector2.AngleToVector(0, radius);
 
 		    for (int i = 1; i <= steps; i++)
 		    {
-		        let next = Math.AngleToVector((i / (float)steps) * Math.TAU_f, radius);
+		        let next = Vector2.AngleToVector((i / (float)steps) * Math.TAU_f, radius);
 		        Line(center + last, center + next, thickness, color);
 		        last = next;
 		    }

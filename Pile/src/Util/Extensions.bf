@@ -26,34 +26,6 @@ namespace System
 		        return Math.Min(from + amount, target);
 		}
 
-		public static Vector2 Approach(Vector2 from, Vector2 target, float amount)
-		{
-		    if (from == target)
-		        return target;
-		    else
-		    {
-		        var diff = target - from;
-		        if (diff.Length <= amount * amount)
-		            return target;
-		        else
-		            return from + diff.Normalized() * amount;
-		    }
-		}
-
-		public static Vector3 Approach(Vector3 from, Vector3 target, float amount)
-		{
-		    if (from == target)
-		        return target;
-		    else
-		    {
-		        var diff = target - from;
-		        if (diff.Length <= amount * amount)
-		            return target;
-		        else
-		            return from + diff.Normalized() * amount;
-		    }
-		}
-
 		public static float YoYo(float value)
 		{
 		    if (value <= 0.5f)
@@ -98,21 +70,6 @@ namespace System
 		public static double ClampedMap(double val, double min, double max, double newMin = 0, double newMax = 1)
 		{
 		    return Clamp((val - min) / (max - min), 0, 1) * (newMax - newMin) + newMin;
-		}
-
-		public static float Angle(Vector2 vec)
-		{
-		    return Math.Atan2(vec.Y, vec.X);
-		}
-
-		public static float Angle(Vector2 from, Vector2 to)
-		{
-		    return Math.Atan2(to.Y - from.Y, to.X - from.X);
-		}
-
-		public static Vector2 AngleToVector(float angle, float length = 1)
-		{
-		    return Vector2(Math.Cos(angle) * length, Math.Sin(angle) * length);
 		}
 
 		public static float AngleApproach(float val, float target, float maxMove)
@@ -395,7 +352,7 @@ namespace System
 		    if (points.Count < 3)
 		        return;
 
-		    Span<int32> list = scope int32[points.Count];
+		    int32[] list = new int32[points.Count];
 
 		    if (Area() > 0)
 		    {
@@ -439,19 +396,20 @@ namespace System
 		            count = 2 * nv;
 		        }
 		    }
+			delete list;
 
 			populate.Reverse();
 		}
 
 		public static bool InsideTriangle(Vector2 a, Vector2 b, Vector2 c, Vector2 point)
 		{
-		    var p0 = c - b;
-		    var p1 = a - c;
-		    var p2 = b - a;
+		    let p0 = c - b;
+		    let p1 = a - c;
+		    let p2 = b - a;
 
-		    var ap = point - a;
-		    var bp = point - b;
-		    var cp = point - c;
+		    let ap = point - a;
+		    let bp = point - b;
+		    let cp = point - c;
 
 		    return (p0.X * bp.Y - p0.Y * bp.X >= 0.0f) &&
 		           (p2.X * ap.Y - p2.Y * ap.X >= 0.0f) &&
@@ -512,6 +470,8 @@ namespace System
 	{
 		public extension Path
 		{
+			/// Basic comparison of two paths. Doesnt work with relative paths. Always cares about letter case regardless of filesystem atm.#
+			/// However this sees the two directory separator chars as the same thing.
 			public static bool SamePath(StringView filePathA, StringView filePathB)
 			{
 				if (filePathA.Length != filePathB.Length) return false;
