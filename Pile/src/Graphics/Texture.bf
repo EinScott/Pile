@@ -75,14 +75,14 @@ namespace Pile
 		{
 			bitmap.ResizeAndClear(Width, Height);
 
-			var span = scope Span<Color>(bitmap.Pixels);
-			platform.GetData(span);
+			var span = Span<Color>(bitmap.Pixels);
+			platform.GetData(&span[0]);
 		}
 
 		public Result<void> Set(Bitmap bitmap)
 		{
 			if ((bitmap.Width != Width || bitmap.Height != Height) && (ResizeAndClear(bitmap.Width, bitmap.Height) case .Err)) return .Err; // Resize this if needed
-			platform.SetData(scope Span<Color>(bitmap.Pixels));
+			platform.SetData(&bitmap.Pixels[0]);
 
 			return .Ok;
 		}

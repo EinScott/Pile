@@ -29,6 +29,7 @@ namespace Pile
 			OnStart.Dispose();
 		}
 
+		[Optimize]
 		public static Result<void> AddLaunchOption(StringView name, LaunchDelegate launch)
 		{
 			if (launchOptions == null)
@@ -46,6 +47,7 @@ namespace Pile
 			return .Ok;
 		}
 
+		[Optimize]
 		static int Main(String[] runArgs)
 		{
 			// Handle args

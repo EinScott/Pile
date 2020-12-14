@@ -76,6 +76,7 @@ namespace Pile
 			OnUnloadPackage.Dispose();
 		}
 
+		[Optimize]
 		public static void RegisterImporter(StringView name, Importer importer)
 		{
 			for (let s in importers.Keys)
@@ -88,6 +89,7 @@ namespace Pile
 			importers.Add(new String(name), importer);
 		}
 
+		[Optimize]
 		public static void UnregisterImporter(StringView name)
 		{
 			let res = importers.GetAndRemove(scope String(name));
@@ -102,7 +104,9 @@ namespace Pile
 			}
 		}
 
-		public static Result<Package> LoadPackage(StringView packageName)
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive LoadPackage() calls.
+		[Optimize]
+		public static Result<Package> LoadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Debug.Assert(packagesPath != null, "Initialize Core first!");
 
@@ -295,13 +299,16 @@ namespace Pile
 			delete importerNames;
 
 			// Finish
-			Assets.PackAndUpdateTextures();
+			if (packAndUpdateTextures)
+				Assets.PackAndUpdateTextures();
 
 			OnLoadPackage(package);
 			return .Ok(package);
 		}
 
-		public static Result<void> UnloadPackage(StringView packageName)
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive LoadPackage() calls.
+		[Optimize]
+		public static Result<void> UnloadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Package package = null;
 			for (int i = 0; i < loadedPackages.Count; i++)
@@ -323,12 +330,14 @@ namespace Pile
 			for (let textureName in package.ownedPackerTextures)
 				Assets.RemoveTextureAsset(textureName);
 
-			Assets.PackAndUpdateTextures();
+			if (packAndUpdateTextures)
+				Assets.PackAndUpdateTextures();
 
 			delete package;
 			return .Ok;
 		}
 
+		[Optimize]
 		public static bool PackageLoaded(StringView packageName, out Package package)
 		{
 			for (let p in loadedPackages)
@@ -342,6 +351,7 @@ namespace Pile
 			return false;
 		}
 
+		[Optimize]
 		public static Result<void> BuildPackage(StringView packagePath, StringView outputPath = packagesPath)
 		{
 			let t = scope Stopwatch(true);

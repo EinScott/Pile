@@ -38,6 +38,34 @@ namespace Pile
 			if (Pixels != null) delete Pixels;
 		}
 
+		public ref Color this[int x, int y]
+		{
+			get
+			{
+				Debug.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				return ref Pixels[x + y * Width];
+			}
+			set
+			{
+				Debug.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				Pixels[x + y * Width] = value;
+			}
+		}
+
+		public ref Color this[uint x, uint y]
+		{
+			get
+			{
+				Debug.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				return ref Pixels[(.)(x + y * Width)];
+			}
+			set
+			{
+				Debug.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				Pixels[(.)(x + y * Width)] = value;
+			}
+		}
+
 		public void Premultiply()
 		{
 			uint8* rgba = (uint8*)&Pixels[0];

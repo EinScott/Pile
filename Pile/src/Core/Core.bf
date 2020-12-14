@@ -70,6 +70,7 @@ namespace Pile
 
 		static Game Game;
 
+		[Optimize]
 		public static Result<void> Run(System system, Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
 		{
 			Debug.Assert(!run, "Core was already run");

@@ -7,9 +7,9 @@ namespace Pile
 	public static class Log
 	{
 #if PILE_LONG_LOG_RECORD
-		public const int32 LOG_RECORD_COUNT = 128;
+		public const int32 LOG_RECORD_COUNT = 512;
 #else
-		public const int32 LOG_RECORD_COUNT = 16;
+		public const int32 LOG_RECORD_COUNT = 64;
 #endif
 		
 		public enum Types

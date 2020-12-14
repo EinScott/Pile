@@ -150,7 +150,7 @@ namespace Pile
 		}
 
 		/// Use Packages for static assets, use this for ones you don't know at compile time.
-		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
 		public static Result<void> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
 			// Add object in assets
@@ -178,7 +178,7 @@ namespace Pile
 				RemoveAsset(type, name);
 		}
 
-		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit.
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
 		public static void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
 		{
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
@@ -192,6 +192,7 @@ namespace Pile
 				PackAndUpdateTextures();
 		}
 
+		[Optimize]
 		internal static Result<StringView> AddAsset(Type type, StringView name, Object object)
 		{
 			Debug.Assert(Core.run);
@@ -222,6 +223,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
+		[Optimize]
 		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap)
 		{
 			Debug.Assert(Core.run);
@@ -256,6 +258,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
+		[Optimize]
 		internal static void RemoveAsset(Type type, StringView name)
 		{
 			let string = scope String(name);
@@ -279,6 +282,7 @@ namespace Pile
 			}
 		}
 
+		[Optimize]
 		internal static void RemoveTextureAsset(StringView name)
 		{
 			let string = scope String(name);
@@ -306,7 +310,8 @@ namespace Pile
 				delete dict.value;
 			}
 		}
-		
+
+		[Optimize]
 		internal static void PackAndUpdateTextures()
 		{
 			Debug.Assert(Core.run);
