@@ -59,7 +59,7 @@ namespace Pile
 
 		public abstract Point2 MousePosition { get; set; }
 
-		public Event<Action<char16>> OnTextTyped;
+		public Event<delegate void(char16)> OnTextTyped;
 
 		protected void OnText(char16 value)
 		{
