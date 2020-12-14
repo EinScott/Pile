@@ -168,6 +168,21 @@ namespace Pile
 		        position.X * matrix.m12 + position.Y * matrix.m22 + matrix.m42);
 		}
 
+		public static bool InsideTriangle(Vector2 a, Vector2 b, Vector2 c, Vector2 point)
+		{
+		    let p0 = c - b;
+		    let p1 = a - c;
+		    let p2 = b - a;
+
+		    let ap = point - a;
+		    let bp = point - b;
+		    let cp = point - c;
+
+		    return (p0.X * bp.Y - p0.Y * bp.X >= 0.0f) &&
+		           (p2.X * ap.Y - p2.Y * ap.X >= 0.0f) &&
+		           (p1.X * cp.Y - p1.Y * cp.X >= 0.0f);
+		}
+
 		public static operator Vector2((float X, float Y) tuple) => Vector2(tuple.X, tuple.Y);
 		public static operator Vector2(Point2 a) => Vector2(a.X, a.Y);
 		public static operator Vector2(UPoint2 a) => Vector2(a.X, a.Y);

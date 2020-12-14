@@ -1,9 +1,3 @@
-using System;
-using System.IO;
-using System.Collections;
-using System.Diagnostics;
-using Pile;
-
 namespace System
 {
 	public extension Math
@@ -138,7 +132,9 @@ namespace System
 		    return (b & (1 << pos)) != 0;
 		}
 
-		public static uint32 Adler32(uint32 adler, Span<uint8> buffer)
+		// todo: this doesn't fit here (and is also unused. Adler might be used in PNG if that weren't commented out)
+		// on Triangulate, i don't like the List and Vector2 dependancy. Should move it somewhere else.
+		/*public static uint32 Adler32(uint32 adler, Span<uint8> buffer)
 		{
 		    const int32 BASE = 65521;
 		    const int32 NMAX = 5552;
@@ -399,148 +395,6 @@ namespace System
 			delete list;
 
 			populate.Reverse();
-		}
-
-		public static bool InsideTriangle(Vector2 a, Vector2 b, Vector2 c, Vector2 point)
-		{
-		    let p0 = c - b;
-		    let p1 = a - c;
-		    let p2 = b - a;
-
-		    let ap = point - a;
-		    let bp = point - b;
-		    let cp = point - c;
-
-		    return (p0.X * bp.Y - p0.Y * bp.X >= 0.0f) &&
-		           (p2.X * ap.Y - p2.Y * ap.X >= 0.0f) &&
-		           (p1.X * cp.Y - p1.Y * cp.X >= 0.0f);
-		}
-	}
-
-	extension Environment
-	{
-		public static void GetEnvironmentVariable(String key, String outString)
-		{
-			let dict = new Dictionary<String, String>();
-			Environment.GetEnvironmentVariables(dict);
-
-			if (!dict.ContainsKey(key)) return;
-
-			outString.Append(dict[key]);
-			DeleteDictionaryAndKeysAndItems!(dict);
-		}
-	}
-
-	namespace Collections
-	{
-		public extension List<T>
-		{
-			public void Reverse()
-			{				   
-				Reverse(0, Count);
-			}
-
-			// --copy-pase from Array.Reverse()
-			// Reverses the elements in a range of an array. Following a call to this
-			// method, an element in the range given by index and count
-			// which was previously located at index i will now be located at
-			// index index + (index + count - i - 1).
-			// Reliability note: This may fail because it may have to box objects.
-			public void Reverse(int index, int length)
-			{
-				Debug.Assert(index >= 0);
-				Debug.Assert(length >= 0);
-				Debug.Assert(length >= Count - index);
-				
-				int i = index;
-				int j = index + length - 1;
-				while (i < j)
-				{
-					let temp = this[i];
-					this[i] = this[j];
-					this[j] = temp;
-					i++;
-					j--;
-				}
-			}
-		}
-	}
-
-	namespace IO
-	{
-		public extension Path
-		{
-			/// Basic comparison of two paths. Doesnt work with relative paths. Always cares about letter case regardless of filesystem atm.#
-			/// However this sees the two directory separator chars as the same thing.
-			public static bool SamePath(StringView filePathA, StringView filePathB)
-			{
-				if (filePathA.Length != filePathB.Length) return false;
-
-				bool matches = true;
-				char8* a = filePathA.Ptr;
-				char8* b = filePathB.Ptr;
-
-				while (a != filePathA.EndPtr)
-				{
-					if (*a != *b && !(*a == Path.DirectorySeparatorChar && *b == Path.AltDirectorySeparatorChar || *a == Path.AltDirectorySeparatorChar && *b == Path.DirectorySeparatorChar))
-					{
-						matches = false;
-						break;
-					}
-					a++;
-					b++;
-				}
-
-				return matches;
-			}
-
-			public static void InternalCombineViews(String target, params StringView[] components)
-			{
-				for (var component in components)
-				{
-					if ((target.Length > 0) && (!target.EndsWith("\\")) && (!target.EndsWith("/")))
-						target.Append(Path.DirectorySeparatorChar);
-					target.Append(component);
-				}
-			}
-		}
-
-		public extension File
-		{
-			// This is kind of ugly
-			[NoDiscard("Possibly leaving new data array unreferenced")]
-			public static Result<uint8[], FileError> ReadAllBytes(StringView path)
-			{
-				FileStream s = scope FileStream();
-				if (s.Open(path) case .Err(let err))
-					return .Err(.FileOpenError(err));
-				let outData = new uint8[(.)s.Length];
-				if (s.TryRead(outData) case .Err)
-					return .Err(.FileReadError(.Unknown));
-
-				return .Ok(outData);
-			}
-
-			public static Result<void, FileError> ReadAllBytes(StringView path, List<uint8> outData)
-			{
-				FileStream s = scope FileStream();
-				if (s.Open(path) case .Err(let err))
-					return .Err(.FileOpenError(err));
-				let start = outData.Count;
-				outData.Count += s.Length;
-				if (s.TryRead(Span<uint8>(&outData[start], s.Length)) case .Err)
-					return .Err(.FileReadError(.Unknown));
-
-				return .Ok;
-			}
-
-			public static Result<void> WriteAllBytes(StringView path, Span<uint8> data)
-			{
-				FileStream fs = scope FileStream();
-				Try!(fs.Open(path, .Create, .Write));
-				fs.TryWrite(data);
-				return .Ok;
-			}
-		}
+		}*/
 	}
 }
