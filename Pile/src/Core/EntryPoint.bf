@@ -17,6 +17,7 @@ namespace Pile
 		public delegate Result<void> LaunchDelegate(Span<String> args);
 		static Dictionary<String, LaunchDelegate> launchOptions = new Dictionary<String, LaunchDelegate>();
 
+		// This should be in here, because that way, this class is mentioned nowhere in the library and won't get included if it's not used (as well as the RunPackager() function).
 		static this()
 		{
 #if !PILE_DISABLE_PACKAGER
@@ -82,7 +83,7 @@ namespace Pile
 				}
 
 				// Combine into one args list
-				let args = scope String[runArgs.Count + datArgs.Count];
+				let args = new String[runArgs.Count + datArgs.Count];
 
 				int k = 0;
 				for (; k < datArgs.Count; k++)
@@ -113,7 +114,10 @@ namespace Pile
 							let res = launchOptions[args[i]].Invoke(Span<String>(args, i, j - i));
 
 							if (res case .Err)
+							{
 								launch = false;
+								break;
+							}
 						}
 						else Log.Warning(scope $"Unknown launch option: {args[i]}");
 					}
@@ -125,6 +129,7 @@ namespace Pile
 
 				// Clean up args
 				DeleteContainerAndItems!(datArgs);
+				delete args;
 
 				// Exit on error (after cleaning up)
 				if (!launch)
@@ -151,53 +156,5 @@ namespace Pile
 
 			return .Ok;
 		}
-
-#if !PILE_DISABLE_PACKAGER
-		static Result<void> RunPackager(Span<String> args)
-		{
-			StringView inPath = StringView();
-			StringView outPath = StringView();
-			for(let arg in args.Slice(1)) // Ignore first argument, which is -packager
-			{
-				if (arg.StartsWith("in="))
-				{
-					inPath = arg;
-					inPath.RemoveFromStart(3);
-				}
-				else if (arg.StartsWith("out="))
-				{
-					outPath = arg;
-					outPath.RemoveFromStart(4);
-				}
-				else Log.Warning(scope $"Unknown packager argument: {arg}");
-			}
-
-			if (inPath.Length == 0 || outPath.Length == 0)
-				LogErrorReturn!("Packager need both an 'in=' and 'out=' argument");
-
-			if (!Directory.Exists(inPath))
-				LogErrorReturn!("Packer inPath argument has to contain a valid path to an existing directory");
-
-			if (!Directory.Exists(outPath))
-				Directory.CreateDirectory(outPath);
-
-			for (let file in Directory.EnumerateFiles(inPath))
-			{
-				// Identify file
-				let path = scope String();
-				file.GetFilePath(path);
-
-				if (!path.EndsWith(".json")) continue;
-
-				if (Packages.BuildPackage(path, outPath) case .Err)
-				{
-					Log.Warning(scope $"Failed building package {path}. Skipping");
-					continue;
-				}
-			}
-
-			return .Ok;
-		}
-#endif
 	}
 }
