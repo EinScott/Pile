@@ -104,14 +104,17 @@ namespace Pile
 
 						if (launchOptions.ContainsKey(args[i]))
 						{
+							// Index after this argument, possibly start of argument arguments (or just anther argument or end)
+							let subArgStart = i + 1;
+
 							// Find end of argument arguments
-							int j = i + 1;
-							for (; j < args.Count; j++)
-								if (args[j].StartsWith("-"))
+							int subArgEnd = subArgStart;
+							for (; subArgEnd < args.Count; subArgEnd++)
+								if (args[subArgEnd].StartsWith("-"))
 									break;
 
-							// Run launch option with its arguments
-							let res = launchOptions[args[i]].Invoke(Span<String>(args, i, j - i));
+							// Run launch option - pass empty span when no argument arguments are given
+							let res = launchOptions[args[i]].Invoke(subArgStart == subArgEnd ? Span<String>() : Span<String>(args, subArgStart, subArgEnd - subArgStart));
 
 							if (res case .Err)
 							{

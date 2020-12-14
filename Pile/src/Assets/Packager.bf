@@ -10,7 +10,7 @@ namespace Pile
 		{
 			StringView inPath = StringView();
 			StringView outPath = StringView();
-			for(let arg in args.Slice(1)) // Ignore first argument, which is -packager
+			for(let arg in args)
 			{
 				if (arg.StartsWith("in="))
 				{

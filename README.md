@@ -19,7 +19,7 @@ Apart from that, there's an extendable asset management pipeline and UTF8 unicod
 There are also some useful structs, like Vector2 & 3, Point2 & 3 or Rect (of integers) as well as some extensions to corelib classes, especially Math.
 
 ## Documentation
-Guide on [Getting Started](https://github.com/EinBurgbauer/Pile/wiki/Getting-Started).
+Guide on [Getting Started](https://github.com/EinBurgbauer/Pile/wiki/Getting-Started). Documentation can be found here: [Wiki](https://github.com/EinBurgbauer/Pile/wiki)
 
 See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) project for further reference.
 
