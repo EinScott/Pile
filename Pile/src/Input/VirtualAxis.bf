@@ -22,16 +22,14 @@ namespace Pile
 
 	    public class KeyNode : Node
 	    {
-	        public Input input;
 	        public Keys key;
 	        public bool positive;
 
-	        public override float Value(bool deadzone) => (input.Keyboard.Down(key) ? (positive ? 1 : -1) : 0);
-	        public override double Timestamp => input.Keyboard.Timestamp(key);
+	        public override float Value(bool deadzone) => (Core.Input.Keyboard.Down(key) ? (positive ? 1 : -1) : 0);
+	        public override double Timestamp => Core.Input.Keyboard.Timestamp(key);
 
-	        internal this(Input input, Keys key, bool positive)
+	        internal this(Keys key, bool positive)
 	        {
-	            this.input = input;
 	            this.key = key;
 	            this.positive = positive;
 	        }
@@ -39,17 +37,15 @@ namespace Pile
 
 	    public class ButtonNode : Node
 	    {
-	        public Input input;
 	        public int index;
 	        public Buttons button;
 	        public bool positive;
 
-	        public override float Value(bool deadzone) => (input.state.controllers[index].Down(button) ? (positive ? 1 : -1) : 0);
-	        public override double Timestamp => input.state.controllers[index].Timestamp(button);
+	        public override float Value(bool deadzone) => (Core.Input.state.controllers[index].Down(button) ? (positive ? 1 : -1) : 0);
+	        public override double Timestamp => Core.Input.state.controllers[index].Timestamp(button);
 
-	        internal this(Input input, int controller, Buttons button, bool positive)
+	        internal this(int controller, Buttons button, bool positive)
 	        {
-	            this.input = input;
 	            this.index = controller;
 	            this.button = button;
 	            this.positive = positive;
@@ -58,7 +54,6 @@ namespace Pile
 
 	    public class AxisNode : Node
 	    {
-	        public Input input;
 	        public int index;
 	        public Axes axis;
 	        public bool positive;
@@ -66,8 +61,8 @@ namespace Pile
 
 	        public override float Value(bool deadzone)
 	        {
-	            if (!deadzone || Math.Abs(input.state.controllers[index].Axis(axis)) >= this.deadzone)
-	                return input.state.controllers[index].Axis(axis) * (positive ? 1 : -1);
+	            if (!deadzone || Math.Abs(Core.Input.state.controllers[index].Axis(axis)) >= this.deadzone)
+	                return Core.Input.state.controllers[index].Axis(axis) * (positive ? 1 : -1);
 	            return 0f;
 	        }
 
@@ -75,15 +70,14 @@ namespace Pile
 	        {
 	            get
 	            {
-	                if (Math.Abs(input.state.controllers[index].Axis(axis)) < deadzone)
+	                if (Math.Abs(Core.Input.state.controllers[index].Axis(axis)) < deadzone)
 	                    return 0;
-	                return input.state.controllers[index].Timestamp(axis);
+	                return Core.Input.state.controllers[index].Timestamp(axis);
 	            }
 	        }
 
-	        internal this(Input input, int controller, Axes axis, float deadzone, bool positive)
+	        internal this(int controller, Axes axis, float deadzone, bool positive)
 	        {
-	            this.input = input;
 	            this.index = controller;
 	            this.axis = axis;
 	            this.deadzone = deadzone;
@@ -97,7 +91,6 @@ namespace Pile
 	    public int IntValue => Math.Sign(Value);
 	    public int IntValueNoDeadzone => Math.Sign(ValueNoDeadzone);
 
-	    public readonly Input input;
 	    public readonly List<Node> Nodes = new List<Node>() ~ DeleteContainerAndItems!(_);
 	    public Overlaps overlapBehaviour;
 
@@ -105,7 +98,6 @@ namespace Pile
 
 	    public this(Overlaps overlapBehaviour = .CancelOut)
 	    {
-	        input = Core.Input;
 	        this.overlapBehaviour = overlapBehaviour;
 	    }
 
@@ -155,34 +147,34 @@ namespace Pile
 
 	    public void Add(Keys negative, Keys positive)
 	    {
-	        Nodes.Add(new KeyNode(input, negative, false));
-	        Nodes.Add(new KeyNode(input, positive, true));
+	        Nodes.Add(new KeyNode(negative, false));
+	        Nodes.Add(new KeyNode(positive, true));
 	    }
 
 	    public void Add(Keys key, bool isPositive)
 	    {
-	        Nodes.Add(new KeyNode(input, key, isPositive));
+	        Nodes.Add(new KeyNode(key, isPositive));
 	    }
 
 	    public void Add(int controller, Buttons negative, Buttons positive)
 	    {
-	        Nodes.Add(new ButtonNode(input, controller, negative, false));
-	        Nodes.Add(new ButtonNode(input, controller, positive, true));
+	        Nodes.Add(new ButtonNode(controller, negative, false));
+	        Nodes.Add(new ButtonNode(controller, positive, true));
 	    }
 
 	    public void Add(int controller, Buttons button, bool isPositive)
 	    {
-	        Nodes.Add(new ButtonNode(input, controller, button, isPositive));
+	        Nodes.Add(new ButtonNode(controller, button, isPositive));
 	    }
 
 	    public void Add(int controller, Axes axis, float deadzone = 0f)
 	    {
-	        Nodes.Add(new AxisNode(input, controller, axis, deadzone, true));
+	        Nodes.Add(new AxisNode(controller, axis, deadzone, true));
 	    }
 
 	    public void Add(int controller, Axes axis, bool inverse, float deadzone = 0f)
 	    {
-	        Nodes.Add(new AxisNode(input, controller, axis, deadzone, !inverse));
+	        Nodes.Add(new AxisNode(controller, axis, deadzone, !inverse));
 	    }
 
 	    public void Clear()

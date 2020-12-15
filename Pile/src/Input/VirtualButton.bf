@@ -18,15 +18,14 @@ namespace Pile
 
 		public class KeyNode : Node
 		{
-		    public Input input;
 		    public Keys key;
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
-		        if (input.Keyboard.Pressed(key))
+		        if (Core.Input.Keyboard.Pressed(key))
 		            return true;
 
-		        var timestamp = input.Keyboard.Timestamp(key);
+		        var timestamp = Core.Input.Keyboard.Timestamp(key);
 		        var time = Time.Duration.Ticks;
 		        
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
@@ -35,29 +34,27 @@ namespace Pile
 		        return false;
 		    }
 
-		    public override bool Down => input.Keyboard.Down(key);
-		    public override bool Released => input.Keyboard.Released(key);
-		    public override bool Repeated(float delay, float interval) => input.Keyboard.Repeated(key, delay, interval);
+		    public override bool Down => Core.Input.Keyboard.Down(key);
+		    public override bool Released => Core.Input.Keyboard.Released(key);
+		    public override bool Repeated(float delay, float interval) => Core.Input.Keyboard.Repeated(key, delay, interval);
 		    protected internal override void Update() { }
 
-		    internal this(Input input, Keys key)
+		    internal this(Keys key)
 		    {
-		        this.input = input;
 		        this.key = key;
 		    }
 		}
 
 		public class MouseButtonNode : Node
 		{
-		    public Input input;
 		    public MouseButtons mouseButton;
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
-		        if (input.Mouse.Pressed(mouseButton))
+		        if (Core.Input.Mouse.Pressed(mouseButton))
 		            return true;
 
-		        var timestamp = input.Mouse.Timestamp(mouseButton);
+		        var timestamp = Core.Input.Mouse.Timestamp(mouseButton);
 		        var time = Time.Duration.Ticks;
 
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
@@ -66,30 +63,28 @@ namespace Pile
 		        return false;
 		    }
 
-		    public override bool Down => input.Mouse.Down(mouseButton);
-		    public override bool Released => input.Mouse.Released(mouseButton);
-		    public override bool Repeated(float delay, float interval) => input.Mouse.Repeated(mouseButton, delay, interval);
+		    public override bool Down => Core.Input.Mouse.Down(mouseButton);
+		    public override bool Released => Core.Input.Mouse.Released(mouseButton);
+		    public override bool Repeated(float delay, float interval) => Core.Input.Mouse.Repeated(mouseButton, delay, interval);
 		    protected internal override void Update() { }
 
-		    internal this(Input input, MouseButtons mouseButton)
+		    internal this(MouseButtons mouseButton)
 		    {
-		        this.input = input;
 		        this.mouseButton = mouseButton;
 		    }
 		}
 
 		public class ButtonNode : Node
 		{
-		    public Input input;
 		    public int index;
 		    public Buttons button;
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
-		        if (input.state.controllers[index].Pressed(button))
+		        if (Core.Input.state.controllers[index].Pressed(button))
 		            return true;
 
-		        var timestamp = input.state.controllers[index].Timestamp(button);
+		        var timestamp = Core.Input.state.controllers[index].Timestamp(button);
 		        var time = Time.Duration.Ticks;
 
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
@@ -98,22 +93,20 @@ namespace Pile
 		        return false;
 		    }
 
-		    public override bool Down => input.state.controllers[index].Down(button);
-		    public override bool Released => input.state.controllers[index].Released(button);
-		    public override bool Repeated(float delay, float interval) => input.state.controllers[index].Repeated(button, delay, interval);
+		    public override bool Down => Core.Input.state.controllers[index].Down(button);
+		    public override bool Released => Core.Input.state.controllers[index].Released(button);
+		    public override bool Repeated(float delay, float interval) => Core.Input.state.controllers[index].Repeated(button, delay, interval);
 		    protected internal override void Update() { }
 
-		    internal this(Input input, int controller, Buttons button)
+		    internal this(int controller, Buttons button)
 		    {
-		        this.input = input;
-		        this.index = controller < (int)input.maxControllers ? controller : 0;
+		        this.index = controller < (int)Core.Input.maxControllers ? controller : 0;
 		        this.button = button;
 		    }
 		}
 
 		public class AxisNode : Node
 		{
-		    public Input input;
 		    public int index;
 		    public Axes axis;
 		    public float threshold;
@@ -139,12 +132,12 @@ namespace Pile
 		        get
 		        {
 		            if (Math.Abs(threshold) <= AXIS_EPSILON)
-		                return Math.Abs(input.state.controllers[index].Axis(axis)) > AXIS_EPSILON;
+		                return Math.Abs(Core.Input.state.controllers[index].Axis(axis)) > AXIS_EPSILON;
 
 		            if (threshold < 0)
-		                return input.state.controllers[index].Axis(axis) <= threshold;
+		                return Core.Input.state.controllers[index].Axis(axis) <= threshold;
 		            
-		            return input.state.controllers[index].Axis(axis) >= threshold;
+		            return Core.Input.state.controllers[index].Axis(axis) >= threshold;
 		        }
 		    }
 
@@ -153,12 +146,12 @@ namespace Pile
 		        get
 		        {
 		            if (Math.Abs(threshold) <= AXIS_EPSILON)
-		                return Math.Abs(input.lastState.controllers[index].Axis(axis)) > AXIS_EPSILON && Math.Abs(input.state.controllers[index].Axis(axis)) < AXIS_EPSILON;
+		                return Math.Abs(Core.Input.lastState.controllers[index].Axis(axis)) > AXIS_EPSILON && Math.Abs(Core.Input.state.controllers[index].Axis(axis)) < AXIS_EPSILON;
 
 		            if (threshold < 0)
-		                return input.lastState.controllers[index].Axis(axis) <= threshold && input.state.controllers[index].Axis(axis) > threshold;
+		                return Core.Input.lastState.controllers[index].Axis(axis) <= threshold && Core.Input.state.controllers[index].Axis(axis) > threshold;
 
-		            return input.lastState.controllers[index].Axis(axis) >= threshold && input.state.controllers[index].Axis(axis) < threshold;
+		            return Core.Input.lastState.controllers[index].Axis(axis) >= threshold && Core.Input.state.controllers[index].Axis(axis) < threshold;
 		        }
 		    }
 
@@ -167,30 +160,27 @@ namespace Pile
 		    private bool Pressed()
 		    {
 		        if (Math.Abs(threshold) <= AXIS_EPSILON)
-		            return (Math.Abs(input.lastState.controllers[index].Axis(axis)) < AXIS_EPSILON && Math.Abs(input.state.controllers[index].Axis(axis)) > AXIS_EPSILON);
+		            return (Math.Abs(Core.Input.lastState.controllers[index].Axis(axis)) < AXIS_EPSILON && Math.Abs(Core.Input.state.controllers[index].Axis(axis)) > AXIS_EPSILON);
 
 		        if (threshold < 0)
-		            return (input.lastState.controllers[index].Axis(axis) > threshold && input.state.controllers[index].Axis(axis) <= threshold);
+		            return (Core.Input.lastState.controllers[index].Axis(axis) > threshold && Core.Input.state.controllers[index].Axis(axis) <= threshold);
 		        
-		        return (input.lastState.controllers[index].Axis(axis) < threshold && input.state.controllers[index].Axis(axis) >= threshold);
+		        return (Core.Input.lastState.controllers[index].Axis(axis) < threshold && Core.Input.state.controllers[index].Axis(axis) >= threshold);
 		    }
 
 		    protected internal override void Update()
 		    {
 		        if (Pressed())
-		            pressedTimestamp = input.state.controllers[index].Timestamp(axis);
+		            pressedTimestamp = Core.Input.state.controllers[index].Timestamp(axis);
 		    }
 
-		    internal this(Input input, int controller, Axes axis, float threshold)
+		    internal this(int controller, Axes axis, float threshold)
 		    {
-		        this.input = input;
-		        this.index = controller < (int)input.maxControllers ? controller : 0;
+		        this.index = controller < (int)Core.Input.maxControllers ? controller : 0;
 		        this.axis = axis;
 		        this.threshold = threshold;
 		    }
 		}
-
-		public readonly Input input;
 
 		public readonly List<Node> Nodes = new List<Node>() ~ DeleteContainerAndItems!(_);
 		public float repeatDelay;
@@ -201,18 +191,17 @@ namespace Pile
 
 		public this(float buffer = 0f)
 		{
-			input = Core.Input;
-			input.virtualButtons.Add(this);
+			Core.Input.virtualButtons.Add(this);
 
 			this.buffer = buffer;
-			repeatInterval = input.repeatInterval;
-			repeatDelay = input.repeatDelay;
+			repeatInterval = Core.Input.repeatInterval;
+			repeatDelay = Core.Input.repeatDelay;
 		}
 
 		internal bool deletingList; // Don't remove from the list when we are about to delete the list
 		public ~this()
 		{
-			if (!deletingList) input.virtualButtons.Remove(this);
+			if (!deletingList) Core.Input.virtualButtons.Remove(this);
 		}
 
 		internal void Update()
@@ -277,24 +266,24 @@ namespace Pile
 		public void Add(params Keys[] keys)
 		{
 		    for (var key in keys)
-		        Nodes.Add(new KeyNode(input, key));
+		        Nodes.Add(new KeyNode(key));
 		}
 
 		public void Add(params MouseButtons[] buttons)
 		{
 		    for (var button in buttons)
-		        Nodes.Add(new MouseButtonNode(input, button));
+		        Nodes.Add(new MouseButtonNode(button));
 		}
 
 		public void Add(int controller, params Buttons[] buttons)
 		{
 		    for (var button in buttons)
-		        Nodes.Add(new ButtonNode(input, controller, button));
+		        Nodes.Add(new ButtonNode(controller, button));
 		}
 
 		public void Add(int controller, Axes axis, float threshold)
 		{
-		    Nodes.Add(new AxisNode(input, controller, axis, threshold));
+		    Nodes.Add(new AxisNode(controller, axis, threshold));
 		}
 
 		public void Clear()

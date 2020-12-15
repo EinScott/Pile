@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {Game = {Path = "."}, Pile = {Path = "../Pile"}, Pile_OpenGL = {Path = "../Implementations/Graphics_OpenGL"}, Pile_SDL2 = {Path = "../Implementations/System_SDL"}, Pile_SoLoud = {Path = "../Implementations/Audio_SoLoud"}}
+Projects = {Game = {Path = "."}, Pile = {Path = "../Pile"}, Pile_OpenGL = {Path = "../Implementations/Graphics_OpenGL"}, Pile_SDL2 = {Path = "../Implementations/System_SDL"}, Pile_SoLoud = {Path = "../Implementations/Audio_SoLoud"}, JSON_Beef = {Path = "../../JSON_Beef/lib"}}
 Locked = ["Pile", "Pile_OpenGL", "Pile_SDL2", "Pile_SoLoud"]
 
 [Workspace]
