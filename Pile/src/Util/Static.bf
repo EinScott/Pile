@@ -16,7 +16,7 @@ namespace Pile
 		{
 			if (result case .Err(var err))
 			{
-				Log.Error(err);
+				Log.Error(scope $"{errMsg} ({err})");
 				return .Err((.)err);
 			}	
 

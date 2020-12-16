@@ -9,16 +9,55 @@ using internal Pile;
 
 namespace Pile
 {
-	public static class Assets
+	[Optimize]
+	public class Assets
 	{
-		static Packer packer = new Packer() { combineDuplicates = true };
-		static List<Texture> atlas = new List<Texture>();
-		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>();
-		static Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>();
-		static bool shutdown = false;
+		// Importers
+		internal static Dictionary<String, Importer> Importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndItems!(_);
 
-		public static int TextureCount => packer.SourceImageCount;
-		public static int AssetCount
+		public static void RegisterImporter(StringView name, Importer importer)
+		{
+			for (let s in Importers.Keys)
+				if (s == name)
+				{
+					Log.Error(scope $"Couldn't register importer as {name}, because another importer was already registered for under that name");
+					return;
+				}
+
+			Importers.Add(new String(name), importer);
+		}
+
+		public static void UnregisterImporter(StringView name)
+		{
+			let res = Importers.GetAndRemove(scope String(name));
+
+			// Delete
+			if (res != .Err)
+			{
+				let val = res.Get();
+
+				delete val.key;
+				delete val.value;
+			}
+		}
+
+		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
+		List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
+
+		Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>() ~
+			{
+				for (let dic in _.Values)
+					DeleteDictionaryAndKeysAndItems!(dic);
+
+				delete _;
+			};
+
+		Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>() ~  DeleteDictionaryAndItems!(_);
+		List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
+		String packagesPath = new String() ~ delete _;
+
+		public int TextureCount => packer.SourceImageCount; // Not the same as TextureAssetCount
+		public int AssetCount
 		{
 			get
 			{
@@ -29,30 +68,33 @@ namespace Pile
 				return c;
 			}
 		}
-
-		static this() {}
-		static ~this()
+		public int DynamicAssetCount
 		{
-			if (!shutdown)
-				Shutdown();
+			get
+			{
+				int c = 0;
+				for (let nameList in dynamicAssets.Values)
+					c += nameList.Count;
+
+				return c;
+			}
 		}
 
-		internal static void Shutdown()
+		public delegate void PackageEvent(Package package);
+		public Event<PackageEvent> OnLoadPackage ~ _.Dispose(); // Called after a package was loaded
+		public Event<PackageEvent> OnUnloadPackage ~ _.Dispose(); // Called before a package was unloaded (assets not yet deleted)
+
+		internal this()
 		{
-			DeleteDictionaryAndItems!(dynamicAssets);
+			// Get packages path
+			Path.InternalCombine(packagesPath, Core.System.DataPath, "Packages");
 
-			delete packer;
-			DeleteContainerAndItems!(atlas);
-
-			for (let dic in assets.Values)
-				DeleteDictionaryAndKeysAndItems!(dic);
-
-			delete assets;
-
-			shutdown = true;
+			/*if (!Directory.Exists(packagesPath))
+				Directory.CreateDirectory(packagesPath);*/
 		}
+		internal ~this() {}
 
-		public static bool Has<T>(String name) where T : class
+		public bool Has<T>(String name) where T : class
 		{
 			let type = typeof(T);
 
@@ -65,7 +107,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has<T>() where T : class
+		public bool Has<T>() where T : class
 		{
 			let type = typeof(T);
 
@@ -75,7 +117,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has(Type type, String name)
+		public bool Has(Type type, String name)
 		{
 			if (!type.IsObject || !type.HasDestructor)
 				return false;
@@ -89,7 +131,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has(Type type)
+		public bool Has(Type type)
 		{
 			if (!type.IsObject || !type.HasDestructor)
 				return false;
@@ -100,7 +142,7 @@ namespace Pile
 			return true;
 		}
 
-		public static T Get<T>(String name) where T : class
+		public T Get<T>(String name) where T : class
  		{
 			 if (!Has<T>(name))
 				 return null;
@@ -108,7 +150,7 @@ namespace Pile
 			 return (T)assets.GetValue(typeof(T)).Get().GetValue(name).Get();
 		}
 
-		public static Object Get(Type type, String name)
+		public Object Get(Type type, String name)
 		{
 			if (!Has(type, name))
 				return false;
@@ -116,7 +158,7 @@ namespace Pile
 			return assets.GetValue(type).Get().GetValue(name).Get();
 		}
 
-		public static AssetEnumerator<T> Get<T>() where T : class
+		public AssetEnumerator<T> Get<T>() where T : class
 		{
 			if (!Has<T>())
 				return AssetEnumerator<T>(null);
@@ -124,21 +166,145 @@ namespace Pile
 			return AssetEnumerator<T>(assets.GetValue(typeof(T)).Get());
 		}
 
-		public static Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
+		public Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
 		{
 			if (!Has(type))
 				return .Err;
 
 			return assets.GetValue(type).Get().Values;
 		}
+		
+		public Result<Package> LoadPackage(StringView packageName, bool packAndUpdateTextures = true)
+		{
+			Debug.Assert(packagesPath != null, "Initialize Core first!");
+
+			for (int i = 0; i < loadedPackages.Count; i++)
+				if (loadedPackages[i].Name == packageName)
+					LogErrorReturn!(scope $"Package {packageName} is already loaded");
+
+			List<Packages.Node> nodes = new List<Packages.Node>();
+			List<String> importerNames = new List<String>();
+			defer
+			{
+				DeleteContainerAndItems!(nodes);
+				DeleteContainerAndItems!(importerNames);
+			}
+
+			// Read file
+			{
+				// Normalize path
+				let packagePath = scope String();
+				Path.InternalCombineViews(packagePath, packagesPath, packageName);
+
+				if (Packages.ReadPackage(packagePath, nodes, importerNames) case .Err)
+					return .Err;
+			}
+
+			let package = new Package();
+			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, String.Empty, package.name);
+			else package.name.Set(packageName);
+
+			loadedPackages.Add(package);
+
+			bool success = false;
+
+			// If the following loop errors, clean up
+			defer
+			{
+				if (!success)
+					this.UnloadPackage(package.name, false).IgnoreError();
+			}
+
+			// Import each package node
+			Importer importer;
+			for (let node in nodes)
+			{
+				// Find importer
+				if (node.Importer < (uint32)Importers.Count && Importers.ContainsKey(importerNames[(int)node.Importer]))
+					importer = Importers.GetValue(importerNames[(int)node.Importer]);
+				else if (node.Importer < (uint32)Importers.Count)
+					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Couldn't find importer {importerNames[(int)node.Importer]}");
+				else
+					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Couldn't find importer name at index {node.Importer} of file's importer name array; index out of range");
+
+				// Prepare data
+				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
+
+				let json = scope String((char8*)node.DataNode.CArray(), node.DataNode.Count);
+				let res = JSONParser.ParseObject(json);
+				if (res case .Err(let err))
+					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {err} ({json})");
+
+				let dataNode = res.Get();
+				defer delete dataNode;
+
+				// Import node data
+				importer.package = package;
+				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
+					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
+				importer.package = null;
+			}
+
+			success = true;
+
+			// Finish
+			if (packAndUpdateTextures)
+				PackAndUpdateTextures();
+
+			OnLoadPackage(package);
+			return .Ok(package);
+		}
+
+		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive LoadPackage() calls.
+		public Result<void> UnloadPackage(StringView packageName, bool packAndUpdateTextures = true)
+		{
+			Package package = null;
+			for (int i = 0; i < loadedPackages.Count; i++)
+				if (loadedPackages[i].Name == packageName)
+				{
+					package = loadedPackages[i];
+					loadedPackages.RemoveAtFast(i);
+				}
+
+			if (package == null)
+				LogErrorReturn!(scope $"Couldn't unload package {packageName}: No package with that name exists");
+
+			OnUnloadPackage(package);
+
+			for (let assetType in package.ownedAssets.Keys)
+				for (let assetName in package.ownedAssets.GetValue(assetType).Get())
+					RemoveAsset(assetType, assetName);
+
+			for (let textureName in package.ownedTextureAssets)
+				RemoveTextureAsset(textureName);
+
+			if (packAndUpdateTextures)
+				PackAndUpdateTextures();
+
+			delete package;
+			return .Ok;
+		}
+
+		public bool PackageLoaded(StringView packageName, out Package package)
+		{
+			for (let p in loadedPackages)
+				if (p.Name == packageName)
+				{
+					package = p;
+					return true;
+				}
+
+			package = null;
+			return false;
+		}
 
 		/// Use Packages for static assets, use this for ones you don't know at compile time.
-		public static Result<void> AddDynamicAsset(StringView name, Object asset)
+		public Result<void> AddDynamicAsset(StringView name, Object asset)
 		{
 			let type = asset.GetType();
 
 			// Add object in assets
-			let nameView = Try!(Assets.AddAsset(type, name, asset));
+			let nameView = Try!(AddAsset(type, name, asset));
 
 			// Add object location in dynamic lookup
 			if (!dynamicAssets.ContainsKey(type))
@@ -151,10 +317,10 @@ namespace Pile
 
 		/// Use Packages for static assets, use this for ones you don't know at compile time.
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
-		public static Result<void> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
+		public Result<void> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
 			// Add object in assets
-			let nameView = Try!(Assets.AddTextureAsset(name, bitmap));
+			let nameView = Try!(AddTextureAsset(name, bitmap));
 
 			// Add object location in dynamic lookup
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
@@ -168,7 +334,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static void RemoveDynamicAsset(Type type, StringView name)
+		public void RemoveDynamicAsset(Type type, StringView name)
 		{
 			if (!dynamicAssets.ContainsKey(type))
 				return;
@@ -179,7 +345,7 @@ namespace Pile
 		}
 
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
-		public static void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
+		public void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
 		{
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
 				return;
@@ -192,15 +358,14 @@ namespace Pile
 				PackAndUpdateTextures();
 		}
 
-		[Optimize]
-		internal static Result<StringView> AddAsset(Type type, StringView name, Object object)
+		internal Result<StringView> AddAsset(Type type, StringView name, Object object)
 		{
 			Debug.Assert(Core.run);
 
 			let nameString = new String(name);
 
 			// Check if assets contains this name already
-			if (Assets.Has(type, nameString))
+			if (Has(type, nameString))
 			{
 				delete nameString;
 
@@ -223,15 +388,14 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		[Optimize]
-		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap)
+		internal Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap)
 		{
 			Debug.Assert(Core.run);
 
 			let nameString = new String(name);
 
 			// Check if assets contains this name already
-			if (Assets.Has(typeof(Subtexture), nameString))
+			if (Has(typeof(Subtexture), nameString))
 			{
 				delete nameString;
 
@@ -258,8 +422,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		[Optimize]
-		internal static void RemoveAsset(Type type, StringView name)
+		internal void RemoveAsset(Type type, StringView name)
 		{
 			let string = scope String(name);
 
@@ -282,8 +445,7 @@ namespace Pile
 			}
 		}
 
-		[Optimize]
-		internal static void RemoveTextureAsset(StringView name)
+		internal void RemoveTextureAsset(StringView name)
 		{
 			let string = scope String(name);
 
@@ -311,8 +473,7 @@ namespace Pile
 			}
 		}
 
-		[Optimize]
-		internal static void PackAndUpdateTextures()
+		internal void PackAndUpdateTextures()
 		{
 			Debug.Assert(Core.run);
 

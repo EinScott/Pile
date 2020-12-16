@@ -24,6 +24,7 @@ using internal Pile;
 
 namespace Pile
 {
+	[Optimize]
 	public static class Core
 	{
 		static this()
@@ -39,7 +40,7 @@ namespace Pile
 		static void Delete()
 		{
 			// Delete assets and textures while modules are still present
-			Assets.Shutdown();
+			delete Assets;
 
 			delete Window;
 			delete Input;
@@ -68,9 +69,10 @@ namespace Pile
 		public static Input Input { get; private set; }
 		public static Window Window { get; private set; }
 
+		public static Assets Assets { get; private set; }
+
 		static Game Game;
 
-		[Optimize]
 		public static Result<void> Run(System system, Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
 		{
 			Debug.Assert(!run, "Core was already run");
@@ -120,8 +122,8 @@ namespace Pile
 				Log.Message(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
 			}
 
-			// Packages init
-			Packages.Initialize();
+			// Assets init
+			Assets = new Assets();
 
 			w.Stop();
 			Log.Message(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");

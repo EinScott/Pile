@@ -20,7 +20,7 @@ namespace Pile
 			let type = asset.GetType();
 
 			// Add object in assets
-			let nameView = Try!(Assets.AddAsset(type, name, asset));
+			let nameView = Try!(Core.Assets.AddAsset(type, name, asset));
 
 			// Store object key in package
 			if (!package.ownedAssets.ContainsKey(type))
@@ -37,10 +37,10 @@ namespace Pile
 				LogErrorReturn!("Importers can only submit assets when called from load package function");
 
 			// Add object in assets
-			let nameView = Try!(Assets.AddTextureAsset(name, bitmap));
+			let nameView = Try!(Core.Assets.AddTextureAsset(name, bitmap));
 
 			// Store object key in package
-			package.ownedPackerTextures.Add(nameView);
+			package.ownedTextureAssets.Add(nameView);
 
 			return .Ok;
 		}
