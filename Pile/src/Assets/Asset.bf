@@ -11,7 +11,7 @@ namespace Pile
 
 		public this(StringView assetName)
 		{
-			this.name = new String(assetName);
+			name = new String(assetName);
 
 			Core.Assets.OnLoadPackage.Add(new => PackageLoaded);
 			Core.Assets.OnUnloadPackage.Add(new => PackageUnloaded);

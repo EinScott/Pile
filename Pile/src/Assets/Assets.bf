@@ -56,7 +56,7 @@ namespace Pile
 		List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
 		String packagesPath = new String() ~ delete _;
 
-		public int TextureCount => packer.SourceImageCount; // Not the same as TextureAssetCount
+		public int TextureCount => packer.SourceImageCount;
 		public int AssetCount
 		{
 			get
@@ -88,9 +88,6 @@ namespace Pile
 		{
 			// Get packages path
 			Path.InternalCombine(packagesPath, Core.System.DataPath, "Packages");
-
-			/*if (!Directory.Exists(packagesPath))
-				Directory.CreateDirectory(packagesPath);*/
 		}
 		internal ~this() {}
 
@@ -178,6 +175,9 @@ namespace Pile
 		{
 			Debug.Assert(packagesPath != null, "Initialize Core first!");
 
+			if (!Directory.Exists(packagesPath))
+				LogErrorReturn!(scope $"Couldn't load package. Path directory doesn't exist: {packagesPath}");
+
 			for (int i = 0; i < loadedPackages.Count; i++)
 				if (loadedPackages[i].Name == packageName)
 					LogErrorReturn!(scope $"Package {packageName} is already loaded");
@@ -223,25 +223,22 @@ namespace Pile
 				if (node.Importer < (uint32)Importers.Count && Importers.ContainsKey(importerNames[(int)node.Importer]))
 					importer = Importers.GetValue(importerNames[(int)node.Importer]);
 				else if (node.Importer < (uint32)Importers.Count)
-					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Couldn't find importer {importerNames[(int)node.Importer]}");
+					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer {importerNames[(int)node.Importer]}");
 				else
-					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Couldn't find importer name at index {node.Importer} of file's importer name array; index out of range");
+					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer name at index {node.Importer} of file's importer name array; index out of range");
 
 				// Prepare data
 				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
 
 				let json = scope String((char8*)node.DataNode.CArray(), node.DataNode.Count);
-				let res = JSONParser.ParseObject(json);
-				if (res case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {err} ({json})");
 
-				let dataNode = res.Get();
+				let dataNode = LogErrorTry!(JSONParser.ParseObject(json), scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {json}");
 				defer delete dataNode;
 
 				// Import node data
 				importer.package = package;
 				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
+					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
 				importer.package = null;
 			}
 
@@ -430,7 +427,7 @@ namespace Pile
 				return;
 
 			let res = assets.GetValue(type).Get().GetAndRemove(string);
-			if (res case .Err) return; // Asset doesnt exist
+			if (res case .Err) return; // Asset doesn't exist
 
 			let pair = res.Get();
 
@@ -458,7 +455,7 @@ namespace Pile
 				return;
 
 			let res = assets.GetValue(type).Get().GetAndRemove(string);
-			if (res case .Err) return; // Asset doesnt exist
+			if (res case .Err) return; // Asset doesn't exist
 
 			let pair = res.Get();
 

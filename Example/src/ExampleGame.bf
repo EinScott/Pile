@@ -11,7 +11,7 @@ namespace Game
 		static this()
 		{
 			// Register builtin importer. See assets/shaders.json or documentation on Packages
-			Packages.RegisterImporter("raw", new RawImporter());
+			Assets.RegisterImporter("raw", new RawImporter());
 
 			// Register our function to be called on main
 			EntryPoint.GameMain = => Run;
@@ -49,16 +49,16 @@ namespace Game
 			Log.Message("Hello!");
 
 			// This is automatically built for us. See BeefProj.toml and Pile/Core/EntryPoint.bf @ RunPackager
-			Packages.LoadPackage("shaders");
+			Core.Assets.LoadPackage("shaders");
 
 			// Setup default shader for drawing with Batch2D
-			let source = scope ShaderData(Assets.Get<RawAsset>("s_batch2dVert").text, Assets.Get<RawAsset>("s_batch2dFrag").text); 
+			let source = scope ShaderData(Core.Assets.Get<RawAsset>("s_batch2dVert").text, Core.Assets.Get<RawAsset>("s_batch2dFrag").text); 
 			batchShader = new Shader(source);
 			batchMat = new Material(batchShader);
 
 			batch = new Batch2D(batchMat);
 
-			Packages.UnloadPackage("shaders"); // No need to have shader source code loaded anymore
+			Core.Assets.UnloadPackage("shaders"); // No need to have shader source code loaded anymore
 		}
 
 		protected override void Update()

@@ -130,7 +130,7 @@ namespace Pile
 					}
 
 					if (uncompSize != writeStart)
-						LogErrorReturn!(scope $"Couldn't loat package at {inPath}. Uncompressed node data wasn't of expected size");
+						LogErrorReturn!(scope $"Couldn't load package at {inPath}. Uncompressed node data wasn't of expected size");
 
 					int position = 0;
 
@@ -167,7 +167,7 @@ namespace Pile
 			}
 
 			if (readByte != file.Count)
-				LogErrorReturn!(scope $"Couldn't loat package at {inPath}. The file contains {file.Count} bytes, but the end of data was at {readByte}");	
+				LogErrorReturn!(scope $"Couldn't load package at {inPath}. The file contains {file.Count} bytes, but the end of data was at {readByte}");	
 
 			return .Ok;
 
@@ -323,8 +323,12 @@ namespace Pile
 
 			// Fill in size
 			ReplaceUInt(4, (uint32)file.Count);
+
 			let outPath = scope String(packagePath);
 			Path.ChangeExtension(scope String(outPath), ".bin", outPath);
+
+			if (!Directory.Exists(outPath))
+				LogErrorTry!(Directory.CreateDirectory(outPath), scope $"Couldn't write package. Error creating directory {outPath}");
 
 			LogErrorTry!(File.WriteAllBytes(outPath, file), scope $"Couldn't write package. Error writing file to {outPath}");
 
