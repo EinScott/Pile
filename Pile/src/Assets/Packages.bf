@@ -327,8 +327,10 @@ namespace Pile
 			let outPath = scope String(packagePath);
 			Path.ChangeExtension(scope String(outPath), ".bin", outPath);
 
-			if (!Directory.Exists(outPath))
-				LogErrorTry!(Directory.CreateDirectory(outPath), scope $"Couldn't write package. Error creating directory {outPath}");
+			let dir = scope String();
+			Path.GetDirectoryPath(outPath, dir);
+			if (!Directory.Exists(dir))
+				LogErrorTry!(Directory.CreateDirectory(dir), scope $"Couldn't write package. Error creating directory {dir}");
 
 			LogErrorTry!(File.WriteAllBytes(outPath, file), scope $"Couldn't write package. Error writing file to {outPath}");
 
