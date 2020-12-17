@@ -2,31 +2,46 @@ using System;
 
 namespace Pile
 {
-	public class Controller
+	public struct Controller
 	{
 		public const uint MaxButtons = 24;
 		public const uint MaxAxis = 12;
 
-		public readonly Input input;
+		readonly Input input;
 
-		public bool Connected { get; private set; }
-		public bool IsGamepad { get; private set; }
-		public int Buttons { get; private set; }
-		public int Axes { get; private set; }
+		public bool Connected { get; private set mut; }
+		public bool IsGamepad { get; private set mut; }
+		public int Buttons { get; private set mut; }
+		public int Axes { get; private set mut; }
 
-		internal readonly bool[] pressed = new bool[MaxButtons] ~ delete _;
-		internal readonly bool[] down = new bool[MaxButtons] ~ delete _;
-		internal readonly bool[] released = new bool[MaxButtons] ~ delete _;
-		internal readonly int64[] timestamp = new int64[MaxButtons] ~ delete _;
-		internal readonly float[] axis = new float[MaxAxis] ~ delete _;
-		internal readonly int64[] axisTimestamp = new int64[MaxAxis] ~ delete _;
+		internal readonly bool[] pressed = new bool[MaxButtons];
+		internal readonly bool[] down = new bool[MaxButtons];
+		internal readonly bool[] released = new bool[MaxButtons];
+		internal readonly int64[] timestamp = new int64[MaxButtons];
+		internal readonly float[] axis = new float[MaxAxis];
+		internal readonly int64[] axisTimestamp = new int64[MaxAxis];
 
 		internal this(Input input)
 		{
 			this.input = input;
+
+			Connected = false;
+			IsGamepad = false;
+			Buttons = 0;
+			Axes = 0;
 		}
 
-		internal void Connect(uint buttonCount, uint axisCount, bool isGamepad)
+		internal void Dispose()
+		{
+			delete pressed;
+			delete down;
+			delete released;
+			delete timestamp;
+			delete axis;
+			delete axisTimestamp;
+		}
+
+		internal void Connect(uint buttonCount, uint axisCount, bool isGamepad) mut
 		{
 		    Buttons = (int)Math.Min(buttonCount, MaxButtons);
 		    Axes = (int)Math.Min(axisCount, MaxAxis);
@@ -34,7 +49,7 @@ namespace Pile
 		    Connected = true;
 		}
 
-		internal void Disconnect()
+		internal void Disconnect() mut
 		{
 		    Connected = false;
 		    IsGamepad = false;
@@ -65,7 +80,7 @@ namespace Pile
 			}
 		}
 
-		internal void Copy(Controller from)
+		internal void Copy(Controller from) mut
 		{
 			Connected = from.Connected;
 			IsGamepad = from.IsGamepad;

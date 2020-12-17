@@ -2,16 +2,16 @@ using System;
 
 namespace Pile
 {
-	public class Keyboard
+	public struct Keyboard
 	{
 		public const int MaxKeys = 400;
 
-		public readonly Input input;
+		readonly Input input;
 
-		internal readonly bool[] pressed = new bool[MaxKeys] ~ delete _;
-		internal readonly bool[] down = new bool[MaxKeys] ~ delete _;
-		internal readonly bool[] released = new bool[MaxKeys] ~ delete _;
-		internal readonly int64[] timestamp = new int64[MaxKeys] ~ delete _;
+		internal readonly bool[] pressed = new bool[MaxKeys];
+		internal readonly bool[] down = new bool[MaxKeys];
+		internal readonly bool[] released = new bool[MaxKeys];
+		internal readonly int64[] timestamp = new int64[MaxKeys];
 
 		public readonly String Text = new String();
 
@@ -20,8 +20,12 @@ namespace Pile
 			this.input = input;
 		}
 
-		public ~this()
+		internal void Dispose()
 		{
+			delete pressed;
+			delete down;
+			delete released;
+			delete timestamp;
 			delete Text;
 		}
 

@@ -7,14 +7,14 @@ namespace Pile
 {
 	public abstract class Input
 	{
-		public readonly InputState state;
-		public readonly InputState lastState;
-		public readonly InputState nextState;
+		internal InputState state;
+		internal InputState lastState;
+		internal InputState nextState;
 		internal readonly uint maxControllers;
 
-		public Keyboard Keyboard => state.keyboard;
-		public Mouse Mouse => state.mouse;
-		public Controller GetController(int index) => state.GetController(index);
+		public readonly Keyboard Keyboard => state.keyboard;
+		public readonly Mouse Mouse => state.mouse;
+		public readonly ref Controller GetController(int index) => ref state.GetController(index);
 
 		public float repeatDelay = 0.4f;
 		public float repeatInterval = 0.03f;
@@ -23,9 +23,9 @@ namespace Pile
 
 		internal this(int maxControllers = 8)
 		{
-			state = new InputState(this, maxControllers);
-			lastState = new InputState(this, maxControllers);
-			nextState = new InputState(this, maxControllers);
+			state = InputState(this, maxControllers);
+			lastState = InputState(this, maxControllers);
+			nextState = InputState(this, maxControllers);
 
 			if (maxControllers < 0) this.maxControllers = 0;
 			else this.maxControllers = (uint)maxControllers;
@@ -33,9 +33,9 @@ namespace Pile
 
 		public ~this()
 		{
-			delete state;
-			delete lastState;
-			delete nextState;
+			state.Dispose();
+			lastState.Dispose();
+			nextState.Dispose();
 
 			for (int i = 0; i < virtualButtons.Count; i++)
 				virtualButtons[i].deletingList = true;

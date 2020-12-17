@@ -5,38 +5,34 @@ using internal Pile;
 
 namespace Pile
 {
-	public class InputState
+	public struct InputState : IDisposable
 	{
-		public readonly Input input;
-
-		public readonly Keyboard keyboard;
-		public readonly Mouse mouse;
+		public Keyboard keyboard;
+		public Mouse mouse;
 		internal readonly Controller[] controllers;
-		public Controller GetController(int index) => controllers[index];
+		public ref Controller GetController(int index) => ref controllers[index];
 
 		internal this(Input input, int maxControllers)
 		{
-			this.input = input;
-
 			controllers = new Controller[maxControllers];
 			for (int i = 0; i < controllers.Count; i++)
-				controllers[i] = new Controller(input);
+				controllers[i] = Controller(input);
 
-			keyboard = new Keyboard(input);
-			mouse = new Mouse();
+			keyboard = Keyboard(input);
+			mouse = Mouse();
 		}
 
-		public ~this()
+		public void Dispose()
 		{
-			delete keyboard;
-			delete mouse;
+			keyboard.Dispose();
+			mouse.Dispose();
 
 			for	(int i = 0; i < controllers.Count; i++)
-				delete controllers[i];
+				controllers[i].Dispose();
 			delete controllers;
 		}
 
-		internal void Step()
+		internal void Step() mut
 		{
 			for	(int i = 0; i < controllers.Count; i++)
 			{
@@ -48,7 +44,7 @@ namespace Pile
 			mouse.Step();
 		}
 
-		internal void Copy(InputState from)
+		internal void Copy(InputState from) mut
 		{
 			for	(int i = 0; i < controllers.Count; i++)
 			{
