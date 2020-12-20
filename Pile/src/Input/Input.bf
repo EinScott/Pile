@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public abstract class Input
+	public class Input
 	{
 		internal InputState state;
 		internal InputState lastState;
@@ -31,7 +31,7 @@ namespace Pile
 			else this.maxControllers = (uint)maxControllers;
 		}
 
-		public ~this()
+		internal ~this()
 		{
 			state.Dispose();
 			lastState.Dispose();
@@ -52,22 +52,22 @@ namespace Pile
 				virtualButtons[i].Update();
 		}
 
-		public abstract void SetMouseCursor(Cursors cursor);
+		public extern void SetMouseCursor(Cursors cursor);
 
-		public abstract void SetClipboardString(String value);
-		public abstract void GetClipboardString(String buffer);
+		public extern void SetClipboardString(String value);
+		public extern void GetClipboardString(String buffer);
 
-		public abstract Point2 MousePosition { get; set; }
+		public extern Point2 MousePosition { get; set; }
 
 		public Event<delegate void(char16)> OnTextTyped;
 
-		protected void OnText(char16 value)
+		private void OnText(char16 value)
 		{
 		    OnTextTyped(value);
 		    nextState.keyboard.Text.Append(value);
 		}
 
-		protected void OnKeyDown(Keys key)
+		private void OnKeyDown(Keys key)
 		{
 		    int id = (int)key;
 		    if (id < Pile.Keyboard.MaxKeys)
@@ -78,7 +78,7 @@ namespace Pile
 			}
 		}
 
-		protected void OnKeyUp(Keys key)
+		private void OnKeyUp(Keys key)
 		{
 		    int id = (int)key;
 		    if (id < Pile.Keyboard.MaxKeys)
@@ -88,37 +88,37 @@ namespace Pile
 			}
 		}
 
-		protected void OnMouseDown(MouseButtons button)
+		private void OnMouseDown(MouseButtons button)
 		{
 		    nextState.mouse.down[(int)button] = true;
 		    nextState.mouse.pressed[(int)button] = true;
 		    nextState.mouse.timestamp[(int)button] = Time.Duration.Ticks;
 		}
 
-		protected void OnMouseUp(MouseButtons button)
+		private void OnMouseUp(MouseButtons button)
 		{
 		    nextState.mouse.down[(int)button] = false;
 		    nextState.mouse.released[(int)button] = true;
 		}
 
-		protected void OnMouseWheel(float offsetX, float offsetY)
+		private void OnMouseWheel(float offsetX, float offsetY)
 		{
 		    nextState.mouse.wheelValue = Vector2(offsetX, offsetY);
 		}
 
-		protected void OnJoystickConnect(uint index, uint buttonCount, uint axisCount, bool isGamepad)
+		private void OnJoystickConnect(uint index, uint buttonCount, uint axisCount, bool isGamepad)
 		{
 		    if (index < maxControllers)
 		        nextState.controllers[(int)index].Connect(buttonCount, axisCount, isGamepad);
 		}
 
-		protected void OnJoystickDisconnect(uint index)
+		private void OnJoystickDisconnect(uint index)
 		{
 		    if (index < maxControllers)
 		        nextState.controllers[(int)index].Disconnect();
 		}
 
-		protected void OnJoystickButtonDown(uint index, uint button)
+		private void OnJoystickButtonDown(uint index, uint button)
 		{
 		    if (index < maxControllers && button < Controller.MaxButtons)
 		    {
@@ -128,7 +128,7 @@ namespace Pile
 		    }
 		}
 
-		protected void OnJoystickButtonUp(uint index, uint button)
+		private void OnJoystickButtonUp(uint index, uint button)
 		{
 		    if (index < maxControllers && button < Controller.MaxButtons)
 		    {
@@ -137,7 +137,7 @@ namespace Pile
 		    }
 		}
 
-		protected void OnGamepadButtonDown(uint index, Buttons button)
+		private void OnGamepadButtonDown(uint index, Buttons button)
 		{
 		    if (index < maxControllers)
 		    {
@@ -147,7 +147,7 @@ namespace Pile
 		    }
 		}
 
-		protected void OnGamepadButtonUp(uint index, Buttons button)
+		private void OnGamepadButtonUp(uint index, Buttons button)
 		{
 		    if (index < maxControllers)
 		    {
@@ -156,17 +156,17 @@ namespace Pile
 		    }
 		}
 
-		protected bool IsJoystickButtonDown(uint index, uint button)
+		private bool IsJoystickButtonDown(uint index, uint button)
 		{
 		    return (index < maxControllers && button < Controller.MaxButtons && nextState.controllers[(int)index].down[(int)button]);
 		}
 
-		protected bool IsGamepadButtonDown(uint index, Buttons button)
+		private bool IsGamepadButtonDown(uint index, Buttons button)
 		{
 		    return (index < maxControllers && nextState.controllers[(int)index].down[(int)button]);
 		}
 
-		protected void OnJoystickAxis(uint index, uint axis, float value)
+		private void OnJoystickAxis(uint index, uint axis, float value)
 		{
 		    if (index < maxControllers && axis < Controller.MaxAxis)
 		    {
@@ -175,14 +175,14 @@ namespace Pile
 		    }
 		}
 
-		protected float GetJoystickAxis(uint index, uint axis)
+		private float GetJoystickAxis(uint index, uint axis)
 		{
 		    if (index < maxControllers && axis < Controller.MaxAxis)
 		        return nextState.controllers[(int)index].axis[(int)axis];
 		    return 0;
 		}
 
-		protected void OnGamepadAxis(uint index, Axes axis, float value)
+		private void OnGamepadAxis(uint index, Axes axis, float value)
 		{
 		    if (index < maxControllers)
 		    {
@@ -191,7 +191,7 @@ namespace Pile
 		    }
 		}
 
-		protected float GetGamepadAxis(uint index, Axes axis)
+		private float GetGamepadAxis(uint index, Axes axis)
 		{
 		    if (index < maxControllers)
 		        return nextState.controllers[(int)index].axis[(int)axis];

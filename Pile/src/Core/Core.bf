@@ -73,10 +73,10 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void> Run(System system, Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
+		public static Result<void> Run(Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(system != null && graphics != null && audio != null, "Core modules cannot be null");
+			Debug.Assert(graphics != null && audio != null, "Core modules cannot be null");
 			Debug.Assert(game != null, "Game cannot be null");
 
 			run = true;
@@ -86,7 +86,7 @@ namespace Pile
 			Log.Message(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
 			Title.Set(gameTitle);
-			System = system;
+			System = new System();
 			Graphics = graphics;
 			Audio = audio;
 

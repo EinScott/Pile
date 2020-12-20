@@ -37,7 +37,7 @@ namespace Pile.Implementations
 		bool forceScissorUpdate;
 		Rect viewport;
 		RenderPass? lastRenderState;
-		RenderTarget lastRenderTarget;
+		IRenderTarget lastRenderTarget;
 		internal List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
 		internal List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
 		// --
@@ -144,7 +144,7 @@ namespace Pile.Implementations
 
 		[DisableChecks]
 		[DisableObjectAccessChecks]
-		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		protected override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			if (target is Window)
 			{
@@ -161,7 +161,7 @@ namespace Pile.Implementations
 			}
 		}
 
-		static void Clear(GL_Graphics graphics, RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect _viewport)
+		static void Clear(GL_Graphics graphics, IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect _viewport)
 		{
 			Rect viewport = _viewport;
 

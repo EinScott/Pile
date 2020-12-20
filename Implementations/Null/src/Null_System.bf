@@ -2,9 +2,9 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_System : System, ISystemOpenGL
+	public extension System : ISystemOpenGL
 	{
 		public override uint32 MajorVersion => 1;
 		public override uint32 MinorVersion => 0;
@@ -13,12 +13,12 @@ namespace Pile.Implementations
 
 		protected internal override Input CreateInput()
 		{
-			return new Null_Input();
+			return new Input();
 		}
 
 		protected internal override Window CreateWindow(uint32 width, uint32 height)
 		{
-			return new Null_Window(width, height);
+			return new Window(width, height);
 		}
 
 		[SkipCall]
@@ -26,11 +26,6 @@ namespace Pile.Implementations
 
 		[SkipCall]
 		protected internal override void Step() {}
-
-		protected internal override void DetermineDataPaths(StringView title)
-		{
-			base.DetermineDataPaths(title); // It's probably best to leave this as is
-		}
 
 		[SkipCall]
 		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples) {}

@@ -4,9 +4,9 @@ using SDL2;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class SDL_System : System, ISystemOpenGL
+	public extension System : ISystemOpenGL
 	{
 		uint32 majVer;
 		uint32 minVer;
@@ -16,9 +16,6 @@ namespace Pile.Implementations
 
 		String info = new String() ~ delete _;
 		public override String Info => info;
-
-		SDL_Window window; // Are both managed by Core
-		SDL_Input input;
 		
 		internal bool glGraphics;
 
@@ -27,28 +24,20 @@ namespace Pile.Implementations
 		public static extern bool SetProcessDPIAware();
 #endif
 
-		public this()
+		// Don't override constructors of core modules
+		this
 		{
 			SDL_Init.InitFlags |= .Video | .Joystick | .GameController | .Events;
 		}
 
 		protected internal override Input CreateInput()
 		{
-			// Only one input
-			if (input == null) return input = new .(window);
-			else return input;
+			return new .();
 		}
 
 		protected internal override Window CreateWindow(uint32 width, uint32 height)
 		{
-			// Only one window
-			if (window == null)
-			{
-				window = new SDL_Window(Core.Title, width, height, this);
-
-				return window;
-			}
-			else return window;
+			return new .(Core.Title, width, height);
 		}
 
 		protected internal override void Initialize()
@@ -89,53 +78,53 @@ namespace Pile.Implementations
 					Core.Exit();
 					return;
 				case .WindowEvent:
-					if (!window.Closed && event.window.windowID == window.windowID)
+					if (!Core.Window.Closed && event.window.windowID == Core.Window.windowID)
 					{
 						switch (event.window.windowEvent)
 						{
 						case .Close:
-							window.OnClose();
-							window.Closed = true;
+							Core.Window.OnClose();
+							Core.Window.Closed = true;
 							return;
 
 						case .SizeChanged: // Preceeds .Resize, is always triggered when size changes
-							window.OnResized();
+							Core.Window.OnResized();
 
 						// Size
 						case .Resized: // Only resize through external causes
-							window.size.X = (.)event.window.data1;
-							window.size.Y = (.)event.window.data2;
-							window.OnUserResized();
+							Core.Window.size.X = (.)event.window.data1;
+							Core.Window.size.Y = (.)event.window.data2;
+							Core.Window.OnUserResized();
 		
 						// Moved
 						case .Moved:
-							window.position.X = event.window.data1;
-							window.position.Y = event.window.data2;
-							window.OnMoved();
+							Core.Window.position.X = event.window.data1;
+							Core.Window.position.Y = event.window.data2;
+							Core.Window.OnMoved();
 		
 						// Focus
 						case .TAKE_FOCUS:
-							SDL.SDL_SetWindowInputFocus(window.window); // Take focus
+							SDL.SDL_SetWindowInputFocus(Core.Window.window); // Take focus
 						case .FocusGained:
-							window.focus = true;
-							window.OnFocusChanged();
+							Core.Window.focus = true;
+							Core.Window.OnFocusChanged();
 						case .Focus_lost:
-							window.focus = false;
-							window.OnFocusChanged();
+							Core.Window.focus = false;
+							Core.Window.OnFocusChanged();
 		
 						// Visible
 						case .Restored, .Shown, .Maximized:
-							window.visible = true;
-							window.OnVisibilityChanged();
+							Core.Window.visible = true;
+							Core.Window.OnVisibilityChanged();
 						case .Hidden, .Minimized:
-							window.visible = false;
-							window.OnVisibilityChanged();
+							Core.Window.visible = false;
+							Core.Window.OnVisibilityChanged();
 
 						// MouseOver
 						case .Enter:
-							window.mouseFocus = true;
+							Core.Window.mouseFocus = true;
 						case .Leave:
-							window.mouseFocus = false;
+							Core.Window.mouseFocus = false;
 						default:
 						}
 					}
@@ -143,7 +132,7 @@ namespace Pile.Implementations
 					 .MouseButtonDown, .MouseButtonUp, .MouseWheel,
 					 .JoyAxisMotion, .JoyBallMotion, .JoyButtonDown, .JoyButtonUp, .JoyDeviceAdded, .JoyDeviceRemoved, .JoyHatMotion,
 					 .ControllerAxismotion, .ControllerButtondown, .ControllerButtonup, .ControllerDeviceadded, .ControllerDeviceremapped, .ControllerDeviceremoved:
-					input.ProcessEvent(event);
+					Core.Input.ProcessEvent(event);
 				default:
 				}
 
@@ -172,13 +161,13 @@ namespace Pile.Implementations
 
 		public ISystemOpenGL.Context GetGLContext()
 		{
-			return window.context;
+			return Core.Window.context;
 		}
 
 		protected internal override void* GetNativeWindowHandle()
 		{
 			var info = SDL.SDL_SysWMinfo();
-			SDL.GetWindowWMInfo(window.window, ref info);
+			SDL.GetWindowWMInfo(Core.Window.window, ref info);
 
 #if BF_PLATFORM_WINDOWS
 			if (info.info.winrt.window != null)

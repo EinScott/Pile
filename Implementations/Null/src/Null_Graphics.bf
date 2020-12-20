@@ -29,7 +29,7 @@ namespace Pile.Implementations
 		protected internal override void AfterRender() {}
 
 		[SkipCall]
-		protected override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
+		protected override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
 
 		[SkipCall]
 		protected override void RenderInternal(ref RenderPass pass) {}

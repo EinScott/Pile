@@ -25,13 +25,13 @@ namespace Pile
 		protected internal abstract void Step();
 		protected internal abstract void AfterRender();
 
-		public Result<void> Clear(RenderTarget target, Color color) =>
+		public Result<void> Clear(IRenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public Result<void> Clear(RenderTarget target, Color color, float depth, int stencil) =>
+		public Result<void> Clear(IRenderTarget target, Color color, float depth, int stencil) =>
 			Clear(target, .All, color, depth, stencil, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public Result<void> Clear(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		public Result<void> Clear(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			if (!target.Renderable)
 				LogErrorReturn!("Target cannot currently be rendered to");
@@ -45,7 +45,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		protected abstract void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
+		protected abstract void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
 		public Result<void> Render(ref RenderPass pass)
 		{

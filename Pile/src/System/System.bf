@@ -3,12 +3,12 @@ using System.IO;
 
 namespace Pile
 {
-	public abstract class System
+	public class System
 	{
-		public abstract uint32 MajorVersion { get; }
-		public abstract uint32 MinorVersion { get; }
-		public abstract String ApiName { get; }
-		public abstract String Info { get; }
+		public extern uint32 MajorVersion { get; }
+		public extern uint32 MinorVersion { get; }
+		public extern String ApiName { get; }
+		public extern String Info { get; }
 
 		internal this() {}
 
@@ -65,12 +65,12 @@ namespace Pile
 				Directory.CreateDirectory(userDir);
 		}
 
-		protected internal abstract Input CreateInput();
-		protected internal abstract Window CreateWindow(uint32 width, uint32 height);
+		protected internal extern Input CreateInput();
+		protected internal extern Window CreateWindow(uint32 width, uint32 height);
 
-		protected internal abstract void Initialize();
-		protected internal abstract void Step();
-		protected internal abstract void* GetNativeWindowHandle();
+		protected internal extern void Initialize();
+		protected internal extern void Step();
+		protected internal extern void* GetNativeWindowHandle();
 
 		public String DataPath { get; private set; }
 		public String UserPath { get; private set; }

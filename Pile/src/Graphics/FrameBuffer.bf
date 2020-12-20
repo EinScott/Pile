@@ -6,7 +6,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class FrameBuffer : RenderTarget
+	public class FrameBuffer : IRenderTarget
 	{
 		protected internal abstract class Platform
 		{
@@ -18,8 +18,11 @@ namespace Pile
 
 		public int AttachmentCount => platform.Attachments.Count;
 
-		public override UPoint2 RenderSize => renderSize;
+		bool renderable;
+		public bool Renderable => renderable;
+		
 		UPoint2 renderSize;
+		public UPoint2 RenderSize => renderSize;
 
 		public this(uint32 width, uint32 height)
 			: this(width, height, .Color) {}
@@ -33,7 +36,7 @@ namespace Pile
 			renderSize = UPoint2(width, height);
 			
 			platform = Core.Graphics.CreateFrameBuffer(width, height, attachments);
-			Renderable = true;
+			renderable = true;
 		}
 
 		public Texture this[int index]

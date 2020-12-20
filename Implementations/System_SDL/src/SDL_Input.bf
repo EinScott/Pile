@@ -4,25 +4,22 @@ using System.Collections;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class SDL_Input : Input
+	public extension Input
 	{
-		readonly SDL.SDL_Cursor*[] sdlCursors;
-		readonly SDL.SDL_Joystick*[] sdlJoysticks;
-		readonly SDL.SDL_GameController*[] sdlGamepads;
-		readonly SDL_Window window; // deleted by Core
+		SDL.SDL_Cursor*[] sdlCursors;
+		SDL.SDL_Joystick*[] sdlJoysticks;
+		SDL.SDL_GameController*[] sdlGamepads;
 
-		internal this(SDL_Window window)
+		this
 		{
-			this.window = window;
-
 			sdlCursors = new SDL.SDL_Cursor*[(int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL];
 			sdlJoysticks = new SDL.SDL_Joystick*[maxControllers];
 			sdlGamepads = new SDL.SDL_GameController*[maxControllers];
 		}	
 
-		public ~this()
+		internal ~this()
 		{
 			for (int i = 0; i < sdlCursors.Count; i++)
 			{
@@ -71,13 +68,13 @@ namespace Pile.Implementations
 		{
 			get
 			{
-				SDL.GetWindowPosition(window.window, let winX, let winY);
+				SDL.GetWindowPosition(Core.Window.window, let winX, let winY);
 				int32 x = 0, y = 0;
 				SDL.GetGlobalMouseState(&x, &y);
 				return Point2(x - winX, y - winY);
 			}
 
-			set =>SDL.WarpMouseInWindow(window.window, (int32)value.X, (int32)value.Y);
+			set =>SDL.WarpMouseInWindow(Core.Window.window, (int32)value.X, (int32)value.Y);
 		}
 
 		internal void ProcessEvent(SDL.Event e)

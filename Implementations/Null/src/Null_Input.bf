@@ -1,8 +1,8 @@
 using System;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Input : Input
+	public extension Input
 	{
 		[SkipCall]
 		public override void SetMouseCursor(Cursors cursor) {}

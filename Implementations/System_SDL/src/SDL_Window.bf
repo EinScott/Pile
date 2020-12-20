@@ -3,24 +3,20 @@ using SDL2;
 using System;
 
 using internal Pile;
-using internal Pile.Implementations;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class SDL_Window : Window
+	public extension Window
 	{
-		SDL_System system;
 		internal SDL.Window* window;
 		internal uint32 windowID;
 
 		internal SDL_Context context = null;
 
-		internal this(String title, uint32 width, uint32 height, SDL_System system)
+		internal this(String title, uint32 width, uint32 height)
 		{
-			this.system = system;
-
 			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
-			if (system.glGraphics) flags |= .OpenGL;
+			if (Core.System.glGraphics) flags |= .OpenGL;
 
 			window = SDL.CreateWindow(title, .Centered, .Centered, (.)width, (.)height, flags);
 			windowID = SDL.GetWindowID(window);
@@ -31,7 +27,7 @@ namespace Pile.Implementations
 
 			size = .(width, height);
 
-			if (system.glGraphics)
+			if (Core.System.glGraphics)
 			{
 				context = new SDL_Context(this);
 
@@ -64,7 +60,7 @@ namespace Pile.Implementations
 		protected override void CloseInternal()
 		{
 			SDL.DestroyWindow(window);
-			if (system.glGraphics && context != null)
+			if (Core.System.glGraphics && context != null)
 			{
 				delete context;
 				context = null;
@@ -160,7 +156,7 @@ namespace Pile.Implementations
 			{
 				int32 w = 0, h = 0;
 
-				if (system.glGraphics)
+				if (Core.System.glGraphics)
 					SDL.GL_GetDrawableSize(window, out w, out h);
 				else
 					SDL.GetWindowSize(window, out w, out h);
@@ -256,7 +252,7 @@ namespace Pile.Implementations
 			{
 				vSync = value;
 
-				if (system.glGraphics) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
+				if (Core.System.glGraphics) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
 			}
 		}
 
@@ -279,7 +275,7 @@ namespace Pile.Implementations
 
 		protected internal override void Present()
 		{
-			if (system.glGraphics)
+			if (Core.System.glGraphics)
 			{
 				SDL.GL_SwapWindow(window);
 			}

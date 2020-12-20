@@ -1,7 +1,7 @@
 using SDL2;
 using System;
 
-namespace Pile.Implementations
+namespace Pile
 {
 	public static class SDL_Init
 	{

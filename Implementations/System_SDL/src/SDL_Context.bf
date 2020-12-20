@@ -1,16 +1,16 @@
 using SDL2;
 using System;
 
-using internal Pile.Implementations;
+using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
 	public class SDL_Context : ISystemOpenGL.Context
 	{
 		SDL.SDL_GLContext context;
-		SDL_Window window;
+		Window window;
 
-		internal this(SDL_Window window)
+		internal this(Window window)
 		{
 			this.window = window;
 			context = SDL.GL_CreateContext(window.window);

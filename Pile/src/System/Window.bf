@@ -4,7 +4,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public abstract class Window : RenderTarget
+	public class Window : IRenderTarget
 	{
 		public bool Closed { get; internal set; }
 
@@ -20,28 +20,33 @@ namespace Pile
 			OnClose.Dispose();
 		}
 
-		public abstract void SetTitle(StringView title);
-		public abstract void GetTitle(String buffer);
+		bool renderable;
+		public bool Renderable => renderable;
 
-		public abstract int X { get; set; }
-		public abstract int Y { get; set; }
-		public abstract Point2 Position { get; set; }
-		public abstract uint Width { get; set; }
-		public abstract uint Height { get; set; }
-		public abstract UPoint2 Size { get; set; }
-		public abstract Vector2 ContentScale { get; }
+		public extern UPoint2 RenderSize { get; }
 
-		public abstract bool Resizable { get; set; }
-		public abstract bool Transparent { get; set; }
-		public abstract bool Bordered { get; set; }
-		public abstract bool Fullscreen { get; set; }
-		public abstract bool Visible { get; set; }
-		public abstract bool VSync { get; set; }
+		public extern void SetTitle(StringView title);
+		public extern void GetTitle(String buffer);
 
-		public abstract bool Focus { get; }
-		public abstract bool MouseOver { get; }
+		public extern int X { get; set; }
+		public extern int Y { get; set; }
+		public extern Point2 Position { get; set; }
+		public extern uint Width { get; set; }
+		public extern uint Height { get; set; }
+		public extern UPoint2 Size { get; set; }
+		public extern Vector2 ContentScale { get; }
 
-		public abstract void Focus();
+		public extern bool Resizable { get; set; }
+		public extern bool Transparent { get; set; }
+		public extern bool Bordered { get; set; }
+		public extern bool Fullscreen { get; set; }
+		public extern bool Visible { get; set; }
+		public extern bool VSync { get; set; }
+
+		public extern bool Focus { get; }
+		public extern bool MouseOver { get; }
+
+		public extern void Focus();
 
 		public void Close()
 		{
@@ -49,7 +54,7 @@ namespace Pile
 			Closed = true;
 			CloseInternal();
 		}
-		protected abstract void CloseInternal();
+		protected extern void CloseInternal();
 
 		public Event<Action> OnResized;
 		public Event<Action> OnUserResized;
@@ -61,13 +66,13 @@ namespace Pile
 		// Rendering
 		internal void Render()
 		{
-			Renderable = true;
+			renderable = true;
 
 			Core.CallRender();
 
-			Renderable = false;
+			renderable = false;
 		}
 
-		protected internal abstract void Present();
+		protected internal extern void Present();
 	}
 }

@@ -1,12 +1,12 @@
 using System;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Window : Window
+	public extension Window
 	{
 		String title = new String() ~ delete _;
 
-		public this(uint32 width, uint32 height)
+		internal this(uint32 width, uint32 height) : [NoExtension]this()
 		{
 			Size = UPoint2(width, height);
 			Visible = true;
