@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public struct InputState : IDisposable
+	public struct InputState
 	{
 		public Keyboard keyboard;
 		public Mouse mouse;
@@ -22,7 +22,7 @@ namespace Pile
 			mouse = Mouse();
 		}
 
-		public void Dispose()
+		internal void Dispose()
 		{
 			keyboard.Dispose();
 			mouse.Dispose();

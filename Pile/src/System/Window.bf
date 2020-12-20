@@ -10,7 +10,7 @@ namespace Pile
 
 		internal this() {}
 
-		public ~this()
+		internal ~this()
 		{
 			OnResized.Dispose();
 			OnUserResized.Dispose();
@@ -22,8 +22,12 @@ namespace Pile
 
 		public abstract void SetTitle(StringView title);
 		public abstract void GetTitle(String buffer);
-		
+
+		public abstract int X { get; set; }
+		public abstract int Y { get; set; }
 		public abstract Point2 Position { get; set; }
+		public abstract uint Width { get; set; }
+		public abstract uint Height { get; set; }
 		public abstract UPoint2 Size { get; set; }
 		public abstract Vector2 ContentScale { get; }
 

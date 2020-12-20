@@ -16,6 +16,7 @@ namespace Pile
 		public abstract uint SoundCount { get; }
 		public abstract uint AudibleSoundCount { get; }
 
+		internal this() {}
 		internal ~this() {}
 
 		protected internal abstract Result<void> Initialize();

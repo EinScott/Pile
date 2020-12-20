@@ -559,7 +559,7 @@ namespace Pile
 					// Import all files found for this import statement with this importer
 					for (var filePath in importPaths)
 					{
-						Log.Message(scope $"Importing {filePath}");
+						//Log.Message(scope $"Importing {filePath}");
 	
 						// Read file
 						let res = File.ReadAllBytes(filePath);

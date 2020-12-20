@@ -10,6 +10,8 @@ namespace Pile
 		public abstract String ApiName { get; }
 		public abstract String Info { get; }
 
+		internal this() {}
+
 		internal ~this()
 		{
 			delete DataPath;

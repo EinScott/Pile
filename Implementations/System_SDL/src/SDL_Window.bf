@@ -75,6 +75,30 @@ namespace Pile.Implementations
 		public override void GetTitle(String buffer) => buffer.Append(SDL.GetWindowTitle(window));
 
 		internal Point2 position;
+		public override int X
+		{
+			get => position.X;
+			set
+			{
+				if (value != position.X)
+				{
+					position.X = value;
+					SDL.SetWindowPosition(window, (int32)position.X, (int32)position.Y);
+				}
+			}
+		}
+		public override int Y
+		{
+			get => position.Y;
+			set
+			{
+				if (value != position.Y)
+				{
+					position.X = value;
+					SDL.SetWindowPosition(window, (int32)position.X, (int32)position.Y);
+				}
+			}
+		}
 		public override Point2 Position
 		{
 			get => position;
@@ -90,6 +114,32 @@ namespace Pile.Implementations
 		}
 
 		internal UPoint2 size;
+		public override uint Width
+		{
+			get => size.X;
+
+			set
+			{
+				if (value != size.X)
+				{
+					size.X = value;
+					SDL.SetWindowSize(window, (int32)position.X, (int32)position.Y);
+				}
+			}
+		}
+		public override uint Height
+		{
+			get => size.Y;
+
+			set
+			{
+				if (value != size.Y)
+				{
+					size.Y = value;
+					SDL.SetWindowSize(window, (int32)position.X, (int32)position.Y);
+				}
+			}
+		}
 		public override UPoint2 Size
 		{
 			get => size;

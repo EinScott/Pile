@@ -24,9 +24,15 @@ namespace Pile.Implementations
 			buffer.Append(title);
 		}
 
-		public override Point2 Position { get; set; }
+		Point2 pos;
+		public override int X { get => pos.X; set => pos.X = value; }
+		public override int Y { get => pos.Y; set => pos.Y = value; }
+		public override Point2 Position { get => pos; set => pos = value; }
 
-		public override UPoint2 Size { get; set; }
+		UPoint2 size;
+		public override uint Width { get => size.X; set => size.X = value; }
+		public override uint Height { get => size.Y; set => size.Y = value; }
+		public override UPoint2 Size { get => size; set => size = value; }
 
 		public override Vector2 ContentScale => .One;
 
