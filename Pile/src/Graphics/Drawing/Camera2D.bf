@@ -103,7 +103,7 @@ namespace Pile
 	    private void UpdateMatrix()
 	    {
 	        // Create orthographics matrix centered on the position point
-	        matrix = Matrix4x4.FromOrthographic(
+	        matrix = Matrix4x4.CreateOrthographicOffCenter(
 	            Left,
 	            Right,
 	            Top,
@@ -115,7 +115,7 @@ namespace Pile
 
 		public Vector2 ScreenToCamera(Vector2 position)
 		{
-		    return Vector2.Transform(position, Matrix.Inverse()); // Not very... performant.. probably
+		    return Vector2.Transform(position, Matrix.Invert().Get()); // Not very... performant.. probably
 		}
 
 		public Vector2 CameraToScreen(Vector2 position)
@@ -132,7 +132,7 @@ namespace Pile
 		{
 		    Vector2 move = (position - Position) * ease;
 		    if (move.LengthSquared > maxDistance * maxDistance)
-		        Position += move.Normalized() * maxDistance;
+		        Position += move.Normalize() * maxDistance;
 		    else
 		        Position += move;
 		}

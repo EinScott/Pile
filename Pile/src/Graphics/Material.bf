@@ -215,12 +215,12 @@ namespace Pile
 
 				if (let val = Value as float[])
 				{
-					val[offset] = value.m11;
-					val[offset + 1] = value.m12;
-					val[offset + 2] = value.m21;
-					val[offset + 3] = value.m22;
-					val[offset + 4] = value.m31;
-					val[offset + 5] = value.m32;
+					val[offset] = value.M11;
+					val[offset + 1] = value.M12;
+					val[offset + 2] = value.M21;
+					val[offset + 3] = value.M22;
+					val[offset + 4] = value.M31;
+					val[offset + 5] = value.M32;
 				}
 
 				return .Ok;
@@ -246,22 +246,22 @@ namespace Pile
 
 				if (let val = Value as float[])
 				{
-					val[offset] = value.m11;
-					val[offset + 1] = value.m12;
-					val[offset + 2] = value.m13;
-					val[offset + 3] = value.m14;
-					val[offset + 4] = value.m21;
-					val[offset + 5] = value.m22;
-					val[offset + 6] = value.m23;
-					val[offset + 7] = value.m24;
-					val[offset + 8] = value.m31;
-					val[offset + 9] = value.m32;
-					val[offset + 10] = value.m33;
-					val[offset + 11] = value.m34;
-					val[offset + 12] = value.m41;
-					val[offset + 13] = value.m42;
-					val[offset + 14] = value.m43;
-					val[offset + 15] = value.m44;
+					val[offset] = value.M11;
+					val[offset + 1] = value.M12;
+					val[offset + 2] = value.M13;
+					val[offset + 3] = value.M14;
+					val[offset + 4] = value.M21;
+					val[offset + 5] = value.M22;
+					val[offset + 6] = value.M23;
+					val[offset + 7] = value.M24;
+					val[offset + 8] = value.M31;
+					val[offset + 9] = value.M32;
+					val[offset + 10] = value.M33;
+					val[offset + 11] = value.M34;
+					val[offset + 12] = value.M41;
+					val[offset + 13] = value.M42;
+					val[offset + 14] = value.M43;
+					val[offset + 15] = value.M44;
 				}
 
 				return .Ok;

@@ -107,7 +107,7 @@ namespace Pile
 
 		public override void ToString(String strBuffer)
 		{
-			strBuffer.Set("Color [ ");
+			strBuffer.Append("Color [ ");
 			((uint)R).ToString(strBuffer);
 			strBuffer.Append(", ");
 			((uint)G).ToString(strBuffer);

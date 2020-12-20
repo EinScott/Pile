@@ -118,7 +118,7 @@ namespace Pile
 		public void Render(RenderTarget target)
 		{
 			let size = target.RenderSize;
-			let matrix = Matrix4x4.FromOrthographic(0, size.X, 0, size.Y, 0, 100);
+			let matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.X, 0, size.Y, 0, 100);
 			Render(target, matrix);
 		}
 
@@ -324,7 +324,7 @@ namespace Pile
 
 		public void Line(Vector2 from, Vector2 to, float thickness, Color color)
 		{
-			let normal = (to - from).Normalized();
+			let normal = (to - from).Normalize();
 			let perp = Vector2(-normal.Y, normal.X) * thickness * 0.5f;
 			Quad(from + perp, from - perp, to - perp, to + perp, color);
 		}
@@ -929,7 +929,7 @@ namespace Pile
 		{
 		    let was = MatrixStack;
 
-		    MatrixStack = Matrix3x2.FromTransform(position, origin, scale, rotation) * MatrixStack;
+		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
 		    SetTexture(texture);
 		    Quad(
@@ -970,7 +970,7 @@ namespace Pile
 		{
 		    let was = MatrixStack;
 
-		    MatrixStack = Matrix3x2.FromTransform(position, origin, scale, rotation) * MatrixStack;
+		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
 		    let tx0 = cx / texture.Width;
 			let ty0 = cy / texture.Height;
@@ -1013,7 +1013,7 @@ namespace Pile
 		{
 		    var was = MatrixStack;
 
-		    MatrixStack = Matrix3x2.FromTransform(position, origin, scale, rotation) * MatrixStack;
+		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
 		    SetTexture(subtex.Texture);
 		    Quad(
@@ -1030,7 +1030,7 @@ namespace Pile
 		    var tex = subtex.Texture;
 		    var was = MatrixStack;
 
-		    MatrixStack = Matrix3x2.FromTransform(position, origin, scale, rotation) * MatrixStack;
+		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
 		    var px0 = -frame.X;
 		    var py0 = -frame.Y;
@@ -1133,7 +1133,7 @@ namespace Pile
 		// Render an UTF8 string
 		public void Text(SpriteFont font, StringView text, Vector2 position, Color color)
 		{
-		    PushMatrix(Matrix3x2.FromTransform(position, .One, 0));
+		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
 		    Text(font, text, color);
 		    PopMatrix();
 		}
@@ -1141,7 +1141,7 @@ namespace Pile
 		// Render an UTF8 string
 		public void Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
 		{
-		    PushMatrix(Matrix3x2.FromTransform(position, origin, scale, rotation));
+		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
 		    Text(font, text, color);
 		    PopMatrix();
 		}
@@ -1209,8 +1209,8 @@ namespace Pile
 
 		void Transform(ref Vector2 to, Vector2 position, Matrix3x2 matrix)
 		{
-		    to.X = (position.X * matrix.m11) + (position.Y * matrix.m21) + matrix.m31;
-		    to.Y = (position.X * matrix.m12) + (position.Y * matrix.m22) + matrix.m32;
+		    to.X = (position.X * matrix.M11) + (position.Y * matrix.M21) + matrix.M31;
+		    to.Y = (position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M32;
 		}
 
 		void VerticalFlip(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)

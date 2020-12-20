@@ -314,7 +314,7 @@ namespace Pile
 
 		public override void ToString(String strBuffer)
 		{
-			strBuffer.Set("Rect [ ");
+			strBuffer.Append("Rect [ ");
 			X.ToString(strBuffer);
 			strBuffer.Append(", ");
 			Y.ToString(strBuffer);

@@ -27,9 +27,9 @@ namespace Pile.Implementations
 
 			// Set current values
 			SDL.GetWindowPosition(window, let px, let py);
-			position.Set(px, py);
+			position = .(px, py);
 
-			size.Set(width, height);
+			size = .(width, height);
 
 			if (system.glGraphics)
 			{
