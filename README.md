@@ -31,12 +31,13 @@ Windows binaries are already included. Binaries for other platforms are missing 
 You may suggest to change stuff to make the framework nicer to work with or add features. More specifically, major TODOs are in Core.bf, minor TODOs in other comments marked with TODO (CTRL+SHIFT+F).
 
 # License
-Pile is licensed under the ZLIB license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
+Pile is licensed under the MIT license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
 Other open source libraries used:
 - [stb_truetype](https://github.com/nothings/stb/blob/master/stb_truetype.h) - Font handeling
+- [referencesource/System.Numerics](https://github.com/microsoft/referencesource/tree/master/System.Numerics/System/Numerics) - Parts of the structs located in ./Pile/src/Struct/*
 - [SDL2](https://www.libsdl.org/) - System Implementation
 - [SoLoud](http://sol.gfxile.net/soloud/index.html) - Audio Implementation
 - [bgfx](https://github.com/bkaradzic/bgfx) - Graphics Implementation
 
 The licenses for the binaries of each library used in Implementation projects can be found in `./Implementations/(name)/dist/LICENSE.txt`.
-stb_truetype is licensed under the Unlicense.
+stb_truetype is licensed under the Unlicense. The MS referencesource is MIT licensed.
