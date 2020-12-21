@@ -2,9 +2,9 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Graphics : Graphics, IGraphicsOpenGL
+	extension Graphics : IGraphicsOpenGL
 	{
 		public override uint32 MajorVersion => 1;
 		public override uint32 MinorVersion => 0;
@@ -33,26 +33,6 @@ namespace Pile.Implementations
 
 		[SkipCall]
 		protected override void RenderInternal(ref RenderPass pass) {}
-
-		protected internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format)
-		{
-			return new Null_Texture();
-		}
-
-		protected internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments)
-		{
-			return new Null_Framebuffer();
-		}
-
-		protected internal override Mesh.Platform CreateMesh()
-		{
-			return new Null_Mesh();
-		}
-
-		protected internal override Shader.Platform CreateShader(ShaderData source)
-		{
-			return new Null_Shader();
-		}
 
 		public IGraphicsOpenGL.GLProfile Profile
 		{

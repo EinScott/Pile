@@ -2,16 +2,16 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class BGFX_FrameBuffer : FrameBuffer.Platform
+	extension FrameBuffer
 	{
-		internal this(BGFX_Graphics graphics, uint32 width, uint32 height, TextureFormat[] attachments)
+		protected internal override void Initialize(uint32 width, uint32 height, TextureFormat[] attachments)
 		{
-			
+
 		}
 
-		protected internal override void ResizeAndClear(uint32 width, uint32 height)
+		protected internal override void ResizeAndClearInternal(uint32 width, uint32 height)
 		{
 
 		}

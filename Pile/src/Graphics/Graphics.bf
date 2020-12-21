@@ -4,26 +4,26 @@ using internal Pile;
 
 namespace Pile
 {
-	public abstract class Graphics
+	public class Graphics
 	{
 		// version has to be set before initialize is called! (may be used by System.Initialize)
-		public abstract uint32 MajorVersion { get; }
-		public abstract uint32 MinorVersion { get; }
-		public abstract String ApiName { get; }
-		public abstract String Info { get; }
+		public extern uint32 MajorVersion { get; }
+		public extern uint32 MinorVersion { get; }
+		public extern String ApiName { get; }
+		public extern String Info { get; }
 
 		public int32 MaxTextureSize { get; protected set; }
 		public bool OriginBottomLeft { get; protected set; }
 
 		public enum DebugDrawMode { Disabled, WireFrame }
-		public abstract DebugDrawMode DebugDraw { get; set; }
+		public extern DebugDrawMode DebugDraw { get; set; }
 
 		internal this() {}
 		internal ~this() {}
 
-		protected internal abstract void Initialize();
-		protected internal abstract void Step();
-		protected internal abstract void AfterRender();
+		protected internal extern void Initialize();
+		protected internal extern void Step();
+		protected internal extern void AfterRender();
 
 		public Result<void> Clear(IRenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
@@ -45,7 +45,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		protected abstract void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
+		protected extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
 		public Result<void> Render(ref RenderPass pass)
 		{
@@ -75,11 +75,6 @@ namespace Pile
 			return .Ok;
 		}
 
-		protected abstract void RenderInternal(ref RenderPass pass);
-
-		protected internal abstract Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format);
-		protected internal abstract FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments);
-		protected internal abstract Mesh.Platform CreateMesh();
-		protected internal abstract Shader.Platform CreateShader(ShaderData source);
+		protected extern void RenderInternal(ref RenderPass pass);
 	}
 }

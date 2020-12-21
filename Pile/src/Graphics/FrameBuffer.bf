@@ -8,15 +8,9 @@ namespace Pile
 {
 	public class FrameBuffer : IRenderTarget
 	{
-		protected internal abstract class Platform
-		{
-			internal readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
-			protected internal abstract void ResizeAndClear(uint32 width, uint32 height);
-		}
+		readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
 
-		internal readonly Platform platform ~ delete _;
-
-		public int AttachmentCount => platform.Attachments.Count;
+		public int AttachmentCount => Attachments.Count;
 
 		bool renderable;
 		public bool Renderable => renderable;
@@ -34,14 +28,15 @@ namespace Pile
 			Debug.Assert(width > 0 || height > 0, "FrameBuffer size must be larger than 0");
 			Debug.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");
 			renderSize = UPoint2(width, height);
-			
-			platform = Core.Graphics.CreateFrameBuffer(width, height, attachments);
+
+			Initialize(width, height, attachments);
+
 			renderable = true;
 		}
 
 		public Texture this[int index]
 		{
-			get => platform.Attachments[index];
+			get => Attachments[index];
 		}
 
 		public Result<void> ResizeAndClear(uint32 width, uint32 height)
@@ -54,11 +49,14 @@ namespace Pile
 				renderSize.X = width;
 				renderSize.Y = height;
 
-				platform.ResizeAndClear(width, height);
+				ResizeAndClearInternal(width, height);
 			}
 			return .Ok;
 		}
 
-		public static operator Texture(FrameBuffer target) => target.platform.Attachments[0];
+		protected internal extern void Initialize(uint32 width, uint32 height, TextureFormat[] attachments);
+		protected internal extern void ResizeAndClearInternal(uint32 width, uint32 height);
+
+		public static operator Texture(FrameBuffer target) => target.Attachments[0];
 	}
 }

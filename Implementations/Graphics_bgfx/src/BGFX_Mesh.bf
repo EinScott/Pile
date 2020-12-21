@@ -2,11 +2,11 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class BGFX_Mesh : Mesh.Platform
+	extension Mesh
 	{
-		internal this(BGFX_Graphics graphics)
+		protected internal override void Initialize()
 		{
 
 		}

@@ -3,9 +3,9 @@ using Bgfx;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class BGFX_Graphics : Graphics
+	extension Graphics
 	{
 		// Do some more bgfx, then decide which api stuff could be changed
 		// - should window not be overridden? (and store window handle) NO IS FINE
@@ -95,14 +95,5 @@ namespace Pile.Implementations
 		{
 
 		}
-
-		// Special function for renderTextures? - part of framebuffer CreateFrameBufferTexture(), called from BGFX_Framebuffer ctor
-		protected internal override Texture.Platform CreateTexture(uint32 width, uint32 height, TextureFormat format) => new BGFX_Texture(this, width, height, format);
-
-		protected internal override FrameBuffer.Platform CreateFrameBuffer(uint32 width, uint32 height, TextureFormat[] attachments) => new BGFX_FrameBuffer(this, width, height, attachments);
-
-		protected internal override Mesh.Platform CreateMesh() => new BGFX_Mesh(this);
-
-		protected internal override Shader.Platform CreateShader(ShaderData source) => new BGFX_Shader(this, source);
 	}
 }

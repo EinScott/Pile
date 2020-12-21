@@ -2,12 +2,12 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Texture : Texture.Platform
+	extension Texture
 	{
 		[SkipCall]
-		protected internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY) {}
+		protected internal override void ResizeAndClearInternal(uint32 width, uint32 height) {}
 
 		[SkipCall]
 		protected internal override void SetFilter(TextureFilter filter) {}
@@ -21,6 +21,6 @@ namespace Pile.Implementations
 		[SkipCall]
 		protected internal override void GetData(void* buffer) {}
 
-		protected internal override bool IsFrameBuffer() => false;
+		public override bool IsFrameBuffer => false;
 	}
 }

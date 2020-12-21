@@ -13,7 +13,7 @@ namespace Pile
 
 		internal SDL_Context context = null;
 
-		protected internal override void Initialize(StringView name, uint width, uint height)
+		protected internal override void Initialize(StringView name, uint32 width, uint32 height)
 		{
 			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
 			if (Core.System.glGraphics) flags |= .OpenGL;

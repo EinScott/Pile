@@ -20,13 +20,7 @@ namespace Game
 		static Result<void> Run()
 		{
 			// Start pile with an instance of our game
-			Core.Run(
-				new Pile.Implementations.SDL_System(),
-				new Pile.Implementations.GL_Graphics(),
-				new Pile.Implementations.SL_Audio(),
-				1280, 720,
-				new ExampleGame(),
-				"Example Game");
+			Try!(Core.Run(1280, 720, new ExampleGame(), "Example Game"));
 		
 			return .Ok;
 		}
@@ -64,7 +58,7 @@ namespace Game
 		protected override void Update()
 		{
 			// Move rect by input
-			rectPos += input.Value.Normalized() * rectSpeed * Time.Delta;
+			rectPos += input.Value.Normalize() * rectSpeed * Time.Delta;
 		}
 
 		protected override void Render()

@@ -7,19 +7,8 @@ namespace Pile
 {
 	public class Texture
 	{
-		protected internal abstract class Platform
-		{
-			protected internal abstract void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY);
-			protected internal abstract void SetFilter(TextureFilter filter);
-			protected internal abstract void SetWrap(TextureWrap x, TextureWrap y);
-			protected internal abstract void SetData(void* buffer);
-			protected internal abstract void GetData(void* buffer);
-			protected internal abstract bool IsFrameBuffer();
-		}
-
 		public static TextureFilter DefaultTextureFilter = TextureFilter.Linear;
 
-		internal readonly Platform platform ~ delete _;
 		public readonly TextureFormat format;
 
 		public uint32 Width { get; private set; }
@@ -31,26 +20,26 @@ namespace Pile
 		public TextureFilter Filter
 		{
 			get => filter;
-			set => platform.SetFilter(filter = value);
+			set => SetFilter(filter = value);
 		}
 
 		TextureWrap wrapX;
 		public TextureWrap WrapX
 		{
 			get => wrapX;
-			set => platform.SetWrap(wrapX = value, wrapY);
+			set => SetWrap(wrapX = value, wrapY);
 		}
 		
 		TextureWrap wrapY;
 		public TextureWrap WrapY
 		{
 			get => wrapY;
-			set => platform.SetWrap(wrapX, wrapY = value);
+			set => SetWrap(wrapX, wrapY = value);
 		}
 
-		public bool IsFrameBuffer => platform.IsFrameBuffer();
+		public extern bool IsFrameBuffer { get; }
 
-		public this(uint32 width, uint32 height, TextureFormat format = .Color)
+		public this(uint32 width, uint32 height, TextureFormat format = .Color, TextureFilter filter = DefaultTextureFilter)
 		{
 			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
 
@@ -59,16 +48,15 @@ namespace Pile
 			Width = width;
 			Height = height;
 			this.format = format;
+			this.filter = filter;
 
-			platform = Core.Graphics.CreateTexture(width, height, format);
-
-			filter = DefaultTextureFilter;
+			Initialize();
 		}
 
-		public this(Bitmap bitmap)
-			: this(bitmap.Width, bitmap.Height, .Color)
+		public this(Bitmap bitmap, TextureFilter filter = DefaultTextureFilter)
+			: this(bitmap.Width, bitmap.Height, .Color, filter)
 		{
-			platform.SetData(&bitmap.Pixels[0]);
+			SetData(&bitmap.Pixels[0]);
 		}
 
 		public void CopyTo(Bitmap bitmap)
@@ -76,13 +64,13 @@ namespace Pile
 			bitmap.ResizeAndClear(Width, Height);
 
 			var span = Span<Color>(bitmap.Pixels);
-			platform.GetData(&span[0]);
+			GetData(&span[0]);
 		}
 
 		public Result<void> Set(Bitmap bitmap)
 		{
 			if ((bitmap.Width != Width || bitmap.Height != Height) && (ResizeAndClear(bitmap.Width, bitmap.Height) case .Err)) return .Err; // Resize this if needed
-			platform.SetData(&bitmap.Pixels[0]);
+			SetData(&bitmap.Pixels[0]);
 
 			return .Ok;
 		}
@@ -97,7 +85,7 @@ namespace Pile
 				Width = width;
 				Height = height;
 
-				platform.ResizeAndClear(width, height, filter, wrapX, wrapY);
+				ResizeAndClearInternal(width, height);
 			}
 			return .Ok;
 		}
@@ -108,7 +96,7 @@ namespace Pile
 			if (sizeof(T) * buffer.Length * sizeof(T) < (.)Size)
 				LogErrorReturn!("Buffer is smaller than the Size of the Texture");
 
-			platform.SetData(&buffer[0]);
+			SetData(&buffer[0]);
 			return .Ok;
 		}
 
@@ -118,8 +106,15 @@ namespace Pile
 			if (sizeof(T) * buffer.Length * sizeof(T) < (.)Size)
 				LogErrorReturn!("Buffer is smaller than the Size of the Texture");
 
-			platform.GetData(&buffer[0]);
+			GetData(&buffer[0]);
 			return .Ok;
 		}
+
+		protected internal extern void Initialize();
+		protected internal extern void ResizeAndClearInternal(uint32 width, uint32 height);
+		protected internal extern void SetFilter(TextureFilter filter);
+		protected internal extern void SetWrap(TextureWrap x, TextureWrap y);
+		protected internal extern void SetData(void* buffer);
+		protected internal extern void GetData(void* buffer);
 	}
 }

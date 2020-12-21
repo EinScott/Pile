@@ -5,17 +5,8 @@ using internal Pile;
 
 namespace Pile
 {
-	public class  Mesh
+	public class Mesh
 	{
-		protected internal abstract class Platform
-		{
-			protected internal abstract void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
-			protected internal abstract void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
-			protected internal abstract void SetIndices(Span<uint8> rawIndexData);
-		}
-
-		internal readonly Platform platform ~ delete _;
-
 		public uint VertexCount { get; private set; }
 		public uint InstanceCount { get; private set; }
 		public uint IndexCount { get; private set; }
@@ -28,7 +19,7 @@ namespace Pile
 		{
 			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
 
-			platform = Core.Graphics.CreateMesh();
+			Initialize();
 		}
 
 		public void SetVertices<T>(Span<T> vertices, VertexFormat format) where T : struct
@@ -39,7 +30,7 @@ namespace Pile
 			VertexCount = (.)vertices.Length;
 
 			var _vertices = vertices.ToRawData();
-			platform.SetVertices(_vertices, format);
+			SetVertices(_vertices, format);
 		}
 
 		public void SetInstances<T>(Span<T> vertices, VertexFormat format) where T : struct
@@ -50,7 +41,7 @@ namespace Pile
 			VertexCount = (.)vertices.Length;
 
 			var _vertices = vertices.ToRawData();
-			platform.SetInstances(_vertices, format);
+			SetInstances(_vertices, format);
 		}
 
 		public void SetIndices<T>(Span<T> indices) where T : IInteger, IUnsigned, struct
@@ -68,7 +59,12 @@ namespace Pile
 			IndexCount = (uint)indices.Length;
 
 			var _indices = indices.ToRawData();
-			platform.SetIndices(_indices);
+			SetIndices(_indices);
 		}
+
+		protected internal extern void Initialize();
+		protected internal extern void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
+		protected internal extern void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
+		protected internal extern void SetIndices(Span<uint8> rawIndexData);
 	}
 }

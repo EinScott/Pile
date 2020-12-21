@@ -2,9 +2,9 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Mesh : Mesh.Platform
+	extension Mesh
 	{
 		[SkipCall]
 		protected internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format) {}

@@ -3,19 +3,20 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class GL_Shader : Shader.Platform
+	extension Shader
 	{
 		uint32 programID;
 
-		readonly GL_Graphics graphics;
+		protected internal override void Initialize(ShaderData source)
+		{
+			Compile(source);
+		}
 
-		internal this(GL_Graphics graphics, ShaderData source)
+		protected internal override void Compile(ShaderData source)
 		{
 			Runtime.Assert( source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
-
-			this.graphics = graphics;
 
 			programID = (uint32)GL.glCreateProgram();
 
@@ -29,15 +30,21 @@ namespace Pile.Implementations
 
 			// Error
 			{
-				int32 len = 0;
-				GL.glGetProgramiv(programID, GL.GL_INFO_LOG_LENGTH, &len);
+				int32 linked = GL.GL_FALSE;
+				GL.glGetProgramiv(programID, GL.GL_LINK_STATUS, &linked);
 
-				if (len > 0)
+				if (linked == GL.GL_FALSE)
 				{
-					var s = new char8[len];
+					int32 len = 0;
+					GL.glGetProgramiv(programID, GL.GL_INFO_LOG_LENGTH, &len);
 
-					GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
-					Runtime.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
+					if (len > 0)
+					{
+						var s = new char8[len];
+
+						GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
+						Runtime.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
+					}
 				}
 			}
 
@@ -68,15 +75,15 @@ namespace Pile.Implementations
 
 					int location = GL.glGetAttribLocation(programID, string.CStr());
 					if (location >= 0)
-						Attributes.Add(new ShaderAttribute(string, (uint)location));
-	
+						attributes.Add(new ShaderAttribute(string, (uint)location));
+
 					string.Clear();
 
 					// Clear buf
 					for (int j = 0; j < cBuf.Count; j++)
 						cBuf[j] = 0;
 				}
-	
+
 				// Get uniforms
 				GL.glGetProgramiv(programID, GL.GL_ACTIVE_UNIFORMS, &count);
 				for (int i = 0; i < count; i++)
@@ -91,7 +98,7 @@ namespace Pile.Implementations
 					{
 						if (length > 1 && string.EndsWith("[0]"))
 							string.RemoveFromEnd(3);
-						Uniforms.Add(new ShaderUniform(string, location, length, GlTypeToEnum(type)));
+						uniforms.Add(new ShaderUniform(string, location, length, GlTypeToEnum(type)));
 					}
 
 					string.Clear();
@@ -138,10 +145,10 @@ namespace Pile.Implementations
 						int32 len = 0;
 						GL.glGetShaderiv(id, GL.GL_INFO_LOG_LENGTH, &len);
 						var s = new char8[len];
-	
+
 						GL.glGetShaderInfoLog(id, len, &len, &s[0]);
 
- 						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(&s[0], len)));
+						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(&s[0], len)));
 					}
 				}
 
@@ -166,11 +173,11 @@ namespace Pile.Implementations
 		{
 			if (programID != 0)
 			{
-				graphics.programsToDelete.Add(programID);
+				Core.Graphics.programsToDelete.Add(programID);
 			}
 		}
 
-		public void Use(Material material)
+		internal void Use(Material material)
 		{
 			GL.glUseProgram(programID);
 
@@ -193,7 +200,7 @@ namespace Pile.Implementations
 						let textures = (parameter.Value as Texture[]);
 						for (int j = 0; j < uniform.Length; j++)
 						{
-						    let id = (textures[j]?.platform as GL_Texture)?.textureID ?? 0;
+						    let id = textures[j]?.textureID ?? 0;
 
 						    GL.glActiveTexture(GL.GL_TEXTURE0 + (uint)textureSlot);
 						    GL.glBindTexture(GL.GL_TEXTURE_2D, id);

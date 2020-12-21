@@ -3,26 +3,20 @@ using OpenGL43;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class GL_Texture : Texture.Platform
+	extension Texture
 	{
 		internal uint32 textureID;
 
-		readonly GL_Graphics graphics;
 		internal bool isFrameBuffer;
 
 		uint glInternalFormat;
 		uint glFormat;
 		uint glType;
 
-		uint32 currWidth;
-		uint32 currHeight;
-
-		internal this(GL_Graphics graphics, uint32 width, uint32 height, TextureFormat format)
+		protected internal override void Initialize()
 		{
-			this.graphics = graphics;
-
 			switch (format)
 			{
 			case .R: glInternalFormat = glFormat = GL.GL_RED;
@@ -41,7 +35,7 @@ namespace Pile.Implementations
 			}
 
 			// GL create texture
-			Create(width, height, Texture.DefaultTextureFilter, default, default); // Defaults for values we dont know/can be set yet
+			Create(Width, Height, filter, wrapX, wrapY);
 		}
 
 		public ~this()
@@ -53,16 +47,13 @@ namespace Pile.Implementations
 		{
 			if (textureID != 0)
 			{
-				graphics.texturesToDelete.Add(textureID);
+				Core.Graphics.texturesToDelete.Add(textureID);
 				textureID = 0;
 			}
 		}
 
 		private void Create(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
 		{
-			currWidth = width;
-			currHeight = height;
-
 			GL.glGenTextures(1, &textureID);
 			Prepare();
 
@@ -85,7 +76,7 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
 		}
 
-		protected internal override void ResizeAndClear(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
+		protected internal override void ResizeAndClearInternal(uint32 width, uint32 height)
 		{
 			Delete();
 			Create(width, height, filter, wrapX, wrapY);
@@ -116,7 +107,7 @@ namespace Pile.Implementations
 		protected internal override void SetData(void* buffer)
 		{
 			Prepare();
-			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, currWidth, currHeight, 0, glFormat, glType, buffer);
+			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, Width, Height, 0, glFormat, glType, buffer);
 
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
@@ -129,6 +120,6 @@ namespace Pile.Implementations
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
-		protected internal override bool IsFrameBuffer() => isFrameBuffer;
+		public override bool IsFrameBuffer => isFrameBuffer;
 	}
 }

@@ -1,6 +1,15 @@
+using System;
+
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Shader : Shader.Platform {}
+	extension Shader
+	{
+		[SkipCall]
+		protected internal override void Initialize(ShaderData source) {}
+
+		[SkipCall]
+		protected internal override void Compile(ShaderData source) {}
+	}
 }

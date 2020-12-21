@@ -3,9 +3,9 @@ using OpenGL43;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class GL_Mesh : Mesh.Platform
+	extension Mesh
 	{
 		uint32 vertexArrayID;
 
@@ -24,11 +24,9 @@ namespace Pile.Implementations
 		Shader lastShader;
 		bool bound;
 
-		readonly GL_Graphics graphics;
-
-		internal this(GL_Graphics graphics)
+		protected internal override void Initialize()
 		{
-			this.graphics = graphics;
+
 		}
 
 		public ~this()
@@ -38,11 +36,11 @@ namespace Pile.Implementations
 
 		void Delete()
 		{
-			if (vertexArrayID > 0) graphics.vertexArraysToDelete.Add(vertexArrayID);
+			if (vertexArrayID > 0) Core.Graphics.vertexArraysToDelete.Add(vertexArrayID);
 
-			if (vertexBufferID > 0) graphics.buffersToDelete.Add(vertexBufferID);
-			if (instanceBufferID > 0) graphics.buffersToDelete.Add(instanceBufferID);
-			if (indexBufferID > 0) graphics.buffersToDelete.Add(indexBufferID);
+			if (vertexBufferID > 0) Core.Graphics.buffersToDelete.Add(vertexBufferID);
+			if (instanceBufferID > 0) Core.Graphics.buffersToDelete.Add(instanceBufferID);
+			if (indexBufferID > 0) Core.Graphics.buffersToDelete.Add(indexBufferID);
 
 			vertexArrayID = 0;
 

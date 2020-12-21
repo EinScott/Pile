@@ -73,10 +73,9 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void> Run(Graphics graphics, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
+		public static Result<void> Run(uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(graphics != null, "Core modules cannot be null");
 			Debug.Assert(game != null, "Game cannot be null");
 
 			run = true;
@@ -87,7 +86,7 @@ namespace Pile
 			var w = scope Stopwatch(true);
 			Title.Set(gameTitle);
 			System = new System();
-			Graphics = graphics;
+			Graphics = new Graphics();
 			Audio = new Audio();
 
 			// Print platform

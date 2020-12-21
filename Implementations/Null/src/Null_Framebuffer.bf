@@ -2,11 +2,11 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class Null_Framebuffer : FrameBuffer.Platform
+	extension FrameBuffer
 	{
 		[SkipCall]
-		protected internal override void ResizeAndClear(uint32 width, uint32 height) {}
+		protected internal override void ResizeAndClearInternal(uint32 width, uint32 height) {}
 	}
 }

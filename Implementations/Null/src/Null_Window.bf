@@ -56,7 +56,7 @@ namespace Pile
 		protected internal override void Present() {}
 
 		[SkipCall]
-		protected internal override void Initialize(StringView name, uint width, uint height)
+		protected internal override void Initialize(StringView name, uint32 width, uint32 height)
 		{
 			title.Set(name);
 			Size = UPoint2(width, height);

@@ -2,11 +2,16 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class BGFX_Shader : Shader.Platform
+	extension Shader
 	{
-		internal this(BGFX_Graphics graphics, ShaderData source)
+		protected internal override void Initialize(ShaderData source)
+		{
+
+		}
+
+		protected internal override void Compile(ShaderData source)
 		{
 
 		}
