@@ -45,7 +45,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		protected extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
+		protected internal extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
 		public Result<void> Render(ref RenderPass pass)
 		{
@@ -75,6 +75,6 @@ namespace Pile
 			return .Ok;
 		}
 
-		protected extern void RenderInternal(ref RenderPass pass);
+		protected internal extern void RenderInternal(ref RenderPass pass);
 	}
 }

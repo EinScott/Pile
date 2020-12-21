@@ -113,7 +113,6 @@ namespace Pile
 			RunDeleteLists();
 		}
 
-		[DisableChecks]
 		void RunDeleteLists()
 		{
 			DeleteResources(deleteTexture, texturesToDelete);
@@ -123,8 +122,6 @@ namespace Pile
 			DeleteResources(deleteFrameBuffer, frameBuffersToDelete);
 		}
 
-		[DisableChecks]
-		[DisableObjectAccessChecks]
 		private void DeleteResources(DeleteResource deleter, List<uint32> list)
 		{
 			if (list.Count > 0)
@@ -140,9 +137,7 @@ namespace Pile
 			GL.glFlush();
 		}
 
-		[DisableChecks]
-		[DisableObjectAccessChecks]
-		protected override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			if (target is Window)
 			{
@@ -203,9 +198,7 @@ namespace Pile
 			GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 		}
 
-		[DisableChecks]
-		[DisableObjectAccessChecks]
-		protected override void RenderInternal(ref RenderPass pass)
+		protected internal override void RenderInternal(ref RenderPass pass)
 		{
 			// Get last state
 			RenderPass lastPass;

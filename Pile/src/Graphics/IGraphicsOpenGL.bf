@@ -10,6 +10,6 @@ namespace Pile
 			ES = 0x0004
 		}
 
-		public abstract GLProfile Profile { get; }
+		public GLProfile Profile { get; }
 	}
 }
