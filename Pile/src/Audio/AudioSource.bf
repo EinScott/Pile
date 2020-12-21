@@ -7,30 +7,7 @@ namespace Pile
 {
 	public class AudioSource
 	{
-		// Can play multiple sounds at once
-
-		protected internal abstract class Platform
-		{
-			protected internal abstract bool Playing { get; }
-
-			protected internal abstract void Initialize(AudioSource source);
-			protected internal abstract void SetVolume(float volume);
-			protected internal abstract void SetPan(float pan);
-			protected internal abstract void SetSpeed(float speed);
-			protected internal abstract void SetLooping(bool looping);
-			protected internal abstract void SetPaused(bool paused);
-
-			// TODO: fading
-
-			// TODO: 3d audio stuff -- somwhow integrate propertly, do just something like "bool spacial"?, how do we change/get position/space (do we need something audioListener?)
-
-			protected internal abstract void Play(AudioClip clip);
-
-			protected internal abstract void Stop();
-		}
-
-		internal readonly Platform platform ~ delete _;
-		internal MixingBus output;
+		internal AudioBus output;
 
 		float volume = 1;
 		float pan;
@@ -44,7 +21,7 @@ namespace Pile
 		public bool StopOnDelete { get; private set; }
 
 		/// Returns Audio.MasterBus by default. Won't be null
-		public readonly MixingBus Output => output;
+		public readonly AudioBus Output => output;
 
 		public float Volume
 		{
@@ -53,7 +30,7 @@ namespace Pile
 			{
 				if (value == volume) return;
 
-				platform.SetVolume(Math.Max(0, value));
+				SetVolume(Math.Max(0, value));
 				volume = value;
 			}
 		}
@@ -65,7 +42,7 @@ namespace Pile
 			{
 				if (value == pan) return;
 
-				platform.SetPan(Math.Max(-1, Math.Min(1, value)));
+				SetPan(Math.Max(-1, Math.Min(1, value)));
 				pan = value;
 			}
 		}
@@ -77,7 +54,7 @@ namespace Pile
 			{
 				if (value == speed) return;
 
-				platform.SetSpeed(Math.Max(float.Epsilon, speed));
+				SetSpeed(Math.Max(float.Epsilon, speed));
 				speed = value;
 			}
 		}
@@ -89,7 +66,7 @@ namespace Pile
 			{
 				if (value == looping) return;
 
-				platform.SetLooping(value);
+				SetLooping(value);
 				looping = value;
 			}
 		}
@@ -101,43 +78,52 @@ namespace Pile
 			{
 				if (value == paused) return;
 
-				platform.SetPaused(value);
+				SetPaused(value);
 				paused = value;
 			}
 		}
 
-		public bool Playing => platform.Playing;
+		public extern bool Playing { get; }
 
 		public this(MixingBus output = null, bool prioritized = false, bool stopOnDelete = true, bool stopInaudible = false)
 		{
-			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependant objects");
+			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependent objects");
 
 			Prioritized = prioritized;
 			StopOnDelete = stopOnDelete;
 			StopInaudible = stopInaudible;
 
-			platform = Core.Audio.CreateAudioSource();
-			platform.Initialize(this);
+			Initialize();
 
-			this.output = output??Core.Audio.MasterBus;
-			Output.platform.AddSource(this);
+			this.output = output == null ? output : Core.Audio.MasterBus;
+			Output.AddSource(this);
 		}
 
 		public ~this()
 		{
-			Output.platform.RemoveSource(this);
+			Output.RemoveSource(this);
 		}
 
 		public void Play(AudioClip clip)
 		{
 			Debug.Assert(clip != null, "AudioClip was null");
 
-			platform.Play(clip);
+			PlayInternal(clip);
 		}
 
-		public void Stop()
-		{
-			platform.Stop();
-		}
+		public extern void Stop();
+
+		protected internal extern void Initialize();
+		protected internal extern void SetVolume(float volume);
+		protected internal extern void SetPan(float pan);
+		protected internal extern void SetSpeed(float speed);
+		protected internal extern void SetLooping(bool looping);
+		protected internal extern void SetPaused(bool paused);
+
+		// TODO: fading
+
+		// TODO: 3d audio stuff -- somwhow integrate propertly, do just something like "bool spacial"?, how do we change/get position/space (do we need something audioListener?)
+
+		protected internal extern void PlayInternal(AudioClip clip);
 	}
 }

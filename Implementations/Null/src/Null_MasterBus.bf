@@ -4,7 +4,7 @@ using internal Pile;
 
 namespace Pile
 {
-	extension MixingBus
+	extension MasterBus
 	{
 		[SkipCall]
 		protected internal override void Initialize() {}
@@ -23,8 +23,5 @@ namespace Pile
 
 		[SkipCall]
 		protected internal override void RemoveSource(AudioSource source) {}
-
-		[SkipCall]
-		protected internal override void RedirectInputsToMaster() {}
 	}
 }

@@ -2,9 +2,9 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class Null_AudioClip : AudioClip.Platform
+	extension AudioClip
 	{
 		[SkipCall]
 		protected internal override void Initialize(Span<uint8> data) {}

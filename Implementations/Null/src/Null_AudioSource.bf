@@ -2,14 +2,14 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class Null_AudioSource : AudioSource.Platform
+	extension AudioSource
 	{
-		protected internal override bool Playing => false;
+		public override bool Playing => false;
 
 		[SkipCall]
-		protected internal override void Initialize(AudioSource source) {}
+		protected internal override void Initialize() {}
 
 		[SkipCall]
 		protected internal override void SetVolume(float volume) {}
@@ -27,9 +27,9 @@ namespace Pile.Implementations
 		protected internal override void SetPaused(bool paused) {}
 
 		[SkipCall]
-		protected internal override void Play(AudioClip clip) {}
+		protected internal override void PlayInternal(AudioClip clip) {}
 
 		[SkipCall]
-		protected internal override void Stop() {}
+		public override void Stop() {}
 	}
 }

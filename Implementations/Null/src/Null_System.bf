@@ -11,16 +11,6 @@ namespace Pile
 		public override String ApiName => "Null System";
 		public override String Info => String.Empty;
 
-		protected internal override Input CreateInput()
-		{
-			return new Input();
-		}
-
-		protected internal override Window CreateWindow(uint32 width, uint32 height)
-		{
-			return new Window(width, height);
-		}
-
 		[SkipCall]
 		protected internal override void Initialize() {}
 

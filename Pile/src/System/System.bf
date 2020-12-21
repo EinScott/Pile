@@ -65,9 +65,6 @@ namespace Pile
 				Directory.CreateDirectory(userDir);
 		}
 
-		protected internal extern Input CreateInput();
-		protected internal extern Window CreateWindow(uint32 width, uint32 height);
-
 		protected internal extern void Initialize();
 		protected internal extern void Step();
 		protected internal extern void* GetNativeWindowHandle();

@@ -4,73 +4,57 @@ using SoLoud;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class SL_MixingBus : MixingBus.Platform
+	extension MixingBus
 	{
-		protected internal override bool IsMasterBus => false;
-
-		readonly SL_Audio audio;
-
-		internal uint32 busHandle; // external only. Is set when this is played on SoLoud or another Bus, used again when removing
-		internal Bus* bus;
+		internal uint32 slBusHandle; // external only. Is set when this is played on SoLoud or another Bus, used again when removing
+		internal Bus* slBus;
 
 		List<MixingBus> busInputs = new List<MixingBus>() ~ delete _;
 		List<AudioSource> sourceInputs = new List<AudioSource>() ~ delete _;
-		MixingBus api;
-
-		internal this(SL_Audio audio)
-		{
-			this.audio = audio;
-
-			bus = SL_Bus.Create();
-
-			Debug.Assert(bus != null, "Failed to create SL_MixingBus (Bus)");
-		}
 
 		public ~this()
 		{
-			SL_Bus.Destroy(bus);
+			SL_Bus.Destroy(slBus);
 		}
 
-		protected internal override void Initialize(MixingBus mixingBus)
+		protected internal override void Initialize()
 		{
-			api = mixingBus;
+			slBus = SL_Bus.Create();
+
+			Debug.Assert(slBus != null, "Failed to create SL_MixingBus (Bus)");
 		}
 
 		protected internal override void SetVolume(float volume)
 		{
-			SL_Bus.SetVolume(bus, volume);
+			SL_Bus.SetVolume(slBus, volume);
 		}
 
 		protected internal override void AddBus(MixingBus mixingBus)
 		{
-			let slBus = (mixingBus.platform as SL_MixingBus);
-			slBus.busHandle = SL_Bus.Play(bus, slBus.bus);
+			mixingBus.slBusHandle = SL_Bus.Play(slBus, mixingBus.slBus);
 
 			busInputs.Add(mixingBus);
 		}
 
 		protected internal override void RemoveBus(MixingBus mixingBus)
 		{
-			let slBus = (mixingBus.platform as SL_MixingBus);
-			SL_Soloud.Stop(audio.slPtr, slBus.busHandle);
+			SL_Soloud.Stop(Core.Audio.slPtr, mixingBus.slBusHandle);
 
 			busInputs.Remove(mixingBus);
 		}
 
 		protected internal override void AddSource(AudioSource source)
 		{
-			let slSource = (source.platform as SL_AudioSource);
-			slSource.busHandle = SL_Bus.Play(bus, slSource.bus);
+			source.slBusHandle = SL_Bus.Play(slBus, source.slBus);
 
 			sourceInputs.Add(source);
 		}
 
 		protected internal override void RemoveSource(AudioSource source)
 		{
-			let slSource = (source.platform as SL_AudioSource);
-			SL_Soloud.Stop(audio.slPtr, slSource.busHandle);
+			SL_Soloud.Stop(Core.Audio.slPtr, source.slBusHandle);
 
 			sourceInputs.Remove(source);
 		}
@@ -80,24 +64,22 @@ namespace Pile.Implementations
 			for (let mixingBus in busInputs)
 			{
 				// Stop voice
-				let slBus = (mixingBus.platform as SL_MixingBus);
-				SL_Soloud.Stop(audio.slPtr, slBus.busHandle);
+				SL_Soloud.Stop(Core.Audio.slPtr, mixingBus.slBusHandle);
 
 				// Replay
 				mixingBus.output = Core.Audio.MasterBus;
-				Core.Audio.MasterBus.platform.AddBus(mixingBus);
+				Core.Audio.MasterBus.AddBus(mixingBus);
 			}
 			busInputs.Clear();
 
-			for (let mixingBus in sourceInputs)
+			for (let audioSource in sourceInputs)
 			{
 				// Stop voice
-				let slBus = (mixingBus.platform as SL_AudioSource);
-				SL_Soloud.Stop(audio.slPtr, slBus.busHandle);
+				SL_Soloud.Stop(Core.Audio.slPtr, audioSource.slBusHandle);
 
 				// Replay
-				mixingBus.output = Core.Audio.MasterBus;
-				Core.Audio.MasterBus.platform.AddSource(mixingBus);
+				audioSource.output = Core.Audio.MasterBus;
+				Core.Audio.MasterBus.AddSource(audioSource);
 			}
 			busInputs.Clear();
 		}

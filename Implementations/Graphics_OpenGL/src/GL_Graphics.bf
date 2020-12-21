@@ -66,9 +66,9 @@ namespace Pile.Implementations
 			delete deleteFrameBuffer;
 		}
 
-		protected internal override Result<void> Initialize()
+		protected internal override void Initialize()
 		{
-			if (!(Core.System is ISystemOpenGL)) LogErrorReturn!("System must support openGL");
+			if (!(Core.System is ISystemOpenGL)) Runtime.FatalError("System must support openGL");
 			system = Core.System as ISystemOpenGL;
 
 			// Config gl on system
@@ -87,8 +87,6 @@ namespace Pile.Implementations
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
 
 			OriginBottomLeft = true;
-
-			return .Ok;
 		}
 
 		DebugDrawMode mode;

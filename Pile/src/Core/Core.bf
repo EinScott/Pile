@@ -73,10 +73,10 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void> Run(Graphics graphics, Audio audio, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
+		public static Result<void> Run(Graphics graphics, uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(graphics != null && audio != null, "Core modules cannot be null");
+			Debug.Assert(graphics != null, "Core modules cannot be null");
 			Debug.Assert(game != null, "Game cannot be null");
 
 			run = true;
@@ -88,7 +88,7 @@ namespace Pile
 			Title.Set(gameTitle);
 			System = new System();
 			Graphics = graphics;
-			Audio = audio;
+			Audio = new Audio();
 
 			// Print platform
 			{
@@ -101,13 +101,14 @@ namespace Pile
 			// System init
 			{
 				System.Initialize();
-				Log.Message(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
 				
-				Window = System.CreateWindow(windowWidth, windowHeight);
-				Input = System.CreateInput();
 				System.DetermineDataPaths(Title);
-
 				Directory.SetCurrentDirectory(System.DataPath);
+
+				Window = new Window(gameTitle, windowWidth, windowHeight);
+				Input = new Input();
+
+				Log.Message(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
 			}
 
 			// Graphics init

@@ -20,7 +20,7 @@ namespace Pile.Implementations
 		}
 
 		[SkipCall]
-		protected internal override Result<void> Initialize() => .Ok;
+		protected internal override void Initialize() {}
 
 		[SkipCall]
 		protected internal override void Step() {}

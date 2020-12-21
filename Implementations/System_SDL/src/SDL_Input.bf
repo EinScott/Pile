@@ -6,18 +6,18 @@ using internal Pile;
 
 namespace Pile
 {
-	public extension Input
+	extension Input
 	{
 		SDL.SDL_Cursor*[] sdlCursors;
 		SDL.SDL_Joystick*[] sdlJoysticks;
 		SDL.SDL_GameController*[] sdlGamepads;
 
-		this
+		protected internal override void Initialize()
 		{
 			sdlCursors = new SDL.SDL_Cursor*[(int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL];
 			sdlJoysticks = new SDL.SDL_Joystick*[maxControllers];
 			sdlGamepads = new SDL.SDL_GameController*[maxControllers];
-		}	
+		}
 
 		internal ~this()
 		{

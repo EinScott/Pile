@@ -7,19 +7,13 @@ namespace Pile
 {
 	public class AudioClip
 	{
-		protected internal abstract class Platform
-		{
-			protected internal abstract void Initialize(Span<uint8> data);
-		}
-
-		internal readonly Platform platform ~ delete _;
-
 		public this(Span<uint8> data)
 		{
-			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependant objects");
+			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependent objects");
 
-			platform = Core.Audio.CreateAudioClip();
-			platform.Initialize(data);
+			Initialize(data);
 		}
+
+		protected internal extern void Initialize(Span<uint8> data);
 	}
 }

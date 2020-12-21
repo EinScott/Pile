@@ -40,7 +40,7 @@ namespace Pile.Implementations
 			set => mode = value;
 		}
 
-		protected internal override Result<void> Initialize()
+		protected internal override void Initialize()
 		{
 			Core.Window.OnResized.Add(new => Resized);
 
@@ -63,7 +63,6 @@ namespace Pile.Implementations
 			init.limits.transientIbSize = 2097152;
 
 			bgfx.init(&init);
-			return .Ok;
 		}
 
 		void Resized()

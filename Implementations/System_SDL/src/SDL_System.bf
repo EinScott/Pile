@@ -6,7 +6,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public extension System : ISystemOpenGL
+	extension System : ISystemOpenGL
 	{
 		uint32 majVer;
 		uint32 minVer;
@@ -28,16 +28,6 @@ namespace Pile
 		this
 		{
 			SDL_Init.InitFlags |= .Video | .Joystick | .GameController | .Events;
-		}
-
-		protected internal override Input CreateInput()
-		{
-			return new .();
-		}
-
-		protected internal override Window CreateWindow(uint32 width, uint32 height)
-		{
-			return new .(Core.Title, width, height);
 		}
 
 		protected internal override void Initialize()

@@ -21,7 +21,7 @@ namespace Pile
 		internal this() {}
 		internal ~this() {}
 
-		protected internal abstract Result<void> Initialize();
+		protected internal abstract void Initialize();
 		protected internal abstract void Step();
 		protected internal abstract void AfterRender();
 

@@ -26,7 +26,7 @@ namespace Pile
 
 		public this()
 		{
-			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependant objects");
+			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
 
 			platform = Core.Graphics.CreateMesh();
 		}

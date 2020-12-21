@@ -13,12 +13,12 @@ namespace Pile
 
 		internal SDL_Context context = null;
 
-		internal this(String title, uint32 width, uint32 height)
+		protected internal override void Initialize(StringView name, uint width, uint height)
 		{
 			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
 			if (Core.System.glGraphics) flags |= .OpenGL;
 
-			window = SDL.CreateWindow(title, .Centered, .Centered, (.)width, (.)height, flags);
+			window = SDL.CreateWindow(scope String(name).CStr(), .Centered, .Centered, (.)width, (.)height, flags);
 			windowID = SDL.GetWindowID(window);
 
 			// Set current values
@@ -27,6 +27,7 @@ namespace Pile
 
 			size = .(width, height);
 
+			// Create graphics context
 			if (Core.System.glGraphics)
 			{
 				context = new SDL_Context(this);

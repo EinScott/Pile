@@ -4,21 +4,14 @@ using SoLoud;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	public class SL_AudioClip : AudioClip.Platform
+	extension AudioClip
 	{
 		// equivalent to solouds audioSource
 		// we dont change any settings on this directly
 
 		internal Wav* audio;
-
-		internal this()
-		{
-			audio = SL_Wav.Create();
-
-			Runtime.Assert(audio != null, "Failed to create SL_AudioClip (Wav)");
-		}
 
 		public ~this()
 		{
@@ -27,6 +20,10 @@ namespace Pile.Implementations
 
 		protected internal override void Initialize(Span<uint8> data)
 		{
+			audio = SL_Wav.Create();
+
+			Runtime.Assert(audio != null, "Failed to create SL_AudioClip (Wav)");
+
 			SL_Wav.LoadMem(audio, data.Ptr, (.)data.Length, SL_TRUE, SL_TRUE);
 		}
 	}

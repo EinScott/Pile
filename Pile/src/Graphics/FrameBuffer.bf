@@ -29,7 +29,7 @@ namespace Pile
 
 		public this(uint32 width, uint32 height, params TextureFormat[] attachments)
 		{
-			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependant objects");
+			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
 
 			Debug.Assert(width > 0 || height > 0, "FrameBuffer size must be larger than 0");
 			Debug.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");

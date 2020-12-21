@@ -5,6 +5,9 @@ namespace Pile
 	public extension Input
 	{
 		[SkipCall]
+		protected internal override void Initialize() {}
+
+		[SkipCall]
 		public override void SetMouseCursor(Cursors cursor) {}
 
 		[SkipCall]

@@ -2,9 +2,9 @@ using System;
 
 using internal Pile;
 
-namespace Pile.Implementations
+namespace Pile
 {
-	class Null_Audio : Audio
+	extension Audio
 	{
 		public override uint32 MajorVersion => 1;
 		public override uint32 MinorVersion => 0;
@@ -13,26 +13,16 @@ namespace Pile.Implementations
 
 		public override String Info => String.Empty;
 
-		bool createMaster = true;
-		MixingBus masterBus ~ delete _;
-		public override MixingBus MasterBus => masterBus;
+		MasterBus masterBus ~ delete _;
+		public override MasterBus MasterBus => masterBus;
 
 		public override uint SoundCount => 0;
 
 		public override uint AudibleSoundCount => 0;
 
-		protected internal override Result<void> Initialize()
+		protected internal override void Initialize()
 		{
-			masterBus = new MixingBus();
-			createMaster = false;
-
-			return .Ok;
+			masterBus = new MasterBus();
 		}
-
-		protected internal override AudioSource.Platform CreateAudioSource() => new Null_AudioSource();
-
-		protected internal override AudioClip.Platform CreateAudioClip() => new Null_AudioClip();
-
-		protected internal override MixingBus.Platform CreateMixingBus() => new Null_MixingBus(createMaster);
 	}
 }

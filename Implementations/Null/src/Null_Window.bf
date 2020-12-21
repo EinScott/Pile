@@ -6,12 +6,6 @@ namespace Pile
 	{
 		String title = new String() ~ delete _;
 
-		internal this(uint32 width, uint32 height) : [NoExtension]this()
-		{
-			Size = UPoint2(width, height);
-			Visible = true;
-		}
-
 		public override UPoint2 RenderSize => Size;
 
 		public override void SetTitle(StringView title)
@@ -60,5 +54,13 @@ namespace Pile
 
 		[SkipCall]
 		protected internal override void Present() {}
+
+		[SkipCall]
+		protected internal override void Initialize(StringView name, uint width, uint height)
+		{
+			title.Set(name);
+			Size = UPoint2(width, height);
+			Visible = true;
+		}
 	}
 }

@@ -29,7 +29,11 @@ namespace Pile
 
 			if (maxControllers < 0) this.maxControllers = 0;
 			else this.maxControllers = (uint)maxControllers;
+
+			Initialize();
 		}
+
+		protected internal extern void Initialize();
 
 		internal ~this()
 		{
