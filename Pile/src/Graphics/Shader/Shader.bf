@@ -11,8 +11,8 @@ namespace Pile
 		readonly List<ShaderAttribute> attributes = new List<ShaderAttribute>() ~ DeleteContainerAndItems!(_);
 		readonly List<ShaderUniform> uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);
 
-		public readonly ReadOnlySpan<ShaderAttribute> Attributes;
-		public readonly ReadOnlySpan<ShaderUniform> Uniforms;
+		public readonly ReadOnlyList<ShaderAttribute> Attributes;
+		public readonly ReadOnlyList<ShaderUniform> Uniforms;
 
 		public this(ShaderData source)
 		{
@@ -20,8 +20,8 @@ namespace Pile
 
 			Initialize(source);
 
-			Attributes = attributes;
-			Uniforms = uniforms;
+			Attributes = ReadOnlyList<ShaderAttribute>(attributes);
+			Uniforms = ReadOnlyList<ShaderUniform>(uniforms);
 		}
 
 		protected internal extern void Initialize(ShaderData source);
