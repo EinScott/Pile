@@ -8,8 +8,8 @@ namespace Pile
 {
 	extension Graphics : IGraphicsOpenGL
 	{
-		const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
-					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;
+		/*const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
+					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;*/
 
 		public override String ApiName => "OpenGL Core";
 		String info = new String() ~ delete _;
@@ -18,7 +18,7 @@ namespace Pile
 			get => info;
 		}
 		public IGraphicsOpenGL.GLProfile Profile => IGraphicsOpenGL.GLProfile.Core;
-		uint32 majorVersion, minorVersion;
+		uint32 majorVersion = 3, minorVersion = 3;
 		public override uint32 MajorVersion => majorVersion;
 		public override uint32 MinorVersion => minorVersion;
 
@@ -46,11 +46,16 @@ namespace Pile
 		internal List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
 		internal List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
-		public this(uint32 majorVersion = 3, uint32 minorVersion = 3)
+		/*this
 		{
 			// Keep version within the supported spectrum
 			this.majorVersion = Math.Min(MAX_VERSION_MAJOR, Math.Max(MIN_VERSION_MAJOR, majorVersion));
 			this.minorVersion = majorVersion == 3 ? VERSION_3_MINOR : Math.Min(MAX_VERSION_MINOR, Math.Max(MIN_VERSION_MINOR, minorVersion));
+		}*/
+
+		this
+		{
+			OriginBottomLeft = true;
 		}
 
 		internal ~this()
@@ -85,8 +90,6 @@ namespace Pile
 
 			info.AppendF("device: {}, vendor: {}", StringView(GL.glGetString(GL.GL_RENDERER)), StringView(GL.glGetString(GL.GL_VENDOR)));
 			GL.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
-
-			OriginBottomLeft = true;
 		}
 
 		DebugDrawMode mode;
@@ -198,7 +201,7 @@ namespace Pile
 			GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 		}
 
-		protected internal override void RenderInternal(ref RenderPass pass)
+		protected internal override void RenderInternal(RenderPass pass)
 		{
 			// Get last state
 			RenderPass lastPass;

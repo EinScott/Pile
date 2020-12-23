@@ -47,8 +47,10 @@ namespace Pile
 
 		protected internal extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
-		public Result<void> Render(ref RenderPass pass)
+		public Result<void> Render(RenderPass pass)
 		{
+			var pass;
+
 			if (!pass.target.Renderable)
 				LogErrorReturn!("Render Target cannot currently be drawn to");
 
@@ -71,10 +73,10 @@ namespace Pile
 				pass.viewport = pass.viewport.Value.OverlapRect(bounds);
 			}
 
-			RenderInternal(ref pass);
+			RenderInternal(pass);
 			return .Ok;
 		}
 
-		protected internal extern void RenderInternal(ref RenderPass pass);
+		protected internal extern void RenderInternal(RenderPass pass);
 	}
 }

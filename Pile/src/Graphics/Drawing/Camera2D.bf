@@ -106,8 +106,8 @@ namespace Pile
 	        matrix = Matrix4x4.CreateOrthographicOffCenter(
 	            Left,
 	            Right,
-	            Top,
 	            Bottom,
+	            Top,
 	            0, float.MaxValue);
 	    }
 

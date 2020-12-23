@@ -7,7 +7,7 @@ namespace Pile
 {
 	public class Batch2D
 	{
-		// TODO: improve this at some point. not constantly pushing a new mesh onto the graphics card would probably be a good idea
+		// TODO: improve this at some point
 
 		public static readonly VertexFormat VertexFormat = new VertexFormat(
 			VertexAttribute("a_position", .Position, .Float, .Two, false),
@@ -16,7 +16,6 @@ namespace Pile
 			VertexAttribute("a_type", .TexCoord1, .Byte, .Three, true)) ~ delete _;
 
 		[Packed]
-		[Ordered]
 		[CRepr]
 		public struct Vertex
 		{
@@ -118,7 +117,7 @@ namespace Pile
 		public void Render(IRenderTarget target)
 		{
 			let size = target.RenderSize;
-			let matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.X, 0, size.Y, 0, 100);
+			let matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.X, size.Y, 0, 0, 100);
 			Render(target, matrix);
 		}
 
@@ -181,7 +180,7 @@ namespace Pile
 			pass.meshIndexStart = batch.offset * 3;
 			pass.meshIndexCount = batch.elements * 3;
 
-			Core.Graphics.Render(ref pass);
+			Core.Graphics.Render(pass);
 		}
 
 		// SET BATCH STATE

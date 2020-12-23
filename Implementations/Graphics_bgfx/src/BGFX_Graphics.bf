@@ -86,12 +86,12 @@ namespace Pile
 			bgfx.frame(false);
 		}
 
-		protected override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 
 		}
 
-		protected override void RenderInternal(ref RenderPass pass)
+		protected internal override void RenderInternal(RenderPass pass)
 		{
 
 		}

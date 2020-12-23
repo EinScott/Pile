@@ -29,10 +29,10 @@ namespace Pile
 		protected internal override void AfterRender() {}
 
 		[SkipCall]
-		protected override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
+		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
 
 		[SkipCall]
-		protected override void RenderInternal(ref RenderPass pass) {}
+		protected internal override void RenderInternal(RenderPass pass) {}
 
 		public IGraphicsOpenGL.GLProfile Profile
 		{

@@ -68,7 +68,7 @@ namespace Game
 			batch.Clear();
 
 			// Raw rect at position
-			batch.Rect(Rect(rectPos.Round() - relativeRect.Position, relativeRect.Size), .Red);
+			batch.Rect(Rect(rectPos.Round() + relativeRect.Position, relativeRect.Size), .Red);
 
 			// Render batch buffer
 			batch.Render(Core.Window);
