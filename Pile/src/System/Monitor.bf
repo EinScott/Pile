@@ -4,6 +4,9 @@ namespace Pile
 {
 	public class Monitor
 	{
+		internal this() {}
+		internal ~this() {}
+
 		public extern bool IsPrimary { get; }
 
 		public extern StringView Name { get; }

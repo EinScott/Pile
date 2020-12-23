@@ -55,6 +55,11 @@ namespace Pile
 				SDL.GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
 				glGraphics = true;
 			}
+
+			// Displays
+			let numDisplays = SDL.SDL_GetNumVideoDisplays();
+			for (int32 i = 0; i < numDisplays; i ++)
+			    monitors.Add(new Monitor(i));
 		}
 
 		protected internal override void Step()
