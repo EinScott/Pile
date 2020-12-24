@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Collections;
 
+using internal Pile;
+
 namespace Pile
 {
 	public class System
@@ -11,7 +13,7 @@ namespace Pile
 		public extern String ApiName { get; }
 		public extern String Info { get; }
 
-		internal List<Monitor> monitors ~ delete _; // Fill in Initialize()
+		internal List<Monitor> monitors ~ DeleteContainerAndItems!(_); // Fill in Initialize()
 		public readonly ReadOnlyList<Monitor> Monitors;
 
 		internal this()
