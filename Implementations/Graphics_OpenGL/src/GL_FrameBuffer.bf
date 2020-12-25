@@ -12,11 +12,11 @@ namespace Pile
 		protected internal override void Initialize(uint32 width, uint32 height, TextureFormat[] attachments)
 		{
 			Attachments.Count = attachments.Count;
-			for (int i = 0; i < Attachments.Count; i++)
+			for (int i = 0; i < attachments.Count; i++)
 			{
 				let attachment = new Texture(width, height, attachments[i]);
 				attachment.isFrameBuffer = true;
-				Attachments.Add(attachment);
+				Attachments[i] = attachment;
 			}
 		}
 
