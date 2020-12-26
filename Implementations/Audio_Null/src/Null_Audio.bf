@@ -20,9 +20,17 @@ namespace Pile
 
 		public override uint AudibleSoundCount => 0;
 
+		public override Vector3 SpacialListenerUp { get; set; }
+		public override Vector3 SpacialListenerPosition { get; set; }
+		public override Vector3 SpacialListenerFacing { get; set; }
+		public override Vector3 SpacialListenerVelocity { get; set; }
+		public override float SpacialSoundSpeed { get; set; }
+
 		protected internal override void Initialize()
 		{
 			masterBus = new MasterBus();
 		}
+
+		protected internal override void AfterUpdate() {}
 	}
 }

@@ -7,6 +7,9 @@ namespace Pile
 {
 	public class AudioSource
 	{
+		// @continue:
+		// have AudioSource as common base, then have globalSource and spacialSource to seperate 3d from 2d
+
 		internal AudioBus output;
 
 		float volume = 1;
@@ -17,7 +20,11 @@ namespace Pile
 
 		/// Prioritized sources will always play. Useful for stuff like global music
 		public bool Prioritized { get; private set; }
+
+		/// Stop sounds played on this when they are inaudible.
 		public bool StopInaudible { get; private set; }
+
+		/// Stop sounds played on this AudioSource when is is deleted.
 		public bool StopOnDelete { get; private set; }
 
 		/// Returns Audio.MasterBus by default. Won't be null
@@ -110,6 +117,9 @@ namespace Pile
 
 			PlayInternal(clip);
 		}
+
+		// @continue:
+		// PlayDelayed(float seconds) !!!!!
 
 		public extern void Stop();
 

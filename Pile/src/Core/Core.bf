@@ -179,6 +179,7 @@ namespace Pile
 					Game.[Friend]Step();
 					Game.[Friend]Update();
 				}
+				Audio.AfterUpdate();
 
 				// Render
 				if (!exiting && !Window.Closed)

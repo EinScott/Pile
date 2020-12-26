@@ -8,7 +8,7 @@ namespace Pile
 {
 	extension Audio
 	{
-		// TODO: support things like queue (not possible because queue is global), maybe voice and other sources [also 3d, filters and faders, see to.dos elsewhere], maybe some debug mode (SL_Bus.SetVisualizationEnable(bus, true);) like graphics
+		// TODO: maybe some debug mode (SL_Bus.SetVisualizationEnable(bus, true);) like graphics
 
 		uint32 majVer;
 		uint32 minVer;
@@ -26,6 +26,82 @@ namespace Pile
 		readonly uint32 MaxVoiceCount;
 
 		internal Soloud* slPtr;
+		internal bool spacialDirty;
+
+		Vector3 up = .(0, 1, 0);
+		public override Vector3 SpacialListenerUp
+		{
+			get => up;
+			set
+			{
+				if (up != value)
+				{
+					up = value;
+					SL_Soloud.Set3dListenerUp(slPtr, value.X, value.Y, value.Z);
+					spacialDirty = true;
+				}
+			}
+		}
+
+		Vector3 listener;
+		public override Vector3 SpacialListenerPosition
+		{
+			get => listener;
+			set
+			{
+				if (listener != value)
+				{
+					listener = value;
+					SL_Soloud.Set3dListenerPosition(slPtr, value.X, value.Y, value.Z);
+					spacialDirty = true;
+				}
+			}
+		}
+
+		Vector3 facing;
+		public override Vector3 SpacialListenerFacing
+		{
+			get => facing;
+			set
+			{
+				if (facing != value)
+				{
+					facing = value;
+					SL_Soloud.Set3dListenerAt(slPtr, value.X, value.Y, value.Z);
+					spacialDirty = true;
+				}
+			}
+		}
+
+		Vector3 velocity;
+		public override Vector3 SpacialListenerVelocity
+		{
+			get => velocity;
+			set
+			{
+				if (velocity != value)
+				{
+					velocity = value;
+					SL_Soloud.Set3dListenerVelocity(slPtr, value.X, value.Y, value.Z);
+					spacialDirty = true;
+				}
+			}
+		}
+
+		float soundSpeed = 343; // SoLoud default - assumes 1 using is 1 meter
+		public override float SpacialSoundSpeed
+		{
+			get => soundSpeed;
+			set
+			{
+				if (soundSpeed != value)
+				{
+					soundSpeed = value;
+					SL_Soloud.Set3dSoundSpeed(slPtr, value);
+					spacialDirty = true;
+				}
+			}
+		}
 
 		public override uint AudibleSoundCount => (.)SL_Soloud.GetActiveVoiceCount(slPtr);
 		public override uint SoundCount => (.)SL_Soloud.GetVoiceCount(slPtr);
@@ -58,6 +134,15 @@ namespace Pile
 
 			// Info
 			info.AppendF("backend: {}, buffer size: {}", SL_Soloud.GetBackendId(slPtr), SL_Soloud.GetBackendBufferSize(slPtr));
+		}
+
+		protected internal override void AfterUpdate()
+		{
+			if (spacialDirty)
+			{
+				SL_Soloud.Update3dAudio(slPtr);
+				spacialDirty = false;
+			}
 		}
 	}
 }
