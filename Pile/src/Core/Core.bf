@@ -16,7 +16,7 @@ using internal Pile;
 /* TODO
  * support more platforms (build soloud & sdl for linux etc)
  * look into other implementations (bgfx, ...)
- * finish audio stuff (3d, filters http://sol.gfxile.net/soloud/filters.html, (fading))
+ * finish audio stuff (runtime filter support, maybe something like Material? for params?)
  * support some mesh format? (.obj or something)
  * make Assets suitable for more use cases (-> per-texture texture filtering option?)
  * make more importers? (for prerendered SpriteFonts..., Aseprite -> basically create ase instance, save that, and then load from that?)

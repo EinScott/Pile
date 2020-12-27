@@ -31,6 +31,14 @@ namespace SoLoud
 	public class BiquadResonantFilter;
 	public class BassboostFilter;
 
+	public enum Attenuation : uint32
+	{
+		NO_ATTENUATION= 0,
+		INVERSE_DISTANCE = 1,
+		LINEAR_DISTANCE = 2,
+		EXPONENTIAL_DISTANCE = 3
+	}
+
 	public enum SoLoudResult : int32
 	{
 		OK = 0,
@@ -448,7 +456,7 @@ namespace SoLoud
 		public static extern void Set3dSourceMinMaxDistance(Soloud* soloud, uint32 voiceHandle, float minDistance, float maxDistance);
 
 		[LinkName("Soloud_set3dSourceAttenuation")]
-		public static extern void Set3dSourceAttenuation(Soloud* soloud, uint32 voiceHandle, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dSourceAttenuation(Soloud* soloud, uint32 voiceHandle, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Soloud_set3dSourceDopplerFactor")]
 		public static extern void Set3dSourceDopplerFactor(Soloud* soloud, uint32 voiceHandle, float dopplerFactor);
@@ -482,7 +490,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Ay* ay, float minDistance, float maxDistance);
 
 		[LinkName("Ay_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Ay* ay, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Ay* ay, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Ay_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Ay* ay, float dopplerFactor);
@@ -655,7 +663,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Bus* bus, float minDistance, float maxDistance);
 
 		[LinkName("Bus_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Bus* bus, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Bus* bus, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Bus_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Bus* bus, float dopplerFactor);
@@ -907,7 +915,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Monotone* monotone, float minDistance, float maxDistance);
 
 		[LinkName("Monotone_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Monotone* monotone, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Monotone* monotone, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Monotone_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Monotone* monotone, float dopplerFactor);
@@ -971,7 +979,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Noise* noise, float minDistance, float maxDistance);
 
 		[LinkName("Noise_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Noise* noise, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Noise* noise, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Noise_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Noise* noise, float dopplerFactor);
@@ -1041,7 +1049,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Openmpt* openmpt, float minDistance, float maxDistance);
 
 		[LinkName("Openmpt_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Openmpt* openmpt, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Openmpt* openmpt, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Openmpt_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Openmpt* openmpt, float dopplerFactor);
@@ -1117,7 +1125,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Queue* queue, float minDistance, float maxDistance);
 
 		[LinkName("Queue_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Queue* queue, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Queue* queue, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Queue_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Queue* queue, float dopplerFactor);
@@ -1223,7 +1231,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Sfxr* sfxr, float minDistance, float maxDistance);
 
 		[LinkName("Sfxr_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Sfxr* sfxr, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Sfxr* sfxr, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Sfxr_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Sfxr* sfxr, float dopplerFactor);
@@ -1290,7 +1298,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Speech* speech, float minDistance, float maxDistance);
 
 		[LinkName("Speech_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Speech* speech, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Speech* speech, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Speech_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Speech* speech, float dopplerFactor);
@@ -1360,7 +1368,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(TedSid* tedsid, float minDistance, float maxDistance);
 
 		[LinkName("TedSid_set3dAttenuation")]
-		public static extern void Set3dAttenuation(TedSid* tedsid, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(TedSid* tedsid, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("TedSid_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(TedSid* tedsid, float dopplerFactor);
@@ -1430,7 +1438,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Vic* vic, float minDistance, float maxDistance);
 
 		[LinkName("Vic_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Vic* vic, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Vic* vic, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Vic_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Vic* vic, float dopplerFactor);
@@ -1491,7 +1499,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Vizsn* vizsn, float minDistance, float maxDistance);
 
 		[LinkName("Vizsn_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Vizsn* vizsn, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Vizsn* vizsn, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Vizsn_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Vizsn* vizsn, float dopplerFactor);
@@ -1581,7 +1589,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(Wav* wav, float minDistance, float maxDistance);
 
 		[LinkName("Wav_set3dAttenuation")]
-		public static extern void Set3dAttenuation(Wav* wav, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(Wav* wav, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("Wav_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(Wav* wav, float dopplerFactor);
@@ -1690,7 +1698,7 @@ namespace SoLoud
 		public static extern void Set3dMinMaxDistance(WavStream* wavstream, float minDistance, float maxDistance);
 
 		[LinkName("WavStream_set3dAttenuation")]
-		public static extern void Set3dAttenuation(WavStream* wavstream, uint32 attenuationModel, float attenuationRolloffFactor);
+		public static extern void Set3dAttenuation(WavStream* wavstream, Attenuation attenuationModel, float attenuationRolloffFactor);
 
 		[LinkName("WavStream_set3dDopplerFactor")]
 		public static extern void Set3dDopplerFactor(WavStream* wavstream, float dopplerFactor);

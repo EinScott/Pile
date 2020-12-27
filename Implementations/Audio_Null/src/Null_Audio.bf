@@ -25,6 +25,7 @@ namespace Pile
 		public override Vector3 SpacialListenerFacing { get; set; }
 		public override Vector3 SpacialListenerVelocity { get; set; }
 		public override float SpacialSoundSpeed { get; set; }
+		public override bool SimulateSpacialDelay { get; set; }
 
 		protected internal override void Initialize()
 		{

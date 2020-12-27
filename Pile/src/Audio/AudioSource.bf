@@ -5,18 +5,9 @@ using internal Pile;
 
 namespace Pile
 {
-	public class AudioSource
+	public abstract class AudioSource
 	{
-		// @continue:
-		// have AudioSource as common base, then have globalSource and spacialSource to seperate 3d from 2d
-
 		internal AudioBus output;
-
-		float volume = 1;
-		float pan;
-		float speed = 1;
-		bool looping;
-		bool paused;
 
 		/// Prioritized sources will always play. Useful for stuff like global music
 		public bool Prioritized { get; private set; }
@@ -26,114 +17,41 @@ namespace Pile
 
 		/// Stop sounds played on this AudioSource when is is deleted.
 		public bool StopOnDelete { get; private set; }
-
+		
 		/// Returns Audio.MasterBus by default. Won't be null
 		public readonly AudioBus Output => output;
 
-		public float Volume
-		{
-			get => volume;
-			set
-			{
-				if (value == volume) return;
+		public abstract extern float Volume { get; set; }
 
-				SetVolume(Math.Max(0, value));
-				volume = value;
-			}
+		public abstract extern float Speed { get; set; }
+
+		public abstract extern bool Looping { get; set; }
+
+		public abstract extern bool Paused { get; set; }
+
+		public void Play(AudioClip clip, float delay = 0)
+		{
+			Debug.Assert(clip != null, "AudioClip was null");
+			Debug.Assert(delay < 0, "Delay cannot be negative");
+
+			PlayInternal(clip, delay);
 		}
 
-		public float Pan
+		protected void SetupOutput(MixingBus output)
 		{
-			get => pan;
-			set
-			{
-				if (value == pan) return;
-
-				SetPan(Math.Max(-1, Math.Min(1, value)));
-				pan = value;
-			}
-		}
-
-		public float Speed
-		{
-			get => speed;
-			set
-			{
-				if (value == speed) return;
-
-				SetSpeed(Math.Max(float.Epsilon, speed));
-				speed = value;
-			}
-		}
-
-		public bool Looping
-		{
-			get => looping;
-			set
-			{
-				if (value == looping) return;
-
-				SetLooping(value);
-				looping = value;
-			}
-		}
-
-		public bool Paused
-		{
-			get => paused;
-			set
-			{
-				if (value == paused) return;
-
-				SetPaused(value);
-				paused = value;
-			}
-		}
-
-		public extern bool Playing { get; }
-
-		public this(MixingBus output = null, bool prioritized = false, bool stopOnDelete = true, bool stopInaudible = false)
-		{
-			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependent objects");
-
-			Prioritized = prioritized;
-			StopOnDelete = stopOnDelete;
-			StopInaudible = stopInaudible;
-
-			Initialize();
-
 			this.output = output == null ? output : Core.Audio.MasterBus;
 			Output.AddSource(this);
 		}
-
+		
 		public ~this()
 		{
 			Output.RemoveSource(this);
 		}
 
-		public void Play(AudioClip clip)
-		{
-			Debug.Assert(clip != null, "AudioClip was null");
+		public abstract extern bool Playing { get; }
+		public abstract extern void Stop();
 
-			PlayInternal(clip);
-		}
-
-		// @continue:
-		// PlayDelayed(float seconds) !!!!!
-
-		public extern void Stop();
-
-		protected internal extern void Initialize();
-		protected internal extern void SetVolume(float volume);
-		protected internal extern void SetPan(float pan);
-		protected internal extern void SetSpeed(float speed);
-		protected internal extern void SetLooping(bool looping);
-		protected internal extern void SetPaused(bool paused);
-
-		// TODO: fading
-
-		// TODO: 3d audio stuff -- somwhow integrate propertly, do just something like "bool spacial"?, how do we change/get position/space (do we need something audioListener?)
-
-		protected internal extern void PlayInternal(AudioClip clip);
+		protected internal abstract extern void Initialize();
+		protected internal abstract extern void PlayInternal(AudioClip clip, float delay);
 	}
 }

@@ -22,8 +22,8 @@ namespace Pile
 		MasterBus master ~ delete _;
 		public override MasterBus MasterBus => master;
 
-		readonly SL_Soloud.Backend Backend;
-		readonly uint32 MaxVoiceCount;
+		SL_Soloud.Backend Backend;
+		uint32 MaxVoiceCount;
 
 		internal Soloud* slPtr;
 		internal bool spacialDirty;
@@ -103,13 +103,16 @@ namespace Pile
 			}
 		}
 
+		// When changed, wont apply to sounds that are already played/scheduled
+		public override bool SimulateSpacialDelay { get; set; }
+
 		public override uint AudibleSoundCount => (.)SL_Soloud.GetActiveVoiceCount(slPtr);
 		public override uint SoundCount => (.)SL_Soloud.GetVoiceCount(slPtr);
 
-		public this(uint32 maxVoiceCount = 16, SL_Soloud.Backend backend = .AUTO)
+		this
 		{
-			Backend = backend;
-			MaxVoiceCount = maxVoiceCount;
+			Backend = .AUTO;
+			MaxVoiceCount = 24;
 		}
 
 		internal ~this()

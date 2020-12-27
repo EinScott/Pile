@@ -26,6 +26,9 @@ namespace Pile
 
 		/// The current speed of sound.
 		public extern float SpacialSoundSpeed { get; set; }
+
+		/// Whether or not to delay played sounds by the time the sound would need to travel to the listener position
+		public extern bool SimulateSpacialDelay { get; set; }
 		// ---
 
 		public extern MasterBus MasterBus { get; }
