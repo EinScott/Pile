@@ -85,6 +85,23 @@ namespace Pile
 			    W * invNorm);
 		}
 
+		// Derived from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+		public Vector3 EulerAngles()
+		{
+			float sqw = W * W;
+			float sqx = X * X;
+			float sqy = Y * Y;
+			float sqz = Z * Z;
+			float unit = sqx + sqy + sqz + sqw; // If normalized is one, otherwise is correction factor
+			float test = X * Y + Z * W;
+			if (test > 0.499 * unit) // Singularity at north pole
+				return Vector3(0, 2 * Math.Atan2(X, W), Math.PI_f / 2);
+			if (test < -0.499 * unit) // Singularity at south pole
+				return Vector3(0, -Math.PI_f / 2, -2 * Math.Atan2(X, W));
+
+			return Vector3(Math.Atan2(2 * X * W - 2 * Y * Z, -sqx + sqy - sqz + sqw), Math.Asin(2*test/unit), Math.Atan2(2 * Y * W - 2 * X * Z, sqx - sqy - sqz + sqw));
+		}
+
 		public override void ToString(String strBuffer)
 		{
 			strBuffer.Append("[ ");
