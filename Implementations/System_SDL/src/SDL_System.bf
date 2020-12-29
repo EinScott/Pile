@@ -170,14 +170,14 @@ namespace Pile
 			return (void*)(int)info.info.win.window;
 #endif
 #if BF_PLATFORM_LINUX
-			if (info.info.wl.shell_surface != null)
-				return info.info.wl.shell_surface;
 			if (info.info.x11.window != null)
 				return info.info.x11.window;
+			if (info.info.wl.shell_surface != null)
+				return info.info.wl.shell_surface;
 			if (info.info.android.window != null)
 				return info.info.android.window;
-			return null;
 			Log.Error("Native window handle couldn't be retrieved");
+			return null;
 #endif
 #if BF_PLATFORM_MACOS
 			return info.info.cocoa.window;

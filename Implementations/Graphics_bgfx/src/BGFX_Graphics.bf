@@ -9,7 +9,7 @@ namespace Pile
 	{
 		// Do some more bgfx, then decide which api stuff could be changed
 		// - should window not be overridden? (and store window handle) NO IS FINE
-		// 		-> let wd = new window(); system.init(wd); graphics.init(wd);
+		// 		-> let wd = new window(); system.init(wd); graphics.init(wd); (NAH, system needs to control it)
 		// overriding is probably still a good idea. Maybe add a platform to it finally, same with input
 		// but having window more integrated with graphics would still be good
 
@@ -23,7 +23,7 @@ namespace Pile
 		// would be nicer if the graphics just called a func on system to see if they are compatible
 		// - probably you wouldnt need to ever get the glcontext publicly. try to solve that differently?
 
-		public override uint32 MajorVersion => 0;
+		public override uint32 MajorVersion => 1;
 
 		public override uint32 MinorVersion => 0;
 
@@ -37,7 +37,7 @@ namespace Pile
 		public override DebugDrawMode DebugDraw
 		{
 			get => mode;
-			set => mode = value;
+			set => mode = value; // set_debug
 		}
 
 		protected internal override void Initialize()
@@ -46,7 +46,8 @@ namespace Pile
 
 			var platformData = bgfx.PlatformData();
 			platformData.ndt = null;
-			platformData.nwh = Core.System.GetNativeWindowHandle();
+			platformData.nwh = Core.System.GetNativeWindowHandle(); // This should be in WINDOW? (Cleanup this api between Graphics and System A LOT)
+			bgfx.render_frame(0);
 
 			var init = bgfx.Init();
 			init.platformData = platformData;
@@ -62,7 +63,15 @@ namespace Pile
 			init.limits.transientVbSize = 6291456;
 			init.limits.transientIbSize = 2097152;
 
-			bgfx.init(&init);
+			if (!bgfx.init(&init))
+				Runtime.FatalError("bgfx.init failed.");
+
+			let caps = bgfx.get_caps();
+
+			if (caps.originBottomLeft > 0)
+				OriginBottomLeft = true;
+
+			info.AppendF("renderer: {}, vendor: {}, deviceID", caps.rendererType, (bgfx.PciIdFlags)caps.vendorId, caps.deviceId);
 		}
 
 		void Resized()
@@ -71,10 +80,10 @@ namespace Pile
 			bgfx.reset((uint32)rendSize.X, (uint32)rendSize.Y, (uint32)Core.Window.VSync, bgfx.TextureFormat.Count);
 		}
 
-		internal ~this()
+		/*internal ~this()
 		{
 
-		}
+		}*/
 
 		protected internal override void Step()
 		{
