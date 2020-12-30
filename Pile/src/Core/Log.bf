@@ -59,7 +59,7 @@ namespace Pile
 		static readonly String logBuf = new String(64) ~ delete _;
 		static readonly String[] record = new String[LOG_RECORD_COUNT];
 
-		static String logPath ~ DeleteNotNull!(_); // Only assigned when first used
+		static String logPath = new String() ~ delete _;
 
 		static this()
 		{
@@ -72,6 +72,15 @@ namespace Pile
 			for (int i = 0; i < LOG_RECORD_COUNT; i++)
 				delete record[i];
 			delete record;
+		}
+
+		internal static void Initialize()
+		{
+			Path.InternalCombine(logPath, Core.System.UserPath, @"log.txt");
+
+			// Make sure init output is saved at least once
+			if (!File.Exists(logPath))
+				SaveToFile(logPath).IgnoreError();
 		}
 
 		// Logging shorthands
@@ -104,31 +113,15 @@ namespace Pile
 			Log(Types.Error, message);
 			
 			if (SaveOnError)
-			{
-				if (logPath == null)
-					CreateLogPathString();
-
 				SaveToFile(logPath).IgnoreError();
-			}
 		}
 		public static void Error(Object message)
 		{
 			Log(Types.Error, message);
 
 			if (SaveOnError)
-			{
-				if (logPath == null)
-					CreateLogPathString();
-
 				SaveToFile(logPath).IgnoreError();
-			}
 		}
-
-		static void CreateLogPathString()
-		{
-			logPath = new String();
-			Path.InternalCombine(logPath, Core.System.UserPath, @"log.txt");
-		}	
 
 		// Actually log lines
 
@@ -211,7 +204,7 @@ namespace Pile
 				string.Clear();
 			writeIndex = 0;
 		}
-
+		
 		// Save log record (and clear record)
 
 		public static Result<void> SaveToFile(String filePath)

@@ -125,6 +125,9 @@ namespace Pile
 			// Assets init
 			Assets = new Assets();
 
+			// Init log
+			Log.Initialize();
+
 			w.Stop();
 			Log.Message(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
 
