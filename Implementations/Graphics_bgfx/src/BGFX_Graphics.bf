@@ -71,7 +71,7 @@ namespace Pile
 			if (caps.originBottomLeft > 0)
 				OriginBottomLeft = true;
 
-			info.AppendF("renderer: {}, vendor: {}, deviceID", caps.rendererType, (bgfx.PciIdFlags)caps.vendorId, caps.deviceId);
+			info.AppendF("renderer: {}, vendor: {}, deviceID: {}", caps.rendererType, (bgfx.PciIdFlags)caps.vendorId, caps.deviceId);
 		}
 
 		void Resized()
