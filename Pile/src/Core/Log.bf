@@ -80,47 +80,82 @@ namespace Pile
 
 			// Make sure init output is saved at least once
 			if (!File.Exists(logPath))
-				SaveToFile(logPath).IgnoreError();
+				SaveToFile().IgnoreError();
 		}
 
 		// Logging shorthands
 #if !DEBUG
 		[SkipCall]
 #endif
-		public static void Debug(String message) => Log(Types.Message, message);
+		public static void Debug(String message) => Log(.Message, message);
 #if !DEBUG
 		[SkipCall]
 #endif
-		public static void Debug(Object message) => Log(Types.Message, message);
+		public static void Debug(Object message) => Log(.Message, message);
+#if !DEBUG
+		[SkipCall]
+#endif
+		public static void Debug(String format, params Object[] inserts)
+		{
+			let message = scope String().AppendF(format, inserts);
+			Log(.Message, message);
+		}
+
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
-		public static void Message(String message) => Log(Types.Message, message);
+		public static void Message(String message) => Log(.Message, message);
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
-		public static void Message(Object message) => Log(Types.Message, message);
+		public static void Message(Object message) => Log(.Message, message);
+#if PILE_DISABLE_LOG_MESSAGES
+		[SkipCall]
+#endif
+		public static void Message(String format, params Object[] inserts)
+		{
+			let message = scope String().AppendF(format, inserts);
+			Log(.Message, message);
+		}
+
 #if PILE_DISABLE_LOG_WARNINGS
 		[SkipCall]
 #endif
-		public static void Warning(String message) => Log(Types.Warning, message);
+		public static void Warning(String message) => Log(.Warning, message);
 #if PILE_DISABLE_LOG_WARNINGS
 		[SkipCall]
 #endif
-		public static void Warning(Object message) => Log(Types.Warning, message);
+		public static void Warning(Object message) => Log(.Warning, message);
+#if PILE_DISABLE_LOG_WARNINGS
+		[SkipCall]
+#endif
+		public static void Warning(String format, params Object[] inserts)
+		{
+			let message = scope String().AppendF(format, inserts);
+			Log(.Warning, message);
+		}
+
 		public static void Error(String message)
 		{
-			Log(Types.Error, message);
+			Log(.Error, message);
 			
 			if (SaveOnError)
-				SaveToFile(logPath).IgnoreError();
+				SaveToFile().IgnoreError();
 		}
 		public static void Error(Object message)
 		{
-			Log(Types.Error, message);
+			Log(.Error, message);
 
 			if (SaveOnError)
-				SaveToFile(logPath).IgnoreError();
+				SaveToFile().IgnoreError();
+		}
+		public static void Error(String format, params Object[] inserts)
+		{
+			let message = scope String().AppendF(format, inserts);
+			Log(.Error, message);
+
+			if (SaveOnError)
+				SaveToFile().IgnoreError();
 		}
 
 		// Actually log lines
@@ -207,10 +242,10 @@ namespace Pile
 		
 		// Save log record (and clear record)
 
-		public static Result<void> SaveToFile(String filePath)
+		public static Result<void> SaveToFile(String path = logPath)
 		{
 			var directory = scope String();
-			if (Path.GetDirectoryPath(filePath, directory) case .Err)
+			if (Path.GetDirectoryPath(path, directory) case .Err)
 			{
 				Log.Warning("Couldn't append log to file, invalid path");
 				return .Err;
@@ -249,12 +284,12 @@ namespace Pile
 			ClearRecord();
 
 			// Append possibly existing file
-			if (File.Exists(filePath))
+			if (File.Exists(path))
 			{
 				fileLog.Append(Environment.NewLine);
 
 				var existingFile = scope String();
-				if (File.ReadAllText(filePath, existingFile, true) case .Err(let res))
+				if (File.ReadAllText(path, existingFile, true) case .Err(let res))
 				{
 					Log.Warning(scope $"Couldn't append log to file, couldn't read existing file: {res}");
 					return .Err;
@@ -264,7 +299,7 @@ namespace Pile
 			}
 
 			// Write
-			if (File.WriteAllText(filePath, fileLog) case .Err)
+			if (File.WriteAllText(path, fileLog) case .Err)
 			{
 				Log.Warning("Couldn't append log to file, couldn't write file");
 				return .Err;

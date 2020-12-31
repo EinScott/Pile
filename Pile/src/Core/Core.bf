@@ -230,5 +230,25 @@ namespace Pile
 			Game.[Friend]Render();
 			Graphics.AfterRender();
 		}
+
+		[NoReturn]
+		/// Like Runtime.FatalError(), but also logs the error (which, depending on Log configuration also saves the log file)
+		public static void FatalError(String msg = "Fatal error encountered", String filePath = Compiler.CallerFilePath, int line = Compiler.CallerLineNum)
+		{
+			String failStr = scope .()..AppendF("{} at line {} in {}", msg, line, filePath);
+			Log.Error(failStr);
+			Internal.FatalError(failStr, 1);
+		}
+
+		/// Like Runtime.Assert(), but also logs the error (which, depending on Log configuration also saves the log file)
+		public static void Assert(bool condition, String error = Compiler.CallerExpression[0], String filePath = Compiler.CallerFilePath, int line = Compiler.CallerLineNum) 
+		{
+			if (!condition)
+			{
+				String failStr = scope .()..AppendF("Assert failed: {} at line {} in {}", error, line, filePath);
+				Log.Error(failStr);
+				Internal.FatalError(failStr, 1);
+			}
+		}
 	}
 }

@@ -46,7 +46,7 @@ namespace Pile
 
 			var platformData = bgfx.PlatformData();
 			platformData.ndt = null;
-			platformData.nwh = Core.System.GetNativeWindowHandle(); // This should be in WINDOW? (Cleanup this api between Graphics and System A LOT)
+			platformData.nwh = Core.System.GetNativeWindowHandle(); // todo: This should be in WINDOW? (Cleanup this api between Graphics and System A LOT)
 			bgfx.render_frame(0);
 
 			var init = bgfx.Init();
@@ -64,7 +64,7 @@ namespace Pile
 			init.limits.transientIbSize = 2097152;
 
 			if (!bgfx.init(&init))
-				Runtime.FatalError("bgfx.init failed.");
+				Core.FatalError("bgfx.init failed.");
 
 			let caps = bgfx.get_caps();
 
