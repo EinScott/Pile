@@ -18,6 +18,9 @@ namespace Pile
 			buffer.Append(title);
 		}
 
+		[SkipCall]
+		public override System.Result<void> SetIcon(Pile.Bitmap bitmap) => .Ok;
+
 		Point2 pos;
 		public override int X { get => pos.X; set => pos.X = value; }
 		public override int Y { get => pos.Y; set => pos.Y = value; }

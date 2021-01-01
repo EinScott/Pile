@@ -53,6 +53,25 @@ namespace Pile
 			}
 		}
 
+		public override Result<void> SetIcon(Bitmap bitmap)
+		{
+			const uint32 rmask = 0xff000000;
+			const uint32 gmask = 0x00ff0000;
+			const uint32 bmask = 0x0000ff00;
+			const uint32 amask = 0x000000ff;
+
+			if (bitmap != null)
+			{
+				let iconSurface = SDL.CreateRGBSurfaceFrom(&bitmap.Pixels[0], (.)bitmap.Width, (.)bitmap.Height, 32, 4 * (.)bitmap.Width, rmask, gmask, bmask, amask);
+				if (iconSurface == null)
+					LogErrorReturn!("Couldn't set application icon, SDL Surface not created");
+	
+				SDL.SetWindowIcon(window, iconSurface);
+				SDL.FreeSurface(iconSurface);
+			}
+			return .Ok;
+		}
+
 		public ~this()
 		{
 			CloseInternal();

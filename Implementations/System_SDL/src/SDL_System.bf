@@ -1,6 +1,6 @@
 using Pile;
 using System;
-using SDL2;
+using static SDL2.SDL;
 
 using internal Pile;
 
@@ -40,7 +40,7 @@ namespace Pile
 			SDL_Init.Init();
 
 			// Version
-			SDL.GetVersion(let ver);
+			GetVersion(let ver);
 			majVer = ver.major;
 			minVer = ver.minor;
 
@@ -48,24 +48,24 @@ namespace Pile
 
 			if (Core.Graphics is IGraphicsOpenGL)
 			{
-				SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Core.Graphics.MajorVersion);
-				SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Core.Graphics.MinorVersion);
-				SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
-				SDL.GL_SetAttribute(.GL_CONTEXT_FLAGS, (int32)SDL.SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-				SDL.GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
+				GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Core.Graphics.MajorVersion);
+				GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Core.Graphics.MinorVersion);
+				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
+				GL_SetAttribute(.GL_CONTEXT_FLAGS, (int32)SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+				GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
 				glGraphics = true;
 			}
 
 			// Displays
-			let numDisplays = SDL.SDL_GetNumVideoDisplays();
+			let numDisplays = SDL_GetNumVideoDisplays();
 			for (int32 i = 0; i < numDisplays; i ++)
 			    monitors.Add(new Monitor(i));
 		}
 
 		protected internal override void Step()
 		{
-			SDL.Event event;
-			while (SDL.PollEvent(out event) != 0)
+			Event event;
+			while (PollEvent(out event) != 0)
 			{
 				switch (event.type)
 				{
@@ -99,7 +99,7 @@ namespace Pile
 		
 						// Focus
 						case .TAKE_FOCUS:
-							SDL.SDL_SetWindowInputFocus(Core.Window.window); // Take focus
+							SDL_SetWindowInputFocus(Core.Window.window); // Take focus
 						case .FocusGained:
 							Core.Window.focus = true;
 							Core.Window.OnFocusChanged();
@@ -131,10 +131,10 @@ namespace Pile
 				default:
 				}
 
-				if (*SDL.GetError() != '\0')
+				if (*GetError() != '\0')
 				{
-					Log.Warning(scope $"SDL error while processing event {event.type}: {StringView(SDL.GetError())}");
-					SDL.ClearError();
+					Log.Warning(scope $"SDL error while processing event {event.type}: {StringView(GetError())}");
+					ClearError();
 				}
 			}
 		}
@@ -142,16 +142,16 @@ namespace Pile
 		[NoShow]
 		public void* GetGLProcAddress(StringView procName)
 		{
-			return SDL.SDL_GL_GetProcAddress(procName.ToScopeCStr!());
+			return SDL_GL_GetProcAddress(procName.ToScopeCStr!());
 		}
 
 		[NoShow]
 		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples)
 		{
-			SDL.GL_SetAttribute(.GL_DEPTH_SIZE, (int32)depthSize);
-			SDL.GL_SetAttribute(.GL_STENCIL_SIZE, (int32)stencilSize);
-			SDL.GL_SetAttribute(.GL_MULTISAMPLEBUFFERS, (int32)multisamplerBuffers);
-			SDL.GL_SetAttribute(.GL_MULTISAMPLESAMPLES, (int32)multisamplerSamples);
+			GL_SetAttribute(.GL_DEPTH_SIZE, (int32)depthSize);
+			GL_SetAttribute(.GL_STENCIL_SIZE, (int32)stencilSize);
+			GL_SetAttribute(.GL_MULTISAMPLEBUFFERS, (int32)multisamplerBuffers);
+			GL_SetAttribute(.GL_MULTISAMPLESAMPLES, (int32)multisamplerSamples);
 		}
 
 		public ISystemOpenGL.Context GetGLContext()
@@ -161,8 +161,8 @@ namespace Pile
 
 		protected internal override void* GetNativeWindowHandle()
 		{
-			var info = SDL.SDL_SysWMinfo();
-			SDL.GetWindowWMInfo(Core.Window.window, ref info);
+			var info = SDL_SysWMinfo();
+			GetWindowWMInfo(Core.Window.window, ref info);
 
 #if BF_PLATFORM_WINDOWS
 			if (info.info.winrt.window != null)

@@ -50,7 +50,7 @@ namespace Pile
 			}
 		}
 		
-		const int32 MAXCHUNK = 32767;
+		const int32 MAXCHUNK = int16.MaxValue;
 
 		[Optimize]
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
@@ -179,7 +179,7 @@ namespace Pile
 			}
 		}
 
-		[Optimize]
+		//[Optimize]
 		static Result<void> WritePackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let file = new List<uint8>();
@@ -290,8 +290,8 @@ namespace Pile
 					var chunkWriteSize = 0;
 					switch (res)
 					{
-					case .Err (let err):
-						LogErrorReturn!(scope $"Couldn't write package. Error compressing node data: {err}");
+					case .Err:
+						LogErrorReturn!(scope $"Couldn't write package. Error compressing node data");
 					case .Ok(let val):
 						chunkWriteSize = val;
 						compSize += val;

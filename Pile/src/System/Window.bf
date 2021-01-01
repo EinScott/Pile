@@ -33,6 +33,8 @@ namespace Pile
 		public extern void SetTitle(StringView title);
 		public extern void GetTitle(String buffer);
 
+		public extern Result<void> SetIcon(Bitmap bitmap);
+
 		public extern int X { get; set; }
 		public extern int Y { get; set; }
 		public extern Point2 Position { get; set; }

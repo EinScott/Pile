@@ -1,6 +1,6 @@
 using System;
 using SoLoud;
-//using static SoLoud.SL_Soloud;
+using static SoLoud.SL_Soloud;
 
 using internal Pile;
 
@@ -22,7 +22,7 @@ namespace Pile
 		MasterBus master ~ delete _;
 		public override MasterBus MasterBus => master;
 
-		SL_Soloud.Backend Backend;
+		Backend Backend;
 		uint32 MaxVoiceCount;
 
 		internal Soloud* slPtr;
@@ -37,7 +37,7 @@ namespace Pile
 				if (up != value)
 				{
 					up = value;
-					SL_Soloud.Set3dListenerUp(slPtr, value.X, value.Y, value.Z);
+					Set3dListenerUp(slPtr, value.X, value.Y, value.Z);
 					spacialDirty = true;
 				}
 			}
@@ -52,7 +52,7 @@ namespace Pile
 				if (listener != value)
 				{
 					listener = value;
-					SL_Soloud.Set3dListenerPosition(slPtr, value.X, value.Y, value.Z);
+					Set3dListenerPosition(slPtr, value.X, value.Y, value.Z);
 					spacialDirty = true;
 				}
 			}
@@ -67,7 +67,7 @@ namespace Pile
 				if (facing != value)
 				{
 					facing = value;
-					SL_Soloud.Set3dListenerAt(slPtr, value.X, value.Y, value.Z);
+					Set3dListenerAt(slPtr, value.X, value.Y, value.Z);
 					spacialDirty = true;
 				}
 			}
@@ -82,7 +82,7 @@ namespace Pile
 				if (velocity != value)
 				{
 					velocity = value;
-					SL_Soloud.Set3dListenerVelocity(slPtr, value.X, value.Y, value.Z);
+					Set3dListenerVelocity(slPtr, value.X, value.Y, value.Z);
 					spacialDirty = true;
 				}
 			}
@@ -97,7 +97,7 @@ namespace Pile
 				if (soundSpeed != value)
 				{
 					soundSpeed = value;
-					SL_Soloud.Set3dSoundSpeed(slPtr, value);
+					Set3dSoundSpeed(slPtr, value);
 					spacialDirty = true;
 				}
 			}
@@ -106,8 +106,8 @@ namespace Pile
 		// When changed, wont apply to sounds that are already played/scheduled
 		public override bool SimulateSpacialDelay { get; set; }
 
-		public override uint AudibleSoundCount => (.)SL_Soloud.GetActiveVoiceCount(slPtr);
-		public override uint SoundCount => (.)SL_Soloud.GetVoiceCount(slPtr);
+		public override uint AudibleSoundCount => (.)GetActiveVoiceCount(slPtr);
+		public override uint SoundCount => (.)GetVoiceCount(slPtr);
 
 		this
 		{
@@ -117,8 +117,8 @@ namespace Pile
 
 		internal ~this()
 		{
-			SL_Soloud.Deinit(slPtr);
-			SL_Soloud.Destroy(slPtr);
+			Deinit(slPtr);
+			Destroy(slPtr);
 		}
 
 		protected internal override void Initialize()
@@ -126,24 +126,24 @@ namespace Pile
 			// Create master bus (cant do earlier since we need to have Core.Auio assigned)
 			master = new MasterBus();
 
-			slPtr = SL_Soloud.Create();
-			SL_Soloud.Init(slPtr, .CLIP_ROUNDOFF, Backend, SL_Soloud.AUTO, SL_Soloud.AUTO, .TWO);
-			SL_Soloud.SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
+			slPtr = Create();
+			Init(slPtr, .CLIP_ROUNDOFF, Backend, AUTO, AUTO, .TWO);
+			SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
 
 			// Version
-			let ver = SL_Soloud.GetVersion(slPtr);
+			let ver = GetVersion(slPtr);
 			majVer = (uint32)Math.Floor((float)ver / 100);
 			minVer = ver - (majVer * 100);
 
 			// Info
-			info.AppendF("backend: {}, buffer size: {}", SL_Soloud.GetBackendId(slPtr), SL_Soloud.GetBackendBufferSize(slPtr));
+			info.AppendF("backend: {}, buffer size: {}", GetBackendId(slPtr), GetBackendBufferSize(slPtr));
 		}
 
 		protected internal override void AfterUpdate()
 		{
 			if (spacialDirty)
 			{
-				SL_Soloud.Update3dAudio(slPtr);
+				Update3dAudio(slPtr);
 				spacialDirty = false;
 			}
 		}

@@ -1,5 +1,6 @@
 using System;
 using Bgfx;
+using static Bgfx.bgfx;
 
 using internal Pile;
 
@@ -44,12 +45,12 @@ namespace Pile
 		{
 			Core.Window.OnResized.Add(new => Resized);
 
-			var platformData = bgfx.PlatformData();
+			var platformData = PlatformData();
 			platformData.ndt = null;
 			platformData.nwh = Core.System.GetNativeWindowHandle(); // todo: This should be in WINDOW? (Cleanup this api between Graphics and System A LOT)
-			bgfx.render_frame(0);
+			render_frame(0);
 
-			var init = bgfx.Init();
+			var init = Init();
 			init.platformData = platformData;
 			init.type = .Count;
 			init.resolution.format = bgfx.TextureFormat.RGBA8;
@@ -66,18 +67,18 @@ namespace Pile
 			if (!bgfx.init(&init))
 				Core.FatalError("bgfx.init failed.");
 
-			let caps = bgfx.get_caps();
+			let caps = get_caps();
 
 			if (caps.originBottomLeft > 0)
 				OriginBottomLeft = true;
 
-			info.AppendF("renderer: {}, vendor: {}, deviceID: {}", caps.rendererType, (bgfx.PciIdFlags)caps.vendorId, caps.deviceId);
+			info.AppendF("renderer: {}, vendor: {}, deviceID: {}", caps.rendererType, (PciIdFlags)caps.vendorId, caps.deviceId);
 		}
 
 		void Resized()
 		{
 			let rendSize = Core.Window.RenderSize; // TODO: not checking for vsync chage!!
-			bgfx.reset((uint32)rendSize.X, (uint32)rendSize.Y, (uint32)Core.Window.VSync, bgfx.TextureFormat.Count);
+			reset((uint32)rendSize.X, (uint32)rendSize.Y, (uint32)Core.Window.VSync, bgfx.TextureFormat.Count);
 		}
 
 		/*internal ~this()
@@ -92,17 +93,47 @@ namespace Pile
 
 		protected internal override void AfterRender()
 		{
-			bgfx.frame(false);
+			frame(false);
+			viewId = 0;
 		}
+
+		Rect currentViewport;
+		uint16 viewId;
 
 		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
+			// update the viewport
+			{
+				var viewport;
+			    if (currentViewport != viewport)
+			    {
+					set_view_rect(viewId, (.)viewport.X, (.)viewport.Y, (.)viewport.Width, (.)viewport.Height);
+			        currentViewport = viewport;
+			    }
+			}
 
+			// clear
+			var mask = bgfx.ClearFlags.None;
+
+			if (flags.HasFlag(.Color))
+				mask |= .Color;
+
+			if (flags.HasFlag(.Depth))
+				mask |= .Depth;
+
+			if (flags.HasFlag(.Stencil))
+				mask |= .Stencil;
+
+			// todo: this id should probably be set from target at some point
+			set_view_clear(viewId, (.)bgfx.ClearFlags.Color | (.)bgfx.ClearFlags.Depth, color, depth, (.)stencil);
+			touch(viewId++);
 		}
 
 		protected internal override void RenderInternal(RenderPass pass)
 		{
-
+			
+			//bgfx.set_view_rect(0, 0, 0, pass., WNDW_HEIGHT);
+			viewId++;
 		}
 	}
 }
