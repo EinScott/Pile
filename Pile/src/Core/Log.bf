@@ -95,9 +95,10 @@ namespace Pile
 #if !DEBUG
 		[SkipCall]
 #endif
-		public static void Debug(String format, params Object[] inserts)
+		public static void Debug(StringView format, params Object[] inserts)
 		{
-			let message = scope String().AppendF(format, inserts);
+			let message = scope String();
+			message.AppendF(format, params inserts).IgnoreError();
 			Log(.Message, message);
 		}
 
@@ -112,9 +113,10 @@ namespace Pile
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
-		public static void Message(String format, params Object[] inserts)
+		public static void Message(StringView format, params Object[] inserts)
 		{
-			let message = scope String().AppendF(format, inserts);
+			let message = scope String();
+			message.AppendF(format, params inserts).IgnoreError();
 			Log(.Message, message);
 		}
 
@@ -129,9 +131,10 @@ namespace Pile
 #if PILE_DISABLE_LOG_WARNINGS
 		[SkipCall]
 #endif
-		public static void Warning(String format, params Object[] inserts)
+		public static void Warning(StringView format, params Object[] inserts)
 		{
-			let message = scope String().AppendF(format, inserts);
+			let message = scope String();
+			message.AppendF(format, params inserts).IgnoreError();
 			Log(.Warning, message);
 		}
 
@@ -149,9 +152,10 @@ namespace Pile
 			if (SaveOnError)
 				SaveToFile().IgnoreError();
 		}
-		public static void Error(String format, params Object[] inserts)
+		public static void Error(StringView format, params Object[] inserts)
 		{
-			let message = scope String().AppendF(format, inserts);
+			let message = scope String();
+			message.AppendF(format, params inserts).IgnoreError();
 			Log(.Error, message);
 
 			if (SaveOnError)
