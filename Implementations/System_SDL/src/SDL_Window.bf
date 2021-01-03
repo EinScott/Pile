@@ -55,14 +55,17 @@ namespace Pile
 
 		public override Result<void> SetIcon(Bitmap bitmap)
 		{
-			const uint32 rmask = 0xff000000;
-			const uint32 gmask = 0x00ff0000;
-			const uint32 bmask = 0x0000ff00;
-			const uint32 amask = 0x000000ff;
+			// When "Color" implicitly converts to uint32, the masks would be the opposite.
+			// But since we'll be looking at the raw struct data layout when passing this in,
+			// it'll have to be this way around
+			const uint32 rmask = 0x000000ff;
+			const uint32 gmask = 0x0000ff00;
+			const uint32 bmask = 0x00ff0000;
+			const uint32 amask = 0xff000000;
 
 			if (bitmap != null)
 			{
-				let iconSurface = SDL.CreateRGBSurfaceFrom(&bitmap.Pixels[0], (.)bitmap.Width, (.)bitmap.Height, 32, 4 * (.)bitmap.Width, rmask, gmask, bmask, amask);
+				let iconSurface = SDL.CreateRGBSurfaceFrom(&bitmap.Pixels[0], (.)bitmap.Width, (.)bitmap.Height, 32, sizeof(Color) * (.)bitmap.Width, rmask, gmask, bmask, amask);
 				if (iconSurface == null)
 					LogErrorReturn!("Couldn't set application icon, SDL Surface not created");
 	

@@ -52,7 +52,7 @@ namespace Pile
 		
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		[Optimize]
+		//[Optimize]
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let inPath = scope String(packagePath);
@@ -122,7 +122,7 @@ namespace Pile
 					// Decompress every chunk
 					for (int j = 0; j < numChunks; j++)
 					{
-						var chunkSize = (int32)ReadUInt();
+						let chunkSize = (int32)ReadUInt();
 						let uncompChunkSize = LogErrorTry!(Compression.Decompress(Span<uint8>(&file[readByte], chunkSize), Span<uint8>(&nodeRaw[writeStart], nodeRaw.Count - writeStart)), scope $"Couldn't loat package at {inPath}. Error decompressing node data");
 						readByte += chunkSize;
 
@@ -179,7 +179,7 @@ namespace Pile
 			}
 		}
 
-		//[Optimize]
+		[Optimize]
 		static Result<void> WritePackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let file = new List<uint8>();

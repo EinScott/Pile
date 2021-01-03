@@ -9,7 +9,6 @@ using internal Pile;
 
 namespace Pile
 {
-	[Optimize]
 	public class Assets
 	{
 		// Importers
@@ -197,7 +196,7 @@ namespace Pile
 				Path.InternalCombineViews(packagePath, packagesPath, packageName);
 
 				if (Packages.ReadPackage(packagePath, nodes, importerNames) case .Err)
-					return .Err;
+					LogErrorReturn!(scope $"Error reading package {packageName} for loading");
 			}
 
 			let package = new Package();
