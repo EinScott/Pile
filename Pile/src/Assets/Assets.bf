@@ -9,6 +9,7 @@ using internal Pile;
 
 namespace Pile
 {
+	[Optimize]
 	public class Assets
 	{
 		// Importers
@@ -231,10 +232,14 @@ namespace Pile
 
 				let json = scope String((char8*)node.DataNode.CArray(), node.DataNode.Count);
 
-				let dataNode = LogErrorTry!(JSONParser.ParseObject(json), scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {json}");
-				defer delete dataNode;
+				JSONObject dataNode = null;
+				if (json != String.Empty)
+				{
+					dataNode = LogErrorTry!(JSONParser.ParseObject(json), scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {json}");
+					defer delete dataNode;
+				}
 
-				// Import node data
+				// Import node data -- dataNode may be null if that's what the same importer passed when building
 				importer.package = package;
 				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");

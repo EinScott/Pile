@@ -52,7 +52,7 @@ namespace Pile
 		
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		//[Optimize]
+		[Optimize]
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let inPath = scope String(packagePath);
