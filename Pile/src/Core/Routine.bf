@@ -43,6 +43,8 @@ namespace Pile
 		public bool Done => lastReturn == .Break;
 		public ref TData Data => ref data;
 
+		public RoutineReturn State => lastReturn;
+
 		/// Single phase constructor
 		public this(RoutineUpdate startPhase, RoutineUpdate updatePhase, RoutineEnd endPhase = null, bool deletePhaseDelegates = true)
 		{
