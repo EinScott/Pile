@@ -28,6 +28,9 @@ namespace Pile
 		static ~this()
 		{
 			OnStart.Dispose();
+
+			// Tests will leak this otherwise
+			if (launchOptions != null) DeleteDictionaryAndKeysAndItems!(launchOptions);
 		}
 
 		[Optimize]

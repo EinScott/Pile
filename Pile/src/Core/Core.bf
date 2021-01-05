@@ -35,6 +35,8 @@ namespace Pile
 		static ~this()
 		{
 			if (run) Delete();
+
+			delete Title;
 		}
 
 		static void Delete()
@@ -48,8 +50,6 @@ namespace Pile
 			delete Audio;
 			delete Graphics;
 			delete System;
-
-			delete Title;
 		}
 
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
