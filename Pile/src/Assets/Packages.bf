@@ -324,11 +324,8 @@ namespace Pile
 			// Fill in size
 			ReplaceUInt(4, (uint32)file.Count);
 
-			let outPath = scope String(packagePath);
-			Path.ChangeExtension(scope String(outPath), ".bin", outPath);
-
-			let dir = scope String();
-			Path.GetDirectoryPath(outPath, dir);
+			let outPath = Path.ChangeExtension(scope String(packagePath), ".bin", .. scope String(packagePath));
+			let dir = Path.GetDirectoryPath(outPath, .. scope String());
 			if (!Directory.Exists(dir))
 				LogErrorTry!(Directory.CreateDirectory(dir), scope $"Couldn't write package. Error creating directory {dir}");
 
@@ -445,8 +442,7 @@ namespace Pile
 					DeleteContainerAndItems!(importPaths);
 				}
 
-				let rootPath = scope String();
-				Path.GetDirectoryPath(packageBuildFilePath, rootPath);
+				let rootPath = Path.GetDirectoryPath(packageBuildFilePath, .. scope String());
 				for (let import in packageData.imports)
 				{
 					Importer importer;
@@ -462,12 +458,10 @@ namespace Pile
 					{
 						path.Trim();
 	
-						let fullPath = scope String();
-						Path.InternalCombineViews(fullPath, rootPath, path);
+						let fullPath = Path.InternalCombineViews(.. scope String(), rootPath, path);
 	
 						// Check if containing folder exists
-						let dirPath = scope String();
-						Path.GetDirectoryPath(fullPath, dirPath);
+						let dirPath = Path.GetDirectoryPath(fullPath, .. scope String());
 	
 						if (!Directory.Exists(dirPath))
 							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Failed to find containing directory of {path} at {dirPath}");
@@ -482,12 +476,11 @@ namespace Pile
 							repeat // For each entry in import dirs
 							{
 								currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
-								currImportPath..Append(Path.DirectorySeparatorChar)..Append('*');
+								currImportPath..Append(Path.DirectorySeparatorChar).Append('*');
 	
 								for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
 								{
-									let path = new String();
-									entry.GetFilePath(path);
+									let path = entry.GetFilePath(.. new String());
 	
 									// Add matching files in this directory to import list
 									if (!entry.IsDirectory)
@@ -506,8 +499,7 @@ namespace Pile
 						// Import everything that matches - recursively
 						else
 						{
-							let wildCard = scope String();
-							Path.GetFileName(fullPath, wildCard);
+							let wildCard = Path.GetFileName(fullPath, .. scope String());
 	
 							let importDirs = scope List<String>();
 							importDirs.Add(new String(dirPath));
@@ -520,14 +512,13 @@ namespace Pile
 								let current = importDirs.Count - 1;
 								currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
 	
-								searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append('*');
-								wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar)..Append(wildCard);
+								searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
+								wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
 	
 								bool match = false;
 								for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
 								{
-									let dirFilePath = new String();
-									entry.GetFilePath(dirFilePath);
+									let dirFilePath = entry.GetFilePath(.. new String());
 	
 									if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
 									{
@@ -540,9 +531,9 @@ namespace Pile
 										else
 											importDirs.Add(dirFilePath);
 	
-										continue; // Dont delete the string if we keep using it
+										// Dont delete the string if we keep using it
 									}
-									delete dirFilePath;
+									else delete dirFilePath;
 								}
 	
 								if (!match)
@@ -618,10 +609,8 @@ namespace Pile
 
 			// Put it all in a file
 			{
-				let outPath = scope String();
-				let packageName = scope String();
-				Path.GetFileNameWithoutExtension(scope String(packageBuildFilePath), packageName);
-				Path.InternalCombine(outPath, scope String(outputPath), packageName);
+				let packageName = Path.GetFileNameWithoutExtension(scope String(packageBuildFilePath), .. scope String());
+				let outPath = Path.InternalCombine(.. scope String(), scope String(outputPath), packageName);
 
 				Try!(WritePackage(outPath, nodes, importerNames));
 
