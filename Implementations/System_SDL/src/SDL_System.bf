@@ -24,12 +24,6 @@ namespace Pile
 		public static extern bool SetProcessDPIAware();
 #endif
 
-		// Don't override constructors of core modules
-		this
-		{
-			SDL_Init.InitFlags |= .Video | .Joystick | .GameController | .Events;
-		}
-
 		protected internal override void Initialize()
 		{
 #if BF_PLATFORM_WINDOWS 
@@ -37,7 +31,7 @@ namespace Pile
 				SetProcessDPIAware();
 #endif
 
-			SDL_Init.Init();
+			Init(.Video | .Joystick | .GameController | .Events);
 
 			// Version
 			GetVersion(let ver);
