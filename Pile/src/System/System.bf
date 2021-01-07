@@ -77,7 +77,6 @@ namespace Pile
 
 		protected internal extern void Initialize();
 		protected internal extern void Step();
-		protected internal extern void* GetNativeWindowHandle();
 
 		public String DataPath { get; private set; }
 		public String UserPath { get; private set; }

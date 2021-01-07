@@ -25,7 +25,5 @@ namespace Pile
 		Null_Context context = new Null_Context() ~ delete _;
 
 		public ISystemOpenGL.Context GetGLContext() => context;
-
-		protected internal override void* GetNativeWindowHandle() => null;
 	}
 }

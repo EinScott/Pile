@@ -37,7 +37,6 @@ Other open source libraries used:
 - [referencesource/System.Numerics](https://github.com/microsoft/referencesource/tree/master/System.Numerics/System/Numerics) - Parts of the structs located in ./Pile/src/Struct/*
 - [SDL2](https://www.libsdl.org/) - System Implementation
 - [SoLoud](http://sol.gfxile.net/soloud/index.html) - Audio Implementation
-- [bgfx](https://github.com/bkaradzic/bgfx) - Graphics Implementation
 
 The licenses for the binaries of each library used in Implementation projects can be found in `./Implementations/(name)/dist/LICENSE.txt`.
 stb_truetype is licensed under the Unlicense. The MS referencesource is MIT licensed.

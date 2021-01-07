@@ -28,6 +28,8 @@ namespace Pile
 		bool renderable;
 		public bool Renderable => renderable;
 
+		public extern void* NativeHandle { get; };
+
 		public extern UPoint2 RenderSize { get; }
 
 		public extern void SetTitle(StringView title);
