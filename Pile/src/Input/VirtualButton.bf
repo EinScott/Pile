@@ -263,25 +263,25 @@ namespace Pile
 		    lastBufferConsumeTime = Time.Duration.Ticks;
 		}
 
-		public void Add(params Keys[] keys)
+		public void AddKeyboard(params Keys[] keys)
 		{
 		    for (var key in keys)
 		        Nodes.Add(new KeyNode(key));
 		}
 
-		public void Add(params MouseButtons[] buttons)
+		public void AddMouse(params MouseButtons[] buttons)
 		{
 		    for (var button in buttons)
 		        Nodes.Add(new MouseButtonNode(button));
 		}
 
-		public void Add(int controller, params Buttons[] buttons)
+		public void AddControllerButton(int controller, params Buttons[] buttons)
 		{
 		    for (var button in buttons)
 		        Nodes.Add(new ButtonNode(controller, button));
 		}
 
-		public void Add(int controller, Axes axis, float threshold)
+		public void AddControllerAxis(int controller, Axes axis, float threshold)
 		{
 		    Nodes.Add(new AxisNode(controller, axis, threshold));
 		}
