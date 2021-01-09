@@ -13,7 +13,7 @@ namespace Pile
 	public class Assets
 	{
 		// Importers
-		internal static Dictionary<String, Importer> Importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndItems!(_);
+		internal static Dictionary<String, Importer> Importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndValues!(_);
 
 		public static void RegisterImporter(StringView name, Importer importer)
 		{
@@ -47,12 +47,12 @@ namespace Pile
 		Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>() ~
 			{
 				for (let dic in _.Values)
-					DeleteDictionaryAndKeysAndItems!(dic);
+					DeleteDictionaryAndKeysAndValues!(dic);
 
 				delete _;
 			};
 
-		Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>() ~  DeleteDictionaryAndItems!(_);
+		Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>() ~  DeleteDictionaryAndValues!(_);
 		List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
 		String packagesPath = new String() ~ delete _;
 

@@ -22,7 +22,7 @@ namespace Pile
 			}
 		}
 
-		public readonly Dictionary<char32, Character> Charset = new Dictionary<char32, Character>() ~ DeleteDictionaryAndItems!(_);
+		public readonly Dictionary<char32, Character> Charset = new Dictionary<char32, Character>() ~ DeleteDictionaryAndValues!(_);
 
 		public String FamilyName = new .() ~ delete _;
 		public String StyleName = new .() ~ delete _;

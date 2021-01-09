@@ -5,7 +5,7 @@ namespace Pile
 {
 	public class Package
 	{
-		internal Dictionary<Type, List<StringView>> ownedAssets = new Dictionary<Type, List<StringView>>() ~ DeleteDictionaryAndItems!(_);
+		internal Dictionary<Type, List<StringView>> ownedAssets = new Dictionary<Type, List<StringView>>() ~ DeleteDictionaryAndValues!(_);
 		internal List<StringView> ownedTextureAssets = new List<StringView>() ~ delete _;
 		
 		internal this() {}

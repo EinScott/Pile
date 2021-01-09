@@ -12,7 +12,7 @@ namespace System
 			if (!dict.ContainsKey(key)) return;
 
 			outString.Append(dict[key]);
-			DeleteDictionaryAndKeysAndItems!(dict);
+			DeleteDictionaryAndKeysAndValues!(dict);
 		}
 	}
 }

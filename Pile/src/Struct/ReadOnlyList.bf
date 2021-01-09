@@ -57,7 +57,10 @@ namespace Pile
 		}
 
 		[Inline]
-		public void CopyTo(List<T> destList) => underlying.CopyTo(destList);
+		public void CopyTo(List<T> destList) => underlying.CopyTo((Span<T>)destList); // @fixme, we really want to use the List overlaod, but cant atm
+
+		[Inline]
+		public void CopyTo(Span<T> span) => underlying.CopyTo(span);
 
 		[Inline]
 		public void CopyTo(T[] array, int arrayIndex) => underlying.CopyTo(array, arrayIndex);

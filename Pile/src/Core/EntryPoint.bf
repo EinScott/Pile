@@ -30,7 +30,7 @@ namespace Pile
 			OnStart.Dispose();
 
 			// Tests will leak this otherwise
-			if (launchOptions != null) DeleteDictionaryAndKeysAndItems!(launchOptions);
+			if (launchOptions != null) DeleteDictionaryAndKeysAndValues!(launchOptions);
 		}
 
 		[Optimize]
@@ -130,7 +130,7 @@ namespace Pile
 				}
 
 				// Clean up launch options. We wont need them anymore
-				DeleteDictionaryAndKeysAndItems!(launchOptions);
+				DeleteDictionaryAndKeysAndValues!(launchOptions);
 				launchOptions = null;
 
 				// Clean up args

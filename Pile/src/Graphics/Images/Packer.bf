@@ -28,7 +28,7 @@ namespace Pile
 		public class Output
 		{
 			public readonly List<Bitmap> Pages = new List<Bitmap>() ~ DeleteContainerAndItems!(_);
-			public readonly Dictionary<String, Entry> Entries = new Dictionary<String, Entry>() ~ DeleteDictionaryAndItems!(_);
+			public readonly Dictionary<String, Entry> Entries = new Dictionary<String, Entry>() ~ DeleteDictionaryAndValues!(_);
 		}
 
 		public class Source

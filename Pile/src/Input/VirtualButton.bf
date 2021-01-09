@@ -27,7 +27,7 @@ namespace Pile
 
 		        var timestamp = Core.Input.Keyboard.Timestamp(key);
 		        var time = Time.Duration.Ticks;
-		        
+
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
 		            return true;
 
