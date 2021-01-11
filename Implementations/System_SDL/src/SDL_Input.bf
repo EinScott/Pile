@@ -8,6 +8,7 @@ namespace Pile
 {
 	extension Input
 	{
+		bool cursorHidden;
 		SDL.SDL_Cursor*[] sdlCursors;
 		SDL.SDL_Joystick*[] sdlJoysticks;
 		SDL.SDL_GameController*[] sdlGamepads;
@@ -35,6 +36,18 @@ namespace Pile
 
 		public override void SetMouseCursor(Cursors cursor)
 		{
+			if (cursor == .Hidden)
+			{
+				SDL.ShowCursor(0);
+				cursorHidden = true;
+				return;
+			}
+			else if (cursorHidden)
+			{
+				SDL.ShowCursor(1);
+				cursorHidden = false;
+			}
+
 			int index = 0;
 			switch (cursor)
 			{
@@ -45,6 +58,7 @@ namespace Pile
 			case .HorizontalResize: index = (int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE;
 			case .VerticalResize: index = (int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS;
 			case .Forbidden: index = (int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO;
+			default: // Already handled
 			}
 
 			if (sdlCursors[index] == null)

@@ -2,6 +2,7 @@ namespace Pile
 {
 	public enum Cursors
 	{
+		Hidden,
 		Default,
 		IBeam,
 		Crosshair,
