@@ -61,7 +61,7 @@ namespace Pile
 				Path.ChangeExtension(scope String(inPath), ".bin", inPath);
 
 			// Get file
-			let file = LogErrorTry!(File.ReadAllBytes(inPath), scope $"Couldn't loat package at {inPath}. Error reading file");
+			let file = LogErrorTry!(File.ReadAllBytes(inPath), scope $"Couldn't load package at {inPath}. Error reading file");
 			defer delete file;
 
 			// HEADER (3 bytes + one reserved)
@@ -97,7 +97,7 @@ namespace Pile
 				|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
 				|| file[3] != 0x00 // Check version
 				|| ReadUInt() != (uint32)file.Count) // Check file size
-				LogErrorReturn!(scope $"Couldn't loat package at {inPath}. Invalid file format");
+				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format");
 
 			{
 				let importerNameCount = ReadUInt();
@@ -449,7 +449,7 @@ namespace Pile
 	
 					// Try to find importer
 					if (Assets.Importers.ContainsKey(import.Importer)) importer = Assets.Importers[import.Importer];
-					else LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Couln't find importer '{import.Importer}'");
+					else LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Couldn't find importer '{import.Importer}'");
 	
 					bool importerUsed = false;
 	

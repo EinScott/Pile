@@ -34,7 +34,7 @@ namespace Pile
 		public readonly float Height; // Ascent - Descent (font height)
 		public readonly float LineHeight; // Ascent + Descent (height of a line, includes line gap)
 		
-		Texture[] tex ~ DeleteContainerAndItems!(_); // todo: I don't really like storing this here... suggest something better
+		Texture[] tex ~ DeleteContainerAndItems!(_);
 
 		public this(Font font, uint32 size, Span<char32> charset, TextureFilter filter = .Linear)
 			: this(scope FontSize(font, size, charset), filter) {}
