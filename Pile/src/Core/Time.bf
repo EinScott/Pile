@@ -4,10 +4,11 @@ namespace Pile
 {
 	public static class Time
 	{
+		const int TICKS_PER_SECOND = 10000000;
 		const int DEFAULT_TARGET_FPS = 60;
 		const int DEFAULT_MIN_FPS = 20;
 
-		internal static int64 targetTicks = (int64)((double)10000000 / DEFAULT_TARGET_FPS);
+		internal static int64 targetTicks = (int64)((double)TICKS_PER_SECOND / DEFAULT_TARGET_FPS);
 		static int targetFps = DEFAULT_TARGET_FPS;
 
 		/// The game tries to run at this framerate. 0 means no upper limit.
@@ -24,7 +25,7 @@ namespace Pile
 				else
 				{
 					// Update target ms
-					targetTicks = (int64)((double)10000000 / targetFps);
+					targetTicks = (int64)((double)TICKS_PER_SECOND / targetFps);
 
 					// Adjust MinFPS if needed
 					if (targetFps < minFPS)
@@ -36,7 +37,7 @@ namespace Pile
 			}
 		}
 
-		internal static int64 maxTicks = (int64)((double)10000000 / DEFAULT_MIN_FPS);
+		internal static int64 maxTicks = (int64)((double)TICKS_PER_SECOND / DEFAULT_MIN_FPS);
 		static int minFPS = DEFAULT_MIN_FPS;
 
 		/// This limits how much the game tries to catch up. 0 means no lower limit.
@@ -53,7 +54,7 @@ namespace Pile
 				else
 				{
 					// Update max ticks
-					maxTicks = (int64)((double)10000000 / minFPS);
+					maxTicks = (int64)((double)TICKS_PER_SECOND / minFPS);
 
 					// Adjust TargetFPS if needed
 					if (minFPS > targetFps)
@@ -86,8 +87,10 @@ namespace Pile
 			else freeze = time;
 		}
 
+		// NOTE: This is not a quirk of Target- or MinFPS, but is handled
+		// separately in the Core.Run loop (See code at top of core loop)
 		/// Use to fix Time.Delta to a fixed value. Sets both FPS options to the given fps value.
-		/// Thus, the game will always at least theoretically run at the given frame rate, and slow down when
+		/// Thus, the game itself will always run at the given frame rate, and slow down when
 		/// the real frame rate is less than the one set here.
 		public static void FixFPS(int fps)
 		{
