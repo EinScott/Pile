@@ -86,6 +86,15 @@ namespace Pile
 			else freeze = time;
 		}
 
+		/// Use to fix Time.Delta to a fixed value. Sets both FPS options to the given fps value.
+		/// Thus, the game will always at least theoretically run at the given frame rate, and slow down when
+		/// the real frame rate is less than the one set here.
+		public static void FixFPS(int fps)
+		{
+			TargetFPS = fps;
+			MinFPS = fps;
+		}
+
 		public static bool OnInterval(double time, double delta, double interval, double offset)
 		{
 		    return Math.Floor((time - offset - delta) / interval) < Math.Floor((time - offset) / interval);

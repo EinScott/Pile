@@ -148,9 +148,20 @@ namespace Pile
 			while(!exiting)
 			{
 				// Step time and diff
-				currTime = timer.[Friend]GetElapsedDateTimeTicks();
-				diffTime = Math.Min(Time.maxTicks, currTime - lastTime);
-				lastTime = currTime;
+				if (Time.maxTicks == Time.targetTicks)
+				{
+					// Still calculate actual fps
+					currTime = timer.[Friend]GetElapsedDateTimeTicks();
+
+					diffTime = Time.targetTicks;
+				}
+				else
+				{
+					currTime = timer.[Friend]GetElapsedDateTimeTicks();
+					
+					diffTime = Math.Min(Time.maxTicks, currTime - lastTime);
+					lastTime = currTime;
+				}
 
 				// Raw time
 				Time.RawDuration += diffTime;
