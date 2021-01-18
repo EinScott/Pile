@@ -58,7 +58,7 @@ namespace Pile
 			let inPath = scope String(packagePath);
 
 			if (!inPath.EndsWith(".bin"))
-				Path.ChangeExtension(scope String(inPath), ".bin", inPath);
+				Path.ChangeExtension(inPath, ".bin", inPath);
 
 			// Get file
 			let file = LogErrorTry!(File.ReadAllBytes(inPath), scope $"Couldn't load package at {inPath}. Error reading file");
@@ -323,7 +323,7 @@ namespace Pile
 			// Fill in size
 			ReplaceUInt(4, (uint32)file.Count);
 
-			let outPath = Path.ChangeExtension(scope String(packagePath), ".bin", .. scope String(packagePath));
+			let outPath = Path.ChangeExtension(packagePath, ".bin", .. scope String(packagePath));
 			let dir = scope String();
 			if (Path.GetDirectoryPath(outPath, dir) case .Err)
 				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path {outPath}");
