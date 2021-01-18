@@ -38,14 +38,14 @@ namespace Pile
 				LogErrorReturn!(scope $"Packer inPath argument has to contain a valid path to an existing directory. {inPath} is invalid");
 
 			if (!Directory.Exists(outPath))
-				Directory.CreateDirectory(outPath);
+				Try!(Directory.CreateDirectory(outPath));
 
 			// Get last build date for caching
 			DateTime lastBuild = ?;
 			String buildFilePath = null;
 			if (cache)
 			{
-				buildFilePath = Path.InternalCombine(.. scope:: String(), scope .(outPath), "packageBuild.dat");
+				buildFilePath = Path.InternalCombineViews(.. scope:: String(), outPath, "packageBuild.dat");
 
 				if (File.Exists(buildFilePath))
 				{
@@ -79,8 +79,8 @@ namespace Pile
 
 				if (cache)
 				{
-					let packageName = Path.GetFileNameWithoutExtension(scope String(path), .. scope String());
-					let packageOutPath = Path.InternalCombine(.. scope String(), scope .(outPath), packageName);
+					let packageName = Path.GetFileNameWithoutExtension(path, .. scope String());
+					let packageOutPath = Path.InternalCombineViews(.. scope String(), outPath, packageName);
 					Path.ChangeExtension(packageOutPath, ".bin", packageOutPath);
 
 					if (File.Exists(packageOutPath) && !Packages.PackageSourceChanged(path, lastBuild))

@@ -740,8 +740,8 @@ namespace Pile
 
 			// Put it all in a file
 			{
-				let packageName = Path.GetFileNameWithoutExtension(scope String(packageBuildFilePath), .. scope String());
-				let outPath = Path.InternalCombine(.. scope String(), scope String(outputPath), packageName);
+				let packageName = Path.GetFileNameWithoutExtension(packageBuildFilePath, .. scope String());
+				let outPath = Path.InternalCombineViews(.. scope String(), outputPath, packageName);
 
 				Try!(WritePackage(outPath, nodes, importerNames));
 

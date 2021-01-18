@@ -142,7 +142,7 @@ namespace Pile
 				// Exit on error (after cleaning up)
 				if (!launch)
 				{
-					Debug.Assert(false, "Launch canceled by a launch option or error");
+					Debug.FatalError("Launch canceled by a launch option or error");
 					return 1;
 				}
 			}
@@ -153,7 +153,7 @@ namespace Pile
 
 			if (RunGame() case .Err)
 			{
-				Debug.Assert(false, "Error while running game");
+				Debug.FatalError("Error while running game");
 				return -1;
 			}
 
