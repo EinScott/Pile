@@ -9,6 +9,7 @@ using internal Pile;
 
 namespace Pile
 {
+	[Optimize]
 	public static class Packages
 	{
 		// Represents the json data in the package import file
@@ -52,7 +53,6 @@ namespace Pile
 		
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		[Optimize]
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let inPath = scope String(packagePath);
@@ -179,7 +179,6 @@ namespace Pile
 			}
 		}
 
-		[Optimize]
 		static Result<void> WritePackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let file = new List<uint8>();
@@ -325,7 +324,8 @@ namespace Pile
 			ReplaceUInt(4, (uint32)file.Count);
 
 			let outPath = Path.ChangeExtension(scope String(packagePath), ".bin", .. scope String(packagePath));
-			let dir = Path.GetDirectoryPath(outPath, .. scope String());
+			let dir = scope String();
+			LogErrorTry!(Path.GetDirectoryPath(outPath, dir), scope $"Couldn't write package. Error getting directory of path {outPath}");
 			if (!Directory.Exists(dir))
 				LogErrorTry!(Directory.CreateDirectory(dir), scope $"Couldn't write package. Error creating directory {dir}");
 
@@ -334,7 +334,6 @@ namespace Pile
 			return .Ok;
 		}
 
-		[Optimize]
 		static Result<void> ReadPackageBuildFile(StringView packageBuildFilePath, PackageData packageData)
 		{
 			// Read package file
@@ -408,8 +407,131 @@ namespace Pile
 
 			return .Ok;
 		}
+		
+		public static bool PackageSourceChanged(StringView packageBuildFilePath, DateTime afterUtc)
+		{
+			if (File.GetLastWriteTime(packageBuildFilePath) case .Ok(let val))
+			{
+				// Package file itself was modified
+				if (val > afterUtc) return true;
 
-		[Optimize]
+				PackageData packageData = new PackageData();
+				defer delete packageData;
+				if (ReadPackageBuildFile(packageBuildFilePath, packageData) case .Err)
+				{
+					return false;
+				}
+
+				let rootPath = Path.GetDirectoryPath(packageBuildFilePath, .. scope String());
+				for (let import in packageData.imports)
+				{
+					// Interpret path string (put all final paths in importPaths)
+					for (var path in import.Path.Split(';'))
+					{
+						path.Trim();
+
+						let fullPath = Path.InternalCombineViews(.. scope String(), rootPath, path);
+
+						// Check if containing folder exists
+						let dirPath = scope String();
+
+						if (Path.GetDirectoryPath(fullPath, dirPath) case .Err)
+							continue; // This would be an error during import
+
+						// Go through everything that should be imported later
+						if (Path.SamePath(fullPath, dirPath))
+						{
+							let importDirs = scope List<String>();
+							importDirs.Add(new String(dirPath));
+
+							String currImportPath;
+							repeat // For each entry in import dirs
+							{
+								currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
+								currImportPath..Append(Path.DirectorySeparatorChar).Append('*');
+
+								for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
+								{
+									// Look if file has been modified after given time
+									if (!entry.IsDirectory)
+									{
+										if (entry.GetLastWriteTimeUtc() > afterUtc)
+										{
+											// Clean up remaining queue
+											for (let dir in importDirs)
+												delete dir;
+
+											return true;
+										}
+									}
+									// Look for matching sub dirs and add to importDirs list
+									else importDirs.Add(entry.GetFilePath(.. new String()));
+								}
+
+								// Tidy up
+								importDirs.PopBack();
+								delete currImportPath;
+							}
+							while (importDirs.Count > 0);
+						}
+						else
+						{
+							let wildCard = Path.GetFileName(fullPath, .. scope String());
+
+							let importDirs = scope List<String>();
+							importDirs.Add(new String(dirPath));
+
+							String currImportPath;
+							let searchPath = scope String();
+							let wildCardPath = scope String();
+							repeat // For each entry in import dirs
+							{
+								let current = importDirs.Count - 1;
+								currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
+
+								searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
+								wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
+
+								for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
+								{
+									// Since we need this for the compare, but later only if its also a folder,
+									// just do a scoped alloc here and only get a new string later
+									let dirFilePath = entry.GetFilePath(.. scope String());
+
+									if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
+									{
+										// Look if file has been modified after given time
+										if (!entry.IsDirectory)
+										{
+											if (entry.GetLastWriteTimeUtc() > afterUtc)
+											{
+												// Clean up remaining queue
+												for (let dir in importDirs)
+													delete dir;
+
+												return true;
+											}
+										}	
+										// Look for matching sub dirs and add to importDirs list
+										else importDirs.Add(entry.GetFilePath(.. new String()));
+
+										// Dont delete the string if we keep using it
+									}
+								}
+
+								// Tidy up
+								importDirs.RemoveAtFast(current);
+								delete currImportPath;
+							}
+							while (importDirs.Count > 0);
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
 		public static Result<void> BuildPackage(StringView packageBuildFilePath, StringView outputPath)
 		{
 			let t = scope Stopwatch(true);
@@ -461,10 +583,10 @@ namespace Pile
 						let fullPath = Path.InternalCombineViews(.. scope String(), rootPath, path);
 	
 						// Check if containing folder exists
-						let dirPath = Path.GetDirectoryPath(fullPath, .. scope String());
+						let dirPath = scope String();
 	
-						if (!Directory.Exists(dirPath))
-							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Failed to find containing directory of {path} at {dirPath}");
+						if (Path.GetDirectoryPath(fullPath, dirPath) case .Err)
+							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Failed to find containing directory of {path}");
 	
 						// Import everything - recursively
 						if (Path.SamePath(fullPath, dirPath))

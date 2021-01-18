@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 
 using internal Pile;
 
 namespace Pile
 {
+	[Optimize]
 	public static class EntryPoint
 	{
 		public delegate void StartDelegate();
@@ -33,7 +35,6 @@ namespace Pile
 			if (launchOptions != null) DeleteDictionaryAndKeysAndValues!(launchOptions);
 		}
 
-		[Optimize]
 		public static Result<void> AddLaunchOption(StringView name, LaunchDelegate launch)
 		{
 			if (launchOptions == null)
@@ -51,7 +52,6 @@ namespace Pile
 			return .Ok;
 		}
 
-		[Optimize]
 		static int Main(String[] runArgs)
 		{
 			// Handle args
@@ -139,7 +139,10 @@ namespace Pile
 
 				// Exit on error (after cleaning up)
 				if (!launch)
+				{
+					Debug.Assert(false, "Launch canceled by a launch option or error");
 					return 1;
+				}
 			}
 
 			// Run onStart
@@ -147,7 +150,10 @@ namespace Pile
 			OnStart.Dispose();
 
 			if (RunGame() case .Err)
+			{
+				Debug.Assert(false, "Error while running game");
 				return -1;
+			}
 
 			return 0;
 		}

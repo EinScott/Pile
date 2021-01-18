@@ -23,6 +23,16 @@ namespace Pile
 			result.Get()
 		}
 
+		public static mixin LogWarningTrySilent(var result, String errMsg)
+		{
+			if (result case .Err(var err))
+			{
+				Log.Warning(scope $"{errMsg} ({err})");
+			}
+
+			result.Get()
+		}
+
 		public static mixin DeleteNotNull(var instance)
 		{
 			if (instance != null) delete instance;
