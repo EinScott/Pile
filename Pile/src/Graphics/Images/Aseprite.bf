@@ -3,6 +3,8 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
+using internal Pile;
+
 namespace Pile
 {
 	/// Parses the Contents of an Aseprite file

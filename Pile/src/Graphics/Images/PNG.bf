@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Text;
 
+using internal Pile;
+
 namespace Pile
 {
 	public static class PNG

@@ -63,23 +63,25 @@ namespace Pile
 					Environment.GetExecutableFilePath(exePath);
 
 					let path = scope String();
-					Path.GetDirectoryPath(exePath, path);
-					Path.InternalCombine(path, "launch.dat");
-
-					// Parse args from file
-					if (File.Exists(path))
+					if (Path.GetDirectoryPath(exePath, path) case .Ok)
 					{
-						let content = scope String();
-						if (File.ReadAllText(path, content) case .Err(let err))
-							Log.Warning(scope $"launch.dat exists but couldn't be read: {err}");
+						Path.InternalCombine(path, "launch.dat");
 
-						if (content.Length > 0)
+						// Parse args from file
+						if (File.Exists(path))
 						{
-							for (var arg in content.Split(' ', '\n'))
+							let content = scope String();
+							if (File.ReadAllText(path, content) case .Err(let err))
+								Log.Warning(scope $"launch.dat exists but couldn't be read: {err}");
+
+							if (content.Length > 0)
 							{
-								arg.Trim();
-								if (arg.Length > 0)
-									datArgs.Add(new String(arg));
+								for (var arg in content.Split(' ', '\n'))
+								{
+									arg.Trim();
+									if (arg.Length > 0)
+										datArgs.Add(new String(arg));
+								}
 							}
 						}
 					}

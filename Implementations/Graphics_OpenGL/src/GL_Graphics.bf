@@ -101,7 +101,7 @@ namespace Pile
 			{
 				mode = value;
 
-				switch(mode)
+				switch (mode)
 				{
 				case .WireFrame:
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

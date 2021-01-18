@@ -69,6 +69,7 @@ namespace Pile
 				}
 			}
 
+			bool error = false;
 			for (let file in Directory.EnumerateFiles(inPath))
 			{
 				// Identify file
@@ -89,14 +90,15 @@ namespace Pile
 				if (Packages.BuildPackage(path, outPath) case .Err)
 				{
 					Log.Warning(scope $"Failed building package {path}. Skipping");
+					error = true;
 					continue;
 				}
 			}
 
-			if (cache)
+			if (cache && !error)
 			{
 				let newBuildDate = DateTime.UtcNow.Ticks.ToString(.. scope String());
-				LogWarningTrySilent!(File.WriteAllText(buildFilePath, newBuildDate), "Couldn't write updated packageBuild.dat");
+				TrySilent!(File.WriteAllText(buildFilePath, newBuildDate));
 			}
 
 			return .Ok;

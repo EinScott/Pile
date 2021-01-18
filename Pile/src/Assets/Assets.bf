@@ -235,7 +235,11 @@ namespace Pile
 				JSONObject dataNode = null;
 				if (json != String.Empty)
 				{
-					dataNode = LogErrorTry!(JSONParser.ParseObject(json), scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {json}");
+					switch(JSONParser.ParseObject(json))
+					{
+					case .Ok(let val): dataNode = val;
+					case .Err(let err): LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {json} ({err})");
+					}
 					defer delete dataNode;
 				}
 

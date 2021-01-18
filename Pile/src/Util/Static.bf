@@ -12,23 +12,14 @@ namespace Pile
 			return .Err(default);
 		}
 
-		public static mixin LogErrorTry(var result, String errMsg)
+		/// errMsg should not be allocated for this call (since that would be done even if the try passes)
+		internal static mixin LogErrorTry(var result, String errMsg)
 		{
 			if (result case .Err(var err))
 			{
-				Log.Error(scope $"{errMsg} ({err})");
+				Log.Error($"{errMsg} ({err})");
 				return .Err((.)err);
 			}	
-
-			result.Get()
-		}
-
-		public static mixin LogWarningTrySilent(var result, String errMsg)
-		{
-			if (result case .Err(var err))
-			{
-				Log.Warning(scope $"{errMsg} ({err})");
-			}
 
 			result.Get()
 		}

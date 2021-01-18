@@ -325,11 +325,16 @@ namespace Pile
 
 			let outPath = Path.ChangeExtension(scope String(packagePath), ".bin", .. scope String(packagePath));
 			let dir = scope String();
-			LogErrorTry!(Path.GetDirectoryPath(outPath, dir), scope $"Couldn't write package. Error getting directory of path {outPath}");
+			if (Path.GetDirectoryPath(outPath, dir) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path {outPath}");
 			if (!Directory.Exists(dir))
-				LogErrorTry!(Directory.CreateDirectory(dir), scope $"Couldn't write package. Error creating directory {dir}");
+			{
+				if (Directory.CreateDirectory(dir) case .Err(let err))
+					LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
+			}
 
-			LogErrorTry!(File.WriteAllBytes(outPath, file), scope $"Couldn't write package. Error writing file to {outPath}");
+			if (File.WriteAllBytes(outPath, file) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error writing file to {outPath}");
 
 			return .Ok;
 		}
@@ -422,7 +427,10 @@ namespace Pile
 					return false;
 				}
 
-				let rootPath = Path.GetDirectoryPath(packageBuildFilePath, .. scope String());
+				let rootPath = scope String();
+				if (Path.GetDirectoryPath(packageBuildFilePath, rootPath) case .Err)
+					return false;
+
 				for (let import in packageData.imports)
 				{
 					// Interpret path string (put all final paths in importPaths)
@@ -564,7 +572,8 @@ namespace Pile
 					DeleteContainerAndItems!(importPaths);
 				}
 
-				let rootPath = Path.GetDirectoryPath(packageBuildFilePath, .. scope String());
+				let rootPath = scope String();
+				Try!(Path.GetDirectoryPath(packageBuildFilePath, rootPath));
 				for (let import in packageData.imports)
 				{
 					Importer importer;
