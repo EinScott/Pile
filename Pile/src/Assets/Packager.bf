@@ -13,7 +13,6 @@ namespace Pile
 		{
 			StringView inPath = StringView();
 			StringView outPath = StringView();
-			bool cache = false;
 			for(let arg in args)
 			{
 				if (arg.StartsWith("in="))
@@ -25,10 +24,6 @@ namespace Pile
 				{
 					outPath = arg;
 					outPath.RemoveFromStart(4);
-				}
-				else if (arg.StartsWith("cache"))
-				{
-					cache = true;
 				}
 				else Log.Warning(scope $"Unknown packager argument: {arg}");
 			}
@@ -42,35 +37,6 @@ namespace Pile
 			if (!Directory.Exists(outPath))
 				Try!(Directory.CreateDirectory(outPath));
 
-			// Get last build date for caching
-			DateTime lastBuild = ?;
-			String buildFilePath = null;
-			if (cache)
-			{
-				buildFilePath = Path.InternalCombineViews(.. scope:: String(), outPath, "packageBuild.dat");
-
-				if (File.Exists(buildFilePath))
-				{
-					// Load build file and extract last build date
-					let buildFile = scope String();
-					if (File.ReadAllText(buildFilePath, buildFile) case .Err)
-					{
-						Log.Warning("Couldn't read packageBuild.dat; disabled caching");
-						cache = false;
-					}
-					else
-					{
-						if (uint64.Parse(buildFile) case .Ok(let val))
-							lastBuild.[Friend]dateData = val;
-						else
-						{
-							Log.Warning("Couldn't parse packageBuild.dat; disabled caching");
-							cache = false;
-						}	
-					}
-				}
-			}
-
 			// TODO: using taks/threadpool here is probably overkill, but could be done some time
 			bool error = false;
 			for (let file in Directory.EnumerateFiles(inPath))
@@ -79,16 +45,6 @@ namespace Pile
 				let path = file.GetFilePath(.. scope String());
 
 				if (!path.EndsWith(".json")) continue;
-
-				if (cache)
-				{
-					let packageName = Path.GetFileNameWithoutExtension(path, .. scope String());
-					let packageOutPath = Path.InternalCombineViews(.. scope String(), outPath, packageName);
-					Path.ChangeExtension(packageOutPath, ".bin", packageOutPath);
-
-					if (File.Exists(packageOutPath) && !Packages.PackageSourceChanged(path, lastBuild))
-						continue;
-				}
 				
 				if (Packages.BuildPackage(path, outPath) case .Err)
 				{
@@ -96,12 +52,6 @@ namespace Pile
 					error = true;
 					continue;
 				}
-			}
-
-			if (cache && !error)
-			{
-				let newBuildDate = DateTime.UtcNow.Ticks.ToString(.. scope String());
-				TrySilent!(File.WriteAllText(buildFilePath, newBuildDate));
 			}
 
 			return .Ok;
