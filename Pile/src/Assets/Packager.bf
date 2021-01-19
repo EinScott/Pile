@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Collections;
+using System.Threading.Tasks;
 
 namespace Pile
 {
@@ -69,6 +71,7 @@ namespace Pile
 				}
 			}
 
+			// TODO: using taks/threadpool here is probably overkill, but could be done some time
 			bool error = false;
 			for (let file in Directory.EnumerateFiles(inPath))
 			{
@@ -86,7 +89,7 @@ namespace Pile
 					if (File.Exists(packageOutPath) && !Packages.PackageSourceChanged(path, lastBuild))
 						continue;
 				}
-
+				
 				if (Packages.BuildPackage(path, outPath) case .Err)
 				{
 					Log.Warning(scope $"Failed building package {path}. Skipping");

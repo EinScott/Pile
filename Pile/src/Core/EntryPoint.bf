@@ -153,8 +153,7 @@ namespace Pile
 
 			if (RunGame() case .Err)
 			{
-				Debug.FatalError("Error while running game");
-				return -1;
+				Core.FatalError("Error while running game");
 			}
 
 			return 0;

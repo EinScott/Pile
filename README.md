@@ -14,7 +14,7 @@ Currently, there are
 
 Custom implementations are possible.
 
-Apart from that, there's an extendable asset management pipeline and UTF8 unicode text rendering via SpriteFonts using TTF fonts.
+Apart from that, there's an extendable asset management pipeline and UTF8 Unicode text rendering via SpriteFonts using TTF fonts.
 
 There are also some useful structs, like Vector2 & 3, Point2 & 3 or Rect (of integers) as well as some extensions to corelib classes, especially Math.
 
@@ -24,7 +24,7 @@ Guide on [Getting Started](https://github.com/EinBurgbauer/Pile/wiki/Getting-Sta
 See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) project for further reference.
 
 # Platforms
-32-Bit Archetictures are not supported.
+32-Bit Architectures are not supported.
 Windows binaries are already included. Binaries for other platforms are missing (See ./Implementations/(any)/dist/).
 
 # Contributing
@@ -33,7 +33,7 @@ You may suggest to change stuff to make the framework nicer to work with or add 
 # License
 Pile is licensed under the MIT license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
 Other open source libraries used:
-- [stb_truetype](https://github.com/nothings/stb/blob/master/stb_truetype.h) - Font handeling
+- [stb_truetype](https://github.com/nothings/stb/blob/master/stb_truetype.h) - Font handling
 - [referencesource/System.Numerics](https://github.com/microsoft/referencesource/tree/master/System.Numerics/System/Numerics) - Parts of the structs located in ./Pile/src/Struct/*
 - [SDL2](https://www.libsdl.org/) - System Implementation
 - [SoLoud](http://sol.gfxile.net/soloud/index.html) - Audio Implementation

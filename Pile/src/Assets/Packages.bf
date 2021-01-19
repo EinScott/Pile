@@ -589,8 +589,10 @@ namespace Pile
 					{
 						path.Trim();
 	
-						let fullPath = Path.InternalCombineViews(.. scope String(), rootPath, path);
-	
+						let fullPath = Path.IsPathRooted(path)
+							? scope String(path)
+							: Path.InternalCombineViews(.. scope String(), rootPath, path);
+
 						// Check if containing folder exists
 						let dirPath = scope String();
 	
