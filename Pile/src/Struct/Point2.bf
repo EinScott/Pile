@@ -5,13 +5,13 @@ namespace Pile
 	[Ordered]
 	public struct Point2 : IFormattable, IEquatable<Point2>, IEquatable
 	{
-		public static readonly Point2 Zero = .(0, 0);
-		public static readonly Point2 One = .(1, 1);
-		public static readonly Point2 UnitX = .(1, 0);
-		public static readonly Point2 UnitY = .(0, 1);
+		public const Point2 Zero = .(0, 0);
+		public const Point2 One = .(1, 1);
+		public const Point2 UnitX = .(1, 0);
+		public const Point2 UnitY = .(0, 1);
 
-		public static readonly Point2 NegateX = .(-1, 1);
-		public static readonly Point2 NegateY = .(1, -1);
+		public const Point2 NegateX = .(-1, 1);
+		public const Point2 NegateY = .(1, -1);
 
 		public int X, Y;
 

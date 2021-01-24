@@ -112,21 +112,25 @@ namespace System
 		    return Math.Round(value / snapTo) * snapTo;
 		}
 
+		[Inline]
 		public static bool IsBitSet(uint8 b, int pos)
 		{
 		    return (b & (1 << pos)) != 0;
 		}
 
+		[Inline]
 		public static bool IsBitSet(int16 b, int pos)
 		{
 		    return (b & (1 << pos)) != 0;
 		}
 
+		[Inline]
 		public static bool IsBitSet(int32 b, int pos)
 		{
 		    return (b & (1 << pos)) != 0;
 		}
 
+		[Inline]
 		public static bool IsBitSet(int64 b, int pos)
 		{
 		    return (b & (1 << pos)) != 0;

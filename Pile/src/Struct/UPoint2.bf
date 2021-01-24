@@ -5,10 +5,10 @@ namespace Pile
 	[Ordered]
 	public struct UPoint2 : IFormattable, IEquatable<UPoint2>, IEquatable
 	{
-		public static readonly UPoint2 Zero = .(0, 0);
-		public static readonly UPoint2 One = .(1, 1);
-		public static readonly UPoint2 UnitX = .(1, 0);
-		public static readonly UPoint2 UnitY = .(0, 1);
+		public const UPoint2 Zero = .(0, 0);
+		public const UPoint2 One = .(1, 1);
+		public const UPoint2 UnitX = .(1, 0);
+		public const UPoint2 UnitY = .(0, 1);
 
 		public uint X, Y;
 

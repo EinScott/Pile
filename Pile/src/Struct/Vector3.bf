@@ -9,15 +9,15 @@ namespace Pile
 	[Ordered]
 	public struct Vector3 : IFormattable, IEquatable<Vector3>, IEquatable
 	{
-		public static readonly Vector3 Zero = .(0, 0, 0);
-		public static readonly Vector3 One = .(1, 1, 1);
-		public static readonly Vector3 UnitX = .(1, 0, 0);
-		public static readonly Vector3 UnitY = .(0, 1, 0);
-		public static readonly Vector3 UnitZ = .(0, 0, 1);
+		public const Vector3 Zero = .(0, 0, 0);
+		public const Vector3 One = .(1, 1, 1);
+		public const Vector3 UnitX = .(1, 0, 0);
+		public const Vector3 UnitY = .(0, 1, 0);
+		public const Vector3 UnitZ = .(0, 0, 1);
 
-		public static readonly Vector3 NegateX = .(-1, 1, 1);
-		public static readonly Vector3 NegateY = .(1, -1, 1);
-		public static readonly Vector3 NegateZ = .(1, 1, -1);
+		public const Vector3 NegateX = .(-1, 1, 1);
+		public const Vector3 NegateY = .(1, -1, 1);
+		public const Vector3 NegateZ = .(1, 1, -1);
 
 		public float X, Y, Z;
 

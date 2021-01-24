@@ -5,7 +5,9 @@ namespace Pile
 	[Ordered]
 	public struct Rect
 	{
-		public static Rect Zero = Rect();
+		public const Rect Zero = Rect();
+		public const Rect SizeOne = Rect(0, 0, 1, 1);
+		public const Rect PosOne = Rect(1, 1, 0, 0);
 
 		public int X;
 		public int Y;

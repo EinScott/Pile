@@ -9,7 +9,7 @@ namespace Pile
 	[Ordered]
 	public struct Matrix3x2 : IFormattable, IEquatable<Matrix3x2>, IEquatable
 	{
-		public static readonly Matrix3x2 Identity = Matrix3x2(
+		public const Matrix3x2 Identity = Matrix3x2(
 			1, 0,
 			0, 1,
 			0, 0);

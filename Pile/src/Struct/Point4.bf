@@ -5,17 +5,17 @@ namespace Pile
 	[Ordered]
 	public struct Point4 : IFormattable, IEquatable<Point4>, IEquatable
 	{
-		public static readonly Point4 Zero = .(0, 0, 0, 0);
-		public static readonly Point4 One = .(1, 1, 1, 1);
-		public static readonly Point4 UnitX = .(1, 0, 0, 0);
-		public static readonly Point4 UnitY = .(0, 1, 0, 0);
-		public static readonly Point4 UnitZ = .(0, 0, 1, 0);
-		public static readonly Point4 UnitW = .(0, 0, 0, 1);
+		public const Point4 Zero = .(0, 0, 0, 0);
+		public const Point4 One = .(1, 1, 1, 1);
+		public const Point4 UnitX = .(1, 0, 0, 0);
+		public const Point4 UnitY = .(0, 1, 0, 0);
+		public const Point4 UnitZ = .(0, 0, 1, 0);
+		public const Point4 UnitW = .(0, 0, 0, 1);
 
-		public static readonly Point4 NegateX = .(-1, 1, 1, 1);
-		public static readonly Point4 NegateY = .(1, -1, 1, 1);
-		public static readonly Point4 NegateZ = .(1, 1, -1, 1);
-		public static readonly Point4 NegateW = .(1, 1, 1, -1);
+		public const Point4 NegateX = .(-1, 1, 1, 1);
+		public const Point4 NegateY = .(1, -1, 1, 1);
+		public const Point4 NegateZ = .(1, 1, -1, 1);
+		public const Point4 NegateW = .(1, 1, 1, -1);
 
 		public int X, Y, Z, W;
 

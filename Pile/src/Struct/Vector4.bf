@@ -9,17 +9,17 @@ namespace Pile
 	[Ordered]
 	public struct Vector4 : IFormattable, IEquatable<Vector4>, IEquatable
 	{
-		public static readonly Vector4 Zero = .(0, 0, 0, 0);
-		public static readonly Vector4 One = .(1, 1, 1, 1);
-		public static readonly Vector4 UnitX = .(1, 0, 0, 0);
-		public static readonly Vector4 UnitY = .(0, 1, 0, 0);
-		public static readonly Vector4 UnitZ = .(0, 0, 1, 0);
-		public static readonly Vector4 UnitW = .(0, 0, 0, 1);
+		public const Vector4 Zero = .(0, 0, 0, 0);
+		public const Vector4 One = .(1, 1, 1, 1);
+		public const Vector4 UnitX = .(1, 0, 0, 0);
+		public const Vector4 UnitY = .(0, 1, 0, 0);
+		public const Vector4 UnitZ = .(0, 0, 1, 0);
+		public const Vector4 UnitW = .(0, 0, 0, 1);
 
-		public static readonly Vector4 NegateX = .(-1, 1, 1, 1);
-		public static readonly Vector4 NegateY = .(1, -1, 1, 1);
-		public static readonly Vector4 NegateZ = .(1, 1, -1, 1);
-		public static readonly Vector4 NegateW = .(1, 1, 1, -1);
+		public const Vector4 NegateX = .(-1, 1, 1, 1);
+		public const Vector4 NegateY = .(1, -1, 1, 1);
+		public const Vector4 NegateZ = .(1, 1, -1, 1);
+		public const Vector4 NegateW = .(1, 1, 1, -1);
 
 		public float X, Y, Z, W;
 

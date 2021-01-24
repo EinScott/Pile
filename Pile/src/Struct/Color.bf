@@ -5,18 +5,19 @@ namespace Pile
 	[Ordered]
 	public struct Color
 	{
-		public static readonly Color White 			= 0xFFFFFFFF;
-		public static readonly Color Black 			= 0x000000FF;
-		public static readonly Color Transparent 	= 0x00000000;
-		public static readonly Color Red 			= 0xFF0000FF;
-		public static readonly Color Green 			= 0x00FF00FF;
-		public static readonly Color Blue 			= 0x0000FFFF;
-		public static readonly Color Cyan 			= 0xFF00FFFF;
-		public static readonly Color Magenta 		= 0xFFFF00FF;
-		public static readonly Color Yellow 		= 0x00FFFFFF;
-		public static readonly Color DarkGray		= 0x3F3F3FFF;
-		public static readonly Color Gray			= 0x7F7F7FFF;
-		public static readonly Color LightGray		= 0xBFBFBFFF;
+		public const Color White = Color(255, 255, 255, 255);
+		public const Color Black = Color(0, 0, 0, 255);
+		public const Color Transparent = Color(0, 0, 0, 0);
+
+		public const Color Red = Color(255, 0, 0);
+		public const Color Green = Color(0, 255, 0);
+		public const Color Blue = Color(0, 0, 255);
+		public const Color Cyan = Color(255, 0, 255);
+		public const Color Magenta = Color(255, 255, 0);
+		public const Color Yellow = Color(0, 255, 255);
+		public const Color DarkGray = Color(0x3F, 0x3F, 0x3F);
+		public const Color Gray = Color(0x7F, 0x7F, 0x7F);
+		public const Color LightGray = Color(0xBF, 0xBF, 0xBF);
 
 		public uint8 R;
 		public uint8 G;

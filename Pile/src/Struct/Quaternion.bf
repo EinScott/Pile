@@ -11,7 +11,7 @@ namespace Pile
 	/// which is used to efficiently rotate an object about the (x,y,z) vector by the angle theta, where w = cos(theta/2).
 	public struct Quaternion : IFormattable, IEquatable<Quaternion>, IEquatable
 	{
-		public static readonly Quaternion Identity = Quaternion(0, 0, 0, 1);
+		public const Quaternion Identity = Quaternion(0, 0, 0, 1);
 
 		public float X, Y, Z, W;
 

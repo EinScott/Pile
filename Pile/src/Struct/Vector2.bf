@@ -9,13 +9,13 @@ namespace Pile
 	[Ordered]
 	public struct Vector2 : IFormattable, IEquatable<Vector2>, IEquatable
 	{
-		public static readonly Vector2 Zero = .(0, 0);
-		public static readonly Vector2 One = .(1, 1);
-		public static readonly Vector2 UnitX = .(1, 0);
-		public static readonly Vector2 UnitY = .(0, 1);
+		public const Vector2 Zero = .(0, 0);
+		public const Vector2 One = .(1, 1);
+		public const Vector2 UnitX = .(1, 0);
+		public const Vector2 UnitY = .(0, 1);
 
-		public static readonly Vector2 NegateX = .(-1, 1);
-		public static readonly Vector2 NegateY = .(1, -1);
+		public const Vector2 NegateX = .(-1, 1);
+		public const Vector2 NegateY = .(1, -1);
 
 		public float X, Y;
 

@@ -9,7 +9,7 @@ namespace Pile
 	[Ordered]
 	public struct Matrix4x4 //: IFormattable, IEquatable<Matrix4x4>
 	{
-	    public static readonly Matrix4x4 Identity = Matrix4x4(
+	    public const Matrix4x4 Identity = Matrix4x4(
 	        1, 0, 0, 0,
 	        0, 1, 0, 0,
 	        0, 0, 1, 0,
