@@ -34,6 +34,18 @@ namespace Pile
 			delete sdlGamepads;
 		}
 
+		public override void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration)
+		{
+			if (sdlGamepads[index] != null)
+			{
+				SDL.GameControllerRumble(sdlGamepads[index], (.)(leftMotor * uint16.MaxValue), (.)(rightMotor * uint16.MaxValue), (.)duration);
+			}
+			else if (sdlJoysticks[index] != null)
+			{
+				SDL.JoystickRumble(sdlJoysticks[index], (.)(leftMotor * uint16.MaxValue), (.)(rightMotor * uint16.MaxValue), (.)duration);
+			}
+		}
+
 		public override void SetMouseCursor(Cursors cursor)
 		{
 			if (cursor == .Hidden)

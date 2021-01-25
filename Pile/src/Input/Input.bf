@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System;
 
 using internal Pile;
@@ -55,6 +56,18 @@ namespace Pile
 			for (int i = 0; i < virtualButtons.Count; i++)
 				virtualButtons[i].Update();
 		}
+
+		[Inline]
+		/// left- and rightMotor should only be floats from 0.0 to 1.0, duration is in MS
+		public void SetControllerRumble(int index, float leftMotor, float rightMotor, uint duration)
+		{
+			Debug.Assert(index >= 0 && index < (.)maxControllers);
+			Debug.Assert(leftMotor >= 0 && leftMotor <= 1);
+			Debug.Assert(rightMotor >= 0 && rightMotor <= 1);
+
+			SetControllerRumbleInternal(index, leftMotor, rightMotor, duration);
+		}
+		public extern void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration);
 
 		public extern void SetMouseCursor(Cursors cursor);
 

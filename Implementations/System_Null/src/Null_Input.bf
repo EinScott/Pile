@@ -8,6 +8,9 @@ namespace Pile
 		protected internal override void Initialize() {}
 
 		[SkipCall]
+		public override void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration) {}
+
+		[SkipCall]
 		public override void SetMouseCursor(Cursors cursor) {}
 
 		[SkipCall]
