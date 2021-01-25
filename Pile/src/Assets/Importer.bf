@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using JSON_Beef.Types;
 
 using internal Pile;
 
@@ -8,8 +7,8 @@ namespace Pile
 {
 	public abstract class Importer
 	{
-		public abstract Result<void> Load(StringView name, Span<uint8> data, JSONObject dataNode);
-		public abstract Result<uint8[]> Build(Span<uint8> data, JSONObject config, out JSONObject dataNode);
+		public abstract Result<void> Load(StringView name, Span<uint8> data);
+		public abstract Result<uint8[]> Build(Span<uint8> data, Span<StringView> config);
 
 		internal Package package;
 		protected Result<void> SubmitAsset(StringView name, Object asset)

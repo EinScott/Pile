@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Diagnostics;
-using JSON_Beef.Serialization;
-using JSON_Beef.Types;
 
 using internal Pile;
 
@@ -230,22 +228,8 @@ namespace Pile
 				// Prepare data
 				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
 
-				let json = scope String((char8*)node.DataNode.CArray(), node.DataNode.Count);
-
-				JSONObject dataNode = null;
-				if (json != String.Empty)
-				{
-					switch(JSONParser.ParseObject(json))
-					{
-					case .Ok(let val): dataNode = val;
-					case .Err(let err): LogErrorReturn!(scope $"Couldn't loat package {packageName}. Error parsing json data for asset {name}: {json} ({err})");
-					}
-					defer delete dataNode;
-				}
-
-				// Import node data -- dataNode may be null if that's what the same importer passed when building
 				importer.package = package;
-				if (importer.Load(name, node.Data, dataNode) case .Err(let err))
+				if (importer.Load(name, node.Data) case .Err(let err))
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
 				importer.package = null;
 			}

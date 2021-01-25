@@ -1,11 +1,11 @@
 using System;
-using JSON_Beef.Types;
+using System.Collections;
 
 namespace Pile
 {
 	public class RawImporter : Importer
 	{
-		public override Result<void> Load(StringView name, Span<uint8> data, JSONObject dataNode)
+		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let asset = new RawAsset(data);
 
@@ -17,10 +17,8 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public override Result<uint8[]> Build(Span<uint8> data, JSONObject config, out JSONObject dataNode)
+		public override Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
 		{
-			dataNode = null;
-
 			let outData = new uint8[data.Length];
 			data.CopyTo(outData);
 			return outData;

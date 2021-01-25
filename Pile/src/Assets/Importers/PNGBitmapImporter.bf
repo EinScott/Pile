@@ -1,12 +1,11 @@
 using System.IO;
 using System;
-using JSON_Beef.Types;
 
 namespace Pile
 {
 	class PNGBitmapImporter : PNGImporter
 	{
-		public override Result<void> Load(StringView name, Span<uint8> data, JSONObject dataNode)
+		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let bitmap = new Bitmap(
 				(((uint32)data[0]) << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | ((uint32)data[3]),

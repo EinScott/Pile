@@ -1,12 +1,12 @@
 using System;
 using System.IO;
-using JSON_Beef.Types;
+using System.Collections;
 
 namespace Pile
 {
 	public class PNGImporter : Importer
 	{
-		public override Result<void> Load(StringView name, Span<uint8> data, JSONObject dataNode)
+		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let bitmap = new Bitmap(
 				(((uint32)data[0]) << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | ((uint32)data[3]),
@@ -21,10 +21,8 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public override Result<uint8[]> Build(Span<uint8> data, JSONObject config, out JSONObject dataNode)
+		public override Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
 		{
-			dataNode = null;
-
 			if (!PNG.IsValid(data))
 				LogErrorReturn!("Data i not in PNG format");
 

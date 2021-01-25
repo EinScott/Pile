@@ -2,8 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Diagnostics;
-using JSON_Beef.Types;
-using JSON_Beef.Serialization;
+using Atma;
 
 using internal Pile;
 
@@ -13,24 +12,18 @@ namespace Pile
 	public static class Packages
 	{
 		// Represents the json data in the package import file
+		[Serializable]
 		internal class PackageData
 		{
-			public List<ImportData> imports = new List<ImportData>() ~ DeleteContainerAndItems!(_);
+			public List<ImportData> imports ~ DeleteContainerAndItems!(_);
 
+			[Serializable]
 			internal class ImportData
 			{
-				public readonly String Path ~ delete _;
-				public readonly String Importer ~ delete _;
-				public readonly String NamePrefix ~ DeleteNotNull!(_);
-				public readonly JSONObject Config ~ DeleteNotNull!(_);
-
-				internal this(StringView path, StringView importer, StringView? namePrefix, JSONObject config)
-				{
-					Path = new String(path);
-					Importer = new String(importer);
-					if (namePrefix != null) NamePrefix = new String(namePrefix.Value);
-					Config = config;
-				}
+				public String path ~ DeleteNotNull!(_);
+				public String importer ~ DeleteNotNull!(_);
+				public String name_prefix ~ DeleteNotNull!(_);
+				public String config ~ DeleteNotNull!(_);
 			}
 		}
 		
@@ -40,14 +33,12 @@ namespace Pile
 			public readonly uint32 Importer;
 			public readonly uint8[] Name ~ delete _;
 			public readonly uint8[] Data ~ delete _;
-			public readonly uint8[] DataNode ~ delete _;
 
-			internal this(uint32 importer, uint8[] name, uint8[] data, uint8[] dataNode)
+			internal this(uint32 importer, uint8[] name, uint8[] data)
 			{
 				Name = name;
 				Importer = importer;
 				Data = data;
-				DataNode = dataNode;
 			}
 		}
 		
@@ -88,8 +79,6 @@ namespace Pile
 			// 				NAMEDATA
 			// 				DATAARRAYLENGTH (uint32)
 			// 				DATAARRAY (of bytes)
-			// 				DATANODEARRAYLENGTH (uint32)
-			// 				DATANODEARRAY (of bytes)
 
 			int32 readByte = 4; // Start after header
 
@@ -154,15 +143,7 @@ namespace Pile
 					Span<uint8>(&nodeRaw[position], dataLength).CopyTo(data);
 					position += dataLength;
 
-					let nodeDataLength = ReadArrayUInt();
-					let nodeData = new uint8[nodeDataLength];
-
-					if (nodeDataLength > 0) // This might be 0
-						Span<uint8>(&nodeRaw[position], nodeDataLength).CopyTo(nodeData);
-
-					position += nodeDataLength;
-
-					nodes.Add(new Node(importerIndex, name, data, nodeData));
+					nodes.Add(new Node(importerIndex, name, data));
 				}
 			}
 
@@ -208,8 +189,6 @@ namespace Pile
 			// 				NAMEDATA
 			// 				DATAARRAYLENGTH (uint32)
 			// 				DATAARRAY (of bytes)
-			// 				DATANODEARRAYLENGTH (uint32)
-			// 				DATANODEARRAY (of bytes)
 
 			file.Add(0x50); // Head
 			file.Add(0x4C);
@@ -230,7 +209,7 @@ namespace Pile
 			WriteUInt((uint32)nodes.Count);
 			for (let node in nodes)
 			{
-				let zLibInput = new uint8[sizeof(uint32) * 4 + node.Name.Count + node.Data.Count + node.DataNode.Count];
+				let zLibInput = new uint8[sizeof(uint32) * 3 + node.Name.Count + node.Data.Count];
 				defer delete zLibInput;
 				int position = 0;
 
@@ -262,8 +241,6 @@ namespace Pile
 				WriteArraySpan(node.Name);
 				WriteArrayUInt((uint32)node.Data.Count);
 				WriteArraySpan(node.Data);
-				WriteArrayUInt((uint32)node.DataNode.Count);
-				WriteArraySpan(node.DataNode);
 
 				// Write uncompressed size & numChunks into file
 				WriteUInt((uint32)zLibInput.Count);
@@ -347,68 +324,13 @@ namespace Pile
 			if (File.ReadAllText(packageBuildFilePath, jsonFile) case .Err(let err))
 				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath} because the file could not be opened");
 
-			if (!JSONParser.IsValidJson(jsonFile))
-				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Invalid json file");
+			if (JsonConvert.Deserialize(packageData, jsonFile) case .Err)
+				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error reading json");
 
-			JSONObject root = scope JSONObject();
-			let res = JSONParser.ParseObject(jsonFile, ref root);
-			if (res case .Err(let err))
-				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error parsing json: {err}");
-
-			if (!root.ContainsKey("imports"))
-				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. The root json object must include a 'imports' json array of objects");
-
-			JSONArray array = null;
-			var ress = root.Get("imports", ref array);
-			if (ress case .Err(let err))
-				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting 'imports' array from root object: {err}");
-			if (array == null)
-				LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting 'imports' array from root object");
-
-			JSONObject entry = null;
-			for (int i = 0; i < array.Count; i++)
+			for (let imp in packageData.imports)
 			{
-				ress = array.Get(i, ref entry);
-				if (ress case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting object at position {i} of 'imports' array: {err}");
-				if (entry == null) continue; // This can probably not happen anyways
-
-				// Mandatory parameters
-				if (!entry.ContainsKey("path") || !entry.ContainsKey("importer"))
-					LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error processing object at position {i} of 'imports' array: Object must include a path and importer string");
-				if (entry.GetValueType("path") != .STRING || entry.GetValueType("importer") != .STRING)
-					LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error processing object at position {i} of 'imports' array: Object must include a path and importer entry, both of json type string");
-
-				String path = null;
-				ress = entry.Get("path", ref path);
-				if (ress case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting object 'path' of object at position {i} of 'imports' array: {err}");
-
-				String importer = null;
-				ress = entry.Get("importer", ref importer);
-				if (ress case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting object 'importer' of object at position {i} of 'imports' array: {err}");
-
-				// Option parameters
-				String namePrefix = null;
-				if (entry.ContainsKey("name_prefix") && entry.GetValueType("name_prefix") == .STRING)
-				{
-					ress = entry.Get("name_prefix", ref namePrefix);
-					if (ress case .Err(let err))
-						LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting object 'name_prefix' of object at position {i} of 'imports' array: {err}");
-				}
-
-				JSONObject config = null;
-				if (entry.ContainsKey("config") && entry.GetValueType("config") == .OBJECT)
-				{
-					ress = entry.Get("config", ref config);
-					if (ress case .Err(let err))
-						LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error getting object 'config' of object at position {i} of 'imports' array: {err}");
-				}
-
-				packageData.imports.Add(new PackageData.ImportData(path, importer, namePrefix == null ? null : StringView(namePrefix), config == null ? null : new JSONObject(config)));
-
-				entry = null;
+				if (imp.path == null || imp.importer == null)
+					LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. \"path\" and \"importer\" has to be specified for every import statement");
 			}
 
 			return .Ok;
@@ -444,7 +366,7 @@ namespace Pile
 			for (let import in packageData.imports)
 			{
 				// Interpret path string (and look at each file)
-				for (var path in import.Path.Split(';'))
+				for (var path in import.path.Split(';'))
 				{
 					path.Trim();
 
@@ -601,13 +523,13 @@ namespace Pile
 					Importer importer;
 	
 					// Try to find importer
-					if (Assets.Importers.ContainsKey(import.Importer)) importer = Assets.Importers[import.Importer];
-					else LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Couldn't find importer '{import.Importer}'");
+					if (Assets.Importers.ContainsKey(import.importer)) importer = Assets.Importers[import.importer];
+					else LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Couldn't find importer '{import.importer}'");
 	
 					bool importerUsed = false;
 	
 					// Interpret path string (put all final paths in importPaths)
-					for (var path in import.Path.Split(';'))
+					for (var path in import.path.Split(';'))
 					{
 						path.Trim();
 	
@@ -703,29 +625,41 @@ namespace Pile
 					}
 	
 					// Import all files found for this import statement with this importer
+					let config = scope List<StringView>();
 					for (var filePath in importPaths)
 					{
-						//Log.Message(scope $"Importing {filePath}");
+						Log.Debug($"Importing {filePath}");
 	
 						// Read file
 						let res = File.ReadAllBytes(filePath);
 						if (res case .Err(let err))
-							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error reading file at {filePath} with {import.Importer}: {err}");
+							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error reading file at {filePath} with {import.importer}: {err}");
 						uint8[] data = res;
-	
-						// Run through importer -- config may be null
-						let ress = importer.Build(data, import.Config, let node);
-						if (ress case .Err(let err))
-							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error importing file at {filePath} with {import.Importer}: {err}");
+
+						// Compose config
+						config.Clear();
+						if (import.config != null && import.config.Length > 0)
+						{
+							for (var part in import.config.Split(';'))
+							{
+								part.Trim();
+								config.Add(part);
+							}
+						}
+
+						// Run through importer
+						let ress = importer.Build(data, config);
+						if (ress case .Err)
+							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
 						uint8[] builtData = ress.Get();
 						if (builtData.Count <= 0)
-							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error importing file at {filePath} with {import.Importer}: Length of returned data cannot be 0");
+							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");
 	
 						delete data;
 
 						// Make name
 						let s = scope String();
-						if (import.NamePrefix != null) s.Append(import.NamePrefix);
+						if (import.name_prefix != null) s.Append(import.name_prefix);
 						Path.GetFileNameWithoutExtension(filePath, s);
 
 						// Check if name exists
@@ -736,29 +670,15 @@ namespace Pile
 						let name = new uint8[s.Length];
 						Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(name);
 						duplicateNameLookup.Add(StringView((char8*)name.CArray(), name.Count)); // Add name data interpreted as string back to duplicate lookup
-
-						// Convert node string to bytes
-						s.Clear();
-						if (node != null)
-							node.ToString(s); // Node might be null
-	
-						let nodeData = new uint8[s.Length]; // Array might be empty, and that is valid
-						
-						if (node != null)
-						{
-							// Fill array
-							Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(nodeData);
-							delete node;
-						}
 	
 						// Add data
 						importerUsed = true;
-						nodes.Add(new Node((uint32)importerNames.Count, name, builtData, nodeData));
+						nodes.Add(new Node((uint32)importerNames.Count, name, builtData));
 					}
 					ClearAndDeleteItems(importPaths);
 	
 					if (importerUsed)
-						importerNames.Add(new String(import.Importer));
+						importerNames.Add(new String(import.importer));
 				}
 			}
 
