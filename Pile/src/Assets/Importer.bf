@@ -59,7 +59,6 @@ namespace Pile
 					continue;
 				}
 
-				// look at this in assembly to see if the scope string is also not included on RELEASE, otherwise wrap in #if DEBUG
 				Debug.Assert(!importers.ContainsKey(i.Name), scope $"Importer with name {i.Name} already exists");
 				
 				importers.Add(i.Name, i);

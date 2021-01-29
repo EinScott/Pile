@@ -52,7 +52,8 @@ namespace Pile
 				Path.ChangeExtension(inPath, ".bin", inPath);
 
 			// Get file
-			let file = LogErrorTry!(File.ReadAllBytes(inPath), scope $"Couldn't load package at {inPath}. Error reading file");
+			let file = new List<uint8>();
+			LogErrorTry!(File.ReadAll(inPath, file), scope $"Couldn't load package at {inPath}. Error reading file");
 			defer delete file;
 
 			// HEADER (3 bytes + one reserved)
@@ -311,7 +312,7 @@ namespace Pile
 					LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
 			}
 
-			if (File.WriteAllBytes(outPath, file) case .Err)
+			if (File.WriteAll(outPath, file) case .Err)
 				LogErrorReturn!(scope $"Couldn't write package. Error writing file to {outPath}");
 
 			return .Ok;
@@ -382,9 +383,10 @@ namespace Pile
 
 					// Go through everything that should be imported later
 					if (Path.SamePath(fullPath, dirPath))
+					SEARCH:
 					{
-						let importDirs = scope List<String>();
-						importDirs.Add(new String(dirPath));
+						let importDirs = scope List<String>(8);
+						importDirs.Add(scope String(dirPath));
 
 						String currImportPath;
 						repeat // For each entry in import dirs
@@ -395,37 +397,29 @@ namespace Pile
 							for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
 							{
 								// Look if file has been modified after given time
-								if (!entry.IsDirectory)
-								{
-									if (entry.GetLastWriteTimeUtc() > afterUtc)
-									{
-										// Clean up remaining queue
-										for (let dir in importDirs)
-											delete dir;
-
-										return true;
-									}
-								}
+								if (!entry.IsDirectory && entry.GetLastWriteTimeUtc() > afterUtc)
+									return true;
 								// Look for matching sub dirs and add to importDirs list
-								else importDirs.Add(entry.GetFilePath(.. new String()));
+								else importDirs.Add(entry.GetFilePath(.. scope:SEARCH String()));
 							}
 
 							// Tidy up
 							importDirs.PopBack();
-							delete currImportPath;
 						}
 						while (importDirs.Count > 0);
 					}
 					else
+					SEARCH:
 					{
 						let wildCard = Path.GetFileName(fullPath, .. scope String());
 
-						let importDirs = scope List<String>();
-						importDirs.Add(new String(dirPath));
+						let importDirs = scope List<String>(8);
+						importDirs.Add(scope String(dirPath));
 
 						String currImportPath;
-						let searchPath = scope String();
-						let wildCardPath = scope String();
+						let enumeratePath = scope String(128);
+						let searchPath = scope String(128);
+						let wildCardPath = scope String(128);
 						repeat // For each entry in import dirs
 						{
 							let current = importDirs.Count - 1;
@@ -436,32 +430,20 @@ namespace Pile
 
 							for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
 							{
-								// Since we need this for the compare, but later only if its also a folder,
-								// just do a scoped alloc here and only get a new string later
-								let dirFilePath = entry.GetFilePath(.. scope String());
+								entry.GetFilePath(enumeratePath);
 
-								if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
+								if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
 								{
 									// Look if file has been modified after given time
-									if (!entry.IsDirectory)
-									{
-										if (entry.GetLastWriteTimeUtc() > afterUtc)
-										{
-											// Clean up remaining queue
-											for (let dir in importDirs)
-												delete dir;
-
-											return true;
-										}
-									}	
+									if (!entry.IsDirectory && entry.GetLastWriteTimeUtc() > afterUtc)
+										return true;	
 									// Look for matching sub dirs and add to importDirs list
-									else importDirs.Add(entry.GetFilePath(.. new String()));
+									else importDirs.Add(scope:SEARCH String(enumeratePath));
 								}
 							}
 
 							// Tidy up
 							importDirs.RemoveAtFast(current);
-							delete currImportPath;
 						}
 						while (importDirs.Count > 0);
 					}
@@ -496,8 +478,8 @@ namespace Pile
 			}
 
 			// Resolve imports
-			List<Node> nodes = new List<Node>();
-			List<String> importerNames = new List<String>();
+			List<Node> nodes = new List<Node>(32);
+			List<String> importerNames = new List<String>(8);
 
 			defer
 			{
@@ -509,16 +491,16 @@ namespace Pile
 				// Delete on scope exit
 				defer delete packageData;
 
-				List<StringView> duplicateNameLookup = scope List<StringView>();
-				List<String> importPaths = new List<String>(); // All of these paths exist
-				defer
-				{
-					DeleteContainerAndItems!(importPaths);
-				}
+				List<StringView> duplicateNameLookup = scope List<StringView>(32);
+				List<String> importPaths = scope List<String>(32); // All of these paths exist
+
+				let importerData = new List<uint8>();
+				defer delete importerData;
 
 				let rootPath = scope String();
 				Try!(Path.GetDirectoryPath(packageBuildFilePath, rootPath));
 				for (let import in packageData.imports)
+				IMPORT:
 				{
 					Importer importer;
 	
@@ -545,11 +527,13 @@ namespace Pile
 	
 						// Import everything - recursively
 						if (Path.SamePath(fullPath, dirPath))
+						SEARCH:
 						{
-							let importDirs = scope List<String>();
-							importDirs.Add(new String(dirPath));
+							let importDirs = scope List<String>(8);
+							importDirs.Add(scope:SEARCH String(dirPath));
 	
 							String currImportPath;
+							let enumeratePath = scope String(128);
 							repeat // For each entry in import dirs
 							{
 								currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
@@ -557,33 +541,35 @@ namespace Pile
 	
 								for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
 								{
-									let path = entry.GetFilePath(.. new String());
+									enumeratePath.Clear();
+									entry.GetFilePath(enumeratePath);
 	
 									// Add matching files in this directory to import list
 									if (!entry.IsDirectory)
-										importPaths.Add(path);
+										importPaths.Add(scope:IMPORT String(enumeratePath));
 									// Look for matching sub dirs and add to importDirs list
 									else
-										importDirs.Add(path);
+										importDirs.Add(scope:SEARCH String(enumeratePath));
 								}
 	
 								// Tidy up
 								importDirs.PopBack();
-								delete currImportPath;
 							}
 							while (importDirs.Count > 0);
 						}
 						// Import everything that matches - recursively
 						else
+						SEARCH:
 						{
 							let wildCard = Path.GetFileName(fullPath, .. scope String());
 	
-							let importDirs = scope List<String>();
-							importDirs.Add(new String(dirPath));
-	
+							let importDirs = scope List<String>(8);
+							importDirs.Add(scope:SEARCH String(dirPath));
+
 							String currImportPath;
-							let searchPath = scope String();
-							let wildCardPath = scope String();
+							let enumeratePath = scope String(128);
+							let searchPath = scope String(128);
+							let wildCardPath = scope String(128);
 							repeat // For each entry in import dirs
 							{
 								let current = importDirs.Count - 1;
@@ -595,22 +581,20 @@ namespace Pile
 								bool match = false;
 								for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
 								{
-									let dirFilePath = entry.GetFilePath(.. new String());
+									enumeratePath.Clear();
+									entry.GetFilePath(enumeratePath);
 	
-									if (searchPath == wildCardPath || Path.WildcareCompare(dirFilePath, wildCardPath))
+									if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
 									{
 										match = true;
 	
 										// Add matching files in this directory to import list
 										if (!entry.IsDirectory)
-											importPaths.Add(dirFilePath);
+											importPaths.Add(scope:IMPORT String(enumeratePath));
 										// Look for matching sub dirs and add to importDirs list
 										else
-											importDirs.Add(dirFilePath);
-	
-										// Dont delete the string if we keep using it
+											importDirs.Add(scope:SEARCH String(enumeratePath));
 									}
-									else delete dirFilePath;
 								}
 	
 								if (!match)
@@ -618,7 +602,6 @@ namespace Pile
 	
 								// Tidy up
 								importDirs.RemoveAtFast(current);
-								delete currImportPath;
 							}
 							while (importDirs.Count > 0);
 						}
@@ -629,12 +612,12 @@ namespace Pile
 					for (var filePath in importPaths)
 					{
 						Log.Debug($"Importing {filePath}");
-	
+						importerData.Clear();
+
 						// Read file
-						let res = File.ReadAllBytes(filePath);
+						let res = File.ReadAll(filePath, importerData);
 						if (res case .Err(let err))
 							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error reading file at {filePath} with {import.importer}: {err}");
-						uint8[] data = res;
 
 						// Compose config
 						config.Clear();
@@ -648,14 +631,12 @@ namespace Pile
 						}
 
 						// Run through importer
-						let ress = importer.Build(data, config);
+						let ress = importer.Build(importerData, config);
 						if (ress case .Err)
 							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
 						uint8[] builtData = ress.Get();
 						if (builtData.Count <= 0)
 							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");
-	
-						delete data;
 
 						// Make name
 						let s = scope String();
@@ -675,7 +656,7 @@ namespace Pile
 						importerUsed = true;
 						nodes.Add(new Node((uint32)importerNames.Count, name, builtData));
 					}
-					ClearAndDeleteItems(importPaths);
+					importPaths.Clear();
 	
 					if (importerUsed)
 						importerNames.Add(new String(import.importer));
