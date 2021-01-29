@@ -4,16 +4,19 @@ using System.Collections;
 
 namespace Pile
 {
+	[RegisterImporter,AlwaysInclude]
 	public class PNGImporter : Importer
 	{
-		public override Result<void> Load(StringView name, Span<uint8> data)
+		public virtual String Name => "png";
+
+		public virtual Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let bitmap = new Bitmap(
 				(((uint32)data[0]) << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | ((uint32)data[3]),
 				(((uint32)data[4]) << 24) | (((uint32)data[5]) << 16) | (((uint32)data[6]) << 8) | ((uint32)data[7]),
 				Span<Color>((Color*)&data[2 * sizeof(uint32)], data.Length / sizeof(uint32) - 2)); // sizeof(Color) == sizeof(uint32));
 
-			if (SubmitTextureAsset(name, bitmap) case .Err)
+			if (Importers.SubmitTextureAsset(name, bitmap) case .Err)
 			{
 				delete bitmap;
 				return .Err;
@@ -21,7 +24,7 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public override Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
+		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
 		{
 			if (!PNG.IsValid(data))
 				LogErrorReturn!("Data i not in PNG format");

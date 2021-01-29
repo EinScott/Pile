@@ -10,35 +10,6 @@ namespace Pile
 	[Optimize]
 	public class Assets
 	{
-		// Importers
-		internal static Dictionary<String, Importer> Importers = new Dictionary<String, Importer>() ~ DeleteDictionaryAndKeysAndValues!(_);
-
-		public static void RegisterImporter(StringView name, Importer importer)
-		{
-			for (let s in Importers.Keys)
-				if (s == name)
-				{
-					Log.Error(scope $"Couldn't register importer as {name}, because another importer was already registered for under that name");
-					return;
-				}
-
-			Importers.Add(new String(name), importer);
-		}
-
-		public static void UnregisterImporter(StringView name)
-		{
-			let res = Importers.GetAndRemove(scope String(name));
-
-			// Delete
-			if (res != .Err)
-			{
-				let val = res.Get();
-
-				delete val.key;
-				delete val.value;
-			}
-		}
-
 		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
 		List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
 
@@ -215,12 +186,13 @@ namespace Pile
 
 			// Import each package node
 			Importer importer;
+			Importers.currentPackage = package;
 			for (let node in nodes)
 			{
 				// Find importer
-				if (node.Importer < (uint32)Importers.Count && Importers.ContainsKey(importerNames[(int)node.Importer]))
-					importer = Importers.GetValue(importerNames[(int)node.Importer]);
-				else if (node.Importer < (uint32)Importers.Count)
+				if (node.Importer < (uint32)Importers.importers.Count && Importers.importers.ContainsKey(importerNames[(int)node.Importer]))
+					importer = Importers.importers.GetValue(importerNames[(int)node.Importer]).Get();
+				else if (node.Importer < (uint32)Importers.importers.Count)
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer {importerNames[(int)node.Importer]}");
 				else
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer name at index {node.Importer} of file's importer name array; index out of range");
@@ -228,11 +200,10 @@ namespace Pile
 				// Prepare data
 				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
 
-				importer.package = package;
 				if (importer.Load(name, node.Data) case .Err(let err))
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
-				importer.package = null;
 			}
+			Importers.currentPackage = null;
 
 			success = true;
 

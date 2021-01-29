@@ -4,9 +4,12 @@ using System.Collections;
 
 namespace Pile
 {
+	[RegisterImporter,AlwaysInclude]
 	public class FontImporter : Importer
 	{
-		public override Result<void> Load(StringView name, Span<uint8> data)
+		public String Name => "font";
+
+		public Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let mem = scope MemoryStream();
 			Try!(mem.TryWrite(data));
@@ -14,10 +17,10 @@ namespace Pile
 
 			let asset = new Font(data);
 
-			return SubmitAsset(name, asset);
+			return Importers.SubmitAsset(name, asset);
 		}
 
-		public override Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
+		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
 		{
 			if (!Font.IsValid(data))
 				LogErrorReturn!("Data is not a valid font");

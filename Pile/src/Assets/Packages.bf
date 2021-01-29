@@ -523,7 +523,7 @@ namespace Pile
 					Importer importer;
 	
 					// Try to find importer
-					if (Assets.Importers.ContainsKey(import.importer)) importer = Assets.Importers[import.importer];
+					if (Importers.importers.ContainsKey(import.importer)) importer = Importers.importers[import.importer];
 					else LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Couldn't find importer '{import.importer}'");
 	
 					bool importerUsed = false;

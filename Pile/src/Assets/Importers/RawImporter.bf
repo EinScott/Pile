@@ -3,13 +3,17 @@ using System.Collections;
 
 namespace Pile
 {
+	//todo: remove AlwaysInclude off importers once .AlwaysIncludeTarget on the other attribute is fixed
+	[RegisterImporter,AlwaysInclude]
 	public class RawImporter : Importer
 	{
-		public override Result<void> Load(StringView name, Span<uint8> data)
+		public virtual String Name => "raw";
+
+		public virtual Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let asset = new RawAsset(data);
 
-			if (SubmitAsset(name, asset) case .Err)
+			if (Importers.SubmitAsset(name, asset) case .Err)
 			{
 				delete asset;
 				return .Err;
@@ -17,7 +21,7 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public override Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
+		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
 		{
 			let outData = new uint8[data.Length];
 			data.CopyTo(outData);

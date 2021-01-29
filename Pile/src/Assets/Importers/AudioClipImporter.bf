@@ -3,9 +3,12 @@ using System.IO;
 
 namespace Pile
 {
+	[RegisterImporter,AlwaysInclude]
 	public class AudioClipImporter : RawImporter
 	{
-		// at the moment, we blindly believe that the buffer we received is in fact a valid format
+		// todo: at the moment, we blindly believe that the buffer we received is in fact a valid format
+
+		public override String Name => "audio_clip";
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
@@ -15,7 +18,7 @@ namespace Pile
 
 			let asset = new AudioClip(data);
 
-			return SubmitAsset(name, asset);
+			return Importers.SubmitAsset(name, asset);
 		}
 	}
 }
