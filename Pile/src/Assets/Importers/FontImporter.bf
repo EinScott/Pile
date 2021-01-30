@@ -20,7 +20,7 @@ namespace Pile
 			return Importers.SubmitAsset(name, asset);
 		}
 
-		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
+		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath)
 		{
 			if (!Font.IsValid(data))
 				LogErrorReturn!("Data is not a valid font");

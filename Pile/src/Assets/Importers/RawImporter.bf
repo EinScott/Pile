@@ -21,7 +21,7 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
+		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath)
 		{
 			let outData = new uint8[data.Length];
 			data.CopyTo(outData);

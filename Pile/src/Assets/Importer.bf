@@ -12,7 +12,7 @@ namespace Pile
 		public String Name { get; }
 
 		public Result<void> Load(StringView name, Span<uint8> data);
-		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config);
+		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath);
 	}
 
 	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.Methods)] // .DefaultConstructor should work too, change later

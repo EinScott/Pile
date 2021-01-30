@@ -641,7 +641,7 @@ namespace Pile
 						}
 
 						// Run through importer
-						let ress = importer.Build(importerData, config);
+						let ress = importer.Build(importerData, config, filePath);
 						if (ress case .Err)
 							LogErrorReturn!(scope $"Couldn't build package at {packageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
 						uint8[] builtData = ress.Get();

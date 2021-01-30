@@ -24,7 +24,7 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config)
+		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath)
 		{
 			if (!PNG.IsValid(data))
 				LogErrorReturn!("Data i not in PNG format");
