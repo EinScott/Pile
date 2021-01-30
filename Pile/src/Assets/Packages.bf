@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics;
 using Atma;
@@ -229,7 +231,7 @@ namespace Pile
 					let dest = Span<uint8>((&zLibInput[position - 1]) + 1, Math.Min(zLibInput.Count, span.Length));
 					if (span.Length != dest.Length)
 					{
-						Log.Warning(scope $"Span to write to zlib input array was longer ({span.Length}) than arrayLenght - currentArrayPosition ({dest.Length})");
+						Log.Warn(scope $"Span to write to zlib input array was longer ({span.Length}) than arrayLenght - currentArrayPosition ({dest.Length})");
 						span.Length = dest.Length; // Trim input span to fit zlib mem. ~~This should never happen but yeah
 					}
 					span.CopyTo(dest);
@@ -598,7 +600,7 @@ namespace Pile
 								}
 	
 								if (!match)
-									Log.Warning(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
+									Log.Warn(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
 	
 								// Tidy up
 								importDirs.RemoveAtFast(current);
@@ -668,10 +670,50 @@ namespace Pile
 				Try!(WritePackage(outPath, nodes, importerNames));
 
 				t.Stop();
-				Log.Message(scope $"Built package {outPath} in {t.ElapsedMilliseconds}ms");
+				Log.Info(scope $"Built package {outPath} in {t.ElapsedMilliseconds}ms");
 			}
 
 			return .Ok;
+		}
+
+		public static Task<bool> BuildPackageAsync(StringView packageBuildFilePath, StringView outputPath, bool force = false)
+		{
+			return new PackageBuildTask(packageBuildFilePath, outputPath, force);
+		}
+
+		// adapted from StreamReader
+		internal class PackageBuildTask : Task<bool> // bool indicates success
+		{
+			WaitEvent mDoneEvent = new WaitEvent() ~ delete _;
+
+			String packageBuildFilePath = new String() ~ delete _;
+			String outputPath = new String() ~ delete _;
+			bool force;
+
+			public this(StringView packageBuildFilePath, StringView outputPath, bool force = false)
+			{
+				this.packageBuildFilePath.Set(packageBuildFilePath);
+				this.outputPath.Set(outputPath);
+				this.force = force;
+
+				ThreadPool.QueueUserWorkItem(new => Proc);
+			}
+
+			public ~this()
+			{
+				mDoneEvent.WaitFor();
+			}
+
+			void Proc()
+			{
+				m_result = Packages.BuildPackage(packageBuildFilePath, outputPath, force) case .Ok;
+				Finish(false);
+				Ref();
+				if (m_result)
+					Notify(false);
+				mDoneEvent.Set();				
+				Deref();
+			}
 		}
 	}
 }

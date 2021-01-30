@@ -3,6 +3,8 @@ using System.IO;
 using System.Collections;
 using System.Threading.Tasks;
 
+using internal Pile;
+
 namespace Pile
 {
 	static
@@ -25,7 +27,7 @@ namespace Pile
 					outPath = arg;
 					outPath.RemoveFromStart(4);
 				}
-				else Log.Warning(scope $"Unknown packager argument: {arg}");
+				else Log.Warn(scope $"Unknown packager argument: {arg}");
 			}
 
 			if (inPath.Length == 0 || outPath.Length == 0)
@@ -37,20 +39,35 @@ namespace Pile
 			if (!Directory.Exists(outPath))
 				Try!(Directory.CreateDirectory(outPath));
 
-			// TODO: using taks/threadpool here is probably overkill, but could be done some time
-			bool error = false;
+			let tasks = scope List<Packages.PackageBuildTask>();
+
+			// Start tasks
 			for (let file in Directory.EnumerateFiles(inPath))
 			{
 				// Identify file
 				let path = file.GetFilePath(.. scope String());
 
 				if (!path.EndsWith(".json")) continue;
-				
-				if (Packages.BuildPackage(path, outPath) case .Err)
+
+				// Add these as PackageBuildTask, because we need the details passed in to log errors later on
+				tasks.Add(Packages.BuildPackageAsync(path, outPath) as Packages.PackageBuildTask);
+			}
+
+			// Wait for tasks to end
+			while (tasks.Count > 0)
+			{
+				for (int i < tasks.Count)
 				{
-					Log.Warning(scope $"Failed building package {path}. Skipping");
-					error = true;
-					continue;
+					let task = tasks[i];
+					if(task.IsCompleted)
+					{
+						if (!task.GetAwaiter().GetResult())
+							Log.Warn(scope $"Failed building package {task.[Friend]packageBuildFilePath}. Skipping");
+
+						// Remove task
+						tasks.RemoveAtFast(i--);
+						task.Dispose();
+					}
 				}
 			}
 

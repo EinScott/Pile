@@ -72,7 +72,7 @@ namespace Pile
 						{
 							let content = scope String();
 							if (File.ReadAllText(path, content) case .Err(let err))
-								Log.Warning(scope $"launch.dat exists but couldn't be read: {err}");
+								Log.Warn(scope $"launch.dat exists but couldn't be read: {err}");
 
 							if (content.Length > 0)
 							{
@@ -127,7 +127,7 @@ namespace Pile
 								break;
 							}
 						}
-						else Log.Warning(scope $"Unknown launch option: {args[i]}");
+						else Log.Warn(scope $"Unknown launch option: {args[i]}");
 					}
 				}
 

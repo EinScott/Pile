@@ -14,35 +14,32 @@ namespace Pile
 		
 		public enum Types
 		{
-			case Message;
-			case Warning;
+			case Info;
+			case Warn;
 			case Error;
 
-			public ConsoleColor ToColor()
+			public ConsoleColor GetLogColor()
 			{
 				switch (this)
 				{
-				case .Message: return .White;
-				case .Warning: return .Yellow;
-				case .Error:   return .Red;
+				case .Info: 	return .White;
+				case .Warn: 	return .Yellow;
+				case .Error:	return .Red;
 				}
 			}
 
-			public override void ToString(String strBuffer)
+			public String GetLogString()
 			{
 				switch (this)
 				{
-				case .Message: strBuffer.Append("INFO");
-				case .Warning: strBuffer.Append("WARN");
-				case .Error:   strBuffer.Append("FAIL");
+				case .Info: 	return "INFO: ";
+				case .Warn: 	return "WARN: ";
+				case .Error:	return "FAIL: ";
 				}
 			}
 		}
 
-		const String SEPERATOR = ": ";
-
-		public delegate void LineCallback(Types type, String message);
-		public static Event<LineCallback> OnLine;
+		public static Event<delegate void(Types type, String message)> OnLine;
 
 #if DEBUG // Different defaults
 		public static bool PrintToConsole = true;
@@ -55,8 +52,6 @@ namespace Pile
 		static bool discontinued;
 		static int writeIndex = 0;
 
-		static readonly String buf = new String(32) ~ delete _;
-		static readonly String logBuf = new String(64) ~ delete _;
 		static readonly String[] record = new String[LOG_RECORD_COUNT];
 
 		static String logPath = new String() ~ delete _;
@@ -87,11 +82,11 @@ namespace Pile
 #if !DEBUG
 		[SkipCall]
 #endif
-		public static void Debug(String message) => Log(.Message, message);
+		public static void Debug(String message) => Log(.Info, message);
 #if !DEBUG
 		[SkipCall]
 #endif
-		public static void Debug(Object message) => Log(.Message, message);
+		public static void Debug(Object message) => Log(.Info, message);
 #if !DEBUG
 		[SkipCall]
 #endif
@@ -99,43 +94,43 @@ namespace Pile
 		{
 			let message = scope String();
 			message.AppendF(format, params inserts).IgnoreError();
-			Log(.Message, message);
+			Log(.Info, message);
 		}
 
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
-		public static void Message(String message) => Log(.Message, message);
+		public static void Info(String message) => Log(.Info, message);
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
-		public static void Message(Object message) => Log(.Message, message);
+		public static void Info(Object message) => Log(.Info, message);
 #if PILE_DISABLE_LOG_MESSAGES
 		[SkipCall]
 #endif
-		public static void Message(StringView format, params Object[] inserts)
+		public static void Info(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
 			message.AppendF(format, params inserts).IgnoreError();
-			Log(.Message, message);
+			Log(.Info, message);
 		}
 
 #if PILE_DISABLE_LOG_WARNINGS
 		[SkipCall]
 #endif
-		public static void Warning(String message) => Log(.Warning, message);
+		public static void Warn(String message) => Log(.Warn, message);
 #if PILE_DISABLE_LOG_WARNINGS
 		[SkipCall]
 #endif
-		public static void Warning(Object message) => Log(.Warning, message);
+		public static void Warn(Object message) => Log(.Warn, message);
 #if PILE_DISABLE_LOG_WARNINGS
 		[SkipCall]
 #endif
-		public static void Warning(StringView format, params Object[] inserts)
+		public static void Warn(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
 			message.AppendF(format, params inserts).IgnoreError();
-			Log(.Warning, message);
+			Log(.Warn, message);
 		}
 
 		public static void Error(String message)
@@ -163,74 +158,48 @@ namespace Pile
 		}
 
 		// Actually log lines
-
-		static void Log(Types type, String message)
-		{
-			// Write type
-			type.ToString(buf);
-			Append(buf, type.ToColor());
-			buf.Clear();
-
-			Append(SEPERATOR, ConsoleColor.DarkGray);
-
-			// Write message
-			Append(message);
-
-			AppendLineBreak();
-
-			OnLine(type, message);
-		}
-
+		[Inline]
 		static void Log(Types type, Object message)
 		{
-			// Write type
-			type.ToString(buf);
-			Append(buf, type.ToColor());
-			buf.Clear();
-
-			Append(SEPERATOR, ConsoleColor.DarkGray);
-
 			// Write message
-			message.ToString(buf);
-			Append(buf);
+			let msgStr = message.ToString(.. scope String());
 
-			AppendLineBreak();
-
-			OnLine(type, buf);
-			buf.Clear();
+			Log(type, msgStr);
 		}
 
-		static void Append(String text, ConsoleColor color = ConsoleColor.White)
+		[Inline]
+		static void Log(Types type, String message)
 		{
+			let fullMessage = scope String(type.GetLogString())..Append(message);
+			AppendRecord(fullMessage);
+
 			if (PrintToConsole)
 			{
-				Console.ForegroundColor = color;
-				Console.Write(text);
+				if (type == .Info)
+					Console.WriteLine(fullMessage);
+				else
+				{
+					Console.ForegroundColor = type.GetLogColor();
+					Console.Write(type.GetLogString());
+					Console.ForegroundColor = .Gray;
+					Console.WriteLine(message);
+				}
 			}
-
-			logBuf.Append(text);
-		}
-
-		static void AppendLineBreak()
-		{
-			if (PrintToConsole)
-				Console.WriteLine();
-
-			AppendRecord();
 		}
 
 		// Record stuff
-
-		static void AppendRecord()
+		[Inline]
+		static void AppendRecord(String logBuf)
 		{
-			// Take logBuf and put its contents into record array
-			record[writeIndex].Set(logBuf);
-			logBuf.Clear();
+			let thisIndex = writeIndex;
 
 			// Move writeIndex
 			if (writeIndex + 1 < LOG_RECORD_COUNT)
 				writeIndex++;
 			else writeIndex = 0;
+
+			// Take logBuf and put its contents into record array
+			record[thisIndex].Set(logBuf);
 		}
 
 		static void ClearRecord()
@@ -251,14 +220,14 @@ namespace Pile
 			var directory = scope String();
 			if (Path.GetDirectoryPath(path, directory) case .Err)
 			{
-				Log.Warning("Couldn't append log to file, invalid path");
+				Log.Warn("Couldn't append log to file, invalid path");
 				return .Err;
 			}
 
 			if (!Directory.Exists(directory))
 				if (Directory.CreateDirectory(directory) case .Err(let res))
 				{
-					Log.Warning(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
+					Log.Warn(scope $"Couldn't append log to file, couldn't create missing directory: {res}");
 					return .Err;
 				}
 			
@@ -295,7 +264,7 @@ namespace Pile
 				var existingFile = scope String();
 				if (File.ReadAllText(path, existingFile, true) case .Err(let res))
 				{
-					Log.Warning(scope $"Couldn't append log to file, couldn't read existing file: {res}");
+					Log.Warn(scope $"Couldn't append log to file, couldn't read existing file: {res}");
 					return .Err;
 				}
 
@@ -305,7 +274,7 @@ namespace Pile
 			// Write
 			if (File.WriteAllText(path, fileLog) case .Err)
 			{
-				Log.Warning("Couldn't append log to file, couldn't write file");
+				Log.Warn("Couldn't append log to file, couldn't write file");
 				return .Err;
 			}
 

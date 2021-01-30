@@ -40,7 +40,7 @@ namespace Pile
 				offset += Attributes[i].AttributeSize;
 			}
 
-			Log.Warning(scope $"Couldn't find VertexAttribute called {name} in VertexFormat");
+			Log.Warn(scope $"Couldn't find VertexAttribute called {name} in VertexFormat");
 			attribute = default;
 			return false;
 		}

@@ -82,7 +82,7 @@ namespace Pile
 #if DEBUG
 			Console.WriteLine();
 #endif
-			Log.Message(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
+			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
 			Title.Set(gameTitle);
 			System = new System();
@@ -94,7 +94,7 @@ namespace Pile
 				let s = scope String();
 				Environment.OSVersion.ToString(s);
 
-				Log.Message(scope $"Platform: {s} (bfp: {Environment.OSVersion.Platform})");
+				Log.Info(scope $"Platform: {s} (bfp: {Environment.OSVersion.Platform})");
 			}
 
 			// System init
@@ -107,19 +107,19 @@ namespace Pile
 				Window = new Window(gameTitle, windowWidth, windowHeight);
 				Input = new Input();
 
-				Log.Message(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
+				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
 			}
 
 			// Graphics init
 			{
 				Graphics.Initialize();
-				Log.Message(scope $"Graphics: {Graphics.ApiName} {Graphics.MajorVersion}.{Graphics.MinorVersion} ({Graphics.Info})");
+				Log.Info(scope $"Graphics: {Graphics.ApiName} {Graphics.MajorVersion}.{Graphics.MinorVersion} ({Graphics.Info})");
 			}
 
 			// Audio init
 			{
 				Audio.Initialize();
-				Log.Message(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
+				Log.Info(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
 			}
 
 			// Assets init
@@ -129,7 +129,7 @@ namespace Pile
 			Log.Initialize();
 
 			w.Stop();
-			Log.Message(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
+			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
 
 			// Prepare for running game
 			Game = game;

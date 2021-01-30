@@ -127,7 +127,7 @@ namespace Pile
 
 				if (*GetError() != '\0')
 				{
-					Log.Warning(scope $"SDL error while processing event {event.type}: {StringView(GetError())}");
+					Log.Warn(scope $"SDL error while processing event {event.type}: {StringView(GetError())}");
 					ClearError();
 				}
 			}

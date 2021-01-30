@@ -217,17 +217,17 @@ namespace Pile
 		            }
 		            else if (color == .Greyscale)
 		            {
-						Log.Warning("Reading PNG: tRNS chunk with Grayscale not implemented/ignored");
+						Log.Warn("Reading PNG: tRNS chunk with Grayscale not implemented/ignored");
 		            }
 		            else if (color == .Truecolor)
 		            {
-						Log.Warning("Reading PNG: tRNS chunk with Truecolor not implemented/ignored");
+						Log.Warn("Reading PNG: tRNS chunk with Truecolor not implemented/ignored");
 		            }
 		        }
 		        // bKGD Chunk (Background)
 		        else if (Check("bKGD", fourbytes))
 		        {
-					Log.Warning("Reading PNG: bKGD chunk not implemented/ignored");
+					Log.Warn("Reading PNG: bKGD chunk not implemented/ignored");
 		        }
 
 		        // seek to end of the chunk

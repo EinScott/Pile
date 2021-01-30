@@ -453,7 +453,7 @@ namespace Pile
 			s.Append(message, length);
 
 			if (severity == GL_DEBUG_SEVERITY_HIGH || type == GL_DEBUG_TYPE_ERROR) Log.Error(s);
-			else Log.Warning(s);
+			else Log.Warn(s);
 		}
 	}
 }

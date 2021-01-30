@@ -30,7 +30,7 @@ namespace Pile
 					// Adjust MinFPS if needed
 					if (targetFps < minFPS)
 					{
-						Log.Warning("TargetFPS can't be lower than MinFPS. Automatically set MinFPS to TargetFPS");
+						Log.Warn("TargetFPS can't be lower than MinFPS. Automatically set MinFPS to TargetFPS");
 						MinFPS = targetFps;
 					}
 				}
@@ -61,7 +61,7 @@ namespace Pile
 					{
 						// While this works, it leads to weired behaviour which most likely is not intended.
 						// The actual game would rightfully so run at a lower framerate than the Delta(s) suggest it does, effectively speeding up the game like Scale.
-						Log.Warning("MinFPS can't be larger than TargetFPS. Automatically set TargetFPS to MinFPS");
+						Log.Warn("MinFPS can't be larger than TargetFPS. Automatically set TargetFPS to MinFPS");
 						TargetFPS = minFPS;
 					}
 				}
