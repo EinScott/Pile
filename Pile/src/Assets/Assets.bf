@@ -348,7 +348,7 @@ namespace Pile
 				
 				// In any case, we try to load the package again
 				// (so if the build failed, we still try to load the old one if that still exists)
-				Try!(LoadPackage(name, false));
+				Try!(LoadPackage(name));
 
 				return .Ok;
 			}

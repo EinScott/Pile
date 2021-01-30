@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections;
 
 namespace Pile
@@ -110,8 +111,8 @@ namespace Pile
 				        }
 			}
 
-			// determine sizes
-			// there's a chance this image was empty in which case we have no width / height
+			// Determine sizes
+			// There's a chance this image was empty in which case we have no width / height
 			if (left <= right && top <= bottom)
 			{
 			    var isDuplicate = false;
@@ -138,7 +139,7 @@ namespace Pile
 			    {
 			        source.pixels = new Color[source.packed.Width * source.packed.Height];
 
-			        // copy our trimmed pixel data to the main buffer
+			        // Copy our trimmed pixel data to the main buffer
 			        for (int i = 0; i < source.packed.Height; i++)
 			        {
 			            let run = source.packed.Width;
@@ -170,14 +171,26 @@ namespace Pile
 				{
 					removeSource = sources[i];
 					sources.RemoveAtFast(i);
+					break;
 				}
 			}
 
 			if (removeSource == null) return;
 
 			// Find duplicates of this
-			if (duplicateLookup.ContainsValue(removeSource))
+			if (combineDuplicates)
 			{
+				int32 sourceHash = 0;
+				bool found = false;
+				for (let pair in duplicateLookup)
+					if (pair.value == removeSource)
+					{	
+						sourceHash = pair.key;
+						found = true;
+					}
+
+				if (!found) return;
+
 				Source replacement = null;
 				for (let source in sources)
 					if (source.duplicateOf == removeSource)
@@ -187,11 +200,17 @@ namespace Pile
 							// Replace the removed source in the duplicate lookup
 							replacement = source;
 							source.duplicateOf = null;
-							let hash = GetHash(0, source.packed.Width, 0, source.packed.Height, source.pixels);
-							duplicateLookup[hash] = source;
+
+							// Give this replacement source our pixels
+							source.pixels = new Color[source.packed.Width * source.packed.Height];
+							removeSource.pixels.CopyTo(source.pixels);
+							duplicateLookup[sourceHash] = source;
 						}
 						else source.duplicateOf = replacement;
 					}
+
+				if (replacement == null)
+					duplicateLookup.Remove(sourceHash);
 			}
 
 			// Delete source

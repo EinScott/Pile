@@ -11,16 +11,7 @@ using internal Pile;
  * PILE_DISABLE_LOG_MESSAGES - adds [SkipCall] attribute to Log.Message functions
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
- * PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD - disables autmatic package hot reload check when focusing window
- */
-
-/* TODO
- * support more platforms (build soloud & sdl for linux etc)
- * look into other implementations (bgfx, ...)
- * finish audio stuff (runtime filter support, maybe something like Material? for params?)
- * support some mesh format? (.obj or something)
- * make Assets suitable for more use cases (-> per-texture texture filtering option?)
- * make more importers? (for prerendered SpriteFonts..., Aseprite -> basically create ase instance, save that, and then load from that?)
+ * PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD - disables automatic DEBUG package hot reload check when focusing window
  */
 
 namespace Pile
