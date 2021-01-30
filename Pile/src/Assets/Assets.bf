@@ -139,13 +139,15 @@ namespace Pile
 
 			return assets.GetValue(type).Get().Values;
 		}
-		
+
+		//=== PACKAGE MANAGEMENT
+
 		public Result<Package> LoadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Debug.Assert(packagesPath != null, "Initialize Core first!");
 
 			if (!Directory.Exists(packagesPath))
-				LogErrorReturn!(scope $"Couldn't load package. Path directory doesn't exist: {packagesPath}");
+				LogErrorReturn!(scope $"Couldn't load package {packageName}. Path directory doesn't exist: {packagesPath}");
 
 			for (int i = 0; i < loadedPackages.Count; i++)
 				if (loadedPackages[i].Name == packageName)
@@ -155,7 +157,9 @@ namespace Pile
 			List<String> importerNames = new List<String>();
 			defer
 			{
-				DeleteContainerAndItems!(nodes);
+				for (let n in nodes)
+					n.Dispose();
+				delete nodes;
 				DeleteContainerAndItems!(importerNames);
 			}
 
@@ -175,12 +179,10 @@ namespace Pile
 
 			loadedPackages.Add(package);
 
-			bool success = false;
-
 			// If the following loop errors, clean up
 			defer
 			{
-				if (!success)
+				if (@return case .Err)
 					this.UnloadPackage(package.name, false).IgnoreError();
 			}
 
@@ -204,8 +206,6 @@ namespace Pile
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
 			}
 			Importers.currentPackage = null;
-
-			success = true;
 
 			// Finish
 			if (packAndUpdateTextures)
@@ -257,6 +257,101 @@ namespace Pile
 			package = null;
 			return false;
 		}
+
+
+		// @do put this at the location where this get registered later, not skipcall here
+		// probably just move this entire function up to where it's registered
+/*#if !DEBUG || PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+				[SkipCall]
+#endif*/
+		void OnWindowFocusChanged()
+		{
+			//@do check here if we're already inside the main loop, we dont want to do this at Startup() time, only later
+
+			if (Core.Window.Focus)
+				HotReloadPackages().IgnoreError();
+		}	
+
+#if !DEBUG
+		[SkipCall]
+#endif
+		/// Will try to rebuild and reload all packages. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
+		public Result<void> HotReloadPackages()
+#if DEBUG
+		{
+			bool err = false;
+			for (let package in loadedPackages)
+			{
+				// Prepare packageSourceChanged check
+				// look at the call in buildPackage
+
+				//if (Packages.PackageSourceChanged())
+				{
+					// Since we know that something changed already, no need to check again (forceBuild true)
+					if (HotReloadPackage(package.name, true) case .Err)
+					{
+						err = true;
+						Log.Error(scope $"Failed to hot reload package {package.name}. This might cause a crash");
+
+						Debug.SafeBreak(); // You may continue, but consider just relaunching the game
+					}
+				}
+			}
+
+			return err ? .Err :.Ok;
+		}
+#else
+		{
+			return .Ok;
+		}
+#endif // #if DEBUG
+
+#if !DEBUG
+		[SkipCall]
+#endif
+		/// Will try to rebuild and reload the given package. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
+		public Result<void> HotReloadPackage(StringView packageName, bool forceBuild)
+#if DEBUG
+		{
+			// we have to get the sourcePackage path in here somehow, so i'm thinking of having that info inside Package if DEBUG
+			// "hotPackageSourcePath", which also means including it into the packagefile itself if built with DEBUG
+
+			// for hot reloading other platform things like shader/clip, we would probably need "Asset" behaviour inside these to then update?
+			// oh yeah its all coming together now
+
+			if (PackageLoaded(packageName, let p))
+			{
+				// Extract hot reload debug info from package
+
+				// Unload
+				// Don't PackAndUpdateTextures, we will probably load something again
+				Try!(UnloadPackage(packageName, false));
+
+				Packages.BuildPackage(.()/*FIXME*/, packagesPath, forceBuild).IgnoreError();
+				
+				// In any case, we try to load the package again
+				// (so if the build failed, we still try to load the old one if that still exists)
+				let res = LoadPackage(packageName, false);
+
+				// Fix our current dirty state
+				// We just do it here explicitly for clarity and because the LoadPackage function assumes
+				// that the current state is clean and doesn't call this on error
+				PackAndUpdateTextures();
+
+				// Return based on if the package could be loaded or not
+				Try!(res);
+			}
+
+			// This package doesn't exist, it cannot be hot reloaded
+			return .Err;
+		}
+#else
+		{
+			return .Ok;
+		}
+#endif // #if DEBUG
+
+		//=== DYNAMIC ASSETS
 
 		/// Use Packages for static assets, use this for ones you don't know at compile time.
 		public Result<void> AddDynamicAsset(StringView name, Object asset)
@@ -317,6 +412,8 @@ namespace Pile
 			if (packAndUpdateTextures)
 				PackAndUpdateTextures();
 		}
+
+		//=== INTERNAL MANAGEMENT
 
 		internal Result<StringView> AddAsset(Type type, StringView name, Object object)
 		{

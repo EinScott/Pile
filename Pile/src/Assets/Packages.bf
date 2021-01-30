@@ -30,17 +30,23 @@ namespace Pile
 		}
 		
 		// Node of data for one imported file
-		public class Node
+		public struct Node : IDisposable
 		{
 			public readonly uint32 Importer;
-			public readonly uint8[] Name ~ delete _;
-			public readonly uint8[] Data ~ delete _;
+			public readonly uint8[] Name;
+			public readonly uint8[] Data;
 
 			internal this(uint32 importer, uint8[] name, uint8[] data)
 			{
 				Name = name;
 				Importer = importer;
 				Data = data;
+			}
+
+			public void Dispose()
+			{
+				delete Name;
+				delete Data;
 			}
 		}
 		
@@ -146,7 +152,7 @@ namespace Pile
 					Span<uint8>(&nodeRaw[position], dataLength).CopyTo(data);
 					position += dataLength;
 
-					nodes.Add(new Node(importerIndex, name, data));
+					nodes.Add(Node(importerIndex, name, data));
 				}
 			}
 
@@ -486,7 +492,9 @@ namespace Pile
 			defer
 			{
 				DeleteContainerAndItems!(importerNames);
-				DeleteContainerAndItems!(nodes);
+				for (let n in nodes)
+					n.Dispose();
+				delete nodes;
 			}
 
 			{
@@ -656,7 +664,7 @@ namespace Pile
 	
 						// Add data
 						importerUsed = true;
-						nodes.Add(new Node((uint32)importerNames.Count, name, builtData));
+						nodes.Add(Node((uint32)importerNames.Count, name, builtData));
 					}
 					importPaths.Clear();
 	
