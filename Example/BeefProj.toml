@@ -4,19 +4,3 @@ Dependencies = {corlib = "*", Pile = "*", Pile_OpenGL = "*", Pile_SDL2 = "*", Pi
 [Project]
 Name = "Game"
 StartupObject = "Pile.EntryPoint"
-
-# this puts a "launch.dat" file into the output directory, which tells Pile to build
-# all packages in the given directory at startup. !! Make sure to delete this file when publishing !!
-# packages will have the name of the package.json without extension ("package" in this case)
-# replace "assets" with the folder you keep all package.json(s) in, relative to the project directory
-[Configs.Debug.Win64]
-PostBuildCmds = ["Execute(\"powershell.exe -noprofile -command \\\"echo \\\"-packager in=$(ProjectDir)/assets out=$(TargetDir)/Packages\\\" | Out-File $(TargetDir)/launch.dat -encoding utf8\\\"\")"]
-
-[Configs.Debug.Win32]
-PostBuildCmds = ["Execute(\"powershell.exe -noprofile -command \\\"echo \\\"-packager in=$(ProjectDir)/assets out=$(TargetDir)/Packages\\\" | Out-File $(TargetDir)/launch.dat -encoding utf8\\\"\")"]
-
-[Configs.Release.Win64]
-PostBuildCmds = ["Execute(\"powershell.exe -noprofile -command \\\"echo \\\"-packager in=$(ProjectDir)/assets out=$(TargetDir)/Packages\\\" | Out-File $(TargetDir)/launch.dat -encoding utf8\\\"\")"]
-
-[Configs.Release.Win32]
-PostBuildCmds = ["Execute(\"powershell.exe -noprofile -command \\\"echo \\\"-packager in=$(ProjectDir)/assets out=$(TargetDir)/Packages\\\" | Out-File $(TargetDir)/launch.dat -encoding utf8\\\"\")"]

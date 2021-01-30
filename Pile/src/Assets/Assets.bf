@@ -56,7 +56,7 @@ namespace Pile
 		internal this()
 		{
 			// Get packages path
-			Path.InternalCombine(packagesPath, Core.System.DataPath, "Packages");
+			Path.InternalCombine(packagesPath, Core.System.DataPath, "packages");
 		}
 		internal ~this() {}
 

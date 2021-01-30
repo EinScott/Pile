@@ -16,136 +16,36 @@ namespace Pile
 		public static function Result<void> GameMainFunction();
 		public static GameMainFunction GameMain;
 
-		public delegate Result<void> LaunchDelegate(Span<String> args);
-		static Dictionary<String, LaunchDelegate> launchOptions = new Dictionary<String, LaunchDelegate>();
+		public static String[] CommandLine;
 
-		// This should be in here, because that way, this class is mentioned nowhere in the library and won't get included if it's not used (as well as the RunPackager() function).
-		static this()
-		{
-#if !PILE_DISABLE_PACKAGER
-			AddLaunchOption("-packager", new => RunPackager);
-#endif
-		}
-
-		static ~this()
-		{
-			OnStart.Dispose();
-
-			// Tests will leak this otherwise
-			if (launchOptions != null) DeleteDictionaryAndKeysAndValues!(launchOptions);
-		}
-
-		public static Result<void> AddLaunchOption(StringView name, LaunchDelegate launch)
-		{
-			if (launchOptions == null)
-				LogErrorReturn!("Failed to add launch option: Cannot add launch option after the game has already launched");
-
-			if (name.Length == 0 || launch == null)
-				LogErrorReturn!("Failed to add launch option: Name cannot have a length of 0, launch delegate cannot be null");
-
-			let command = new String();
-			if (!name.StartsWith("-"))
-				command.Append("-");
-			command.Append(name);
-
-			launchOptions.Add(command, launch);
-			return .Ok;
-		}
-
-		static int Main(String[] runArgs)
+		static int Main(String[] args)
 		{
 			// Handle args
+			CommandLine = args;
+
+#if !PILE_DISABLE_PACKAGER
+			// Run packager
 			{
-				// Does launch file exist?
-				let datArgs = new List<String>();
-				{
-					let exePath = scope String();
-					Environment.GetExecutableFilePath(exePath);
+				let exePath = scope String();
+				Environment.GetExecutableFilePath(exePath);
 
-					let path = scope String();
-					if (Path.GetDirectoryPath(exePath, path) case .Ok)
+				let dirPath = scope String();
+				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
+				{
+					let markerPath = Path.GetAbsolutePath(@"..\Pile\output_dir.temp", dirPath, .. scope String());//Path.InternalCombine(.. scope String(dirPath), "output_dir.temp");
+
+					// If we are inside the build output directory
+					// todo: this should probably be part of the build process itself...
+					if (File.Exists(markerPath))
 					{
-						Path.InternalCombine(path, "launch.dat");
+						let inPath = Path.GetAbsolutePath(@"..\..\..\assets\", dirPath, .. scope String());
+						let outPath = Path.InternalCombine(.. scope String(dirPath), @"packages\");
 
-						// Parse args from file
-						if (File.Exists(path))
-						{
-							let content = scope String();
-							if (File.ReadAllText(path, content) case .Err(let err))
-								Log.Warn(scope $"launch.dat exists but couldn't be read: {err}");
-
-							if (content.Length > 0)
-							{
-								for (var arg in content.Split(' ', '\n'))
-								{
-									arg.Trim();
-									if (arg.Length > 0)
-										datArgs.Add(new String(arg));
-								}
-							}
-						}
+						RunPackager(inPath, outPath);
 					}
-				}
-
-				// Combine into one args list
-				let args = new String[runArgs.Count + datArgs.Count];
-
-				int k = 0;
-				for (; k < datArgs.Count; k++)
-					args[k] = datArgs[k];
-
-				for (int l = 0; l < runArgs.Count; l++)
-					args[k + l] = runArgs[l];
-
-				// Launch options
-				bool launch = true;
-				if (args.Count > 0)
-				{
-					// Example: game.exe -resolution 30 60 -windowed -devmode
-					for (int i = 0; i < args.Count; i++)
-					{
-						// Skip arguments of arguments
-						if (!args[i].StartsWith("-")) continue;
-
-						if (launchOptions.ContainsKey(args[i]))
-						{
-							// Index after this argument, possibly start of argument arguments (or just anther argument or end)
-							let subArgStart = i + 1;
-
-							// Find end of argument arguments
-							int subArgEnd = subArgStart;
-							for (; subArgEnd < args.Count; subArgEnd++)
-								if (args[subArgEnd].StartsWith("-"))
-									break;
-
-							// Run launch option - pass empty span when no argument arguments are given
-							let res = launchOptions[args[i]].Invoke(subArgStart == subArgEnd ? Span<String>() : Span<String>(args, subArgStart, subArgEnd - subArgStart));
-
-							if (res case .Err)
-							{
-								launch = false;
-								break;
-							}
-						}
-						else Log.Warn(scope $"Unknown launch option: {args[i]}");
-					}
-				}
-
-				// Clean up launch options. We wont need them anymore
-				DeleteDictionaryAndKeysAndValues!(launchOptions);
-				launchOptions = null;
-
-				// Clean up args
-				DeleteContainerAndItems!(datArgs);
-				delete args;
-
-				// Exit on error (after cleaning up)
-				if (!launch)
-				{
-					Debug.FatalError("Launch canceled by a launch option or error");
-					return 1;
 				}
 			}
+#endif
 
 			// Run onStart
 			OnStart();

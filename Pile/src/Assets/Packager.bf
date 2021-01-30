@@ -11,25 +11,8 @@ namespace Pile
 	{
 #if !PILE_DISABLE_PACKAGER
 		[Optimize]
-		internal static Result<void> RunPackager(Span<String> args)
+		internal static Result<void> RunPackager(StringView inPath, StringView outPath)
 		{
-			StringView inPath = StringView();
-			StringView outPath = StringView();
-			for(let arg in args)
-			{
-				if (arg.StartsWith("in="))
-				{
-					inPath = arg;
-					inPath.RemoveFromStart(3);
-				}
-				else if (arg.StartsWith("out="))
-				{
-					outPath = arg;
-					outPath.RemoveFromStart(4);
-				}
-				else Log.Warn(scope $"Unknown packager argument: {arg}");
-			}
-
 			if (inPath.Length == 0 || outPath.Length == 0)
 				LogErrorReturn!("Packager need both an 'in=' and 'out=' argument");
 

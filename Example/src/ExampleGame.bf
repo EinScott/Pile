@@ -10,9 +10,6 @@ namespace Game
 	{
 		static this()
 		{
-			// Register builtin importer. See assets/shaders.json or documentation on Packages
-			Assets.RegisterImporter("raw", new RawImporter());
-
 			// Register our function to be called on main
 			EntryPoint.GameMain = => Run;
 		}
@@ -40,7 +37,7 @@ namespace Game
 
 		protected override void Startup()
 		{
-			Log.Message("Hello!");
+			Log.Info("Hello!");
 
 			// This is automatically built for us. See BeefProj.toml and Pile/Core/EntryPoint.bf @ RunPackager
 			Core.Assets.LoadPackage("shaders");
