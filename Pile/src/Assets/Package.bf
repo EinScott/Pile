@@ -5,6 +5,10 @@ namespace Pile
 {
 	public class Package
 	{
+#if DEBUG // Debug info used for hot reloads
+		internal String sourcePath ~ DeleteNotNull!(_);
+#endif
+
 		internal Dictionary<Type, List<StringView>> ownedAssets = new Dictionary<Type, List<StringView>>() ~ DeleteDictionaryAndValues!(_);
 		internal List<StringView> ownedTextureAssets = new List<StringView>() ~ delete _;
 		

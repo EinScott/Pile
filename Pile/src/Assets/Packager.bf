@@ -49,7 +49,7 @@ namespace Pile
 
 						// Remove task
 						tasks.RemoveAtFast(i--);
-						task.Dispose();
+						delete task;
 					}
 				}
 			}

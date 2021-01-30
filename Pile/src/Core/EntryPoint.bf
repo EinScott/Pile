@@ -38,8 +38,8 @@ namespace Pile
 					// todo: this should probably be part of the build process itself...
 					if (File.Exists(markerPath))
 					{
-						let inPath = Path.GetAbsolutePath(@"..\..\..\assets\", dirPath, .. scope String());
-						let outPath = Path.InternalCombine(.. scope String(dirPath), @"packages\");
+						let inPath = Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String());
+						let outPath = Path.InternalCombine(.. scope String(dirPath), @"packages");
 
 						RunPackager(inPath, outPath);
 					}

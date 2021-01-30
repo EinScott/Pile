@@ -11,6 +11,7 @@ using internal Pile;
  * PILE_DISABLE_LOG_MESSAGES - adds [SkipCall] attribute to Log.Message functions
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
+ * PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD - disables autmatic package hot reload check when focusing window
  */
 
 /* TODO

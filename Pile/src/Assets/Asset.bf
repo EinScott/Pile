@@ -31,16 +31,24 @@ namespace Pile
 		{
 			if (asset != null) return; // Already have asset
 
+			Log.Info("LOAD");
 			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsTextureAsset(name)))
+			{
+				Log.Info("DID");
 				asset = Core.Assets.Get<T>(name); // Get it
+			}
 		}
 
 		void PackageUnloaded(Package package)
 		{
 			if (asset == null) return; // Don't have asset
 
+			Log.Info("UNLOAD");
 			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsTextureAsset(name)))
+			{
+				Log.Info("DID");
 				asset = null; // Leave it
+			}
 		}
 
 		public static operator T(Asset<T> assetHandler) => assetHandler.asset;

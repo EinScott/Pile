@@ -85,17 +85,17 @@ namespace Pile
 		}
 
 		/// Should only be called from Importers
-		public static Result<void> SubmitTextureAsset(StringView name, Bitmap bitmap)
+		public static Result<Subtexture> SubmitTextureAsset(StringView name, Bitmap bitmap)
 		{
 			Debug.Assert(currentPackage != null, "Importers can only submit assets while loading a Package (when called from Assets.LoadPackage(...))");
 
 			// Add object in assets
-			let nameView = Try!(Core.Assets.AddTextureAsset(name, bitmap));
+			let nameView = Try!(Core.Assets.AddTextureAsset(name, bitmap, let asset));
 
 			// Store object key in package
 			currentPackage.ownedTextureAssets.Add(nameView);
 
-			return .Ok;
+			return .Ok(asset);
 		}
 	}
 }

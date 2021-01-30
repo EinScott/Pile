@@ -52,8 +52,9 @@ namespace Pile
 		
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
+		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames, out String debugSourcePath)
 		{
+			debugSourcePath = null;
 			let inPath = scope String(packagePath);
 
 			if (!inPath.EndsWith(".bin"))
@@ -64,40 +65,63 @@ namespace Pile
 			LogErrorTry!(File.ReadAll(inPath, file), scope $"Couldn't load package at {inPath}. Error reading file");
 			defer delete file;
 
-			// HEADER (3 bytes + one reserved)
+			// HEADER (3 bytes)
+			// MODE (1 byte)
 			// FILESIZE (4 bytes, uint32)
 
+			// [if MODE & .Debug] SOURCEPATH:
+			// 		STRINGSIZE (uint32)
+			//		STRING[]
+
 			// IMPORTERNAMECOUNT (uint32)
-			// -IMPORTERNAME ARRAY
+			// IMPORTERNAMEARRAY[]
 			// 		ELEMENT:
 			// 		STRINGSIZE (uint32)
-			// 		STRING
+			// 		STRING[]
 
-			// NODESCOUNT (uint32)
-
-			// NODEDATAARRAY
+			// NODECOUNT (uint32)
+			// NODEDATAARRAY[]
 			//		ELEMENT:
 			//		ZLIB UNCOMPRESSED SIZE (uint32)
 			//		NUM ZLIB CHUNKS (uint32)
-			//		ZLIB ARRAY:
+			//		ZLIBARRAY[]
 			//			ELEMENT:
 			//			ZLIB CHUNK SIZE (uint32)
 			//			ZLIB CHUNK (compressed) =>
 			// 				IMPORTERNAMEINDEX (uint32)
-			// 				NAME (uint32)
-			// 				NAMEDATA
-			// 				DATAARRAYLENGTH (uint32)
-			// 				DATAARRAY (of bytes)
+			// 				NAMELENGTH (uint32)
+			// 				NAMEDATA[]
+			// 				DATALENGTH (uint32)
+			// 				DATAARRAY[]
 
 			int32 readByte = 4; // Start after header
 
 			if (file.Count < 16 // Check min file size
 				|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
-				|| file[3] != 0x00 // Check version
 				|| ReadUInt() != (uint32)file.Count) // Check file size
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format");
 
+			let mode = (PackageMode)file[3];
+
+			// Read file
 			{
+				// [debug] source Path
+#if DEBUG
+				if (mode & .Debug != 0)
+				{
+					let sourcePathLength = ReadUInt();
+					debugSourcePath = new String((char8*)&file[readByte], sourcePathLength);
+					readByte += (.)sourcePathLength;
+				}
+#else
+				if (mode & .Debug != 0)
+				{
+					Log.Warn("Package is DEBUG-compiled");
+					readByte += (.)ReadUInt(); // Skip
+				}
+#endif
+
+				// Importer names
 				let importerNameCount = ReadUInt();
 				for (uint32 i = 0; i < importerNameCount; i++)
 				{
@@ -106,6 +130,7 @@ namespace Pile
 					readByte += (.)importerNameLength;
 				}
 
+				// Nodes
 				let nodeCount = ReadUInt();
 				for (uint32 i = 0; i < nodeCount; i++)
 				{
@@ -169,41 +194,64 @@ namespace Pile
 			}
 		}
 
-		static Result<void> WritePackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
+		enum PackageMode : uint8
+		{
+			None = 0,
+			Debug = 1
+		}
+
+		static Result<void> WritePackage(StringView packageBuildFilePath, StringView packagePath, List<Packages.Node> nodes, List<String> importerNames)
 		{
 			let file = new List<uint8>();
 			defer delete file;
 
-			// HEADER (3 bytes + one reserved)
+			// HEADER (3 bytes)
+			// MODE (1 byte)
 			// FILESIZE (4 bytes, uint32)
 
+			// [if MODE & .Debug] SOURCEPATH:
+			// 		STRINGSIZE (uint32)
+			//		STRING[]
+
 			// IMPORTERNAMECOUNT (uint32)
-			// -IMPORTERNAME ARRAY
+			// IMPORTERNAMEARRAY[]
 			// 		ELEMENT:
 			// 		STRINGSIZE (uint32)
-			// 		STRING
+			// 		STRING[]
 
-			// NODESCOUNT (uint32)
-
-			// NODEDATAARRAY
+			// NODECOUNT (uint32)
+			// NODEDATAARRAY[]
 			//		ELEMENT:
 			//		ZLIB UNCOMPRESSED SIZE (uint32)
 			//		NUM ZLIB CHUNKS (uint32)
-			//		ZLIB ARRAY:
+			//		ZLIBARRAY[]
 			//			ELEMENT:
 			//			ZLIB CHUNK SIZE (uint32)
 			//			ZLIB CHUNK (compressed) =>
 			// 				IMPORTERNAMEINDEX (uint32)
-			// 				NAME (uint32)
-			// 				NAMEDATA
-			// 				DATAARRAYLENGTH (uint32)
-			// 				DATAARRAY (of bytes)
+			// 				NAMELENGTH (uint32)
+			// 				NAMEDATA[]
+			// 				DATALENGTH (uint32)
+			// 				DATAARRAY[]
 
 			file.Add(0x50); // Head
 			file.Add(0x4C);
 			file.Add(0x50);
-			file.Add(0x00); // Empty
+
+			PackageMode mode = .None;
+#if DEBUG
+			mode |= .Debug;
+#endif
+			file.Add(mode.Underlying); // Mode
+
 			WriteUInt(0); // Size placeholder
+
+			// [Debug] source path
+#if DEBUG
+			WriteUInt((uint32)packageBuildFilePath.Length);
+			let packageSpan = Span<uint8>((uint8*)packageBuildFilePath.Ptr, packageBuildFilePath.Length);
+			file.AddRange(packageSpan); // Write source path
+#endif
 
 			// All importer strings
 			WriteUInt((uint32)importerNames.Count);
@@ -675,7 +723,7 @@ namespace Pile
 
 			// Put it all in a file
 			{
-				Try!(WritePackage(outPath, nodes, importerNames));
+				Try!(WritePackage(packageBuildFilePath, outPath, nodes, importerNames));
 
 				t.Stop();
 				Log.Info(scope $"Built package {outPath} in {t.ElapsedMilliseconds}ms");

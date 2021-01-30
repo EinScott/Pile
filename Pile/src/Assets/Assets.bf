@@ -57,8 +57,25 @@ namespace Pile
 		{
 			// Get packages path
 			Path.InternalCombine(packagesPath, Core.System.DataPath, "packages");
+
+#if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
+#endif
 		}
-		internal ~this() {}
+
+		internal ~this()
+		{
+#if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+			Core.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
+#endif
+		}
+
+		void OnWindowFocusChanged()
+		{
+			// The window was just focused again and the game is not just starting
+			if (Core.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
+				HotReloadPackages();
+		}
 
 		public bool Has<T>(String name) where T : class
 		{
@@ -164,16 +181,23 @@ namespace Pile
 			}
 
 			// Read file
+			String debugSourcePath;
 			{
 				// Normalize path
 				let packagePath = scope String();
 				Path.InternalCombineViews(packagePath, packagesPath, packageName);
 
-				if (Packages.ReadPackage(packagePath, nodes, importerNames) case .Err)
+				if (Packages.ReadPackage(packagePath, nodes, importerNames, out debugSourcePath) case .Err)
 					LogErrorReturn!(scope $"Error reading package {packageName} for loading");
 			}
 
 			let package = new Package();
+#if DEBUG
+			if (debugSourcePath != null)
+			{
+				package.sourcePath = debugSourcePath;
+			}
+#endif
 			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, String.Empty, package.name);
 			else package.name.Set(packageName);
 
@@ -258,94 +282,80 @@ namespace Pile
 			return false;
 		}
 
-
-		// @do put this at the location where this get registered later, not skipcall here
-		// probably just move this entire function up to where it's registered
-/*#if !DEBUG || PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
-				[SkipCall]
-#endif*/
-		void OnWindowFocusChanged()
-		{
-			//@do check here if we're already inside the main loop, we dont want to do this at Startup() time, only later
-
-			if (Core.Window.Focus)
-				HotReloadPackages().IgnoreError();
-		}	
-
 #if !DEBUG
 		[SkipCall]
 #endif
 		/// Will try to rebuild and reload all packages. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
-		public Result<void> HotReloadPackages()
+		public Result<void> HotReloadPackages(bool force = false)
 #if DEBUG
 		{
-			bool err = false;
+			Result<void> err = .Ok;
+			// These are probably going to get deleted from the original list so copy in advance
+			let currentPackages = scope List<Package>();
 			for (let package in loadedPackages)
+				currentPackages.Add(package);
+
+			for (let package in currentPackages)
 			{
-				// Prepare packageSourceChanged check
-				// look at the call in buildPackage
-
-				//if (Packages.PackageSourceChanged())
+				// Make sure source path is set
+				if (package.sourcePath == null)
 				{
-					// Since we know that something changed already, no need to check again (forceBuild true)
-					if (HotReloadPackage(package.name, true) case .Err)
-					{
-						err = true;
-						Log.Error(scope $"Failed to hot reload package {package.name}. This might cause a crash");
+					Log.Warn(scope $"Won't try to hot reload package {package.name}. No debug hot reload info included");
+					continue;
+				}
 
-						Debug.SafeBreak(); // You may continue, but consider just relaunching the game
-					}
+				// Prepare packageSourceChanged check
+				let packageName = Path.GetFileNameWithoutExtension(package.sourcePath, .. scope String());
+				let outPath = Path.InternalCombineViews(.. scope String(), packagesPath, packageName);
+				Path.ChangeExtension(outPath, ".bin", outPath);
+
+				// ALWAYS rebuild if the file is not there or the source changed
+				if (!force && File.Exists(outPath) && (File.GetLastWriteTimeUtc(outPath) case .Ok(let val))
+					&& !Packages.PackageSourceChanged(package.sourcePath, val))
+					continue;
+
+				let name = scope String(package.name);
+				if (HotReloadPackage(package) case .Err)
+				{
+					err = .Err;
+					Log.Error(scope $"Failed to hot reload package {name}. This might cause a crash");
 				}
 			}
 
-			return err ? .Err :.Ok;
+			return err;
 		}
-#else
-		{
-			return .Ok;
-		}
-#endif // #if DEBUG
 
-#if !DEBUG
-		[SkipCall]
-#endif
-		/// Will try to rebuild and reload the given package. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
-		public Result<void> HotReloadPackage(StringView packageName, bool forceBuild)
-#if DEBUG
+		internal Result<void> HotReloadPackage(Package package)
 		{
-			// we have to get the sourcePackage path in here somehow, so i'm thinking of having that info inside Package if DEBUG
-			// "hotPackageSourcePath", which also means including it into the packagefile itself if built with DEBUG
-
+			// @do
 			// for hot reloading other platform things like shader/clip, we would probably need "Asset" behaviour inside these to then update?
-			// oh yeah its all coming together now
 
-			if (PackageLoaded(packageName, let p))
+			if (PackageLoaded(package.name, let p))
 			{
+				if (p.sourcePath == null) // Technically a duplicate check
+					return .Err;
+
 				// Extract hot reload debug info from package
+				let sourcePath = scope String(p.sourcePath);
+				let name = scope String(package.name);
 
-				// Unload
+				// Unload current package (delete packageData in the process)
 				// Don't PackAndUpdateTextures, we will probably load something again
-				Try!(UnloadPackage(packageName, false));
+				Try!(UnloadPackage(name));
 
-				Packages.BuildPackage(.()/*FIXME*/, packagesPath, forceBuild).IgnoreError();
+				// Since we probably know that something changed already, no need to check again (force = true)
+				Packages.BuildPackage(sourcePath, packagesPath, true).IgnoreError();
 				
 				// In any case, we try to load the package again
 				// (so if the build failed, we still try to load the old one if that still exists)
-				let res = LoadPackage(packageName, false);
+				Try!(LoadPackage(name, false));
 
-				// Fix our current dirty state
-				// We just do it here explicitly for clarity and because the LoadPackage function assumes
-				// that the current state is clean and doesn't call this on error
-				PackAndUpdateTextures();
-
-				// Return based on if the package could be loaded or not
-				Try!(res);
+				return .Ok;
 			}
-
-			// This package doesn't exist, it cannot be hot reloaded
-			return .Err;
+			else return .Err; // This package doesn't exist, it cannot be hot reloaded
 		}
 #else
+		// Method body for HotReloadPackages(...)
 		{
 			return .Ok;
 		}
@@ -353,7 +363,7 @@ namespace Pile
 
 		//=== DYNAMIC ASSETS
 
-		/// Use Packages for static assets, use this for ones you don't know at compile time.
+		/// Use Packages for static assets, use this for ones you don't know at build time.
 		public Result<void> AddDynamicAsset(StringView name, Object asset)
 		{
 			let type = asset.GetType();
@@ -370,12 +380,12 @@ namespace Pile
 			return .Ok;
 		}
 
-		/// Use Packages for static assets, use this for ones you don't know at compile time.
+		/// Use Packages for static assets, use this for ones you don't know at build time.
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
-		public Result<void> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
+		public Result<Subtexture> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
 			// Add object in assets
-			let nameView = Try!(AddTextureAsset(name, bitmap));
+			let nameView = Try!(AddTextureAsset(name, bitmap, let asset));
 
 			// Add object location in dynamic lookup
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
@@ -386,7 +396,7 @@ namespace Pile
 			if (packAndUpdateTextures)
 				PackAndUpdateTextures();
 
-			return .Ok;
+			return .Ok(asset);
 		}
 
 		public void RemoveDynamicAsset(Type type, StringView name)
@@ -445,9 +455,10 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		internal Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap)
+		internal Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset)
 		{
 			Debug.Assert(Core.run);
+			asset = null;
 
 			let nameString = new String(name);
 
@@ -473,8 +484,8 @@ namespace Pile
 			else if (assets.GetValue(type).Get().ContainsKey(nameString))
 				LogErrorReturn!(scope $"Couldn't add asset {nameString} to dictionary for type {type}, because the name is already taken for this type");
 
-			let tex = new Subtexture();
-			assets.GetValue(type).Get().Add(nameString, tex); // Will be filled in on PackAndUpdate()
+			asset = new Subtexture();
+			assets.GetValue(type).Get().Add(nameString, asset); // Will be filled in on PackAndUpdate()
 
 			return .Ok(nameString);
 		}
