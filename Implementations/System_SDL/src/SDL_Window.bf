@@ -319,7 +319,7 @@ namespace Pile
 			get => mouseFocus;
 		}
 
-		public override void Focus()
+		public override void SetFocused()
 		{
 			SDL.RaiseWindow(window);
 		}

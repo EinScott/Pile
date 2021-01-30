@@ -52,7 +52,7 @@ namespace Pile
 		public override bool MouseOver => true;
 
 		[SkipCall]
-		public override void Focus() {}
+		public override void SetFocused() {}
 
 		[SkipCall]
 		protected override void CloseInternal() {}

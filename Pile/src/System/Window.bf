@@ -55,8 +55,6 @@ namespace Pile
 		public extern bool Focus { get; }
 		public extern bool MouseOver { get; }
 
-		public extern void Focus();
-
 		public void Close()
 		{
 			Core.Exit();
