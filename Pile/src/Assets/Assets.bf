@@ -56,7 +56,8 @@ namespace Pile
 		internal this()
 		{
 			// Get packages path
-			Path.InternalCombine(packagesPath, Core.System.DataPath, "packages");
+			Path.Clean(Path.InternalCombine(.. scope .(), Core.System.DataPath, "packages"), packagesPath);
+			Log.Info(packagesPath);
 
 #if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
 			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
@@ -290,6 +291,7 @@ namespace Pile
 #if DEBUG
 		{
 			Result<void> err = .Ok;
+
 			// These are probably going to get deleted from the original list so copy in advance
 			let currentPackages = scope List<Package>();
 			for (let package in loadedPackages)
@@ -312,10 +314,7 @@ namespace Pile
 				// ALWAYS rebuild if the file is not there or the source changed
 				if (!force && File.Exists(outPath) && (File.GetLastWriteTimeUtc(outPath) case .Ok(let val))
 					&& !Packages.PackageSourceChanged(package.sourcePath, val))
-				{
-					Log.Info("Nothing changed");
 					continue;
-				}
 
 				let name = scope String(package.name);
 				if (HotReloadPackage(package) case .Err)

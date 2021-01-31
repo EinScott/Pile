@@ -30,11 +30,9 @@ namespace Pile
 
 		protected internal virtual void DetermineDataPaths(StringView title)
 		{
-			String exePath = scope .();
-			Environment.GetExecutableFilePath(exePath);
-			String exeDir = new .();
-			Path.GetDirectoryPath(exePath, exeDir);
-			DataPath = exeDir;
+			String exePath = Environment.GetExecutableFilePath(.. scope .());
+			String exeDir = Path.GetDirectoryPath(exePath, .. scope .());
+			DataPath = Path.Clean(exeDir, .. new .());
 			
 			String lowerTitle = scope String(title)..Replace(Path.DirectorySeparatorChar, '_')..Replace(Path.AltDirectorySeparatorChar, '_')..Replace(Path.VolumeSeparatorChar, '_')..ToLower();
 			String userPath = scope .();
@@ -43,31 +41,31 @@ namespace Pile
 #if BF_PLATFORM_WINDOWS
 			Environment.GetEnvironmentVariable("APPDATA", userPath);
 			if (!userPath.IsEmpty)
-				Path.InternalCombine(userDir, userPath, lowerTitle);
+				Path.Clean(Path.InternalCombine(.. scope .(), userPath, lowerTitle), userDir);
 #endif
 #if BF_PLATFORM_LINUX
 			Environment.GetEnvironmentVariable("XDG_DATA_HOME", userPath);
 			if (!userPath.IsEmpty)
 			{
-				Path.InternalCombine(userDir, userPath, lowerTitle);
+				Path.Clean(Path.InternalCombine(.. scope .(), userPath, lowerTitle), userDir);
 			}
 			else
 			{
 				Environment.GetEnvironmentVariable("HOME", userPath);
 				if (!userPath.IsEmpty)
-					Path.InternalCombine(userDir, userPath, ".local", "share", lowerTitle);
+					Path.Clean(Path.InternalCombine(.. scope .(), userPath, ".local", "share", lowerTitle), userDir);
 			}
 #endif
 #if BF_PLATFORM_MACOS
 			Environment.GetEnvironmentVariable("HOME", userPath);
 			if (!userPath.IsEmpty)
-				Path.InternalCombine(userDir, userPath, "Library", "Application Support", lowerTitle);
+				Path.Clean(Path.InternalCombine(.. scope .(), userPath, "Library", "Application Support", lowerTitle), userDir);
 #endif
 
 			if (userDir.IsEmpty)
 			{
 				Log.Error("Couldn't determine UserPath");
-				userDir.Set(exeDir);
+				userDir.Set(DataPath);
 			}
 			UserPath = userDir;
 
