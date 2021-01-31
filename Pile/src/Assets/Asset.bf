@@ -31,10 +31,8 @@ namespace Pile
 		{
 			if (asset != null) return; // Already have asset
 
-			Log.Info("LOAD");
 			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsTextureAsset(name)))
 			{
-				Log.Info("DID");
 				asset = Core.Assets.Get<T>(name); // Get it
 			}
 		}
@@ -43,10 +41,8 @@ namespace Pile
 		{
 			if (asset == null) return; // Don't have asset
 
-			Log.Info("UNLOAD");
 			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsTextureAsset(name)))
 			{
-				Log.Info("DID");
 				asset = null; // Leave it
 			}
 		}

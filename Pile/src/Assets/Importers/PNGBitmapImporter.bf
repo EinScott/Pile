@@ -3,7 +3,7 @@ using System;
 
 namespace Pile
 {
-	[RegisterImporter,AlwaysInclude]
+	[RegisterImporter]
 	class PNGBitmapImporter : PNGImporter
 	{
 		public override String Name => "png_bitmap";

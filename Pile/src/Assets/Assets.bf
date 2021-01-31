@@ -312,7 +312,10 @@ namespace Pile
 				// ALWAYS rebuild if the file is not there or the source changed
 				if (!force && File.Exists(outPath) && (File.GetLastWriteTimeUtc(outPath) case .Ok(let val))
 					&& !Packages.PackageSourceChanged(package.sourcePath, val))
+				{
+					Log.Info("Nothing changed");
 					continue;
+				}
 
 				let name = scope String(package.name);
 				if (HotReloadPackage(package) case .Err)

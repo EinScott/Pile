@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace Pile
 {
-	[RegisterImporter,AlwaysInclude]
+	[RegisterImporter]
 	public class FontImporter : Importer
 	{
 		public String Name => "font";

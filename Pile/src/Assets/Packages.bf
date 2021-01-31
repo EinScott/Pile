@@ -486,6 +486,7 @@ namespace Pile
 
 							for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
 							{
+								enumeratePath.Clear();
 								entry.GetFilePath(enumeratePath);
 
 								if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))

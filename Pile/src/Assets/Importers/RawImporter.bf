@@ -3,8 +3,7 @@ using System.Collections;
 
 namespace Pile
 {
-	//todo: remove AlwaysInclude off importers once .AlwaysIncludeTarget on the other attribute is fixed
-	[RegisterImporter,AlwaysInclude]
+	[RegisterImporter]
 	public class RawImporter : Importer
 	{
 		public virtual String Name => "raw";
