@@ -70,7 +70,10 @@ namespace Pile
 			UserPath = userDir;
 
 			if (!Directory.Exists(userDir))
-				Directory.CreateDirectory(userDir);
+			{
+				if (Directory.CreateDirectory(userDir) case .Err(let err))
+					Core.FatalError(scope $"Couldn't create directory for UserPath: {err}");
+			}
 		}
 
 		protected internal extern void Initialize();

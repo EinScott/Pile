@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using Atma;
 
 using internal Pile;
@@ -49,12 +50,17 @@ namespace Pile
 				delete Data;
 			}
 		}
-		
+
+		enum PackageMode : uint8
+		{
+			None = 0,
+		}
+
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames, out String debugSourcePath)
+		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames, out SHA256Hash contentHash)
 		{
-			debugSourcePath = null;
+			contentHash = .();
 			let inPath = Path.Clean(packagePath, .. scope .());
 
 			if (!inPath.EndsWith(".bin"))
@@ -68,10 +74,7 @@ namespace Pile
 			// HEADER (3 bytes)
 			// MODE (1 byte)
 			// FILESIZE (4 bytes, uint32)
-
-			// [if MODE & .Debug] SOURCEPATH:
-			// 		STRINGSIZE (uint32)
-			//		STRING[]
+			// CONTENTHASH (32 bytes)
 
 			// IMPORTERNAMECOUNT (uint32)
 			// IMPORTERNAMEARRAY[]
@@ -101,25 +104,16 @@ namespace Pile
 				|| ReadUInt() != (uint32)file.Count) // Check file size
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format");
 
-			let mode = (PackageMode)file[3];
+			//let mode = (PackageMode)file[3];
 
 			// Read file
 			{
-				// [debug] source Path
-#if DEBUG
-				if (mode & .Debug != 0)
+				// Read hash
 				{
-					let sourcePathLength = ReadUInt();
-					debugSourcePath = new String((char8*)&file[readByte], sourcePathLength);
-					readByte += (.)sourcePathLength;
+					let hash = SHA256Hash();
+					Span<uint8>(&file[readByte], 32).CopyTo(hash.mHash);
+					readByte += 32;
 				}
-#else
-				if (mode & .Debug != 0)
-				{
-					Log.Warn("Package is DEBUG-compiled");
-					readByte += (.)ReadUInt(); // Skip
-				}
-#endif
 
 				// Importer names
 				let importerNameCount = ReadUInt();
@@ -157,13 +151,6 @@ namespace Pile
 
 					int position = 0;
 
-					uint32 ReadArrayUInt()
-					{
-						let startIndex = position;
-						position += 4;
-						return (((uint32)nodeRaw[startIndex] << 24) | (((uint32)nodeRaw[startIndex + 1]) << 16) | (((uint32)nodeRaw[startIndex + 2]) << 8) | (uint32)nodeRaw[startIndex + 3]);
-					}
-
 					// Read from decompressed array
 					let importerIndex = ReadArrayUInt();
 
@@ -178,6 +165,13 @@ namespace Pile
 					position += dataLength;
 
 					nodes.Add(Node(importerIndex, name, data));
+
+					uint32 ReadArrayUInt()
+					{
+						let startIndex = position;
+						position += 4;
+						return (((uint32)nodeRaw[startIndex] << 24) | (((uint32)nodeRaw[startIndex + 1]) << 16) | (((uint32)nodeRaw[startIndex + 2]) << 8) | (uint32)nodeRaw[startIndex + 3]);
+					}
 				}
 			}
 
@@ -194,13 +188,7 @@ namespace Pile
 			}
 		}
 
-		enum PackageMode : uint8
-		{
-			None = 0,
-			Debug = 1
-		}
-
-		static Result<void> WritePackage(StringView cPackageBuildFilePath, StringView cPackagePath, List<Packages.Node> nodes, List<String> importerNames)
+		static Result<void> WritePackage(StringView cPackagePath, List<Packages.Node> nodes, List<String> importerNames, SHA256Hash contentHash)
 		{
 			let file = new List<uint8>();
 			defer delete file;
@@ -208,10 +196,7 @@ namespace Pile
 			// HEADER (3 bytes)
 			// MODE (1 byte)
 			// FILESIZE (4 bytes, uint32)
-
-			// [if MODE & .Debug] SOURCEPATH:
-			// 		STRINGSIZE (uint32)
-			//		STRING[]
+			// CONTENTHASH (32 bytes)
 
 			// IMPORTERNAMECOUNT (uint32)
 			// IMPORTERNAMEARRAY[]
@@ -239,19 +224,14 @@ namespace Pile
 			file.Add(0x50);
 
 			PackageMode mode = .None;
-#if DEBUG
-			mode |= .Debug;
-#endif
 			file.Add(mode.Underlying); // Mode
 
 			WriteUInt(0); // Size placeholder
 
-			// [Debug] source path
-#if DEBUG
-			WriteUInt((uint32)cPackageBuildFilePath.Length);
-			let packageSpan = Span<uint8>((uint8*)cPackageBuildFilePath.Ptr, cPackageBuildFilePath.Length);
-			file.AddRange(packageSpan); // Write source path
-#endif
+			// Content Hash
+			var contentHash;
+			let hashSpan = Span<uint8>(&contentHash.mHash[0], contentHash.mHash.Count);
+			file.AddRange(hashSpan); // Write hash
 
 			// All importer strings
 			WriteUInt((uint32)importerNames.Count);
@@ -269,28 +249,6 @@ namespace Pile
 				let zLibInput = new uint8[sizeof(uint32) * 3 + node.Name.Count + node.Data.Count];
 				defer delete zLibInput;
 				int position = 0;
-
-				void WriteArrayUInt(uint32 uint)
-				{
-					zLibInput[position] = (uint8)((uint >> 24) & 0xFF);
-					zLibInput[position + 1] = (uint8)((uint >> 16) & 0xFF);
-					zLibInput[position + 2] = (uint8)((uint >> 8) & 0xFF);
-					zLibInput[position + 3] = (uint8)(uint & 0xFF);
-					position += 4;
-				}
-
-				void WriteArraySpan(Span<uint8> span)
-				{
-					var span;
-					let dest = Span<uint8>((&zLibInput[position - 1]) + 1, Math.Min(zLibInput.Count, span.Length));
-					if (span.Length != dest.Length)
-					{
-						Log.Warn(scope $"Span to write to zlib input array was longer ({span.Length}) than arrayLenght - currentArrayPosition ({dest.Length})");
-						span.Length = dest.Length; // Trim input span to fit zlib mem. ~~This should never happen but yeah
-					}
-					span.CopyTo(dest);
-					position += dest.Length;
-				}
 
 				// Write into zLib array
 				WriteArrayUInt(node.Importer);
@@ -336,22 +294,28 @@ namespace Pile
 				}
 
 				file.Count -= zLibFileSize - compSize; // Remove unneeded reserved space
-			}
 
-			void WriteUInt(uint32 uint)
-			{
-				file.Add((uint8)((uint >> 24) & 0xFF));
-				file.Add((uint8)((uint >> 16) & 0xFF));
-				file.Add((uint8)((uint >> 8) & 0xFF));
-				file.Add((uint8)(uint & 0xFF));
-			}
+				void WriteArrayUInt(uint32 uint)
+				{
+					zLibInput[position] = (uint8)((uint >> 24) & 0xFF);
+					zLibInput[position + 1] = (uint8)((uint >> 16) & 0xFF);
+					zLibInput[position + 2] = (uint8)((uint >> 8) & 0xFF);
+					zLibInput[position + 3] = (uint8)(uint & 0xFF);
+					position += 4;
+				}
 
-			void ReplaceUInt(int at, uint32 uint)
-			{
-				file[at] = (uint8)((uint >> 24) & 0xFF);
-				file[at + 1] = (uint8)((uint >> 16) & 0xFF);
-				file[at + 2] = (uint8)((uint >> 8) & 0xFF);
-				file[at + 3] = (uint8)(uint & 0xFF);
+				void WriteArraySpan(Span<uint8> span)
+				{
+					var span;
+					let dest = Span<uint8>((&zLibInput[position - 1]) + 1, Math.Min(zLibInput.Count, span.Length));
+					if (span.Length != dest.Length)
+					{
+						Log.Warn(scope $"Span to write to zlib input array was longer ({span.Length}) than arrayLenght - currentArrayPosition ({dest.Length})");
+						span.Length = dest.Length; // Trim input span to fit zlib mem. ~~This should never happen but yeah
+					}
+					span.CopyTo(dest);
+					position += dest.Length;
+				}
 			}
 
 			// Fill in size
@@ -372,6 +336,22 @@ namespace Pile
 				LogErrorReturn!(scope $"Couldn't write package. Error writing file to {outPath}");
 
 			return .Ok;
+
+			void WriteUInt(uint32 uint)
+			{
+				file.Add((uint8)((uint >> 24) & 0xFF));
+				file.Add((uint8)((uint >> 16) & 0xFF));
+				file.Add((uint8)((uint >> 8) & 0xFF));
+				file.Add((uint8)(uint & 0xFF));
+			}
+
+			void ReplaceUInt(int at, uint32 uint)
+			{
+				file[at] = (uint8)((uint >> 24) & 0xFF);
+				file[at + 1] = (uint8)((uint >> 16) & 0xFF);
+				file[at + 2] = (uint8)((uint >> 8) & 0xFF);
+				file[at + 3] = (uint8)(uint & 0xFF);
+			}
 		}
 
 		static Result<void> ReadPackageBuildFile(StringView cPackageBuildFilePath, PackageData packageData)
@@ -392,23 +372,8 @@ namespace Pile
 
 			return .Ok;
 		}
-		
-		public static bool PackageSourceChanged(StringView packageBuildFilePath, DateTime afterUtc)
-		{
-			let cPackageBuildFilePath = Path.Clean(packageBuildFilePath, .. scope .());
 
-			PackageData packageData = new PackageData();
-			defer delete packageData;
-
-			if (ReadPackageBuildFile(cPackageBuildFilePath, packageData) case .Err)
-			{
-				return false;
-			}
-
-			return SourceChanged(cPackageBuildFilePath, packageData, afterUtc);
-		}
-
-		static bool SourceChanged(StringView cPackageBuildFilePath, PackageData packageData, DateTime afterUtc)
+		static bool SourceChanged(StringView cPackageBuildFilePath, PackageData packageData, DateTime afterUtc, SHA256Hash formerContentHash)
 		{
 			if (File.GetLastWriteTimeUtc(cPackageBuildFilePath) case .Ok(let val))
 			{
@@ -420,6 +385,8 @@ namespace Pile
 			let rootPath = scope String();
 			if (Path.GetDirectoryPath(cPackageBuildFilePath, rootPath) case .Err)
 				return false;
+
+			SHA256 hashBuilder = .();
 
 			// Go through each import statement
 			for (let import in packageData.imports)
@@ -455,8 +422,16 @@ namespace Pile
 							for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
 							{
 								// Look if file has been modified after given time
-								if (!entry.IsDirectory && entry.GetLastWriteTimeUtc() > afterUtc)
-									return true;
+								if (!entry.IsDirectory)
+								{
+									if (entry.GetLastWriteTimeUtc() > afterUtc)
+										return true;
+									else // Hash name
+									{
+										let s = GetScopedAssetName!(entry.GetFilePath(.. scope .()), import);
+										hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
+									}
+								}
 								// Look for matching sub dirs and add to importDirs list
 								else importDirs.Add(entry.GetFilePath(.. scope:SEARCH String()));
 							}
@@ -494,8 +469,16 @@ namespace Pile
 								if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
 								{
 									// Look if file has been modified after given time
-									if (!entry.IsDirectory && entry.GetLastWriteTimeUtc() > afterUtc)
-										return true;	
+									if (!entry.IsDirectory)
+									{
+										if (entry.GetLastWriteTimeUtc() > afterUtc)
+											return true;
+										else // Hash name
+										{
+											let s = GetScopedAssetName!(entry.GetFilePath(.. scope .()), import);
+											hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
+										}
+									}
 									// Look for matching sub dirs and add to importDirs list
 									else importDirs.Add(scope:SEARCH String(enumeratePath));
 								}
@@ -509,303 +492,35 @@ namespace Pile
 				}
 			}
 
+			// Lastly, check if the same asset names are included
+			if (hashBuilder.Finish() != formerContentHash)
+				return true;
+
 			return false;
 		}
 
-		static mixin FillImportPaths(StringView cPackageBuildFilePath, StringView rootPath, PackageData.ImportData import, List<String> importPaths)
+		static mixin GetScopedAssetName(StringView filePath, PackageData.ImportData import)
 		{
-			for (var path in import.path.Split(';'))
-			{
-				path.Trim();
-
-				let fullPath = Path.Clean(.. (Path.IsPathRooted(path)
-					? scope String(path)
-					: Path.InternalCombineViews(.. scope String(), rootPath, path)));
-
-				// Check if containing folder exists
-				let dirPath = scope String();
-
-				if (Path.GetDirectoryPath(fullPath, dirPath) case .Err)
-					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Failed to find containing directory of {path}");
-
-				// Import everything - recursively
-				if (Path.Equals(fullPath, dirPath))
-				SEARCH:
-				{
-					let importDirs = scope List<String>(8);
-					importDirs.Add(scope:SEARCH String(dirPath));
-
-					String currImportPath;
-					let enumeratePath = scope String(128);
-					repeat // For each entry in import dirs
-					{
-						currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
-						currImportPath..Append(Path.DirectorySeparatorChar).Append('*');
-
-						for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
-						{
-							enumeratePath.Clear();
-							entry.GetFilePath(enumeratePath);
-
-							// Add matching files in this directory to import list
-							if (!entry.IsDirectory)
-								importPaths.Add(scope:IMPORT String(enumeratePath));
-							// Look for matching sub dirs and add to importDirs list
-							else
-								importDirs.Add(scope:SEARCH String(enumeratePath));
-						}
-
-						// Tidy up
-						importDirs.PopBack();
-					}
-					while (importDirs.Count > 0);
-				}
-				// Import everything that matches - recursively
-				else
-				SEARCH:
-				{
-					let wildCard = Path.GetFileName(fullPath, .. scope String());
-
-					let importDirs = scope List<String>(8);
-					importDirs.Add(scope:SEARCH String(dirPath));
-
-					String currImportPath;
-					let enumeratePath = scope String(128);
-					let searchPath = scope String(128);
-					let wildCardPath = scope String(128);
-					repeat // For each entry in import dirs
-					{
-						let current = importDirs.Count - 1;
-						currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
-
-						searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
-						wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
-
-						bool match = false;
-						for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
-						{
-							enumeratePath.Clear();
-							entry.GetFilePath(enumeratePath);
-
-							if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
-							{
-								match = true;
-
-								// Add matching files in this directory to import list
-								if (!entry.IsDirectory)
-									importPaths.Add(scope:IMPORT String(enumeratePath));
-								// Look for matching sub dirs and add to importDirs list
-								else
-									importDirs.Add(scope:SEARCH String(enumeratePath));
-							}
-						}
-
-						if (!match)
-							Log.Warn(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
-
-						// Tidy up
-						importDirs.RemoveAtFast(current);
-					}
-					while (importDirs.Count > 0);
-				}
-			}
-		}
-
-		static Result<void> ImportPath(StringView filePath, StringView cPackageBuildFilePath, Importer importer, int currentImporter,
-			PackageData.ImportData import, List<uint8> importerData, List<StringView> duplicateNameLookup, List<Node> nodes)
-		{
-			Log.Debug($"Importing {filePath}");
-			importerData.Clear();
-
-			// Read file
-			let res = File.ReadAll(filePath, importerData);
-			if (res case .Err(let err))
-				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error reading file at {filePath} with {import.importer}: {err}");
-
-			// Compose config
-			List<StringView> config = scope List<StringView>();
-			if (import.config != null && import.config.Length > 0)
-			{
-				for (var part in import.config.Split(';'))
-				{
-					part.Trim();
-					config.Add(part);
-				}
-			}
-
-			// Run through importer
-			let ress = importer.Build(importerData, config, filePath);
-			if (ress case .Err)
-				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
-			uint8[] builtData = ress.Get();
-			if (builtData.Count <= 0)
-				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");
-
-			// Make name
-			let s = scope String();
+			let s = scope:mixin String();
 			if (import.name_prefix != null) s.Append(import.name_prefix);
 			Path.GetFileNameWithoutExtension(filePath, s);
-
-			// Check if name exists
-			if (duplicateNameLookup.Contains(s))
-				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath}: Entry with name {s} has already been imported. Consider using \"name_prefix\"");
-
-			// Add to node and duplicate lookup
-			let name = new uint8[s.Length];
-			Span<uint8>((uint8*)s.Ptr, s.Length).CopyTo(name);
-			duplicateNameLookup.Add(StringView((char8*)name.CArray(), name.Count)); // Add name data interpreted as string back to duplicate lookup
-
-			// Add data
-			nodes.Add(Node((uint32)currentImporter, name, builtData));
-
-			return .Ok;
+			s
 		}
 
-		static Result<void> Assemble(StringView cPackageBuildFilePath, PackageData packageData, List<Node> nodes, List<String> importerNames)
-		{
-			List<StringView> duplicateNameLookup = scope List<StringView>(32);
-			List<String> importPaths = scope List<String>(32); // All of these paths exist
-
-			let importerData = new List<uint8>();
-			defer delete importerData;
-			let rootPath = scope String();
-			Try!(Path.GetDirectoryPath(cPackageBuildFilePath, rootPath));
-			for (let import in packageData.imports)
-			IMPORT:
-			{
-				Importer importer;
-
-				// Try to find importer
-				if (Importers.importers.ContainsKey(import.importer)) importer = Importers.importers[import.importer];
-				else LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Couldn't find importer '{import.importer}'");
-
-				// Get index in importerNames array
-				int currentImporter = importerNames.Count; // Default for when it will be added later
-				{
-					let foundImporter = importerNames.IndexOf(import.importer);
-					if (foundImporter != -1)
-						currentImporter = foundImporter;
-				}
-
-				// Interpret path string (put all final paths in importPaths)
-				FillImportPaths!(cPackageBuildFilePath, rootPath, import, importPaths);
-
-				// Import all files found for this import statement with this importer
-				bool importerUsed = false;
-				for (var filePath in importPaths)
-				{
-					Try!(ImportPath(filePath, cPackageBuildFilePath, importer, currentImporter, import, importerData, duplicateNameLookup, nodes));
-					importerUsed = true;
-				}
-				importPaths.Clear();
-
-				if (importerUsed && currentImporter == importerNames.Count) // The importer doesnt already have an index
-					importerNames.Add(new String(import.importer));
-			}
-
-			return .Ok;
-		}
-
-		static Result<void> AssembleChanges(StringView cPackageBuildFilePath, StringView cOutPath, PackageData packageData, List<Node> nodes, List<String> importerNames)
-		{
-			List<StringView> duplicateNameLookup = scope List<StringView>(32);
-			List<String> importPaths = scope List<String>(32); // All of these paths exist
-
-			Try!(ReadPackage(cOutPath, nodes, importerNames, let dbgPath));
-			DeleteNotNull!(dbgPath); // We create our own later, don't continue using this
-
-			// Add current to duplicateNameLookup
-			for (let node in nodes)
-			{
-				duplicateNameLookup.Add(StringView((char8*)node.Name.CArray(), node.Name.Count));
-			}
-
-			let importerData = new List<uint8>();
-			defer delete importerData;
-			let rootPath = scope String();
-			Try!(Path.GetDirectoryPath(cPackageBuildFilePath, rootPath));
-			for (let import in packageData.imports)
-			IMPORT:
-			{
-				Importer importer;
-
-				// Try to find importer
-				if (Importers.importers.ContainsKey(import.importer)) importer = Importers.importers[import.importer];
-				else LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Couldn't find importer '{import.importer}'");
-
-				// Get index in importerNames array
-				int currentImporter = importerNames.Count; // Default for when it will be added later
-				{
-					let foundImporter = importerNames.IndexOf(import.importer);
-					if (foundImporter != -1)
-						currentImporter = foundImporter;
-				}
-
-				// Interpret path string (put all final paths in importPaths)
-				FillImportPaths!(cPackageBuildFilePath, rootPath, import, importPaths);
-
-				// @do
-				// - additions (name is NOT already in lookup) -> add node
-				// - changes (name is already in lookup) -> replace node
-				// - remove (for this we DO need ALL the paths, so we can actually mixin GetImportPaths() again!)
-				//          then somehow keep track of which things weren't looked up at all (so not addition and also not change)
-
-				// Import all files found for this import statement with this importer
-				bool importerUsed = false;
-				for (var filePath in importPaths)
-				{
-					Try!(ImportPath(filePath, cPackageBuildFilePath, importer, currentImporter, import, importerData, duplicateNameLookup, nodes));
-					importerUsed = true;
-				}
-				importPaths.Clear();
-
-				if (importerUsed && currentImporter == importerNames.Count) // The importer doesnt already have an index
-					importerNames.Add(new String(import.importer));
-			}
-
-			return .Ok;
-		}
-
-		// @do reduce code size/duplication?
-		// @do is there a problem removing? are we not catching all changes with dates alone? deleted things have no date, so wont trigger hot reload
-		// 	   easy option would be to just not allow deleting... but thats kind of weird in the long run. It could just check and either completely
-		//	   maybe just check if the number of things to import is still the same and then completely rebuild
-
-		/// If force is false, the package will only be built, if there is no file at the outPath or the packages source changed
+		/// If force is false, the package will only be built, if there is no file at outPath or the package source changed
 		public static Result<void> BuildPackage(StringView packageBuildFilePath, StringView outputFolderPath, bool force = false)
 		{
-			let cPackageBuildFilePath = Path.Clean(packageBuildFilePath, .. scope .());
-
 			let t = scope Stopwatch(true);
 			PackageData packageData = new PackageData();
 
+			let cPackageBuildFilePath = Path.Clean(packageBuildFilePath, .. scope .());
 			if (ReadPackageBuildFile(cPackageBuildFilePath, packageData) case .Err)
 			{
 				delete packageData;
 				return .Err;
 			}
 
-			let packageName = Path.GetFileNameWithoutExtension(cPackageBuildFilePath, .. scope String());
-			let outputPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), outputFolderPath, packageName));
-			Path.ChangeExtension(outputPath, ".bin", outputPath);
-
-			// ALWAYS build if the file is not there or the source changed
-			bool fullBuild = true;
-			if (!force && File.Exists(outputPath))
-			{
-				// We can simply rebuild the changes
-				fullBuild = false;
-
-				if ((File.GetLastWriteTimeUtc(outputPath) case .Ok(let val))
-					&& !Packages.SourceChanged(cPackageBuildFilePath, packageData, val))
-				{
-					// Nothing has changed since last build
-					delete packageData;
-					return .Ok;
-				}
-			}
-
-			// Resolve imports
+			// Package data
 			List<Node> nodes = new List<Node>(32);
 			List<String> importerNames = new List<String>(8);
 
@@ -817,19 +532,235 @@ namespace Pile
 				delete nodes;
 			}
 
+			// Prepare paths
+			let packageName = Path.GetFileNameWithoutExtension(cPackageBuildFilePath, .. scope String());
+			let outputPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), outputFolderPath, packageName));
+			Path.ChangeExtension(outputPath, ".bin", outputPath);
+
+			// Resolve imports
+			SHA256Hash contentHash;
 			{
 				// Delete on scope exit
 				defer delete packageData;
 
-				if (fullBuild)
-					Try!(Assemble(cPackageBuildFilePath, packageData, nodes, importerNames));
-				else
-					Try!(AssembleChanges(cPackageBuildFilePath, outputPath, packageData, nodes, importerNames));
+				List<StringView> duplicateNameLookup = scope List<StringView>(32);
+				List<String> importPaths = scope List<String>(32); // All of these paths exist
+
+				// ALWAYS build if the file is not there or the source changed
+				// This is where we check for a quick way out or a rebuild
+				if (!force && File.Exists(outputPath) && (ReadPackage(outputPath, nodes, importerNames, let formerContentHash) case .Ok)
+					&& (File.GetLastWriteTimeUtc(outputPath) case .Ok(let val)) && !Packages.SourceChanged(cPackageBuildFilePath, packageData, val, formerContentHash))
+				{
+					// Nothing has changed since last build
+					return .Ok;
+				}
+
+				// Add existing nodes (from existing package) into duplicate lookup
+				// As they will provide the base for further
+				for (let node in nodes)
+					duplicateNameLookup.Add(StringView((char8*)node.Name.CArray(), node.Name.Count));
+
+				let importerData = new List<uint8>();
+				defer delete importerData;
+
+				let rootPath = scope String();
+				Try!(Path.GetDirectoryPath(cPackageBuildFilePath, rootPath));
+
+				// Build hash from all names
+				SHA256 hashBuilder = .();
+
+				for (let import in packageData.imports)
+				IMPORT:
+				{
+					Importer importer;
+
+					// Try to find importer
+					if (Importers.importers.ContainsKey(import.importer)) importer = Importers.importers[import.importer];
+					else LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Couldn't find importer '{import.importer}'");
+
+					// Get index in importerNames array
+					int currentImporter = importerNames.Count; // Default for when it will be added later
+					{
+						let foundImporter = importerNames.IndexOf(import.importer);
+						if (foundImporter != -1)
+							currentImporter = foundImporter;
+					}
+
+					// Interpret path string (put all final paths in importPaths)
+					for (var path in import.path.Split(';'))
+					{
+						path.Trim();
+
+						let fullPath = Path.Clean(.. (Path.IsPathRooted(path)
+							? scope String(path)
+							: Path.InternalCombineViews(.. scope String(), rootPath, path)));
+
+						// Check if containing folder exists
+						let dirPath = scope String();
+
+						if (Path.GetDirectoryPath(fullPath, dirPath) case .Err)
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Failed to find containing directory of {path}");
+
+						// Import everything
+						if (Path.Equals(fullPath, dirPath))
+						SEARCH:
+						{
+							let importDirs = scope List<String>(8);
+							importDirs.Add(scope:SEARCH String(dirPath));
+
+							String currImportPath;
+							let enumeratePath = scope String(128);
+							repeat // For each entry in import dirs
+							{
+								currImportPath = importDirs[importDirs.Count - 1]; // Pick from the back, since we dont want to remove stuff in middle or front
+								currImportPath..Append(Path.DirectorySeparatorChar).Append('*');
+
+								for (let entry in Directory.Enumerate(currImportPath, .Files | .Directories))
+								{
+									enumeratePath.Clear();
+									entry.GetFilePath(enumeratePath);
+
+									// Add matching files in this directory to import list
+									if (!entry.IsDirectory)
+									{
+										let s = GetScopedAssetName!(enumeratePath, import);
+										hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
+										importPaths.Add(scope:IMPORT String(enumeratePath));
+									}
+									// Look for matching sub dirs and add to importDirs list
+									else
+										importDirs.Add(scope:SEARCH String(enumeratePath));
+								}
+
+								// Tidy up
+								importDirs.PopBack();
+							}
+							while (importDirs.Count > 0);
+						}
+						// Import everything that matches - recursively
+						else
+						SEARCH:
+						{
+							let wildCard = Path.GetFileName(fullPath, .. scope String());
+
+							let importDirs = scope List<String>(8);
+							importDirs.Add(scope:SEARCH String(dirPath));
+
+							String currImportPath;
+							let enumeratePath = scope String(128);
+							let searchPath = scope String(128);
+							let wildCardPath = scope String(128);
+							repeat // For each entry in import dirs
+							{
+								let current = importDirs.Count - 1;
+								currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
+
+								searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
+								wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
+
+								bool match = false;
+								for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
+								{
+									enumeratePath.Clear();
+									entry.GetFilePath(enumeratePath);
+
+									if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
+									{
+										match = true;
+
+										// Add matching files in this directory to import list
+										if (!entry.IsDirectory)
+										{
+											let s = GetScopedAssetName!(enumeratePath, import);
+											hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
+											importPaths.Add(scope:IMPORT String(enumeratePath));
+										}
+										// Look for matching sub dirs and add to importDirs list
+										else
+											importDirs.Add(scope:SEARCH String(enumeratePath));
+									}
+								}
+
+								if (!match)
+									Log.Warn(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
+
+								// Tidy up
+								importDirs.RemoveAtFast(current);
+							}
+							while (importDirs.Count > 0);
+						}
+					}
+
+					// @do
+					// - additions (name is NOT already in lookup) -> add node
+					// - changes (name is already in lookup) -> replace node
+					// - remove (for this we DO need ALL the paths, so we can actually mixin GetImportPaths() again!)
+					//          then somehow keep track of which things weren't looked up at all (so not addition and also not change)
+					// these are local tracker inside this import and have nothing to do with hash and namelookup is separate
+
+					// Import all files found for this import statement with this importer
+					bool importerUsed = false;
+					let config = scope List<StringView>();
+					for (var filePath in importPaths)
+					{
+						// Make name
+						let name = GetScopedAssetName!(filePath, import);
+
+						// @do abort here if this DOESNT have to be loaded (again)
+						// (maybe with the vars used to check additions/deletions)
+
+						// Check if name exists
+						if (duplicateNameLookup.Contains(name))
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath}: Entry with name {name} has already been imported. Consider using \"name_prefix\"");
+
+						Log.Debug($"Importing {filePath}");
+						importerData.Clear();
+
+						// Read file
+						let res = File.ReadAll(filePath, importerData);
+						if (res case .Err(let err))
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error reading file at {filePath} with {import.importer}: {err}");
+
+						// Compose config
+						config.Clear();
+						if (import.config != null && import.config.Length > 0)
+						{
+							for (var part in import.config.Split(';'))
+							{
+								part.Trim();
+								config.Add(part);
+							}
+						}
+
+						// Run through importer
+						let ress = importer.Build(importerData, config, filePath);
+						if (ress case .Err)
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
+						uint8[] builtData = ress.Get();
+						if (builtData.Count <= 0)
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");
+
+						// Add to node and duplicate lookup
+						let nameData = new uint8[name.Length];
+						Span<uint8>((uint8*)name.Ptr, name.Length).CopyTo(nameData);
+						duplicateNameLookup.Add(StringView((char8*)nameData.CArray(), nameData.Count)); // Add name data interpreted as string back to duplicate lookup
+
+						// Add data
+						nodes.Add(Node((uint32)currentImporter, nameData, builtData));
+						importerUsed = true;
+					}
+					importPaths.Clear();
+
+					if (importerUsed && currentImporter == importerNames.Count) // The importer doesnt already have an index
+						importerNames.Add(new String(import.importer));
+				}
+
+				contentHash = hashBuilder.Finish();
 			}
 
 			// Put it all in a file
 			{
-				Try!(WritePackage(cPackageBuildFilePath, outputPath, nodes, importerNames));
+				Try!(WritePackage(outputPath, nodes, importerNames, contentHash));
 
 				t.Stop();
 				Log.Info(scope $"Built package {outputPath} in {t.ElapsedMilliseconds}ms");
