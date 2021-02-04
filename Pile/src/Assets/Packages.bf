@@ -58,7 +58,7 @@ namespace Pile
 
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		// @do both read and write are horrific. Redo them with just literal fileStreams!
+		// todo: both read and write are old. Redo them with just literal file and memory streams!
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames, out SHA256Hash contentHash)
 		{
 			contentHash = .();
@@ -683,7 +683,11 @@ namespace Pile
 
 			// If nothing changed, do nothing
 			if (!somethingChanged && contentHash == lastContentHash)
+			{
+				t.Stop();
+				Log.Info(scope $"Package {packageName} didn't change; took {t.ElapsedMilliseconds}ms");
 				return .Ok;
+			}
 
 			// Put it all in a file
 			{

@@ -60,6 +60,7 @@ namespace Pile
 
 #if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
 			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
+			assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(GetAssetsPath!(), => OnBfpDirectoryChanged, .IncludeSubdirectories, Internal.UnsafeCastToPtr(this), null);
 #endif
 		}
 
@@ -67,15 +68,30 @@ namespace Pile
 		{
 #if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
 			Core.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
+			Platform.BfpFileWatcher_Release(assetsWatcher);
 #endif
+		}
+
+#if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+		Platform.BfpFileWatcher* assetsWatcher;
+		internal bool assetsChanged;
+
+		static void OnBfpDirectoryChanged(Platform.BfpFileWatcher* watcher, void* userData, Platform.BfpFileChangeKind changeKind, char8* directory, char8* fileName, char8* oldName)
+		{
+			let assets = (Assets)Internal.UnsafeCastToObject(userData);
+			assets.assetsChanged = true;
 		}
 
 		void OnWindowFocusChanged()
 		{
 			// The window was just focused again and the game is not just starting
-			if (Core.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
+			if (assetsChanged && Core.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
+			{
 				HotReloadPackages();
+				assetsChanged = false;
+			}
 		}
+#endif		
 
 		public bool Has<T>(String name) where T : class
 		{

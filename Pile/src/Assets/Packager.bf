@@ -9,10 +9,25 @@ namespace Pile
 {
 	static
 	{
-#if !PILE_DISABLE_PACKAGER
+		internal static mixin GetAssetsPath()
+		{
+			String assetsPath = scope:mixin .();
+			let exePath = Environment.GetExecutableFilePath(.. scope String());
+
+			let dirPath = scope String();
+			if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
+			{
+				assetsPath.Append(Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String()));
+			}
+			assetsPath
+		}
+
 		[Optimize]
 		internal static Result<void> RunPackager()
 		{
+			// todo: this should probably be part of the build process itself... right now we're just doing a crappy test if we're in the build dir
+			// so instead of just placing that .temp file maybe we can execute this in there at some point.. we just need it to be post-link
+
 #if DEBUG
 			const bool FORCE = false;
 #else
@@ -22,8 +37,7 @@ namespace Pile
 			String inPath = scope .();
 			String outPath = scope .();
 			{
-				let exePath = scope String();
-				Environment.GetExecutableFilePath(exePath);
+				let exePath = Environment.GetExecutableFilePath(.. scope String());
 
 				let dirPath = scope String();
 				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
@@ -31,13 +45,12 @@ namespace Pile
 					let markerPath = Path.GetAbsolutePath(@"..\Pile\output_dir.temp", dirPath, .. scope String());
 
 					// If we are inside the build output directory
-					// todo: this should probably be part of the build process itself... right now we're just doing a crappy test if we're in the build dir
-					// so instead of just placing that .temp file maybe we can execute this in there at some point.. we just need it to be post-link
 					if (File.Exists(markerPath))
 					{
 						inPath.Append(Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String()));
 						outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
 					}
+					else LogErrorReturn!("Packager should only be called for development purposes when the application is inside the project build directory");
 				}
 			}
 
@@ -84,6 +97,5 @@ namespace Pile
 
 			return .Ok;
 		}
-#endif
 	}
 }
