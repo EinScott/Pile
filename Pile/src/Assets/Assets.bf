@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	//[Optimize]
+	//[Optimize] @do
 	public class Assets
 	{
 		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
@@ -284,6 +284,8 @@ namespace Pile
 #if DEBUG
 		{
 			Result<void> err = .Ok;
+
+
 
 			// These are probably going to get deleted from the original list so copy in advance
 			/*let currentPackages = scope List<Package>();

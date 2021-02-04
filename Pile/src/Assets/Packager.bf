@@ -11,7 +11,7 @@ namespace Pile
 	{
 #if !PILE_DISABLE_PACKAGER
 		[Optimize]
-		internal static Result<void> RunPackager(StringView inPath, StringView outPath)
+		internal static Result<void> RunPackager()
 		{
 #if DEBUG
 			const bool FORCE = false;
@@ -19,6 +19,27 @@ namespace Pile
 			// Force it release (to have a fresh build and not carry over possible artifacts of patching)
 			const bool FORCE = true;
 #endif
+			String inPath = scope .();
+			String outPath = scope .();
+			{
+				let exePath = scope String();
+				Environment.GetExecutableFilePath(exePath);
+
+				let dirPath = scope String();
+				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
+				{
+					let markerPath = Path.GetAbsolutePath(@"..\Pile\output_dir.temp", dirPath, .. scope String());
+
+					// If we are inside the build output directory
+					// todo: this should probably be part of the build process itself... right now we're just doing a crappy test if we're in the build dir
+					// so instead of just placing that .temp file maybe we can execute this in there at some point.. we just need it to be post-link
+					if (File.Exists(markerPath))
+					{
+						inPath.Append(Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String()));
+						outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
+					}
+				}
+			}
 
 			if (inPath.Length == 0 || outPath.Length == 0)
 				LogErrorReturn!("Packager need both an 'in=' and 'out=' argument");

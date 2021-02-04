@@ -25,26 +25,7 @@ namespace Pile
 
 #if !PILE_DISABLE_PACKAGER
 			// Run packager
-			{
-				let exePath = scope String();
-				Environment.GetExecutableFilePath(exePath);
-
-				let dirPath = scope String();
-				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
-				{
-					let markerPath = Path.GetAbsolutePath(@"..\Pile\output_dir.temp", dirPath, .. scope String());//Path.InternalCombine(.. scope String(dirPath), "output_dir.temp");
-
-					// If we are inside the build output directory
-					// todo: this should probably be part of the build process itself...
-					if (File.Exists(markerPath))
-					{
-						let inPath = Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String());
-						let outPath = Path.InternalCombine(.. scope String(dirPath), @"packages");
-
-						RunPackager(inPath, outPath);
-					}
-				}
-			}
+			RunPackager().IgnoreError();
 #endif
 
 			// Run onStart

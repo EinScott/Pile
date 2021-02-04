@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Collections;
 
 using internal Pile;
@@ -33,15 +34,49 @@ namespace Pile
 			String exePath = Environment.GetExecutableFilePath(.. scope .());
 			String exeDir = Path.GetDirectoryPath(exePath, .. scope .());
 			DataPath = Path.Clean(exeDir, .. new .());
-			
-			String lowerTitle = scope String(title)..Replace(Path.DirectorySeparatorChar, '_')..Replace(Path.AltDirectorySeparatorChar, '_')..Replace(Path.VolumeSeparatorChar, '_')..ToLower();
+
+			String fsTitle = scope String(title)..Replace(Path.DirectorySeparatorChar, ' ')..Replace(Path.AltDirectorySeparatorChar, ' ')..Replace(Path.VolumeSeparatorChar, ' ');
+			// we could test for all the ungodly things windows doesn't allow in file names. ATM that responsibility is on the developer naming the program...
+
 			String userPath = scope .();
 			String userDir = new .();
 
 #if BF_PLATFORM_WINDOWS
-			Environment.GetEnvironmentVariable("APPDATA", userPath);
-			if (!userPath.IsEmpty)
-				Path.Clean(Path.InternalCombine(.. scope .(), userPath, lowerTitle), userDir);
+			{
+				// We want "<documents folder>/My Games/<game name>"
+				bool dSuccess = false;
+
+				// Get documents folder path... ugh
+				char16* pathPtr = ?;
+				let res = Windows.SHGetKnownFolderPath(Windows.FOLDERID_Documents, 0, .NullHandle, &pathPtr);
+				if (res == .OK)
+				{
+					// Get length
+					int len = 0;
+					for (int_strsize i = 0; true; i++)
+						if (pathPtr[i] == (char16)0)
+						{
+							len = i;
+							break;
+						}
+
+					if (Encoding.UTF16.DecodeToUTF8(Span<uint8>((uint8*)pathPtr, len * sizeof(char16)), userPath) case .Ok)
+					{
+						Path.Clean(Path.InternalCombine(.. scope .(), userPath, "My Games", fsTitle), userDir);
+						dSuccess = true;
+					}
+				}
+				Windows.COM_IUnknown.CoTaskMemFree(pathPtr);
+
+				// Alternative
+				if (!dSuccess)
+				{
+					userPath.Clear();
+					Environment.GetEnvironmentVariable("APPDATA", userPath);
+					if (!userPath.IsEmpty)
+						Path.Clean(Path.InternalCombine(.. scope .(), userPath, fsTitle), userDir);
+				}	 
+			}
 #endif
 #if BF_PLATFORM_LINUX
 			Environment.GetEnvironmentVariable("XDG_DATA_HOME", userPath);

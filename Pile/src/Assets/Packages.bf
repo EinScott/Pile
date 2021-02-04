@@ -11,7 +11,7 @@ using internal Pile;
 
 namespace Pile
 {
-	//[Optimize]
+	//[Optimize] @do
 	public static class Packages
 	{
 		// Represents the json data in the package import file
@@ -709,8 +709,8 @@ namespace Pile
 				Ref();
 				if (m_result)
 					Notify(false);
-				mDoneEvent.Set();				
 				Deref();
+				mDoneEvent.Set();
 			}
 		}
 	}

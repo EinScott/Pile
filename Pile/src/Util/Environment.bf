@@ -7,12 +7,15 @@ namespace System
 		public static void GetEnvironmentVariable(String key, String outString)
 		{
 			let dict = new Dictionary<String, String>();
-			Environment.GetEnvironmentVariables(dict);
+			defer
+			{
+				DeleteDictionaryAndKeysAndValues!(dict);
+			}
 
+			Environment.GetEnvironmentVariables(dict);
 			if (!dict.ContainsKey(key)) return;
 
 			outString.Append(dict[key]);
-			DeleteDictionaryAndKeysAndValues!(dict);
 		}
 	}
 }
