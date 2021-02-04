@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	[Optimize]
+	//[Optimize]
 	public class Assets
 	{
 		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
@@ -57,7 +57,6 @@ namespace Pile
 		{
 			// Get packages path
 			Path.Clean(Path.InternalCombine(.. scope .(), Core.System.DataPath, "packages"), packagesPath);
-			Log.Info(packagesPath);
 
 #if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
 			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
@@ -182,23 +181,17 @@ namespace Pile
 			}
 
 			// Read file
-			String debugSourcePath;
 			{
 				// Normalize path
 				let packagePath = scope String();
 				Path.InternalCombineViews(packagePath, packagesPath, packageName);
 
-				if (Packages.ReadPackage(packagePath, nodes, importerNames, out debugSourcePath) case .Err)
+				if (Packages.ReadPackage(packagePath, nodes, importerNames, ?) case .Err) // We don't care about the hash
 					LogErrorReturn!(scope $"Error reading package {packageName} for loading");
 			}
 
 			let package = new Package();
-#if DEBUG
-			if (debugSourcePath != null)
-			{
-				package.sourcePath = debugSourcePath;
-			}
-#endif
+
 			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, String.Empty, package.name);
 			else package.name.Set(packageName);
 
@@ -293,7 +286,7 @@ namespace Pile
 			Result<void> err = .Ok;
 
 			// These are probably going to get deleted from the original list so copy in advance
-			let currentPackages = scope List<Package>();
+			/*let currentPackages = scope List<Package>();
 			for (let package in loadedPackages)
 				currentPackages.Add(package);
 
@@ -322,7 +315,7 @@ namespace Pile
 					err = .Err;
 					Log.Error(scope $"Failed to hot reload package {name}. This might cause a crash");
 				}
-			}
+			}*/
 
 			return err;
 		}
@@ -332,13 +325,12 @@ namespace Pile
 			// @do
 			// for hot reloading other platform things like shader/clip, we would probably need "Asset" behaviour inside these to then update?
 
+			// remove temp stuff from package
+
 			if (PackageLoaded(package.name, let p))
 			{
-				if (p.sourcePath == null) // Technically a duplicate check
-					return .Err;
-
 				// Extract hot reload debug info from package
-				let sourcePath = scope String(p.sourcePath);
+				let sourcePath = scope String(/*p.sourcePath*/); // @do this the packager way
 				let name = scope String(package.name);
 
 				// Unload current package (delete packageData in the process)
@@ -546,6 +538,9 @@ namespace Pile
 		internal void PackAndUpdateTextures()
 		{
 			Debug.Assert(Core.run);
+
+			if (packer.SourceImageCount == 0)
+				return;
 
 			// Pack sources
 			let res = packer.Pack();

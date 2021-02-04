@@ -13,6 +13,13 @@ namespace Pile
 		[Optimize]
 		internal static Result<void> RunPackager(StringView inPath, StringView outPath)
 		{
+#if DEBUG
+			const bool FORCE = false;
+#else
+			// Force it release (to have a fresh build and not carry over possible artifacts of patching)
+			const bool FORCE = true;
+#endif
+
 			if (inPath.Length == 0 || outPath.Length == 0)
 				LogErrorReturn!("Packager need both an 'in=' and 'out=' argument");
 
@@ -33,7 +40,7 @@ namespace Pile
 				if (!path.EndsWith(".json")) continue;
 
 				// Add these as PackageBuildTask, because we need the details passed in to log errors later on
-				tasks.Add(Packages.BuildPackageAsync(path, outPath) as Packages.PackageBuildTask);
+				tasks.Add(Packages.BuildPackageAsync(path, outPath, FORCE) as Packages.PackageBuildTask);
 			}
 
 			// Wait for tasks to end
