@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	//[Optimize] @do
+	[Optimize]
 	public class Assets
 	{
 		Packer packer = new Packer() { combineDuplicates = true } ~ delete _;
@@ -280,78 +280,36 @@ namespace Pile
 		[SkipCall]
 #endif
 		/// Will try to rebuild and reload all packages. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
-		public Result<void> HotReloadPackages(bool force = false)
+		internal Result<void> HotReloadPackages(bool force = false)
 #if DEBUG
-		{
-			Result<void> err = .Ok;
-
-
-
-			// These are probably going to get deleted from the original list so copy in advance
-			/*let currentPackages = scope List<Package>();
-			for (let package in loadedPackages)
-				currentPackages.Add(package);
-
-			for (let package in currentPackages)
-			{
-				// Make sure source path is set
-				if (package.sourcePath == null)
-				{
-					Log.Warn(scope $"Won't try to hot reload package {package.name}. No debug hot reload info included");
-					continue;
-				}
-
-				// Prepare packageSourceChanged check
-				let packageName = Path.GetFileNameWithoutExtension(package.sourcePath, .. scope String());
-				let outPath = Path.InternalCombineViews(.. scope String(), packagesPath, packageName);
-				Path.ChangeExtension(outPath, ".bin", outPath);
-
-				// ALWAYS rebuild if the file is not there or the source changed
-				if (!force && File.Exists(outPath) && (File.GetLastWriteTimeUtc(outPath) case .Ok(let val))
-					&& !Packages.PackageSourceChanged(package.sourcePath, val))
-					continue;
-
-				let name = scope String(package.name);
-				if (HotReloadPackage(package) case .Err)
-				{
-					err = .Err;
-					Log.Error(scope $"Failed to hot reload package {name}. This might cause a crash");
-				}
-			}*/
-
-			return err;
-		}
-
-		internal Result<void> HotReloadPackage(Package package)
 		{
 			// @do
 			// for hot reloading other platform things like shader/clip, we would probably need "Asset" behaviour inside these to then update?
 
-			// remove temp stuff from package
+			Result<void> err = .Ok;
 
-			if (PackageLoaded(package.name, let p))
+			DateTime buildStart = DateTime.Now;
+			if (RunPackager() case .Err)
+				LogErrorReturn!("Failed to run Packager");
+
+			for (let file in Directory.EnumerateFiles(packagesPath))
 			{
-				// Extract hot reload debug info from package
-				let sourcePath = scope String(/*p.sourcePath*/); // @do this the packager way
-				let name = scope String(package.name);
+				if (file.GetLastWriteTime() > buildStart)
+				{
+					let name = Path.GetFileNameWithoutExtension(file.GetFileName(.. scope String()), .. scope String());
 
-				// Unload current package (delete packageData in the process)
-				// Don't PackAndUpdateTextures, we will probably load something again
-				Try!(UnloadPackage(name));
-
-				// Since we probably know that something changed already, no need to check again (force = true)
-				Packages.BuildPackage(sourcePath, packagesPath, true).IgnoreError();
-				
-				// In any case, we try to load the package again
-				// (so if the build failed, we still try to load the old one if that still exists)
-				Try!(LoadPackage(name));
-
-				return .Ok;
+					if ((UnloadPackage(name) case .Ok)
+						&& (LoadPackage(name) case .Err))
+					{
+						Log.Error(scope $"Failed to hot reload package {name}. This might cause a crash");
+						err = .Err;
+					}
+				}
 			}
-			else return .Err; // This package doesn't exist, it cannot be hot reloaded
+
+			return err;
 		}
 #else
-		// Method body for HotReloadPackages(...)
 		{
 			return .Ok;
 		}

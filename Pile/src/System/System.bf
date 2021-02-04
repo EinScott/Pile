@@ -34,7 +34,7 @@ namespace Pile
 			String exePath = Environment.GetExecutableFilePath(.. scope .());
 			String exeDir = Path.GetDirectoryPath(exePath, .. scope .());
 			DataPath = Path.Clean(exeDir, .. new .());
-
+			
 			String fsTitle = scope String(title)..Replace(Path.DirectorySeparatorChar, ' ')..Replace(Path.AltDirectorySeparatorChar, ' ')..Replace(Path.VolumeSeparatorChar, ' ');
 			// we could test for all the ungodly things windows doesn't allow in file names. ATM that responsibility is on the developer naming the program...
 

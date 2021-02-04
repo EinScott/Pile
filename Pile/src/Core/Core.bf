@@ -117,7 +117,7 @@ namespace Pile
 			// Assets init
 			Assets = new Assets();
 
-			// Init log
+			// Log init
 			Log.Initialize();
 
 			w.Stop();

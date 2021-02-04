@@ -11,7 +11,7 @@ using internal Pile;
 
 namespace Pile
 {
-	//[Optimize] @do
+	[Optimize]
 	public static class Packages
 	{
 		// Represents the json data in the package import file
@@ -585,6 +585,21 @@ namespace Pile
 						// If some file changed AND (we do a full build OR this file is in the to import list) => we need to import this (again)
 						if (somethingChanged && (!patchBuild || importPaths.Contains(filePath)))
 						{
+							// Override old node if we're patching changes in
+							int patchIndex = -1;
+							if (patchBuild)
+							{
+								for (var i < nodes.Count)
+								{
+									let node = ref nodes[i];
+									if (StringView((char8*)&node.Name[0], node.Name.Count) == name)
+									{
+										patchIndex = i;
+										break;
+									}
+								}
+							}
+
 							Log.Debug($"Importing {filePath}");
 							importerData.Clear();
 
@@ -608,16 +623,26 @@ namespace Pile
 							let ress = importer.Build(importerData, config, filePath);
 							if (ress case .Err)
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
-							uint8[] builtData = ress.Get();
-							if (builtData.Count <= 0)
+							uint8[] buildData = ress.Get();
+							if (buildData.Count <= 0)
+							{
+								delete buildData;
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");
+							}
 
 							// Add to node and duplicate lookup
 							let nameData = new uint8[name.Length];
 							Span<uint8>((uint8*)name.Ptr, name.Length).CopyTo(nameData);
 
 							// Add data
-							nodes.Add(Node((uint32)currentImporter, nameData, builtData));
+							if (patchIndex == -1)
+								nodes.Add(Node((uint32)currentImporter, nameData, buildData));
+							else
+							{
+								nodes[patchIndex].Dispose(); // Swap out
+								nodes[patchIndex] = Node((uint32)currentImporter, nameData, buildData);
+							}
+
 							importerUsed = true;
 						}
 
@@ -658,11 +683,7 @@ namespace Pile
 
 			// If nothing changed, do nothing
 			if (!somethingChanged && contentHash == lastContentHash)
-			{
-				t.Stop();
-				Log.Info(scope $"Package {packageName} didn't change; took {t.ElapsedMilliseconds}ms");
 				return .Ok;
-			}
 
 			// Put it all in a file
 			{
