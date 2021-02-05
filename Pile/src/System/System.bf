@@ -46,7 +46,7 @@ namespace Pile
 				// We want "<documents folder>/My Games/<game name>"
 				bool dSuccess = false;
 
-				// Get documents folder path... ugh
+				// Get documents folder path
 				char16* pathPtr = ?;
 				let res = Windows.SHGetKnownFolderPath(Windows.FOLDERID_Documents, 0, .NullHandle, &pathPtr);
 				if (res == .OK)
