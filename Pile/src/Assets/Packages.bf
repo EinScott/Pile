@@ -71,12 +71,6 @@ namespace Pile
 			if (fs.Open(inPath, .Open, .Read) case .Err(let err))
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error reading file: {err}");
 
-			/*let readBuf = new List<uint8>();
-			defer delete readBuf;*/
-			/*let file = new List<uint8>();
-			LogErrorTry!(File.ReadAll(inPath, file), scope $"Couldn't load package at {inPath}. Error reading file");
-			defer delete file;*/
-
 			// HEADER (3 bytes)
 			// MODE (1 byte)
 			// FILESIZE (4 bytes, uint32)
@@ -115,7 +109,7 @@ namespace Pile
 				uint8[4] data = .();
 				if (fs.TryRead(data) case .Err)
 					LogErrorReturn!(scope $"Couldn't read package. Error reading data to {inPath}");
-				(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3])
+				(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3]) // big endian
 			}
 
 			let header = ReadInto!(scope uint8[4]());
@@ -124,12 +118,12 @@ namespace Pile
 
 			let size = ReadUInt!(); // File size
 
-			// Read file
+			// Read file body
 			{
-				// Read hash
+				// Read content hash
 				ReadInto!(contentHash.mHash);
 
-				// Importer names
+				// Read importer names
 				let importerNameCount = ReadUInt!();
 				for (uint32 i = 0; i < importerNameCount; i++)
 				{
@@ -142,7 +136,7 @@ namespace Pile
 					importerNames.Add(nameString);
 				}
 
-				// Nodes
+				// Read nodes
 				{
 					let nodeCount = ReadUInt!();
 
@@ -165,7 +159,7 @@ namespace Pile
 						uint8[4] data = .();
 						if (uncompressed.TryRead(data) case .Err)
 							LogErrorReturn!("Couldn't read package. Error reading from uncompressed buffer");
-						(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3])
+						(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3]) // big endian
 					}
 
 					for (uint32 i = 0; i < nodeCount; i++)
@@ -199,7 +193,7 @@ namespace Pile
 						if (uncompSize != uncompWriteStart)
 							LogErrorReturn!(scope $"Couldn't load package at {inPath}. Uncompressed node data wasn't of expected size");
 
-						// Read from decompressed array
+						// Read from decompressed data
 						let importerIndex = ReadUncompUInt!();
 
 						let nameLength = ReadUncompUInt!();
@@ -217,6 +211,7 @@ namespace Pile
 				}
 			}
 
+			// Confirm we read what we put in
 			if (size != fs.Position)
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format: The file contains {size} bytes, but the file content ended at {fs.Position}");	
 
@@ -272,7 +267,7 @@ namespace Pile
 			mixin PutUInt(int num)
 			{
 				let uint = (uint32)num;
-				uint8[4] data;
+				uint8[4] data; // big endian
 				data[0] = (uint8)((uint >> 24) & 0xFF);
 				data[1] = (uint8)((uint >> 16) & 0xFF);
 				data[2] = (uint8)((uint >> 8) & 0xFF);
@@ -286,12 +281,12 @@ namespace Pile
 			Put!(uint8[?](0x50, 0x4C, 0x50, mode.Underlying)); // Header & Mode
 			PutUInt!(0); // Size placeholder
 
-			// Content Hash
+			// Write content hash
 			var contentHash;
 			let hashSpan = Span<uint8>(&contentHash.mHash[0], contentHash.mHash.Count);
 			Put!(hashSpan);
 
-			// All importer strings
+			// Write importer strings
 			PutUInt!(importerNames.Count);
 			for (let s in importerNames)
 			{
@@ -300,7 +295,7 @@ namespace Pile
 				Put!(span);
 			}
 
-			// All data in order
+			// Write nodes
 			PutUInt!(nodes.Count);
 			{
 				DynMemStream uncompressed = scope .();
