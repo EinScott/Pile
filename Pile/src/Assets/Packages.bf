@@ -58,7 +58,6 @@ namespace Pile
 
 		const int32 MAXCHUNK = int16.MaxValue;
 
-		// @do: both read and write are old. Redo them with just literal file and memory streams!
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames, out SHA256Hash contentHash)
 		{
 			contentHash = .();
@@ -66,11 +65,17 @@ namespace Pile
 
 			if (!inPath.EndsWith(".bin"))
 				Path.ChangeExtension(inPath, ".bin", inPath);
-
+			
 			// Get file
-			let file = new List<uint8>();
+			let fs = scope FileStream();
+			if (fs.Open(inPath, .Open, .Read) case .Err(let err))
+				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error reading file: {err}");
+
+			/*let readBuf = new List<uint8>();
+			defer delete readBuf;*/
+			/*let file = new List<uint8>();
 			LogErrorTry!(File.ReadAll(inPath, file), scope $"Couldn't load package at {inPath}. Error reading file");
-			defer delete file;
+			defer delete file;*/
 
 			// HEADER (3 bytes)
 			// MODE (1 byte)
@@ -91,267 +96,313 @@ namespace Pile
 			//		ZLIBARRAY[]
 			//			ELEMENT:
 			//			ZLIB CHUNK SIZE (uint32)
-			//			ZLIB CHUNK (compressed) =>
+			//			ZLIB CHUNK (compressed) => (contains part of the following)
 			// 				IMPORTERNAMEINDEX (uint32)
 			// 				NAMELENGTH (uint32)
 			// 				NAMEDATA[]
 			// 				DATALENGTH (uint32)
 			// 				DATAARRAY[]
 
-			int32 readByte = 4; // Start after header
+			mixin ReadInto(var thing)
+			{
+				if (fs.TryRead((Span<uint8>)thing) case .Err)
+					LogErrorReturn!(scope $"Couldn't read package. Error reading data to {inPath}");
+				thing
+			}
 
-			if (file.Count < 16 // Check min file size
-				|| file[0] != 0x50 || file[1] != 0x4C || file[2] != 0x50 // Check file header
-				|| ReadUInt() != (uint32)file.Count) // Check file size
+			mixin ReadUInt()
+			{
+				uint8[4] data = .();
+				if (fs.TryRead(data) case .Err)
+					LogErrorReturn!(scope $"Couldn't read package. Error reading data to {inPath}");
+				(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3])
+			}
+
+			let header = ReadInto!(scope uint8[4]());
+			if (header[0] != 0x50 || header[1] != 0x4C || header[2] != 0x50) // Check file header
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format");
 
-			//let mode = (PackageMode)file[3];
+			let size = ReadUInt!(); // File size
 
 			// Read file
 			{
 				// Read hash
-				{
-					Span<uint8>(&file[readByte], 32).CopyTo(contentHash.mHash);
-					readByte += 32;
-				}
+				ReadInto!(contentHash.mHash);
 
 				// Importer names
-				let importerNameCount = ReadUInt();
+				let importerNameCount = ReadUInt!();
 				for (uint32 i = 0; i < importerNameCount; i++)
 				{
-					let importerNameLength = ReadUInt();
-					importerNames.Add(new String((char8*)&file[readByte], importerNameLength));
-					readByte += (.)importerNameLength;
+					let importerNameLength = ReadUInt!();
+
+					let nameString = new String(importerNameLength);
+					nameString.Length = importerNameLength;
+					ReadInto!(Span<uint8>((uint8*)&nameString[0], importerNameLength));
+
+					importerNames.Add(nameString);
 				}
 
 				// Nodes
-				let nodeCount = ReadUInt();
-				for (uint32 i = 0; i < nodeCount; i++)
 				{
-					// Decompress
-					let uncompSize = ReadUInt();
-					let numChunks = ReadUInt();
+					let nodeCount = ReadUInt!();
 
-					let nodeRaw = new uint8[uncompSize];
-					defer delete nodeRaw;
-					var writeStart = 0;
+					DynMemStream uncompressed = scope .();
+					List<uint8> uncompData = uncompressed.TakeOwnership();
+					defer delete uncompData;
 
-					// Decompress every chunk
-					for (int j = 0; j < numChunks; j++)
+					List<uint8> compData = new .();
+					defer delete compData;
+
+					mixin ReadUncompInto(var thing)
 					{
-						let chunkSize = (int32)ReadUInt();
-						let uncompChunkSize = LogErrorTry!(Compression.Decompress(Span<uint8>(&file[readByte], chunkSize), Span<uint8>(&nodeRaw[writeStart], nodeRaw.Count - writeStart)), scope $"Couldn't loat package at {inPath}. Error decompressing node data");
-						readByte += chunkSize;
-
-						writeStart += uncompChunkSize;
+						if (uncompressed.TryRead(thing) case .Err)
+							LogErrorReturn!("Couldn't read package. Error reading from uncompressed buffer");
+						thing
 					}
 
-					if (uncompSize != writeStart)
-						LogErrorReturn!(scope $"Couldn't load package at {inPath}. Uncompressed node data wasn't of expected size");
-
-					int position = 0;
-
-					// Read from decompressed array
-					let importerIndex = ReadArrayUInt();
-
-					let nameLength = ReadArrayUInt();
-					let name = new uint8[nameLength];
-					Span<uint8>(&nodeRaw[position], nameLength).CopyTo(name);
-					position += nameLength;
-
-					let dataLength = ReadArrayUInt();
-					let data = new uint8[dataLength];
-					Span<uint8>(&nodeRaw[position], dataLength).CopyTo(data);
-					position += dataLength;
-
-					nodes.Add(Node(importerIndex, name, data));
-
-					uint32 ReadArrayUInt()
+					mixin ReadUncompUInt()
 					{
-						let startIndex = position;
-						position += 4;
-						return (((uint32)nodeRaw[startIndex] << 24) | (((uint32)nodeRaw[startIndex + 1]) << 16) | (((uint32)nodeRaw[startIndex + 2]) << 8) | (uint32)nodeRaw[startIndex + 3]);
+						uint8[4] data = .();
+						if (uncompressed.TryRead(data) case .Err)
+							LogErrorReturn!("Couldn't read package. Error reading from uncompressed buffer");
+						(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3])
+					}
+
+					for (uint32 i = 0; i < nodeCount; i++)
+					{
+						// Decompress
+						let uncompSize = ReadUInt!();
+						let numChunks = ReadUInt!();
+						
+						uncompData.Count = uncompSize;
+						uint32 uncompWriteStart = 0;
+
+						for (int j = 0; j < numChunks; j++)
+						{
+							// Read compressed chunk
+							let compSize = (int32)ReadUInt!();
+							compData.Count = compSize;
+							ReadInto!(compData);
+
+							// Decompress
+							uint32 uncompChunkSize;
+							switch (Compression.Decompress(compData, Span<uint8>(&uncompData[uncompWriteStart], uncompSize - uncompWriteStart)))
+							{
+							case .Ok(let val):
+								uncompChunkSize = (.)val;
+							case .Err:
+								LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error decompressing node chunk");
+							}
+							uncompWriteStart += uncompChunkSize;
+						}
+
+						if (uncompSize != uncompWriteStart)
+							LogErrorReturn!(scope $"Couldn't load package at {inPath}. Uncompressed node data wasn't of expected size");
+
+						// Read from decompressed array
+						let importerIndex = ReadUncompUInt!();
+
+						let nameLength = ReadUncompUInt!();
+						let name = ReadUncompInto!(new uint8[nameLength]);
+
+						let dataLength = ReadUncompUInt!();
+						let data = ReadUncompInto!(new uint8[dataLength]);
+
+						nodes.Add(Node(importerIndex, name, data));
+						
+						compData.Clear();
+						uncompressed.Position = 0;
+						uncompData.Clear();
 					}
 				}
 			}
 
-			if (readByte != file.Count)
-				LogErrorReturn!(scope $"Couldn't load package at {inPath}. The file contains {file.Count} bytes, but the end of data was at {readByte}");	
+			if (size != fs.Position)
+				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format: The file contains {size} bytes, but the file content ended at {fs.Position}");	
 
 			return .Ok;
-
-			uint32 ReadUInt()
-			{
-				let startIndex = readByte;
-				readByte += 4;
-				return (((uint32)file[startIndex] << 24) | (((uint32)file[startIndex + 1]) << 16) | (((uint32)file[startIndex + 2]) << 8) | (uint32)file[startIndex + 3]);
-			}
 		}
 
 		static Result<void> WritePackage(StringView cPackagePath, List<Packages.Node> nodes, List<String> importerNames, SHA256Hash contentHash)
 		{
-			let file = new List<uint8>();
-			defer delete file;
-
-			// HEADER (3 bytes)
-			// MODE (1 byte)
-			// FILESIZE (4 bytes, uint32)
-			// CONTENTHASH (32 bytes)
-
-			// IMPORTERNAMECOUNT (uint32)
-			// IMPORTERNAMEARRAY[]
-			// 		ELEMENT:
-			// 		STRINGSIZE (uint32)
-			// 		STRING[]
-
-			// NODECOUNT (uint32)
-			// NODEDATAARRAY[]
-			//		ELEMENT:
-			//		ZLIB UNCOMPRESSED SIZE (uint32)
-			//		NUM ZLIB CHUNKS (uint32)
-			//		ZLIBARRAY[]
-			//			ELEMENT:
-			//			ZLIB CHUNK SIZE (uint32)
-			//			ZLIB CHUNK (compressed) =>
-			// 				IMPORTERNAMEINDEX (uint32)
-			// 				NAMELENGTH (uint32)
-			// 				NAMEDATA[]
-			// 				DATALENGTH (uint32)
-			// 				DATAARRAY[]
-
-			file.Add(0x50); // Head
-			file.Add(0x4C);
-			file.Add(0x50);
-
-			PackageMode mode = .None;
-			file.Add(mode.Underlying); // Mode
-
-			WriteUInt(0); // Size placeholder
-
-			// Content Hash
-			var contentHash;
-			let hashSpan = Span<uint8>(&contentHash.mHash[0], contentHash.mHash.Count);
-			file.AddRange(hashSpan); // Write hash
-
-			// All importer strings
-			WriteUInt((uint32)importerNames.Count);
-			for (let s in importerNames)
-			{
-				WriteUInt((uint32)s.Length);
-				let span = Span<uint8>((uint8*)s.Ptr, s.Length);
-				file.AddRange(span);
-			}
-
-			// All data in order
-			WriteUInt((uint32)nodes.Count);
-			for (let node in nodes)
-			{
-				let zLibInput = new uint8[sizeof(uint32) * 3 + node.Name.Count + node.Data.Count];
-				defer delete zLibInput;
-				int position = 0;
-
-				// Write into zLib array
-				WriteArrayUInt(node.Importer);
-				WriteArrayUInt((uint32)node.Name.Count);
-				WriteArraySpan(node.Name);
-				WriteArrayUInt((uint32)node.Data.Count);
-				WriteArraySpan(node.Data);
-
-				// Write uncompressed size & numChunks into file
-				WriteUInt((uint32)zLibInput.Count);
-				let chunks = (uint32)Math.Ceiling((double)zLibInput.Count / MAXCHUNK);
-				WriteUInt(chunks);
-
-				var readStart = 0;
-				int compSize = sizeof(uint32) * chunks; // Also include size of chunk size ints, since this is the size of the whole array
-
-				var writeStart = file.Count;
-				let zLibFileSize = zLibInput.Count + sizeof(uint32) * chunks;
-				file.Count += zLibFileSize; // Reserve original size of data + space for chunk size ints
-
-				// Compress node in chunks
-				for (uint32 i = 0; i < chunks; i++)
-				{
-					let writeSizeIndex = writeStart; // Reserve space for chunk size
-					writeStart += sizeof(uint32);
-
-					let chunkReadSize = Math.Min(MAXCHUNK, zLibInput.Count - readStart);
-					
-					let res = Compression.Compress(Span<uint8>(&zLibInput[readStart], chunkReadSize), Span<uint8>(&file[writeStart], file.Count - writeStart));
-					var chunkWriteSize = 0;
-					switch (res)
-					{
-					case .Err:
-						LogErrorReturn!(scope $"Couldn't write package. Error compressing node data");
-					case .Ok(let val):
-						chunkWriteSize = val;
-						compSize += val;
-					}
-
-					readStart += chunkReadSize;
-					writeStart += chunkWriteSize;
-					ReplaceUInt(writeSizeIndex, (uint32)chunkWriteSize);
-				}
-
-				file.Count -= zLibFileSize - compSize; // Remove unneeded reserved space
-
-				void WriteArrayUInt(uint32 uint)
-				{
-					zLibInput[position] = (uint8)((uint >> 24) & 0xFF);
-					zLibInput[position + 1] = (uint8)((uint >> 16) & 0xFF);
-					zLibInput[position + 2] = (uint8)((uint >> 8) & 0xFF);
-					zLibInput[position + 3] = (uint8)(uint & 0xFF);
-					position += 4;
-				}
-
-				void WriteArraySpan(Span<uint8> span)
-				{
-					var span;
-					let dest = Span<uint8>((&zLibInput[position - 1]) + 1, Math.Min(zLibInput.Count, span.Length));
-					if (span.Length != dest.Length)
-					{
-						Log.Warn(scope $"Span to write to zlib input array was longer ({span.Length}) than arrayLenght - currentArrayPosition ({dest.Length})");
-						span.Length = dest.Length; // Trim input span to fit zlib mem. ~~This should never happen but yeah
-					}
-					span.CopyTo(dest);
-					position += dest.Length;
-				}
-			}
-
-			// Fill in size
-			ReplaceUInt(4, (uint32)file.Count);
-
 			let outPath = Path.ChangeExtension(cPackagePath, ".bin", .. scope String(cPackagePath));
 			let dir = scope String();
 			if (Path.GetDirectoryPath(outPath, dir) case .Err)
 				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path {outPath}");
 
-			if (!Directory.Exists(dir))
+			if (!Directory.Exists(dir) && (Directory.CreateDirectory(dir) case .Err(let err)))
+				LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
+
+			let fs = scope FileStream();
+			if (fs.Open(outPath, .Create, .Write) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to {outPath}");
+
+			// HEADER (3 bytes)
+			// MODE (1 byte)
+			// FILESIZE (4 bytes, uint32)
+			// CONTENTHASH (32 bytes)
+
+			// IMPORTERNAMECOUNT (uint32)
+			// IMPORTERNAMEARRAY[]
+			// 		ELEMENT:
+			// 		STRINGSIZE (uint32)
+			// 		STRING[]
+
+			// NODECOUNT (uint32)
+			// NODEDATAARRAY[]
+			//		ELEMENT:
+			//		ZLIB UNCOMPRESSED SIZE (uint32)
+			//		NUM ZLIB CHUNKS (uint32)
+			//		ZLIBARRAY[]
+			//			ELEMENT:
+			//			ZLIB CHUNK SIZE (uint32)
+			//			ZLIB CHUNK (compressed) => (contains part of the following)
+			// 				IMPORTERNAMEINDEX (uint32)
+			// 				NAMELENGTH (uint32)
+			// 				NAMEDATA[]
+			// 				DATALENGTH (uint32)
+			// 				DATAARRAY[]
+
+			mixin Put(Span<uint8> data)
 			{
-				if (Directory.CreateDirectory(dir) case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
+				if (fs.Write(data) case .Err)
+					LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath}");
 			}
 
-			if (File.WriteAll(outPath, file) case .Err)
-				LogErrorReturn!(scope $"Couldn't write package. Error writing file to {outPath}");
+			mixin PutUInt(int num)
+			{
+				let uint = (uint32)num;
+				uint8[4] data;
+				data[0] = (uint8)((uint >> 24) & 0xFF);
+				data[1] = (uint8)((uint >> 16) & 0xFF);
+				data[2] = (uint8)((uint >> 8) & 0xFF);
+				data[3] = (uint8)(uint & 0xFF);
+
+				if (fs.Write(data) case .Err)
+					LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath}");
+			}
+
+			PackageMode mode = .None;
+			Put!(uint8[?](0x50, 0x4C, 0x50, mode.Underlying)); // Header & Mode
+			PutUInt!(0); // Size placeholder
+
+			// Content Hash
+			var contentHash;
+			let hashSpan = Span<uint8>(&contentHash.mHash[0], contentHash.mHash.Count);
+			Put!(hashSpan);
+
+			// All importer strings
+			PutUInt!(importerNames.Count);
+			for (let s in importerNames)
+			{
+				PutUInt!(s.Length);
+				let span = Span<uint8>((uint8*)s.Ptr, s.Length);
+				Put!(span);
+			}
+
+			// All data in order
+			PutUInt!(nodes.Count);
+			{
+				DynMemStream uncompressed = scope .();
+				List<uint8> uncompData = uncompressed.TakeOwnership();
+				defer delete uncompData;
+
+				List<uint8> compData = new .();
+				defer delete compData;
+
+				mixin PutUncomp(Span<uint8> data)
+				{
+					if (uncompressed.Write(data) case .Err)
+						LogErrorReturn!("Couldn't write package. Error writing into uncompressed buffer");
+				}
+
+				mixin PutUncompUInt(int data)
+				{
+					let uint = (uint32)data;
+					uint8[4] num; // big endian
+					num[0] = (uint8)((uint >> 24) & 0xFF);
+					num[1] = (uint8)((uint >> 16) & 0xFF);
+					num[2] = (uint8)((uint >> 8) & 0xFF);
+					num[3] = (uint8)(uint & 0xFF);
+
+					if (uncompressed.Write(num) case .Err)
+						LogErrorReturn!("Couldn't write package. Error writing into uncompressed buffer");
+				}
+
+				for (let node in nodes)
+				{
+					// Write things to compress
+					let uncompSize = sizeof(uint32) * 3 + node.Name.Count + node.Data.Count;
+					uncompData.Reserve(uncompSize);
+
+					PutUncompUInt!(node.Importer);
+					PutUncompUInt!(node.Name.Count);
+					PutUncomp!(node.Name);
+					PutUncompUInt!(node.Data.Count);
+					PutUncomp!(node.Data);
+
+					Debug.Assert(uncompData.Count == uncompSize);
+
+					// Write uncompressed size & numChunks into file
+					PutUInt!(uncompSize);
+					let chunks = (int)Math.Ceiling((double)uncompSize / MAXCHUNK);
+					PutUInt!(chunks);
+
+					uint32 uncompReadStart = 0; // Reset position for reading
+					uint32 compWriteStart = 0;
+					let compReservedSize = uncompSize + sizeof(uint32) * chunks; // (maximum plausible size) Reserve original size of data + space for chunk size ints
+					compData.Count += compReservedSize; // Grow uninitialized size so we can compress into it
+
+					// Compress node in chunks
+					var compSize = sizeof(uint32) * chunks; // (actual size we continue to compute) Also include size of chunk size ints, since this is the size of the whole array
+					for (uint32 i = 0; i < chunks; i++)
+					{
+						uint32 compSizeIndex = compWriteStart; // Reserve space for chunk size
+						compWriteStart += sizeof(uint32);
+
+						uint32 chunkReadSize = (.)Math.Min(MAXCHUNK, uncompSize - uncompReadStart);
+
+						let res = Compression.Compress(Span<uint8>(&uncompData[uncompReadStart], chunkReadSize), Span<uint8>(&compData[compWriteStart], compData.Count - compWriteStart));
+						uint32 chunkWriteSize;
+						switch (res)
+						{
+						case .Ok(let val):
+							chunkWriteSize = (.)val;
+							compSize += val;
+						case .Err:
+							LogErrorReturn!(scope $"Couldn't write package. Error compressing node data");
+						}
+
+						// Increment read and write start for next chunk
+						uncompReadStart += chunkReadSize;
+						compWriteStart += chunkWriteSize;
+
+						// Replace size placeholder (it's probably not worth it having a MemStream just for this)
+						{
+							let num = chunkWriteSize;
+							compData[compSizeIndex] = (uint8)((num >> 24) & 0xFF);
+							compData[compSizeIndex + 1] = (uint8)((num >> 16) & 0xFF);
+							compData[compSizeIndex + 2] = (uint8)((num >> 8) & 0xFF);
+							compData[compSizeIndex + 3] = (uint8)(num & 0xFF);
+						}
+					}
+
+					compData.Count -= compReservedSize - compSize; // Remove unneeded reserved space
+
+					Put!(compData);
+
+					compData.Clear();
+					uncompressed.Position = 0;
+					uncompData.Clear();
+				}
+			}
+
+			// Fill in size
+			let size = fs.Position;
+			fs.Seek(4);
+			PutUInt!(size);
 
 			return .Ok;
-
-			void WriteUInt(uint32 uint)
-			{
-				file.Add((uint8)((uint >> 24) & 0xFF));
-				file.Add((uint8)((uint >> 16) & 0xFF));
-				file.Add((uint8)((uint >> 8) & 0xFF));
-				file.Add((uint8)(uint & 0xFF));
-			}
-
-			void ReplaceUInt(int at, uint32 uint)
-			{
-				file[at] = (uint8)((uint >> 24) & 0xFF);
-				file[at + 1] = (uint8)((uint >> 16) & 0xFF);
-				file[at + 2] = (uint8)((uint >> 8) & 0xFF);
-				file[at + 3] = (uint8)(uint & 0xFF);
-			}
 		}
 
 		static Result<void> ReadPackageBuildFile(StringView cPackageBuildFilePath, PackageData packageData)
