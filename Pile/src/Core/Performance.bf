@@ -5,10 +5,6 @@ using System.Collections;
 
 using internal Pile;
 
-#if DEBUG
-#define PILE_ENABLE_PERFTRACK
-#endif
-
 namespace Pile
 {
 	[AttributeUsage(.Method)]
@@ -19,7 +15,7 @@ namespace Pile
 
 		public this(String sectionNameOverride = String.Empty, bool appendOverride = false)
 		{
-#if PILE_ENABLE_PERFTRACK
+#if DEBUG
 			this.sectionNameOverride = sectionNameOverride;
 			this.appendOverride = appendOverride;
 #else
@@ -31,7 +27,7 @@ namespace Pile
 		[Comptime]
 		public void ApplyToMethod(ComptimeMethodInfo methodInfo)
 		{
-#if PILE_ENABLE_PERFTRACK
+#if DEBUG
 			// Make name
 			let sectionName = appendOverride
 				? scope String()
@@ -65,10 +61,14 @@ namespace Pile
 		static Dictionary<String, TimeSpan> sectionDurationsFill ~ DeleteNotNull!(_);
 		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
 
+		/// Whether or not to track function performance.
+		/// PerfTrack is always disabled if DEBUG is not defined
+		public static bool Track = true;
+
 		public static int Scale = 3;
 		public static int PerfTrackDisplayCount = 10;
 
-#if !PILE_ENABLE_PERFTRACK
+#if !DEBUG
 		[SkipCall]
 #endif
 		internal static void Initialize()
@@ -77,22 +77,26 @@ namespace Pile
 			sectionDurationsRead = new .(); 
 		}
 
-#if !PILE_ENABLE_PERFTRACK
+#if !DEBUG
 		[SkipCall]
 #endif
 		[PerfTrack("Pile.Performance")]
 		internal static void Step()
 		{
+			if (!Track) return;
+
 			Swap!(sectionDurationsFill, sectionDurationsRead);
 
 			sectionDurationsFill.Clear();
 		}
 
-#if !PILE_ENABLE_PERFTRACK
+#if !DEBUG
 		[SkipCall]
 #endif
 		private static void SectionEnd(String sectionName, TimeSpan time)
 		{
+			if (!Track) return;
+
 			if (sectionDurationsFill.GetValue(sectionName) case .Ok(let val))
 			{
 				sectionDurationsFill[sectionName] = val + time; // Sum up
@@ -145,7 +149,7 @@ namespace Pile
 				yOffset += (.)(font.LineHeight * scale.Y) + Scale;
 			}
 
-#if PILE_ENABLE_PERFTRACK
+#if DEBUG
 			if (sectionDurationsRead.Count > 0)
 			{
 				List<(String key, TimeSpan value)> ranking = scope .();

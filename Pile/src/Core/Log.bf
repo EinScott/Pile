@@ -6,12 +6,6 @@ namespace Pile
 {
 	public static class Log
 	{
-#if PILE_LONG_LOG_RECORD
-		public const int32 LOG_RECORD_COUNT = 512;
-#else
-		public const int32 LOG_RECORD_COUNT = 64;
-#endif
-		
 		public enum Types
 		{
 			case Info;
@@ -49,22 +43,54 @@ namespace Pile
 		public static bool SaveOnError = true;
 #endif
 
+		static int32 recordLength = 64;
+		public static int32 RecordLength
+		{
+			[Inline]
+			get => recordLength;
+			set
+			{
+				if (value != recordLength)
+				{
+					// Create new
+					let newRec = new String[value];
+					for (int i = 0; i < value; i++)
+						newRec[i] = new String(64);
+
+					// Copy over all common content
+					let common = Math.Min(value, recordLength);
+					for (var i < common)
+					{
+						newRec[i].Set(record[i]);
+					}
+
+					// Delete old
+					for (int i = 0; i < recordLength; i++)
+						delete record[i];
+					delete record;
+
+					record = newRec;
+					recordLength = value;
+				}
+			}
+		}
+
 		static bool discontinued;
 		static int writeIndex = 0;
 
-		static readonly String[] record = new String[LOG_RECORD_COUNT];
+		static String[] record = new String[RecordLength];
 
 		static String logPath = new String() ~ delete _;
 
 		static this()
 		{
-			for (int i = 0; i < LOG_RECORD_COUNT; i++)
+			for (int i = 0; i < RecordLength; i++)
 				record[i] = new String(64);
 		}
 
 		static ~this()
 		{
-			for (int i = 0; i < LOG_RECORD_COUNT; i++)
+			for (int i = 0; i < RecordLength; i++)
 				delete record[i];
 			delete record;
 		}
@@ -78,7 +104,7 @@ namespace Pile
 				SaveToFile().IgnoreError();
 		}
 
-		// Logging shorthands
+		// Logging functions
 #if !DEBUG
 		[SkipCall]
 #endif
@@ -97,17 +123,8 @@ namespace Pile
 			Log(.Info, message);
 		}
 
-#if PILE_DISABLE_LOG_MESSAGES
-		[SkipCall]
-#endif
 		public static void Info(String message) => Log(.Info, message);
-#if PILE_DISABLE_LOG_MESSAGES
-		[SkipCall]
-#endif
 		public static void Info(Object message) => Log(.Info, message);
-#if PILE_DISABLE_LOG_MESSAGES
-		[SkipCall]
-#endif
 		public static void Info(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
@@ -115,17 +132,8 @@ namespace Pile
 			Log(.Info, message);
 		}
 
-#if PILE_DISABLE_LOG_WARNINGS
-		[SkipCall]
-#endif
 		public static void Warn(String message) => Log(.Warn, message);
-#if PILE_DISABLE_LOG_WARNINGS
-		[SkipCall]
-#endif
 		public static void Warn(Object message) => Log(.Warn, message);
-#if PILE_DISABLE_LOG_WARNINGS
-		[SkipCall]
-#endif
 		public static void Warn(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
@@ -194,7 +202,7 @@ namespace Pile
 			let thisIndex = writeIndex;
 
 			// Move writeIndex
-			if (writeIndex + 1 < LOG_RECORD_COUNT)
+			if (writeIndex + 1 < RecordLength)
 				writeIndex++;
 			else writeIndex = 0;
 
@@ -244,7 +252,7 @@ namespace Pile
 
 			// writeIndex is where we *would* write next, and since the newest output (index before this)
 			// is printed last, we start here at the (if existant) oldest and go around once
-			for (int x = 0, int i = writeIndex; x < LOG_RECORD_COUNT; x++, i = (i + 1) < LOG_RECORD_COUNT ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
+			for (int x = 0, int i = writeIndex; x < RecordLength; x++, i = (i + 1) < RecordLength ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
 			{
 				// Skip empty/cleared lines
 				if (record[i].Length == 0)

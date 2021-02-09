@@ -14,8 +14,8 @@ namespace Pile
 		internal static int64 targetTicks = (int64)((double)TICKS_PER_SECOND / DEFAULT_TARGET_FPS);
 		static uint targetFps = DEFAULT_TARGET_FPS;
 
-		/// The game tries to run at this framerate. 0 means no upper limit.
-		/// If the a frame is completed faster than the duration of a frame at this framerate, the thread will sleep for the remaining time.
+		/// The game tries to run at this frame rate. 0 means no upper limit.
+		/// If the a frame is completed faster than the duration of a frame at this frame rate, the thread will sleep for the remaining time.
 		public static uint TargetFPS
 		{
 			get => targetFps;
@@ -44,7 +44,7 @@ namespace Pile
 		static uint minFPS = DEFAULT_MIN_FPS;
 
 		/// This limits how much the game tries to catch up. 0 means no lower limit.
-		/// If the actual delta time is higher than the duration of one frame at this framerate, RawDelta will be set to the later, thus the game will slow down.
+		/// If the actual delta time is higher than the duration of one frame at this frame rate, RawDelta will be set to the later, thus the game will slow down.
 		public static uint MinFPS
 		{
 			get => minFPS;
@@ -62,8 +62,8 @@ namespace Pile
 					// Adjust TargetFPS if needed
 					if (minFPS > targetFps)
 					{
-						// While this works, it leads to weired behaviour which most likely is not intended.
-						// The actual game would rightfully so run at a lower framerate than the Delta(s) suggest it does, effectively speeding up the game like Scale.
+						// While this works, it leads to weird behavior which most likely is not intended.
+						// The actual game would rightfully so run at a lower frame rate than the Delta(s) suggest it does, effectively speeding up the game like Scale.
 						Log.Warn("MinFPS can't be larger than TargetFPS. Automatically set TargetFPS to MinFPS");
 						TargetFPS = minFPS;
 					}
@@ -73,8 +73,8 @@ namespace Pile
 
 		public static int FPS { get; internal set; }
 
-		/// All of these rely on the game loop clock and are likely not tooo accurate
-		/// For accurate time measurements use DateTime
+		/// All of these rely on the game loop clock and are likely not too accurate
+		/// For actual real-time measurements use DateTime
 		public static TimeSpan RawDuration { get; internal set; }
 		public static TimeSpan Duration { get; internal set; }
 

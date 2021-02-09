@@ -3,9 +3,3 @@ Dependencies = {corlib = "*", MiniZ = "*", "Atma.Json" = "*"}
 
 [Project]
 Name = "Pile"
-
-[Configs.Debug.Win64]
-PostBuildCmds = ["Execute(\"echo \\\"\\\" > $(BuildDir)\\\\output_dir.temp\")"]
-
-[Configs.Release.Win64]
-PostBuildCmds = ["Execute(\"echo \\\"\\\" > $(BuildDir)\\\\output_dir.temp\")"]

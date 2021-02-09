@@ -20,13 +20,16 @@ namespace Pile
 
 		static int Main(String[] args)
 		{
-			// Handle args
+			// Store args
 			CommandLine = args;
 
-#if !PILE_DISABLE_PACKAGER
-			// Run packager
-			RunPackager().IgnoreError();
-#endif
+			// Packager mode
+			if (args.Count > 0 && args[0] == "-packager")
+			{
+				if (RunPackager() case .Err)
+					return 1;
+				return 0;
+			}
 
 			// Run onStart
 			OnStart();

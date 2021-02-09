@@ -58,7 +58,7 @@ namespace Pile
 			// Get packages path
 			Path.Clean(Path.InternalCombine(.. scope .(), Core.System.DataPath, "packages"), packagesPath);
 
-#if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+#if DEBUG
 			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 			assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(GetAssetsPath!(), => OnBfpDirectoryChanged, .IncludeSubdirectories, Internal.UnsafeCastToPtr(this), null);
 #endif
@@ -66,13 +66,13 @@ namespace Pile
 
 		internal ~this()
 		{
-#if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+#if DEBUG
 			Core.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
 			Platform.BfpFileWatcher_Release(assetsWatcher);
 #endif
 		}
 
-#if DEBUG && !PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD
+#if DEBUG
 		Platform.BfpFileWatcher* assetsWatcher;
 		internal bool assetsChanged;
 

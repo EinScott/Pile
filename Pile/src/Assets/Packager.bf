@@ -25,13 +25,10 @@ namespace Pile
 		[Optimize]
 		internal static Result<void> RunPackager()
 		{
-			// todo: this should probably be part of the build process itself... right now we're just doing a crappy test if we're in the build dir
-			// so instead of just placing that .temp file maybe we can execute this in there at some point.. we just need it to be post-link
-
 #if DEBUG
 			const bool FORCE = false;
 #else
-			// Force it release (to have a fresh build and not carry over possible artifacts of patching)
+			// Force full package build in release (to have a fresh build and not carry over possible artifacts of patching)
 			const bool FORCE = true;
 #endif
 			String inPath = scope .();
@@ -42,7 +39,8 @@ namespace Pile
 				let dirPath = scope String();
 				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
 				{
-					let markerPath = Path.GetAbsolutePath(@"..\Pile\output_dir.temp", dirPath, .. scope String());
+					// this test is weird... maybe make cleaner at some point?
+					let markerPath = Path.GetAbsolutePath(@"..\Pile\Pile__.lib", dirPath, .. scope String());
 
 					// If we are inside the build output directory
 					if (File.Exists(markerPath))
