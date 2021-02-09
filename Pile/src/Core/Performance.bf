@@ -1,12 +1,51 @@
-using System.Diagnostics;
 using System;
+using System.Reflection;
+using System.Diagnostics;
+using System.Collections;
 
 using internal Pile;
 
 namespace Pile
 {
+	[AttributeUsage(.Method, .DisallowAllowMultiple)]
+	public struct PerfTrackAttribute : Attribute, IComptimeMethodApply
+	{
+		String sectionNameOverride;
+
+		public this(String sectionNameOverride = "") // more options?
+		{
+			this.sectionNameOverride = sectionNameOverride;
+		}
+
+		[Comptime]
+		public void ApplyToMethod(ComptimeMethodInfo methodInfo)
+		{
+			// Make name
+			let sectionName = scope String(sectionNameOverride);
+			if (sectionName.IsEmpty)
+			{
+				methodInfo.ToString(sectionName);
+				sectionName.RemoveFromEnd(Math.Abs(sectionName.IndexOf('(') - sectionName.Length));
+			}
+
+			// Put tracking on method
+			Compiler.EmitMethodEntry(methodInfo, """
+				let __pt = scope System.Diagnostics.Stopwatch(true);
+				""");
+
+			Compiler.EmitMethodExit(methodInfo, scope $"""
+				Performance.[Friend]SectionEnd("{sectionName}", __pt.Elapsed);
+				""");
+		}
+	}
+
 	public static class Performance
 	{
+		private static void SectionEnd(String sectionName, TimeSpan time)
+		{
+			Log.Debug(scope $"{sectionName} in {time.Ticks}t");
+		}
+
 		// define to disable this?
 
 		// draws current delta/max delta, fps
@@ -21,7 +60,10 @@ namespace Pile
 
 		// maybe a perf graph over time?
 
+		static Dictionary<String, TimeSpan> sectionDurations;
+
 		// simple test to just draw perf bar for now
+		[PerfTrack("PerfInternal")]
 		public static void DrawPerf(Batch2D batch, int pixelScale = 3) // make (pixel)Scale a static prop later?
 		{
 			Debug.Assert(pixelScale > 0);
