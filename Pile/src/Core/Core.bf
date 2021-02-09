@@ -140,15 +140,17 @@ namespace Pile
 			while(!exiting)
 			{
 				// Step time and diff
-				if (Time.maxTicks == Time.targetTicks)
+				if (Time.targetTicks != 0 && Time.maxTicks == Time.targetTicks) // Cannot lock frame rate to 0
 				{
 					// Still calculate actual fps
 					currTime = timer.[Friend]GetElapsedDateTimeTicks();
 
+					// Force diffTime and therefore deltas regarless of actual performance
 					diffTime = Time.targetTicks;
 				}
 				else
 				{
+					// Run variable time step
 					currTime = timer.[Friend]GetElapsedDateTimeTicks();
 					
 					diffTime = Math.Min(Time.maxTicks, currTime - lastTime);
@@ -194,13 +196,19 @@ namespace Pile
 					Window.Present();
 				}
 
-				// Count FPS
-				frameCount++;
-				if ((float)(timer.[Friend]GetElapsedDateTimeTicks() - lastCounted) / TimeSpan.TicksPerSecond >= 1)
 				{
-					Time.FPS = frameCount;
-					lastCounted = timer.[Friend]GetElapsedDateTimeTicks();
-					frameCount = 0;
+					// Record FPS
+					frameCount++;
+					let newTime = timer.[Friend]GetElapsedDateTimeTicks();
+					if ((float)(newTime - lastCounted) / TimeSpan.TicksPerSecond >= 1)
+					{
+						Time.FPS = frameCount;
+						lastCounted = timer.[Friend]GetElapsedDateTimeTicks();
+						frameCount = 0;
+					}
+
+					// Record loop ticks
+					Time.loopTicks = newTime - currTime;
 				}
 
 				// Wait for FPS

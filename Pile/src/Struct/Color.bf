@@ -12,9 +12,9 @@ namespace Pile
 		public const Color Red = Color(255, 0, 0);
 		public const Color Green = Color(0, 255, 0);
 		public const Color Blue = Color(0, 0, 255);
-		public const Color Cyan = Color(255, 0, 255);
-		public const Color Magenta = Color(255, 255, 0);
-		public const Color Yellow = Color(0, 255, 255);
+		public const Color Cyan = Color(0, 255, 255);
+		public const Color Magenta = Color(255, 0, 255);
+		public const Color Yellow = Color(255, 255, 0);
 		public const Color DarkGray = Color(0x3F, 0x3F, 0x3F);
 		public const Color Gray = Color(0x7F, 0x7F, 0x7F);
 		public const Color LightGray = Color(0xBF, 0xBF, 0xBF);

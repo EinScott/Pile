@@ -299,9 +299,6 @@ namespace Pile
 		internal Result<void> HotReloadPackages(bool force = false)
 #if DEBUG
 		{
-			// @do
-			// for hot reloading other platform things like shader/clip, we would probably need "Asset" behaviour inside these to then update?
-
 			Result<void> err = .Ok;
 
 			DateTime buildStart = DateTime.Now;

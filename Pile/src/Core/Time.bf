@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace Pile
 {
@@ -8,12 +9,14 @@ namespace Pile
 		const int DEFAULT_TARGET_FPS = 60;
 		const int DEFAULT_MIN_FPS = 20;
 
+		internal static int64 loopTicks; // Last loop duration without sleep
+
 		internal static int64 targetTicks = (int64)((double)TICKS_PER_SECOND / DEFAULT_TARGET_FPS);
-		static int targetFps = DEFAULT_TARGET_FPS;
+		static uint targetFps = DEFAULT_TARGET_FPS;
 
 		/// The game tries to run at this framerate. 0 means no upper limit.
 		/// If the a frame is completed faster than the duration of a frame at this framerate, the thread will sleep for the remaining time.
-		public static int TargetFPS
+		public static uint TargetFPS
 		{
 			get => targetFps;
 			set
@@ -38,11 +41,11 @@ namespace Pile
 		}
 
 		internal static int64 maxTicks = (int64)((double)TICKS_PER_SECOND / DEFAULT_MIN_FPS);
-		static int minFPS = DEFAULT_MIN_FPS;
+		static uint minFPS = DEFAULT_MIN_FPS;
 
 		/// This limits how much the game tries to catch up. 0 means no lower limit.
 		/// If the actual delta time is higher than the duration of one frame at this framerate, RawDelta will be set to the later, thus the game will slow down.
-		public static int MinFPS
+		public static uint MinFPS
 		{
 			get => minFPS;
 			set
@@ -92,8 +95,10 @@ namespace Pile
 		/// Use to fix Time.Delta to a fixed value. Sets both FPS options to the given fps value.
 		/// Thus, the game itself will always run at the given frame rate, and slow down when
 		/// the real frame rate is less than the one set here.
-		public static void FixFPS(int fps)
+		public static void FixFPS(uint fps)
 		{
+			Debug.Assert(fps > 0);
+
 			TargetFPS = fps;
 			MinFPS = fps;
 		}
