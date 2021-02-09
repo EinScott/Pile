@@ -77,7 +77,7 @@ namespace Pile
 		{
 			renderable = true;
 
-			Core.CallRender();
+			Core.WindowRender();
 
 			renderable = false;
 		}

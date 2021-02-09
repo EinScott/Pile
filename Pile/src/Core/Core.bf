@@ -12,6 +12,7 @@ using internal Pile;
  * PILE_DISABLE_LOG_WARNINGS - adds [SkipCall] attribute to Log.Warning functions
  * PILE_DISABLE_PACKAGER - removes package building functionality from EntryPoint
  * PILE_DISABLE_AUTOMATIC_PACKAGE_RELOAD - disables automatic DEBUG package hot reload check when focusing window
+ * PILE_ENABLE_PERFTRACK - enable function performance tracking via [PerfTrack] and render via Performance.Render()
  */
 
 namespace Pile
@@ -114,11 +115,9 @@ namespace Pile
 				Log.Info(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
 			}
 
-			// Assets init
 			Assets = new Assets();
-
-			// Log init
 			Log.Initialize();
+			Performance.Initialize();
 
 			w.Stop();
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
@@ -157,44 +156,9 @@ namespace Pile
 					lastTime = currTime;
 				}
 
-				// Raw time
-				Time.RawDuration += diffTime;
-				Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
+				CallUpdate(diffTime);
 
-				// Update core modules
-				Graphics.Step();
-				Input.Step();
-				System.Step();
-
-				if (Time.freeze > float.Epsilon)
-				{
-					// Freeze time
-					Time.freeze -= Time.RawDelta;
-
-					Time.Delta = 0;
-					Game.[Friend]Step();
-
-					if (Time.freeze <= float.Epsilon)
-						Time.freeze = 0;
-				}
-				else
-				{
-					// Scaled time
-					Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
-					Time.Delta = Time.RawDelta * Time.Scale;
-	
-					// Update game
-					Game.[Friend]Step();
-					Game.[Friend]Update();
-				}
-				Audio.AfterUpdate();
-
-				// Render
-				if (!exiting && !Window.Closed)
-				{
-					Window.Render(); // Calls CallRender()
-					Window.Present();
-				}
+				CallRender();
 
 				{
 					// Record FPS
@@ -236,10 +200,59 @@ namespace Pile
 			}
 		}
 
-		internal static void CallRender()
+		[Inline]
+		internal static void WindowRender()
 		{
 			Game.[Friend]Render();
 			Graphics.AfterRender();
+		}
+
+		[PerfTrack, Inline]
+		static void CallRender()
+		{
+			// Render
+			if (!exiting && !Window.Closed)
+			{
+				Window.Render(); // Calls WindowRender()
+				Window.Present();
+			}
+		}
+
+		[PerfTrack, Inline]
+		static void CallUpdate(int64 diffTime)
+		{
+			// Raw time
+			Time.RawDuration += diffTime;
+			Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
+
+			// Update core modules
+			Graphics.Step();
+			Input.Step();
+			System.Step();
+			Performance.Step();
+
+			if (Time.freeze > float.Epsilon)
+			{
+				// Freeze time
+				Time.freeze -= Time.RawDelta;
+
+				Time.Delta = 0;
+				Game.[Friend]Step();
+
+				if (Time.freeze <= float.Epsilon)
+					Time.freeze = 0;
+			}
+			else
+			{
+				// Scaled time
+				Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
+				Time.Delta = Time.RawDelta * Time.Scale;
+
+				// Update game
+				Game.[Friend]Step();
+				Game.[Friend]Update();
+			}
+			Audio.AfterUpdate();
 		}
 
 		[NoReturn]
