@@ -215,12 +215,13 @@ namespace Pile
 			// Raw time
 			Time.RawDuration += diffTime;
 			Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
+			
+			Performance.Step();
 
 			// Update core modules
 			Graphics.Step();
 			Input.Step();
 			System.Step();
-			Performance.Step();
 
 			if (Time.freeze > float.Epsilon)
 			{

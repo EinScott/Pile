@@ -43,12 +43,13 @@ namespace Pile
 			}
 
 			// Put tracking on method
-			Compiler.EmitMethodEntry(methodInfo, """
+			Compiler.EmitMethodEntry(methodInfo, scope $"""
 				let __pt = scope System.Diagnostics.Stopwatch(true);
-				""");
-
-			Compiler.EmitMethodExit(methodInfo, scope $"""
-				Performance.[Friend]SectionEnd("{sectionName}", __pt.Elapsed);
+				#unwarn // "This defer will immediately execute [...]", which it will not
+				defer
+				{{
+					Performance.[Friend]TrackSection("{sectionName}", __pt.Elapsed);
+				}}
 				""");
 #endif
 		}
@@ -60,6 +61,8 @@ namespace Pile
 		// Thus the stats will just be delayed by one frame
 		static Dictionary<String, TimeSpan> sectionDurationsFill ~ DeleteNotNull!(_);
 		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
+
+		const String trackSection = "Pile.Performance (PerfTrack overhead)";
 
 		/// Whether or not to track function performance.
 		/// PerfTrack is always disabled if DEBUG is not defined
@@ -73,19 +76,23 @@ namespace Pile
 #endif
 		internal static void Initialize()
 		{
-			sectionDurationsFill = new .();
-			sectionDurationsRead = new .(); 
+			sectionDurationsFill = new .()..Add(trackSection, default);
+			sectionDurationsRead = new .()..Add(trackSection, default);
 		}
 
 #if !DEBUG
 		[SkipCall]
 #endif
-		[PerfTrack("Pile.Performance")]
+		[PerfTrack(trackSection)]
 		internal static void Step()
 		{
 			if (!Track) return;
 
 			Swap!(sectionDurationsFill, sectionDurationsRead);
+
+			// Clean
+			/*for (var pair in ref sectionDurationsFill)
+				*pair.valueRef = .Zero;*/
 
 			sectionDurationsFill.Clear();
 		}
@@ -93,18 +100,23 @@ namespace Pile
 #if !DEBUG
 		[SkipCall]
 #endif
-		private static void SectionEnd(String sectionName, TimeSpan time)
+		private static void TrackSection(String sectionName, TimeSpan time)
 		{
 			if (!Track) return;
+			let __pt = scope System.Diagnostics.Stopwatch(true); // Track this manually to not... infinite loop
 
 			if (sectionDurationsFill.GetValue(sectionName) case .Ok(let val))
 			{
 				sectionDurationsFill[sectionName] = val + time; // Sum up
 			}
 			else sectionDurationsFill.Add(sectionName, time);
+
+			// Performance.Step is called before this. That function itself has [PerfTrack] with trackSection on it
+			// so when we get here, an entry for trackSection has at least been create just above
+			sectionDurationsFill[trackSection] += __pt.Elapsed;
 		}
 
-		[PerfTrack("Pile.Performance")]
+		[PerfTrack]
 		public static void Render(Batch2D batch, SpriteFont font)
 		{
 			Debug.Assert(Scale > 0);
@@ -123,7 +135,8 @@ namespace Pile
 
 				batch.Rect(.(targetOffset * Scale, Point2(Scale, Scale * 3)), .Red);
 
-				if (Time.MinFPS != 0)
+				// If minFPS is enforced and we're not on fixed time step (it's the same as target)
+				if (Time.MinFPS != 0 && Time.maxTicks != Time.targetTicks)
 				{
 					// draw bar where delta time cap is!
 					batch.Rect(
@@ -145,7 +158,7 @@ namespace Pile
 
 			// Fps, delta & freeze
 			{
-				batch.Text(font, scope $"FPS: {Time.FPS}, RawDelta: {Time.RawDelta:0.000}s, Delta: {Time.Delta:0.000}s, Freeze: {Time.freeze > 0}", .(Scale, yOffset), scale, .Zero, 0, .White);
+				batch.Text(font, scope $"FPS: {Time.FPS}, RawDelta: {Time.RawDelta:0.0000}s, Delta: {Time.Delta:0.0000}s, Freeze: {Time.freeze > 0}", .(Scale, yOffset), scale, .Zero, 0, .White);
 				yOffset += (.)(font.LineHeight * scale.Y) + Scale;
 			}
 
@@ -177,7 +190,7 @@ namespace Pile
 
 				for (let pair in ranking) // Draw sections
 				{
-					batch.Text(font, scope $"{((float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond):0.00}ms {pair.key}", .(Scale, yOffset), scale, .Zero, 0, .White);
+					batch.Text(font, scope $"{((float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond):0.000}ms {pair.key}", .(Scale, yOffset), scale, .Zero, 0, .White);
 					yOffset += (.)(font.LineHeight * scale.Y) + Scale;
 				}
 			}
