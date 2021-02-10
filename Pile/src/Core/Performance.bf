@@ -63,6 +63,7 @@ namespace Pile
 		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
 
 		const String trackSection = "Pile.Performance (PerfTrack overhead)";
+		static TimeSpan trackOverhead = .Zero;
 
 		/// Whether or not to track function performance.
 		/// PerfTrack is always disabled if DEBUG is not defined
@@ -70,31 +71,50 @@ namespace Pile
 
 		public static int Scale = 3;
 		public static int PerfTrackDisplayCount = 10;
+		public static int PerfTrackCollectInterval = 30; // in steps/frames/loops
+		static int collectCounter = PerfTrackCollectInterval - 1;
 
 #if !DEBUG
 		[SkipCall]
 #endif
 		internal static void Initialize()
 		{
-			sectionDurationsFill = new .()..Add(trackSection, default);
-			sectionDurationsRead = new .()..Add(trackSection, default);
+			sectionDurationsFill = new .();
+			sectionDurationsRead = new .();
 		}
 
 #if !DEBUG
 		[SkipCall]
 #endif
-		[PerfTrack(trackSection)]
 		internal static void Step()
 		{
 			if (!Track) return;
+			let __pt = scope System.Diagnostics.Stopwatch(true);
 
-			Swap!(sectionDurationsFill, sectionDurationsRead);
+			// Only collect on interval so you can actually read the numbers, especially in the lower digits
+			if (collectCounter >= PerfTrackCollectInterval)
+			{
+				Swap!(sectionDurationsFill, sectionDurationsRead);
+				sectionDurationsFill.Clear();
 
-			// Clean
-			/*for (var pair in ref sectionDurationsFill)
-				*pair.valueRef = .Zero;*/
+				for (let pair in ref sectionDurationsRead)
+				{
+					// Average over collection interval
+					*pair.valueRef = TimeSpan((*pair.valueRef).Ticks / PerfTrackCollectInterval);
+				}
 
-			sectionDurationsFill.Clear();
+				collectCounter = 0;
+
+				// Sneak our internal time into the read dictionary we just switched
+				trackOverhead += __pt.Elapsed;
+				sectionDurationsRead.Add(trackSection, TimeSpan(trackOverhead.Ticks / PerfTrackCollectInterval));
+				trackOverhead = .Zero;
+			}
+			else
+			{
+				collectCounter++;
+				trackOverhead += __pt.Elapsed;
+			}
 		}
 
 #if !DEBUG
@@ -111,9 +131,7 @@ namespace Pile
 			}
 			else sectionDurationsFill.Add(sectionName, time);
 
-			// Performance.Step is called before this. That function itself has [PerfTrack] with trackSection on it
-			// so when we get here, an entry for trackSection has at least been create just above
-			sectionDurationsFill[trackSection] += __pt.Elapsed;
+			trackOverhead += __pt.Elapsed;
 		}
 
 		[PerfTrack]
@@ -154,12 +172,12 @@ namespace Pile
 			}
 
 			let scale = Vector2(((float)Scale / font.Size) * 5);
-			var yOffset = 4 * Scale;
+
+			String perfText = scope .();
 
 			// Fps, delta & freeze
 			{
-				batch.Text(font, scope $"FPS: {Time.FPS}, RawDelta: {Time.RawDelta:0.0000}s, Delta: {Time.Delta:0.0000}s, Freeze: {Time.freeze > 0}", .(Scale, yOffset), scale, .Zero, 0, .White);
-				yOffset += (.)(font.LineHeight * scale.Y) + Scale;
+				perfText.AppendF("FPS: {}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\n", Time.FPS, Time.RawDelta, Time.Delta, Time.freeze > 0);
 			}
 
 #if DEBUG
@@ -175,7 +193,7 @@ namespace Pile
 						let ranked = ref ranking[i];
 						if (ranked.value < pair.value) // The pair should be here in the table
 						{
-							if (ranking.Count == PerfTrackDisplayCount) // Remove if we would push beyong what we need
+							if (ranking.Count == PerfTrackDisplayCount) // Remove if we would push beyond what we need
 								ranking.PopBack();
 
 							ranking.Insert(i, pair);
@@ -190,11 +208,12 @@ namespace Pile
 
 				for (let pair in ranking) // Draw sections
 				{
-					batch.Text(font, scope $"{((float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond):0.000}ms {pair.key}", .(Scale, yOffset), scale, .Zero, 0, .White);
-					yOffset += (.)(font.LineHeight * scale.Y) + Scale;
+					perfText.AppendF("{:0.000}ms {}\n", (float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond, pair.key);
 				}
 			}
 #endif
+
+			batch.Text(font, perfText, .(Scale, 4 * Scale), scale, .Zero, 0, .White);
 		}
 	}
 }
