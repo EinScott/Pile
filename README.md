@@ -1,34 +1,30 @@
 # Pile
 Pile is a small game framework made in [Beef Language](https://github.com/beefytech/Beef), similar to frameworks like MonoGame/FNA and directly inspired by [Foster](https://github.com/NoelFB/Foster).
-This is still in active development, suggestions & contributions for changes and fixes are welcome.
 
 ## What it does
-Similar to frameworks mentioned above, you can build your own game or engine code on top of the `Game` class.
+Pile handles window, input, rendering and audio management through a few abstract core modules.
 
-Pile handles window management, input, rendering and audio through a few abstract core modules that can be implemented for each platform: System, Graphics, Audio.
-
-Currently, there are
-- SDL2 System
-- simple OpenGL 3.3+ Graphics
-- SoLoud Audio modules
-
+The included core modules rely on
+- SDL2 for the System,
+- OpenGL 3.3+ for the Graphics (basic implementation, should be swapped out at some point),
+- SoLoud for the Audio module
 Custom implementations are possible.
 
-Apart from that, there's an extendable asset management pipeline and UTF8 Unicode text rendering via SpriteFonts using TTF fonts.
+Apart from that, there's an extendable asset management pipeline and UTF8 Unicode text rendering via SpriteFonts using TrueType fonts.
 
-There are also some useful structs, like Vector2 & 3, Point2 & 3 or Rect (of integers) as well as some extensions to corelib classes, especially Math.
+There are also some basic math structs, like Vector2 & 3, Point2 & 3 or Rect (of integers) as well as some extensions to corelib classes, especially Math.
 
 ## Documentation
 Guide on [Getting Started](https://github.com/EinBurgbauer/Pile/wiki/Getting-Started). Documentation can be found here: [Wiki](https://github.com/EinBurgbauer/Pile/wiki)
 
-See the [Example](https://github.com/EinBurgbauer/Pile/tree/master/Example) project for further reference.
+See the [Examples](https://github.com/EinBurgbauer/Pile/tree/master/Examples) for further reference and a minimal template project.
 
 # Platforms
 32-Bit Architectures are not supported.
 Windows binaries are already included. Binaries for other platforms are missing (See ./Implementations/(any)/dist/).
 
 # Contributing
-You may suggest to change stuff to make the framework nicer to work with or add features. More specifically, major TODOs are in Core.bf, minor TODOs in other comments marked with TODO (CTRL+SHIFT+F).
+Help is appreciated, especially concerning supporting more platforms and core module implementations.
 
 # License
 Pile is licensed under the MIT license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
