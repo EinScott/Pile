@@ -1,0 +1,7 @@
+FileVersion = 1
+Dependencies = {corlib = "*", Pile = "*", Pile_OpenGL = "*", Pile_SDL2 = "*", Pile_SoLoud = "*"}
+
+[Project]
+Name = "Game"
+StartupObject = "Pile.EntryPoint"
+Aliases = ["PileGame"]

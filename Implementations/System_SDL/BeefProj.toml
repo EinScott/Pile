@@ -8,7 +8,7 @@ Name = "Pile_SDL2"
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]

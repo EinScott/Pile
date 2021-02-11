@@ -4,14 +4,11 @@ Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
 [Project]
 Name = "Pile_SoLoud"
 
-# SOLOUD --with-common-backends
-
-#64 BIT WIN
 [Configs.Debug.Win64]
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]

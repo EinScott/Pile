@@ -61,6 +61,7 @@ namespace Pile
 		{
 			Debug.Assert(!run, "Core was already run");
 			Debug.Assert(game != null, "Game cannot be null");
+			Debug.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
 			run = true;
 #if DEBUG

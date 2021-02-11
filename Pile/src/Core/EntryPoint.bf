@@ -20,6 +20,9 @@ namespace Pile
 
 		static int Main(String[] args)
 		{
+			// @do integrate better? - more direct Core call?
+			// what if we just dont register it? can we just find it efficiently?
+
 			// Store args
 			CommandLine = args;
 

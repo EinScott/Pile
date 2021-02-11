@@ -1,5 +1,2 @@
 FileVersion = 1
 Projects = {Pile = {Path = "."}, Pile_SoLoud = {Path = "../Implementations/Audio_SoLoud"}, Pile_OpenGL = {Path = "../Implementations/Graphics_OpenGL"}, Pile_SDL2 = {Path = "../Implementations/System_SDL"}, Pile_Audio_Null = {Path = "../Implementations/Audio_Null"}, Pile_Graphics_Null = {Path = "../Implementations/Graphics_Null"}, Pile_System_Null = {Path = "../Implementations/System_Null"}, "Atma.Json" = "*"}
-
-[Workspace]
-StartupProject = "Pile"

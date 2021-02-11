@@ -60,7 +60,10 @@ namespace Pile
 
 #if DEBUG
 			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
-			assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(GetAssetsPath!(), => OnBfpDirectoryChanged, .IncludeSubdirectories, Internal.UnsafeCastToPtr(this), null);
+
+			let assetsSource = GetScopedAssetsSourcePath!();
+			if (Directory.Exists(assetsSource))
+				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, Internal.UnsafeCastToPtr(this), null);
 #endif
 		}
 
@@ -68,7 +71,7 @@ namespace Pile
 		{
 #if DEBUG
 			Core.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
-			Platform.BfpFileWatcher_Release(assetsWatcher);
+			if (assetsWatcher != null) Platform.BfpFileWatcher_Release(assetsWatcher);
 #endif
 		}
 

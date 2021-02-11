@@ -13,9 +13,9 @@ namespace Pile
 		uint32 vertexBufferID;
 		uint32 instanceBufferID;
 
-		uint64 indexBufferSize;
-		uint64 vertexBufferSize;
-		uint64 instanceBufferSize;
+		int indexBufferSize;
+		int vertexBufferSize;
+		int instanceBufferSize;
 
 		VertexFormat lastVertexFormat;
 		VertexFormat lastInstanceFormat;
@@ -31,11 +31,6 @@ namespace Pile
 
 		public ~this()
 		{
-			Delete();
-		}
-
-		void Delete()
-		{
 			if (vertexArrayID > 0) Core.Graphics.vertexArraysToDelete.Add(vertexArrayID);
 
 			if (vertexBufferID > 0) Core.Graphics.buffersToDelete.Add(vertexBufferID);
@@ -50,7 +45,6 @@ namespace Pile
 			bound = false;
 		}
 
-		
 		protected internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
 		{
 			if (lastVertexFormat != format)
@@ -59,7 +53,7 @@ namespace Pile
 				lastVertexFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length);
+			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length, ref vertexBufferSize);
 		}
 
 		protected internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
@@ -70,20 +64,26 @@ namespace Pile
 				lastInstanceFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length);
+			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length, ref instanceBufferSize);
 		}
 
 		protected internal override void SetIndices(Span<uint8> rawIndexData)
 		{
-			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, rawIndexData.Length);
+			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, rawIndexData.Length, ref indexBufferSize);
 		}
 
-		void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int length)
+		void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int size, ref int currentSize)
 		{
 			if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
 
 			GL.glBindBuffer(glBufferType, bufferID);
-			GL.glBufferData(glBufferType, length, data, GL.GL_DYNAMIC_DRAW); // TODO: This could probably be better
+
+			if (size > currentSize)
+			{
+				GL.glBufferData(glBufferType, size, data, GL.GL_DYNAMIC_DRAW);
+				currentSize = size;
+			}
+			else GL.glBufferSubData(glBufferType, 0, size, data);
 
 			GL.glBindBuffer(glBufferType, 0);
 		}

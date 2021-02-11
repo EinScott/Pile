@@ -9,7 +9,7 @@ namespace Pile
 {
 	static
 	{
-		internal static mixin GetAssetsPath()
+		internal static mixin GetScopedAssetsSourcePath()
 		{
 			String assetsPath = scope:mixin .();
 			let exePath = Environment.GetExecutableFilePath(.. scope String());
@@ -52,14 +52,14 @@ namespace Pile
 				}
 			}
 
-			if (inPath.Length == 0 || outPath.Length == 0)
-				LogErrorReturn!("Packager need both an 'in=' and 'out=' argument");
-
 			if (!Directory.Exists(inPath))
-				LogErrorReturn!(scope $"Packer inPath argument has to contain a valid path to an existing directory. {inPath} is invalid");
+			{
+				Log.Info(scope $"No packages to build. {inPath} doesn't exist");
+				return .Ok;
+			}
 
-			if (!Directory.Exists(outPath))
-				Try!(Directory.CreateDirectory(outPath));
+			if (!Directory.Exists(outPath) && (Directory.CreateDirectory(outPath) case .Err(let err)))
+				LogErrorReturn!(scope $"Failed to create package output path {outPath}");
 
 			let tasks = scope List<Packages.PackageBuildTask>();
 
@@ -73,6 +73,12 @@ namespace Pile
 
 				// Add these as PackageBuildTask, because we need the details passed in to log errors later on
 				tasks.Add(Packages.BuildPackageAsync(path, outPath, FORCE) as Packages.PackageBuildTask);
+			}
+
+			if (tasks.Count == 0)
+			{
+				Log.Info(scope $"No packages to build");
+				return .Ok;
 			}
 
 			// Wait for tasks to end
