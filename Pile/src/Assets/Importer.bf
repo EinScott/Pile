@@ -16,10 +16,7 @@ namespace Pile
 	}
 
 	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.Methods)] // .DefaultConstructor should work too, change later
-	public struct RegisterImporterAttribute : Attribute
-	{
-
-	}
+	public struct RegisterImporterAttribute : Attribute {}
 
 	[AlwaysInclude,StaticInitPriority(-1)]
 	public static class Importers

@@ -64,9 +64,7 @@ namespace Pile
 			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
 			run = true;
-#if DEBUG
-			Console.WriteLine();
-#endif
+
 			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
 			Title.Set(gameTitle);
