@@ -57,11 +57,11 @@ namespace Pile
 
 		static Game Game;
 
-		public static Result<void> Run(uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle, bool deleteGameOnShutdown = true)
+		internal static Result<void> Run(uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(game != null, "Game cannot be null");
-			Debug.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
+			Runtime.Assert(game != null, "Game cannot be null");
+			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
 			run = true;
 #if DEBUG
@@ -180,7 +180,7 @@ namespace Pile
 			// Shutdown game
 			Game.[Friend]Shutdown();
 
-			if (deleteGameOnShutdown) delete Game;
+			delete Game;
 			return .Ok;
 		}
 

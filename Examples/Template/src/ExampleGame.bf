@@ -8,15 +8,8 @@ namespace Game
 	{
 		static this()
 		{
-			EntryPoint.GameMain = => Run;
-		}
-
-		static Result<void> Run()
-		{
-			// Start pile with an instance of our game
-			Try!(Core.Run(1280, 720, new ExampleGame(), "Example Game"));
-		
-			return .Ok;
+			EntryPoint.Preferences.createGame = () => new ExampleGame();
+			EntryPoint.Preferences.gameTitle = "Example Game";
 		}
 
 		protected override void Startup()
