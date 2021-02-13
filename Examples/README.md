@@ -1,0 +1,2 @@
+# Examples
+Here are some small examples of basic Pile applications including a Template project. If you installed Pile into your BeefLibs folder (as well as `Atma.Json`), you should be able to just copy-paste the project to a different location. Otherwise you will find that the workspace cannot locate the Pile projects automatically and you will just have to add them individually with `Import Existing Project`.

@@ -45,7 +45,6 @@ namespace Pile
 			// Put tracking on method
 			Compiler.EmitMethodEntry(methodInfo, scope $"""
 				let __pt = scope System.Diagnostics.Stopwatch(true);
-				#unwarn // "This defer will immediately execute [...]", which it will not
 				defer
 				{{
 					Performance.[Friend]TrackSection("{sectionName}", __pt.Elapsed);
