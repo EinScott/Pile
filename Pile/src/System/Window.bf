@@ -43,6 +43,7 @@ namespace Pile
 		public extern uint Width { get; set; }
 		public extern uint Height { get; set; }
 		public extern UPoint2 Size { get; set; }
+		public extern UPoint2 MinSize { get; set; }
 		public extern Vector2 ContentScale { get; }
 
 		public extern bool Resizable { get; set; }

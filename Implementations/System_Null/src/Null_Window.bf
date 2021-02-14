@@ -29,9 +29,11 @@ namespace Pile
 		public override Point2 Position { get => pos; set => pos = value; }
 
 		UPoint2 size;
+		UPoint2 minSize;
 		public override uint Width { get => size.X; set => size.X = value; }
 		public override uint Height { get => size.Y; set => size.Y = value; }
 		public override UPoint2 Size { get => size; set => size = value; }
+		public override UPoint2 MinSize { get => minSize; set => size = minSize; }
 
 		public override Vector2 ContentScale => .One;
 

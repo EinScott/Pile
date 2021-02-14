@@ -66,7 +66,7 @@ namespace Pile
 
 		/// Whether or not to track function performance.
 		/// PerfTrack is always disabled if DEBUG is not defined
-		public static bool Track = true;
+		public static bool Track = false;
 
 		public static int Scale = 3;
 		public static int PerfTrackDisplayCount = 10;
@@ -150,7 +150,7 @@ namespace Pile
 				else // Assume mark to be at default target frame rate (60fps)
 					targetTicks = defaultTargetTicks;
 
-				batch.Rect(.(targetOffset * Scale, Point2(Scale, Scale * 3)), .Red);
+				batch.Rect(.(targetOffset * Scale, Point2(1, Scale * 3)), .Red);
 
 				// If minFPS is enforced and we're not on fixed time step (it's the same as target)
 				if (Time.MinFPS != 0 && Time.maxTicks != Time.targetTicks)
@@ -159,7 +159,7 @@ namespace Pile
 					batch.Rect(
 						.(Point2((int)(targetOffset.X * ((double)Time.maxTicks / targetTicks)),
 							targetOffset.Y) * Scale,
-							Point2(Scale, Scale * 3)),
+							Point2(1, Scale * 3)),
 						.LightGray);
 				}
 

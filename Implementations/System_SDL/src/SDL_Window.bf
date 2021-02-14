@@ -201,6 +201,21 @@ namespace Pile
 			}
 		}
 
+		UPoint2 minSize;
+		public override UPoint2 MinSize
+		{
+			get => minSize;
+
+			set
+			{
+				if (value != minSize)
+				{
+					SDL.SetWindowMinimumSize(window, (int32)value.X, (int32)value.Y);
+					minSize = value;
+				}
+			}
+		}
+
 		public override UPoint2 RenderSize
 		{
 			get
