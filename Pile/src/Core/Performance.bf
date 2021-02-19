@@ -176,7 +176,9 @@ namespace Pile
 
 			// Fps, delta & freeze
 			{
-				let tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
+				int64 tFPS = 0;
+				if (Time.loopTicks > 0)
+					tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
 
 				perfText.AppendF("FPS: {}, tFPS: {}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0);
 			}
