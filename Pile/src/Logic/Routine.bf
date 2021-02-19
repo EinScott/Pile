@@ -28,13 +28,12 @@ namespace Pile
 	/// For convenience, you probably just want TData to be a tuple like (float amount, int iter, int end, Routine wait) or something
 	public class Routine<TData> : IRoutine where TData : struct
 	{
-		public delegate RoutineReturn RoutineUpdate(ref TData data);
-		public delegate void RoutineEnd(ref TData data);
+		public function RoutineReturn RoutineUpdate(ref TData data);
+		public function void RoutineEnd(ref TData data);
 
-		readonly RoutineUpdate StartPhase;
+		readonly RoutineUpdate StartPhase; // @do expand and switch function pointers?; seperate state machine
 		readonly RoutineUpdate[] UpdatePhases;
 		readonly RoutineEnd EndPhase;
-		readonly bool deleteDelegates;
 
 		TData data = default;
 		RoutineReturn lastReturn = .Break;
@@ -46,26 +45,24 @@ namespace Pile
 		public RoutineReturn State => lastReturn;
 
 		/// Single phase constructor
-		public this(RoutineUpdate startPhase, RoutineUpdate updatePhase, RoutineEnd endPhase = null, bool deletePhaseDelegates = true)
+		public this(RoutineUpdate startPhase, RoutineUpdate updatePhase, RoutineEnd endPhase = null)
 		{
 			Debug.Assert(startPhase != null && updatePhase != null, "Routine delegates Start and Update can't be null");
 
 			StartPhase = startPhase;
 			UpdatePhases = new RoutineUpdate[1](updatePhase);
 			EndPhase = endPhase;
-			deleteDelegates = deletePhaseDelegates;
 		}
 
 		/// n-Phase contructor
-		public this(RoutineUpdate startPhase, RoutineEnd endPhase, bool deletePhaseDelegates, params RoutineUpdate[] _updatePhases)
+		public this(RoutineUpdate startPhase, RoutineEnd endPhase, params RoutineUpdate[] updatePhases)
 		{
-			Debug.Assert(startPhase != null && _updatePhases.Count > 0 && _updatePhases[0] != null, "Routine delegates Start and Update can't be null");
+			Debug.Assert(startPhase != null && updatePhases.Count > 0 && updatePhases[0] != null, "Routine delegates Start and Update can't be null");
 
 			StartPhase = startPhase;
-			UpdatePhases = new RoutineUpdate[_updatePhases.Count];
-			_updatePhases.CopyTo(Span<RoutineUpdate>(UpdatePhases));
+			UpdatePhases = new RoutineUpdate[updatePhases.Count];
+			updatePhases.CopyTo(Span<RoutineUpdate>(UpdatePhases));
 			EndPhase = endPhase;
-			deleteDelegates = deletePhaseDelegates;
 		}
 
 		public ~this()
@@ -74,13 +71,7 @@ namespace Pile
 			if (lastReturn != .Break)
 				Abort();
 
-			if (deleteDelegates)
-			{
-				delete StartPhase;
-				DeleteContainerAndItems!(UpdatePhases);
-				if (EndPhase != null) delete EndPhase;
-			}
-			else delete UpdatePhases;
+			delete UpdatePhases;
 		}
 
 		public void Start() => Start(default);
@@ -129,7 +120,10 @@ namespace Pile
 
 			// Run routine
 			if (lastReturn == .Continue)
-				Handle(UpdatePhases[phase](ref data));
+			{
+				let func = ref UpdatePhases[phase];
+				Handle(func(ref data));
+			}
 		}
 
 		public void Abort()

@@ -161,7 +161,7 @@ namespace Pile
 						frameCount = 0;
 					}
 
-					// Record loop ticks
+					// Record loop ticks (delta without sleep)
 					Time.loopTicks = newTime - currTime;
 				}
 
