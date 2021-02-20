@@ -251,7 +251,7 @@ namespace Pile
 			// Save and empty log
 
 			// writeIndex is where we *would* write next, and since the newest output (index before this)
-			// is printed last, we start here at the (if existant) oldest and go around once
+			// is printed last, we start here at the (if existent) oldest and go around once
 			for (int x = 0, int i = writeIndex; x < RecordLength; x++, i = (i + 1) < RecordLength ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
 			{
 				// Skip empty/cleared lines

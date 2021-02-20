@@ -9,7 +9,7 @@ namespace System.Collections
 			Reverse(0, Count);
 		}
 
-		// --copy-pase from Array.Reverse()
+		// --copy-paste from Array.Reverse()
 		// Reverses the elements in a range of an array. Following a call to this
 		// method, an element in the range given by index and count
 		// which was previously located at index i will now be located at

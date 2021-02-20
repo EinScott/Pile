@@ -134,7 +134,7 @@ namespace Pile
 					// Still calculate actual fps
 					currTime = timer.[Friend]GetElapsedDateTimeTicks();
 
-					// Force diffTime and therefore deltas regarless of actual performance
+					// Force diffTime and therefore deltas regardless of actual performance
 					diffTime = Time.targetTicks;
 				}
 				else

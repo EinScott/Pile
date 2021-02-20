@@ -54,7 +54,7 @@ namespace Pile
 			EndPhase = endPhase;
 		}
 
-		/// n-Phase contructor
+		/// n-Phase constructor
 		public this(RoutineUpdate startPhase, RoutineEnd endPhase, params RoutineUpdate[] updatePhases)
 		{
 			Debug.Assert(startPhase != null && updatePhases.Count > 0 && updatePhases[0] != null, "Routine delegates Start and Update can't be null");
