@@ -142,7 +142,7 @@ namespace Pile
 			{
 				const Point2 targetOffset = .(17, 1);
 				const Point2 barOffset = .(1, 2);
-				const int64 defaultTargetTicks = (int64)((double)Time.[Friend]TICKS_PER_SECOND / Time.[Friend]DEFAULT_TARGET_FPS);
+				const int64 defaultTargetTicks = (int64)((double)TimeSpan.TicksPerSecond / Time.[Friend]DEFAULT_TARGET_FPS);
 
 				int64 targetTicks;
 				if (Time.TargetFPS != 0)
