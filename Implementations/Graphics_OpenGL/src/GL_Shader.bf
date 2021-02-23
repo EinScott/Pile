@@ -197,7 +197,8 @@ namespace Pile
 					{
 						int32[] n = scope int32[uniform.Length];
 
-						let textures = (parameter.Value as Texture[]);
+						//let textures = (parameter.Value as Texture[]);
+						let textures = (Texture*)&parameter.memory[[Unchecked]0];
 						for (int j = 0; j < uniform.Length; j++)
 						{
 						    let id = textures[j]?.textureID ?? 0;
@@ -212,19 +213,19 @@ namespace Pile
 						GL.glUniform1iv(uniform.Location, uniform.Length, &n[0]);
 					}
 				case .Int:
-					GL.glUniform1iv(uniform.Location, uniform.Length, &(parameter.Value as int32[])[0]);
+					GL.glUniform1iv(uniform.Location, uniform.Length, (int32*)&parameter.memory[[Unchecked]0]);
 				case .Float:
-					GL.glUniform1fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+					GL.glUniform1fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
 				case .Float2:
-					GL.glUniform2fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+					GL.glUniform2fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
 				case .Float3:
-					GL.glUniform3fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+					GL.glUniform3fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
 				case .Float4:
-					GL.glUniform4fv(uniform.Location, uniform.Length, &(parameter.Value as float[])[0]);
+					GL.glUniform4fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
 				case .Matrix3x2:
-					GL.glUniformMatrix3x2fv(uniform.Location, uniform.Length, GL.GL_FALSE, &(parameter.Value as float[])[0]);
+					GL.glUniformMatrix3x2fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)&parameter.memory[[Unchecked]0]);
 				case .Matrix4x4:
-					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, &(parameter.Value as float[])[0]);
+					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)&parameter.memory[[Unchecked]0]);
 				case .Unknown:
 				}
 			}

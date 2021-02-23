@@ -31,7 +31,7 @@ namespace Pile
 		public function RoutineReturn RoutineUpdate(ref TData data);
 		public function void RoutineEnd(ref TData data);
 
-		readonly RoutineUpdate StartPhase; // @do expand and switch function pointers?; seperate state machine
+		readonly RoutineUpdate StartPhase;
 		readonly RoutineUpdate[] UpdatePhases;
 		readonly RoutineEnd EndPhase;
 

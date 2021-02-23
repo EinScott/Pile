@@ -4,8 +4,9 @@ namespace Pile
 {
 	public enum IndexType : uint8
 	{
-		case UnsignedInt = 0;
+		case UnsignedInt;
 		case UnsignedShort;
+		case UnsignedByte;
 
 		[Inline]
 		public uint GetSize()
@@ -13,9 +14,11 @@ namespace Pile
 			switch (this)
 			{
 			case .UnsignedInt:
-				return 4;
+				return sizeof(uint32);
 			case .UnsignedShort:
-				return 2;
+				return sizeof(uint16);
+			case .UnsignedByte:
+				return sizeof(uint8);
 			}
 		}
 	}

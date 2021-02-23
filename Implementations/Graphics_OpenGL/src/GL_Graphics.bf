@@ -361,6 +361,8 @@ namespace Pile
 				uint glIndexType;
 				switch (pass.mesh.IndexType)
 				{
+				case .UnsignedByte:
+					glIndexType = GL_UNSIGNED_BYTE;
 				case .UnsignedShort:
 					glIndexType = GL_UNSIGNED_SHORT;
 				case .UnsignedInt:

@@ -10,38 +10,27 @@ namespace Pile
 		public class Parameter
 		{
 			public readonly ShaderUniform Uniform;
-
-			public Object Value { get; private set; }
+			internal readonly uint8[] memory;
 
 			internal this(ShaderUniform uniform)
 			{
 				Uniform = uniform;
-
-				switch (uniform.Type)
-				{
-				case .Int: Value = new int32[uniform.Length];
-				case .Float: Value = new float[uniform.Length];
-				case .Float2: Value = new float[uniform.Length * 2];
-				case .Float3: Value = new float[uniform.Length * 3];
-				case .Float4: Value = new float[uniform.Length * 4];
-				case .Matrix3x2: Value = new float[uniform.Length * 6];
-				case .Matrix4x4: Value = new float[uniform.Length * 16];
-				case .Sampler: Value = new Texture[uniform.Length];
-				case .Unknown: Value = null;
-				}
+				memory = new uint8[uniform.Type.Size(uniform.Length)];
 			}
 
 			public ~this()
 			{
-				delete Value;
+				delete memory;
 			}
+
+			// @do unchecked on whole method
 
 			public Result<void> SetTexture(Texture value, int index = 0)
 			{
 				Try!(AssertParameters(.Sampler, index));
 
-				if (let val = Value as Texture[])
-					val[index] = value;
+				let val = (Texture*)&memory[[Unchecked]0];
+				val[index] = value;
 
 				return .Ok;
 			}
@@ -50,17 +39,17 @@ namespace Pile
 			{
 				Try!(AssertParameters(.Sampler, index));
 
-				if (let val = Value as Texture[])
-					return val[index];
-				return .Err;
+				let val = (Texture*)&memory[[Unchecked]0];
+
+				return val[index];
 			}
 
 			public Result<void> SetInt(int32 value, int index = 0)
 			{
 				Try!(AssertParameters(.Int, index));
 
-				if (let val = Value as int32[])
-					val[index] = value;
+				let val = (int32*)&memory[[Unchecked]0];
+				val[index] = value;
 
 				return .Ok;
 			}
@@ -69,18 +58,17 @@ namespace Pile
 			{
 				Try!(AssertParameters(.Int, index));
 
-				if (let val = Value as int32[])
-					return val[index];
+				let val = (int32*)&memory[[Unchecked]0];
 
-				return .Err;
+				return val[index];
 			}
 
 			public Result<void> SetFloat(float value, int index = 0)
 			{
 				Try!(AssertParameters(.Float, index));
 
-				if (let val = Value as float[])
-					val[index] = value;
+				let val = (float*)&memory[[Unchecked]0];
+				val[index] = value;
 
 				return .Ok;
 			}
@@ -89,198 +77,143 @@ namespace Pile
 			{
 				Try!(AssertParameters(.Float, index));
 
-				if (let val = Value as float[])
-					return val[index];
+				let val = (float*)&memory[[Unchecked]0];
 
-				return .Err;
-			}
-
-			public Result<void> SetFloat2((float, float) value, int index = 0)
-			{
-				let offset = index * 2;
-				Try!(AssertParameters(.Float2, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.0;
-					val[offset + 1] = value.1;
-				}
-
-				return .Ok;
+				return val[index];
 			}
 
 			public Result<void> SetFloat2(Vector2 value, int index = 0)
 			{
-				let offset = index * 2;
 				Try!(AssertParameters(.Float2, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.X;
-					val[offset + 1] = value.Y;
-				}
+				
+				let offset = index * 2;
+				let val = (float*)&memory[[Unchecked]0];
+				val[offset] = value.X;
+				val[offset + 1] = value.Y;
 
 				return .Ok;
 			}
 
 			public Result<Vector2> GetFloat2(int index = 0)
 			{
-				let offset = index * 2;
 				Try!(AssertParameters(.Float2, index));
+				
+				let offset = index * 2;
+				let val = (float*)&memory[[Unchecked]0];
 
-				if (let val = Value as float[])
-				{
-					return Vector2(val[offset], val[offset + 1]);
-				}
-
-				return .Err;
-			}
-
-			public Result<void> SetFloat3((float, float, float) value, int index = 0)
-			{
-				let offset = index * 3;
-				Try!(AssertParameters(.Float3, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.0;
-					val[offset + 1] = value.1;
-					val[offset + 2] = value.2;
-				}
-
-				return .Ok;
+				return Vector2(val[offset], val[offset + 1]);
 			}
 
 			public Result<void> SetFloat3(Vector3 value, int index = 0)
 			{
-				let offset = index * 3;
 				Try!(AssertParameters(.Float3, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.X;
-					val[offset + 1] = value.Y;
-					val[offset + 2] = value.Z;
-				}
+				
+				let offset = index * 3;
+				let val = (float*)&memory[[Unchecked]0];
+				val[offset] = value.X;
+				val[offset + 1] = value.Y;
+				val[offset + 2] = value.Z;
 
 				return .Ok;
 			}
 
 			public Result<Vector3> GetFloat3(int index = 0)
 			{
-				let offset = index * 3;
 				Try!(AssertParameters(.Float3, index));
+				
+				let offset = index * 3;
+				let val = (float*)&memory[[Unchecked]0];
 
-				if (let val = Value as float[])
-				{
-					return Vector3(val[offset], val[offset + 1], val[offset + 2]);
-				}
-
-				return .Err;
+				return Vector3(val[offset], val[offset + 1], val[offset + 2]);
 			}
 
-			public Result<void> SetFloat4((float, float, float, float) value, int index = 0)
+			public Result<void> SetFloat4(Vector4 value, int index = 0)
 			{
-				let offset = index * 4;
 				Try!(AssertParameters(.Float4, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.0;
-					val[offset + 1] = value.1;
-					val[offset + 2] = value.2;
-					val[offset + 3] = value.3;
-				}
+				
+				let offset = index * 4;
+				let val = (float*)&memory[[Unchecked]0];
+				val[offset] = value.X;
+				val[offset + 1] = value.Y;
+				val[offset + 2] = value.Z;
+				val[offset + 3] = value.W;
 
 				return .Ok;
 			}
 
-			public Result<(float, float, float, float)> GetFloat4(int index = 0)
+			public Result<Vector4> GetFloat4(int index = 0)
 			{
-				let offset = index * 4;
 				Try!(AssertParameters(.Float4, index));
+				
+				let offset = index * 4;
+				let val = (float*)&memory[[Unchecked]0];
 
-				if (let val = Value as float[])
-				{
-					return (val[offset], val[offset + 1], val[offset + 2], val[offset + 3]);
-				}
-
-				return .Err;
+				return Vector4(val[offset], val[offset + 1], val[offset + 2], val[offset + 3]);
 			}
 
 			public Result<void> SetMat3x2(Matrix3x2 value, int index = 0)
 			{
-				let offset = index * 6;
 				Try!(AssertParameters(.Matrix3x2, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.M11;
-					val[offset + 1] = value.M12;
-					val[offset + 2] = value.M21;
-					val[offset + 3] = value.M22;
-					val[offset + 4] = value.M31;
-					val[offset + 5] = value.M32;
-				}
+				
+				let offset = index * 6;
+				let val = (float*)&memory[[Unchecked]0];
+				val[offset] = value.M11;
+				val[offset + 1] = value.M12;
+				val[offset + 2] = value.M21;
+				val[offset + 3] = value.M22;
+				val[offset + 4] = value.M31;
+				val[offset + 5] = value.M32;
 
 				return .Ok;
 			}
 
 			public Result<Matrix3x2> GetMat3x2(int index = 0)
 			{
-				let offset = index * 6;
 				Try!(AssertParameters(.Matrix3x2, index));
+				
+				let offset = index * 6;
+				let val = (float*)&memory[[Unchecked]0];
 
-				if (let val = Value as float[])
-				{
-					return Matrix3x2(val[offset], val[offset + 1], val[offset + 2], val[offset + 3], val[offset + 4], val[offset + 5]);
-				}
-
-				return .Err;
+				return Matrix3x2(val[offset], val[offset + 1], val[offset + 2], val[offset + 3], val[offset + 4], val[offset + 5]);
 			}
 
 			public Result<void> SetMatrix4x4(Matrix4x4 value, int index = 0)
 			{
-				let offset = index * 16;
 				Try!(AssertParameters(.Matrix4x4, index));
-
-				if (let val = Value as float[])
-				{
-					val[offset] = value.M11;
-					val[offset + 1] = value.M12;
-					val[offset + 2] = value.M13;
-					val[offset + 3] = value.M14;
-					val[offset + 4] = value.M21;
-					val[offset + 5] = value.M22;
-					val[offset + 6] = value.M23;
-					val[offset + 7] = value.M24;
-					val[offset + 8] = value.M31;
-					val[offset + 9] = value.M32;
-					val[offset + 10] = value.M33;
-					val[offset + 11] = value.M34;
-					val[offset + 12] = value.M41;
-					val[offset + 13] = value.M42;
-					val[offset + 14] = value.M43;
-					val[offset + 15] = value.M44;
-				}
+				
+				let offset = index * 16;
+				let val = (float*)&memory[[Unchecked]0];
+				val[offset] = value.M11;
+				val[offset + 1] = value.M12;
+				val[offset + 2] = value.M13;
+				val[offset + 3] = value.M14;
+				val[offset + 4] = value.M21;
+				val[offset + 5] = value.M22;
+				val[offset + 6] = value.M23;
+				val[offset + 7] = value.M24;
+				val[offset + 8] = value.M31;
+				val[offset + 9] = value.M32;
+				val[offset + 10] = value.M33;
+				val[offset + 11] = value.M34;
+				val[offset + 12] = value.M41;
+				val[offset + 13] = value.M42;
+				val[offset + 14] = value.M43;
+				val[offset + 15] = value.M44;
 
 				return .Ok;
 			}
 
 			public Result<Matrix4x4> GetMatrix4x4(int index = 0)
 			{
-				let offset = index * 16;
 				Try!(AssertParameters(.Matrix4x4, index));
+				
+				let offset = index * 16;
+				let val = (float*)&memory[[Unchecked]0];
 
-				if (let val = Value as float[])
-				{
-					return Matrix4x4(val[offset], val[offset + 1], val[offset + 2], val[offset + 3],
-									val[offset + 4], val[offset + 5], val[offset + 6], val[offset + 7],
-									val[offset + 8], val[offset + 9], val[offset + 10], val[offset + 11],
-									val[offset + 12], val[offset + 13], val[offset + 14], val[offset + 15]);
-				}
-
-				return .Err;
+				return Matrix4x4(val[offset], val[offset + 1], val[offset + 2], val[offset + 3],
+					val[offset + 4], val[offset + 5], val[offset + 6], val[offset + 7],
+					val[offset + 8], val[offset + 9], val[offset + 10], val[offset + 11],
+					val[offset + 12], val[offset + 13], val[offset + 14], val[offset + 15]);
 			}
 
 			Result<void> AssertParameters(UniformType expected, int index)

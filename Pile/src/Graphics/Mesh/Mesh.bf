@@ -49,10 +49,11 @@ namespace Pile
 			// Determine index type
 			switch (typeof(T))
 			{
+			case typeof(uint8): IndexType = .UnsignedByte;
 			case typeof(uint16): IndexType = .UnsignedShort;
 			case typeof(uint32): IndexType = .UnsignedInt;
 			default:
-				Log.Error("Unexpected index type. Expected uint16 or uint32. This might cause rendering problems");
+				Debug.FatalError("Unexpected index type. Expected uint8, uint16 or uint32");
 				IndexType = .UnsignedInt;
 			}
 
