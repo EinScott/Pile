@@ -197,7 +197,6 @@ namespace Pile
 					{
 						int32[] n = scope int32[uniform.Length];
 
-						//let textures = (parameter.Value as Texture[]);
 						let textures = (Texture*)&parameter.memory[[Unchecked]0];
 						for (int j = 0; j < uniform.Length; j++)
 						{

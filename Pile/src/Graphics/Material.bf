@@ -23,8 +23,6 @@ namespace Pile
 				delete memory;
 			}
 
-			// @do unchecked on whole method
-
 			public Result<void> SetTexture(Texture value, int index = 0)
 			{
 				Try!(AssertParameters(.Sampler, index));
