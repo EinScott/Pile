@@ -40,7 +40,7 @@ namespace Pile
 
 					if (len > 0)
 					{
-						var s = new char8[len];
+						var s = scope char8[len];
 
 						GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
 						Core.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
@@ -144,7 +144,7 @@ namespace Pile
 					{
 						int32 len = 0;
 						GL.glGetShaderiv(id, GL.GL_INFO_LOG_LENGTH, &len);
-						var s = new char8[len];
+						var s = scope char8[len];
 
 						GL.glGetShaderInfoLog(id, len, &len, &s[0]);
 
