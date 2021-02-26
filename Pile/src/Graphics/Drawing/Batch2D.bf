@@ -174,8 +174,8 @@ namespace Pile
 			// If the user set these on the Material themselves, they will be overwritten here
 
 			pass.material = batch.material ?? DefaultMaterial;
-			pass.material[TextureUniformName]?.SetTexture(batch.texture);
-			pass.material[MatrixUniformName]?.SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
+			pass.material[TextureUniformName].SetTexture(batch.texture);
+			pass.material[MatrixUniformName].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
 
 			pass.meshIndexStart = batch.offset * 3;
 			pass.meshIndexCount = batch.elements * 3;
@@ -1224,13 +1224,15 @@ namespace Pile
 		{
 			// Get required size
 			var currSize = array.Count;
-			while (requiredSize >= currSize) // This may be a stupid way of computing the required size
+			while (requiredSize >= currSize) // Reserve more
 				currSize *= 2;
 
+			if (currSize == array.Count)
+				return; // Nothing changed
+
+			// Reallocate
 			let newArray = new T[currSize];
 			Array.Copy(array, newArray, array.Count);
-
-			// Let's call this reallocating with extra steps
 			delete array;
 			array = newArray;
 		}

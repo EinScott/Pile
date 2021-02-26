@@ -22,7 +22,7 @@ namespace Pile
 		{
 			audio = SL_Wav.Create();
 
-			Runtime.Assert(audio != null, "Failed to create SL_AudioClip (Wav)");
+			Core.Assert(audio != null, "Failed to create SL_AudioClip (Wav)");
 
 			SL_Wav.LoadMem(audio, data.Ptr, (.)data.Length, SL_TRUE, SL_TRUE);
 		}

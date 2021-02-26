@@ -157,6 +157,7 @@ namespace Pile
 			}
 		}
 
+		[Inline]
 		static void Clear(Graphics graphics, IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			// update the viewport

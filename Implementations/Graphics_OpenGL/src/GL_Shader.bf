@@ -1,5 +1,6 @@
 using OpenGL43;
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -16,7 +17,7 @@ namespace Pile
 
 		protected internal override void Compile(ShaderData source)
 		{
-			Runtime.Assert( source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
+			Debug.Assert(source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
 
 			programID = (uint32)GL.glCreateProgram();
 

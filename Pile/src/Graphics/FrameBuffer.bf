@@ -25,7 +25,7 @@ namespace Pile
 		{
 			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
 
-			Debug.Assert(width > 0 || height > 0, "FrameBuffer size must be larger than 0");
+			Debug.Assert(width > 0 && height > 0, "FrameBuffer size must be larger than 0");
 			Debug.Assert(attachments.Count > 0, "FrameBuffer needs at least one attachment");
 			renderSize = UPoint2(width, height);
 
@@ -39,10 +39,9 @@ namespace Pile
 			get => Attachments[index];
 		}
 
-		public Result<void> ResizeAndClear(uint32 width, uint32 height)
+		public void ResizeAndClear(uint32 width, uint32 height)
 		{
-			if (width <= 0 || height <= 0)
-				LogErrorReturn!("FrameBuffer size must be larger than 0");
+			Debug.Assert(width > 0 && height > 0, "FrameBuffer size must be larger that 0");
 
 			if (renderSize.X != width || renderSize.Y != height)
 			{
@@ -51,7 +50,6 @@ namespace Pile
 
 				ResizeAndClearInternal(width, height);
 			}
-			return .Ok;
 		}
 
 		protected internal extern void Initialize(uint32 width, uint32 height, TextureFormat[] attachments);

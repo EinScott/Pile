@@ -60,7 +60,7 @@ namespace Pile
 		internal static Result<void> Run(uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Runtime.Assert(game != null, "Game cannot be null");
+			Debug.Assert(game != null, "Game cannot be null");
 			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
 			run = true;
@@ -255,6 +255,7 @@ namespace Pile
 			Internal.FatalError(failStr, 1);
 		}
 
+		[Inline]
 		/// Like Runtime.Assert(), but also logs the error (which, depending on Log configuration also saves the log file)
 		public static void Assert(bool condition, String error = Compiler.CallerExpression[0], String filePath = Compiler.CallerFilePath, int line = Compiler.CallerLineNum) 
 		{

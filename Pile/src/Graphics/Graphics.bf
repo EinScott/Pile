@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -25,46 +26,35 @@ namespace Pile
 		protected internal extern void Step();
 		protected internal extern void AfterRender();
 
-		public Result<void> Clear(IRenderTarget target, Color color) =>
+		[Inline]
+		public void Clear(IRenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public Result<void> Clear(IRenderTarget target, Color color, float depth, int stencil) =>
+		[Inline]
+		public void Clear(IRenderTarget target, Color color, float depth, int stencil) =>
 			Clear(target, .All, color, depth, stencil, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public Result<void> Clear(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		public void Clear(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
-			if (!target.Renderable)
-				LogErrorReturn!("Target cannot currently be rendered to");
+			Debug.Assert(target.Renderable, "Render Target cannot currently be drawn to");
 
 			let size = target.RenderSize;
 			let bounds = Rect(0, 0, size.X, size.Y);
 			let clamped = viewport.OverlapRect(bounds);
 
 			ClearInternal(target, flags, color, depth, stencil, clamped);
-
-			return .Ok;
 		}
 
 		protected internal extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
-		public Result<void> Render(RenderPass pass)
+		public void Render(RenderPass pass)
 		{
 			var pass;
 
-			if (!pass.target.Renderable)
-				LogErrorReturn!("Render Target cannot currently be drawn to");
-
-			if (!(pass.target is FrameBuffer) && !(pass.target is Window))
-				LogErrorReturn!("RenderTarget must be a FrameBuffer or Window");
-
-			if (pass.mesh == null)
-				LogErrorReturn!("Mesh cannot be null");
-
-			if (pass.material == null)
-				LogErrorReturn!("Material cannot be null");
-
-			if (pass.mesh.IndexCount < pass.meshIndexStart + pass.meshIndexCount)
-				LogErrorReturn!("Cannot draw more indices than exist in the Mesh");
+			Debug.Assert(pass.target.Renderable, "Render Target cannot currently be drawn to");
+			Debug.Assert((pass.target is FrameBuffer) || (pass.target is Window), "RenderTarget must be a FrameBuffer or Window");
+			Debug.Assert(pass.mesh != null && pass.material != null, "Mesh and Material cannot be null");
+			Debug.Assert(pass.mesh.IndexCount >= pass.meshIndexStart + pass.meshIndexCount, "Cannot draw more indices than exist in the Mesh");
 
 			if (pass.viewport != null)
 			{
@@ -74,7 +64,6 @@ namespace Pile
 			}
 
 			RenderInternal(pass);
-			return .Ok;
 		}
 
 		protected internal extern void RenderInternal(RenderPass pass);

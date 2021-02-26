@@ -20,7 +20,7 @@ namespace Pile
 
 		public static Event<delegate Result<void>()> OnStart ~ OnStart.Dispose();
 		public static RunPreferences Preferences = .();
-
+		
 		public static String[] CommandLine;
 
 		static int Main(String[] args)
@@ -37,15 +37,13 @@ namespace Pile
 			}
 
 			// Run onStart
-			if (OnStart() case .Err)
-				Core.FatalError("Error in OnStart");
+			Core.Assert(OnStart() case .Ok, "Error in OnStart");
+			
+			// Run with registered settings
+			Debug.Assert(Preferences.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
+			Debug.Assert(Preferences.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
 
-			Core.Assert(Preferences.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
-			Core.Assert(Preferences.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
-
-			// Find thing to run
-			if (Core.Run(Preferences.windowWidth, Preferences.windowHeight, Preferences.createGame(), Preferences.gameTitle) case .Err)
-				Core.FatalError("Error while running game");
+			Core.Assert(Core.Run(Preferences.windowWidth, Preferences.windowHeight, Preferences.createGame(), Preferences.gameTitle) case .Ok, "Error while running");
 
 			return 0;
 		}

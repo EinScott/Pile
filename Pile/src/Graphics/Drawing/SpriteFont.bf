@@ -80,7 +80,7 @@ namespace Pile
 			delete buffer;
 
 			let res = packer.Pack();
-			Runtime.Assert(res case .Ok, "Failed to pack character bitmaps");
+			Core.Assert(res case .Ok, "Failed to pack character bitmaps");
 
 			// Link textures
 			let output = res.Get();

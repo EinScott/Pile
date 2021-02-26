@@ -220,7 +220,10 @@ namespace Pile
 			defer
 			{
 				if (@return case .Err)
+				{
+					Importers.currentPackage = null;
 					this.UnloadPackage(package.name, false).IgnoreError();
+				}
 			}
 
 			// Import each package node
