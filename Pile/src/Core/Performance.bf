@@ -43,13 +43,27 @@ namespace Pile
 			}
 
 			// Put tracking on method
-			Compiler.EmitMethodEntry(methodInfo, scope $"""
+			// this is nicer, but errors all the time (Access violation in AppendF)
+			/*Compiler.EmitMethodEntry(methodInfo, scope $"""
 				let __pt = scope System.Diagnostics.Stopwatch(true);
 				defer
 				{{
 					Performance.[Friend]TrackSection("{sectionName}", __pt.Elapsed);
 				}}
+				""");*/
+
+			Compiler.EmitMethodEntry(methodInfo, """
+				let __pt = scope System.Diagnostics.Stopwatch(true);
+				defer
+				{{
+					Performance.[Friend]TrackSection("
 				""");
+			Compiler.EmitMethodEntry(methodInfo, sectionName);
+			Compiler.EmitMethodEntry(methodInfo, """
+				", __pt.Elapsed);
+				}}
+				""");
+
 #endif
 		}
 	}

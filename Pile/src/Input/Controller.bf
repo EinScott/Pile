@@ -95,6 +95,7 @@ namespace Pile
 			from.axisTimestamp.CopyTo(axisTimestamp);
 		}
 
+		[Inline]
 		public bool Pressed(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && pressed[buttonIndex];
 		public bool Pressed(Buttons button) => Pressed((int)button);
 
@@ -102,20 +103,24 @@ namespace Pile
 		public int64 Timestamp(Buttons button) => Timestamp((int)button);
 		public int64 Timestamp(Axes axis) => axisTimestamp[(int)axis];
 
+		[Inline]
 		public bool Down(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && down[buttonIndex];
 		public bool Down(Buttons button) => Down((int)button);
 
+		[Inline]
 		public bool Released(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && released[buttonIndex];
 		public bool Released(Buttons button) => Released((int)button);
 
+		[Inline]
 		public float Axis(int axisIndex) => (axisIndex >= 0 && axisIndex < MaxAxis) ? axis[axisIndex] : 0f;
 		public float Axis(Axes axis) => Axis((int)axis);
 
+		[Inline]
 		public Vector2 Axis(int axisX, int axisY) => Vector2(Axis(axisX), Axis(axisY));
 		public Vector2 Axis(Axes axisX, Axes axisY) => Vector2(Axis(axisX), Axis(axisY));
 
-		public Vector2 LeftStick => Axis(Pile.Axes.LeftX, Pile.Axes.LeftY);
-		public Vector2 RightStick => Axis(Pile.Axes.RightX, Pile.Axes.RightY);
+		[Inline] public Vector2 LeftStick => Axis(Pile.Axes.LeftX, Pile.Axes.LeftY);
+		[Inline] public Vector2 RightStick => Axis(Pile.Axes.RightX, Pile.Axes.RightY);
 
 		public bool Repeated(Buttons button)
 		{

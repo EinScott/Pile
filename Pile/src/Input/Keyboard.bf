@@ -51,10 +51,13 @@ namespace Pile
 			Text.Append(from.Text);
 		}
 
+		[Inline]
 		public bool Pressed(Keys key) => pressed[(int)key];
 
+		[Inline]
 		public bool Down(Keys key) => down[(int)key];
 
+		[Inline]
 		public bool Released(Keys key) => released[(int)key];
 
 		public bool Pressed(params Keys[] keys)
@@ -109,8 +112,8 @@ namespace Pile
 		    return timestamp[(int)key];
 		}
 
-		public bool Ctrl => Down(Keys.LeftControl, Keys.RightControl);
-		public bool Alt => Down(Keys.LeftAlt, Keys.RightAlt);
-		public bool Shift => Down(Keys.LeftShift, Keys.RightShift);
+		[Inline] public bool Ctrl => Down(Keys.LeftControl, Keys.RightControl);
+		[Inline] public bool Alt => Down(Keys.LeftAlt, Keys.RightAlt);
+		[Inline] public bool Shift => Down(Keys.LeftShift, Keys.RightShift);
 	}
 }
