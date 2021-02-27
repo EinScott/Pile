@@ -53,9 +53,6 @@ namespace Pile
 		public Event<PackageEvent> OnLoadPackage ~ _.Dispose(); // Called after a package was loaded
 		public Event<PackageEvent> OnUnloadPackage ~ _.Dispose(); // Called before a package was unloaded (assets not yet deleted)
 
-		/// Turning this on will make the game rebuild asset changes immediately when detected. (Same as asset hot reload itself, this only has an effect if DEUBG is defined)
-		public bool ImmediateHotReload;
-
 		internal this()
 		{
 			// Get packages path
@@ -86,17 +83,12 @@ namespace Pile
 		{
 			let assets = (Assets)Internal.UnsafeCastToObject(userData);
 			assets.assetsChanged = true;
-
-			if (assets.ImmediateHotReload)
-			{
-				assets.OnWindowFocusChanged();
-			}
 		}
 
 		void OnWindowFocusChanged()
 		{
 			// The window was just focused again and the game is not just starting
-			if (assetsChanged && (Core.Window.Focus || ImmediateHotReload) && Time.RawDuration > TimeSpan(0, 0, 1))
+			if (assetsChanged && Core.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
 			{
 				HotReloadPackages();
 				assetsChanged = false;
