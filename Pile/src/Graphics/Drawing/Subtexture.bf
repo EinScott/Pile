@@ -67,7 +67,7 @@ namespace Pile
 
 		public (Rect Source, Rect Frame) GetClip(Rect clip)
 		{
-			(Rect Source, Rect Frame) result;
+			(Rect Source, Rect Frame) result = default;
 
 			result.Source = (clip + Point2(Source.Left, Source.Top) + Point2(Frame.Left, Frame.Top)).OverlapRect(Source);
 

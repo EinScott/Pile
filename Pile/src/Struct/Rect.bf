@@ -200,6 +200,9 @@ namespace Pile
 		    set mut => Y = value - Height / 2;
 		}
 
+		[Inline]
+		public int Area => Width * Height;
+
 		public Rect MirrorX(int axis = 0)
 		{
 			var rect = this;

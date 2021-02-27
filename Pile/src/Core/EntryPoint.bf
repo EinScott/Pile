@@ -36,6 +36,11 @@ namespace Pile
 				return 0;
 			}
 
+#if DEBUG
+			// In debug, run this on actual execute for debugging perks
+			TrySilent!(RunPackager());
+#endif
+
 			// Run onStart
 			Core.Assert(OnStart() case .Ok, "Error in OnStart");
 			
