@@ -56,7 +56,7 @@ namespace Pile
 			None = 0,
 		}
 
-		const int32 MAXCHUNK = int16.MaxValue;
+		const int32 MAXCHUNK = int16.MaxValue - 1;
 
 		public static Result<void> ReadPackage(StringView packagePath, List<Packages.Node> nodes, List<String> importerNames, out SHA256Hash contentHash)
 		{
@@ -179,15 +179,17 @@ namespace Pile
 							ReadInto!(compData);
 
 							// Decompress
-							uint32 uncompChunkSize;
-							switch (Compression.Decompress(compData, Span<uint8>(&uncompData[uncompWriteStart], uncompSize - uncompWriteStart)))
+							/*switch (Compression.Decompress(compData, Span<uint8>(&uncompData[uncompWriteStart], uncompSize - uncompWriteStart)))
 							{
 							case .Ok(let val):
-								uncompChunkSize = (.)val;
+								uncompWriteStart += (.)val;
 							case .Err:
 								LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error decompressing node chunk");
-							}
-							uncompWriteStart += uncompChunkSize;
+							}*/
+
+							// @do temp
+							Internal.MemCpy(&uncompData[uncompWriteStart], &compData[0], compSize);
+							uncompWriteStart += (.)compSize;
 						}
 
 						if (uncompSize != uncompWriteStart)
@@ -357,7 +359,7 @@ namespace Pile
 
 						uint32 chunkReadSize = (.)Math.Min(MAXCHUNK, uncompSize - uncompReadStart);
 
-						let res = Compression.Compress(Span<uint8>(&uncompData[uncompReadStart], chunkReadSize), Span<uint8>(&compData[compWriteStart], compData.Count - compWriteStart));
+						/*let res = Compression.Compress(Span<uint8>(&uncompData[uncompReadStart], chunkReadSize), Span<uint8>(&compData[compWriteStart], compData.Count - compWriteStart));
 						uint32 chunkWriteSize;
 						switch (res)
 						{
@@ -366,7 +368,12 @@ namespace Pile
 							compSize += val;
 						case .Err:
 							LogErrorReturn!(scope $"Couldn't write package. Error compressing node data");
-						}
+						}*/
+
+						// @do temp
+						Internal.MemCpy(&compData[compWriteStart], &uncompData[uncompReadStart], chunkReadSize);
+						uint32 chunkWriteSize = chunkReadSize;
+						compSize += chunkReadSize;
 
 						// Increment read and write start for next chunk
 						uncompReadStart += chunkReadSize;
@@ -623,6 +630,12 @@ namespace Pile
 					{
 						// Make name
 						let name = GetScopedAssetName!(filePath, import);
+
+						if (name.Length == 0)
+						{
+							Log.Warn($"Skipping asset at {filePath}. Files with empty file names will be ignored");
+							continue;
+						}
 
 						// Check if name already exists
 						if (duplicateNameLookup.Contains(name))

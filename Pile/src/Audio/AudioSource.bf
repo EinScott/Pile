@@ -32,14 +32,14 @@ namespace Pile
 		public void Play(AudioClip clip, float delay = 0)
 		{
 			Debug.Assert(clip != null, "AudioClip was null");
-			Debug.Assert(delay < 0, "Delay cannot be negative");
+			Debug.Assert(delay >= 0, "Delay cannot be negative");
 
 			PlayInternal(clip, delay);
 		}
 
 		protected void SetupOutput(MixingBus output)
 		{
-			this.output = output == null ? output : Core.Audio.MasterBus;
+			this.output = output == null ? Core.Audio.MasterBus : output;
 			Output.AddSource(this);
 		}
 		

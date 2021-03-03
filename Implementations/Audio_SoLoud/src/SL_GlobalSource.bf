@@ -35,8 +35,8 @@ namespace Pile
 		{
 			uint32 handle;
 			if (delay == 0 || Paused)
-				handle = SL_Bus.Play(slBus, clip.audio, 1, Pan, SL_TRUE);
-			else handle = SL_Bus.PlayClocked(slBus, delay, clip.audio, 1, Pan);
+				handle = SL_Bus.Play(slBus, clip.audio, volume, Pan, SL_TRUE);
+			else handle = SL_Bus.PlayClocked(slBus, delay, clip.audio, volume, Pan);
 
 			// Apply source config
 			let ptr = Core.Audio.slPtr;
@@ -67,7 +67,8 @@ namespace Pile
 			{
 				if (value == volume) return;
 
-				SL_Bus.SetVolume(slBus, Math.Max(0, value));
+				//SL_Bus.SetVolume(slBus, Math.Max(0, value));
+				SL_Soloud.SetVolume(Core.Audio.slPtr, group, Math.Max(0, volume));
 				volume = value;
 			}
 		}

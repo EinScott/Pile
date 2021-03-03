@@ -344,7 +344,7 @@ namespace Pile
 								}
 
 		                        // get pixel data
-		                        pixels = scope:Chunk Color[width * height];
+		                        pixels = new Color[width * height];
 		                        BytesToPixels(temp, pixels, Mode, palette);
 
 		                    }
@@ -380,6 +380,8 @@ namespace Pile
 
 		                    last = cel;
 		                    frame.Cels.Add(cel);
+
+							DeleteNotNull!(pixels);
 		                }
 		                // PALETTE CHUNK
 		                else if (chunkType == Chunks.Palette)
