@@ -11,7 +11,9 @@ using internal Pile;
 
 namespace Pile
 {
+#if !DEBUG
 	[Optimize]
+#endif
 	public static class Packages
 	{
 		// Represents the json data in the package import file
@@ -493,6 +495,7 @@ namespace Pile
 						for (let n in nodes)
 							n.Dispose();
 						nodes.Clear();
+
 						ClearAndDeleteItems!(importerNames);
 
 						lastPackageBuildDate = .();
@@ -728,8 +731,8 @@ namespace Pile
 								let node = ref nodes[i];
 								if (StringView((char8*)&node.Name[0], node.Name.Count) == prevName)
 								{
-									nodes.RemoveAtFast(i);
 									node.Dispose();
+									nodes.RemoveAtFast(i);
 									somethingChanged = true; // Even though hash shouldn't match either...
 									break;
 								}

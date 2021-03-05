@@ -316,6 +316,9 @@ namespace Pile
 				if (file.GetLastWriteTime() > buildStart)
 				{
 					let name = Path.GetFileNameWithoutExtension(file.GetFileName(.. scope String()), .. scope String());
+					
+					if (!PackageLoaded(name, ?))
+						continue;
 
 					if ((UnloadPackage(name) case .Ok)
 						&& (LoadPackage(name) case .Err))
