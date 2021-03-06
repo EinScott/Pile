@@ -67,8 +67,7 @@ namespace Pile
 			{
 				if (value == volume) return;
 
-				//SL_Bus.SetVolume(slBus, Math.Max(0, value));
-				SL_Soloud.SetVolume(Core.Audio.slPtr, group, Math.Max(0, volume));
+				SL_Soloud.SetVolume(Core.Audio.slPtr, group, Math.Max(0, value));
 				volume = value;
 			}
 		}

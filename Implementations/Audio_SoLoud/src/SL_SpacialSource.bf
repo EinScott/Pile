@@ -35,8 +35,8 @@ namespace Pile
 		{
 			uint32 handle;
 			if (delay == 0 || Paused)
-				handle = SL_Bus.Play3d(slBus, clip.audio, position.X, position.Y, position.Z, velocity.X, velocity.Y, velocity.Z, 1, SL_TRUE);
-			else handle = SL_Bus.Play3dClocked(slBus, delay, clip.audio, position.X, position.Y, position.Z, velocity.X, velocity.Y, velocity.Z, 1);
+				handle = SL_Bus.Play3d(slBus, clip.audio, position.X, position.Y, position.Z, velocity.X, velocity.Y, velocity.Z, volume, SL_TRUE);
+			else handle = SL_Bus.Play3dClocked(slBus, delay, clip.audio, position.X, position.Y, position.Z, velocity.X, velocity.Y, velocity.Z, volume);
 
 			// Apply source config
 			let ptr = Core.Audio.slPtr;
@@ -159,7 +159,7 @@ namespace Pile
 			{
 				if (value == volume) return;
 
-				SL_Bus.SetVolume(slBus, Math.Max(0, value));
+				SL_Soloud.SetVolume(Core.Audio.slPtr, group, Math.Max(0, value));
 				volume = value;
 			}
 		}
