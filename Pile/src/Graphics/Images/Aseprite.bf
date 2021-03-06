@@ -10,8 +10,7 @@ namespace Pile
 	/// Parses the Contents of an Aseprite file
 	///
 	/// Aseprite File Spec: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
-	///
-	/// TODO: This is not a true or full implementation, and is missing several features (ex. blendmodes)
+	/// This is not a complete implementation and focuses on usage in loading aseprite files for games
 	public class Aseprite
 	{
 	    public enum Modes
@@ -127,10 +126,10 @@ namespace Pile
 	        public String UserDataText { get; set; }
 	        public Color UserDataColor { get; set; }
 
-	        public this(Layer layer, Color[] pixels)
+	        public this(Layer layer, Span<Color> pixels)
 	        {
 	            Layer = layer;
-	            Pixels = new Color[pixels.Count];
+	            Pixels = new Color[pixels.Length];
 				pixels.CopyTo(Pixels);
 				UserDataText = new String();
 	        }
@@ -241,9 +240,14 @@ namespace Pile
 	        }
 
 	        // temporary variables
-	        var temp = scope uint8[Width * Height * (uint)Mode];
+	        //var temp = scope uint8[Width * Height * (uint)Mode];
 	        var palette = scope Color[256];
 	        IUserData last = null;
+
+			List<uint8> compressedBuffer = new List<uint8>(Width * Height * (.)Mode);
+			List<Color> colorBuffer = new List<Color>();
+			defer delete compressedBuffer;
+			defer delete colorBuffer;
 
 	        // Frames
 	        Loop:for (int i = 0; i < frameCount; i++)
@@ -309,7 +313,7 @@ namespace Pile
 		                    var celType = WORD();
 		                    int32 width = 0;
 		                    int32 height = 0;
-		                    Color[] pixels;
+		                    Color[] linkPixels;
 		                    Cel link;
 
 		                    SEEK(7);
@@ -321,14 +325,13 @@ namespace Pile
 		                        height = WORD();
 
 		                        var count = width * height * (int)Mode;
-		                        if (count > temp.Count)
-		                            temp = scope:Loop uint8[count];
+								compressedBuffer.Count = count;
 
 		                        // RAW
 		                        if (celType == 0)
 		                        {
-		                            let length = LogErrorTry!(stream.TryRead(temp), "Error reading ASE RAW Cell: Error reading");
-									if (length != temp.Count - 1)
+		                            let length = LogErrorTry!(stream.TryRead(compressedBuffer), "Error reading ASE RAW Cell: Error reading");
+									if (length != compressedBuffer.Count - 1)
 										LogErrorReturn!("Error reading ASE RAW Cell: Unexpected size");
 		                        }
 		                        // DEFLATE
@@ -339,13 +342,14 @@ namespace Pile
 									if (length != source.Count)
 										LogErrorReturn!("Error reading ASE COMPRESSED Cell: Unexpected size");
 
-									if (Compression.Decompress(source, temp) case .Err(let err))
+									if (Compression.Decompress(source, compressedBuffer) case .Err(let err))
 										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cell: {err}");
 								}
 
 		                        // get pixel data
-		                        pixels = new Color[width * height];
-		                        BytesToPixels(temp, pixels, Mode, palette);
+		                        //pixels = new Color[width * height];
+								colorBuffer.Count = width * height;
+		                        BytesToPixels(compressedBuffer, colorBuffer, Mode, palette);
 
 		                    }
 		                    // REFERENCE
@@ -356,7 +360,7 @@ namespace Pile
 
 		                        width = linkCel.Width;
 		                        height = linkCel.Height;
-		                        pixels = linkCel.Pixels;
+								linkPixels = linkCel.Pixels;
 		                        link = linkCel;
 		                    }
 		                    else
@@ -364,7 +368,7 @@ namespace Pile
 								LogErrorReturn!("Error reading ASE Cell: Cell format not implemented");
 		                    }
 
-		                    var cel = new Cel(layer, pixels)
+		                    var cel = new Cel(layer, celType == 1 ? Span<Color>(linkPixels) : colorBuffer)
 		                    {
 		                        X = x,
 		                        Y = y,
@@ -380,8 +384,6 @@ namespace Pile
 
 		                    last = cel;
 		                    frame.Cels.Add(cel);
-
-							DeleteNotNull!(pixels);
 		                }
 		                // PALETTE CHUNK
 		                else if (chunkType == Chunks.Palette)
@@ -490,13 +492,15 @@ namespace Pile
 
 	    // More or less copied from Aseprite's source code:
 	    // https://github.com/aseprite/aseprite/blob/master/src/doc/blend_funcs.cpp
+		// todo: support more blend modes
+		// https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md#layer-chunk-0x2004
 
-	    private delegate void Blend(ref Color dest, Color src, uint8 opacity);
+	    private function void Blend(ref Color dest, Color src, uint8 opacity);
 
 	    private static readonly Blend[] BlendModes = new Blend[]
 	    (
 	        // 0 - NORMAL
-	        new (dest, src, opacity) =>
+	        (dest, src, opacity) =>
 	        {
 	            if (src.A != 0)
 	            {
@@ -517,7 +521,7 @@ namespace Pile
 
 	            }
 	        }
-	    ) ~ DeleteContainerAndItems!(_);
+	    ) ~ delete _;
 
 	    [Inline]
 	    private static int MUL_UN8(int a, int b)
@@ -531,9 +535,9 @@ namespace Pile
 	    #region Utils
 
 	    /// Converts an array of Bytes to an array of Colors, using the specific Aseprite Mode & Palette
-	    private void BytesToPixels(uint8[] bytes, Color[] pixels, Modes mode, Color[] palette)
+	    private void BytesToPixels(Span<uint8> bytes, Span<Color> pixels, Modes mode, Color[] palette)
 	    {
-	        int len = pixels.Count;
+	        int len = pixels.Length;
 	        if (mode == .RGBA)
 	        {
 	            for (int p = 0, int b = 0; p < len; p++, b += 4)
