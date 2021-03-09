@@ -2,10 +2,14 @@ using System;
 
 namespace Pile
 {
-	public class Asset<T> where T : class
+	/// Handles a reference to an asset across reloads etc. MUST be disposed!
+	public struct Asset<T> : IDisposable where T : class
 	{
-		readonly String name ~ delete _;
+		readonly String name; // If you leak this string, you forgot to call Dispose() on this
 		T asset;
+
+		Assets.PackageEvent load;
+		Assets.PackageEvent unload;
 
 		public T Asset => asset;
 
@@ -13,21 +17,27 @@ namespace Pile
 		{
 			name = new String(assetName);
 
-			Core.Assets.OnLoadPackage.Add(new => PackageLoaded);
-			Core.Assets.OnUnloadPackage.Add(new => PackageUnloaded);
+			load = new => PackageLoaded;
+			unload = new => PackageUnloaded;
+			Core.Assets.OnLoadPackage.Add(load);
+			Core.Assets.OnUnloadPackage.Add(unload);
 
 			asset = Core.Assets.Get<T>(name); // Will set it to reference the asset or null
 		}
 
-		public ~this()
+		public void Dispose()
 		{
-			Core.Assets.OnLoadPackage.Remove(scope => PackageLoaded, true);
-			Core.Assets.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
+			Core.Assets.OnLoadPackage.Remove(load);
+			Core.Assets.OnUnloadPackage.Remove(unload);
+
+			delete name;
+			delete load;
+			delete unload;
 		}
 
 		public T AssetOrDefault(T def) => asset == null ? def : asset;
 
-		void PackageLoaded(Package package)
+		void PackageLoaded(Package package) mut
 		{
 			if (asset != null) return; // Already have asset
 
@@ -37,7 +47,7 @@ namespace Pile
 			}
 		}
 
-		void PackageUnloaded(Package package)
+		void PackageUnloaded(Package package) mut
 		{
 			if (asset == null) return; // Don't have asset
 
@@ -47,6 +57,6 @@ namespace Pile
 			}
 		}
 
-		public static operator T(Asset<T> assetHandler) => assetHandler.asset;
+		public static implicit operator T(Asset<T> assetHandler) => assetHandler.asset;
 	}
 }

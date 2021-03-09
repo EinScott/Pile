@@ -56,6 +56,11 @@ namespace Pile
 			    monitors.Add(new Monitor(i));
 		}
 
+		internal ~this()
+		{
+			Quit();
+		}
+
 		protected internal override void Step()
 		{
 			Event event;

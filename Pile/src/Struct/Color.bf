@@ -156,6 +156,7 @@ namespace Pile
 			return Color(color.R, color.G, color.B, (uint8)(color.A * b));
 		}
 
+		[Commutable]
 		public static bool operator==(Color a, Color b)
 		{
 			return a.R == b.R && a.B == b.B && a.G == b.G && a.A == b.A;
