@@ -107,17 +107,11 @@ namespace Pile
 		}
 
 		// Logging functions
-#if !DEBUG
-		[SkipCall]
-#endif
+		[DebugOnly]
 		public static void Debug(String message) => Log(.Info, message);
-#if !DEBUG
-		[SkipCall]
-#endif
+		[DebugOnly]
 		public static void Debug(Object message) => Log(.Info, message);
-#if !DEBUG
-		[SkipCall]
-#endif
+		[DebugOnly]
 		public static void Debug(StringView format, params Object[] inserts)
 		{
 			let message = scope String();

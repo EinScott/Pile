@@ -47,7 +47,7 @@ namespace Pile
 				let __pt = scope System.Diagnostics.Stopwatch(true);
 				defer
 				{{
-					Performance.[Friend]TrackSection("{sectionName}", __pt.Elapsed);
+					Pile.Performance.[System.FriendAttribute]EndSection("{sectionName}", __pt.Elapsed);
 				}}
 				""");
 #endif
@@ -61,6 +61,8 @@ namespace Pile
 		static Dictionary<String, TimeSpan> sectionDurationsFill ~ DeleteNotNull!(_);
 		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
 
+		static Stopwatch trackWatch ~ DeleteNotNull!(_);
+
 		const String trackSection = "Pile.Performance (PerfTrack overhead)";
 		static TimeSpan trackOverhead = .Zero;
 
@@ -73,18 +75,16 @@ namespace Pile
 		public static int PerfTrackCollectInterval = 30; // in steps/frames/loops
 		static int collectCounter = PerfTrackCollectInterval - 1;
 
-#if !DEBUG
-		[SkipCall]
-#endif
+		[DebugOnly]
 		internal static void Initialize()
 		{
 			sectionDurationsFill = new .();
 			sectionDurationsRead = new .();
+
+			trackWatch = new .(true);
 		}
 
-#if !DEBUG
-		[SkipCall]
-#endif
+		[DebugOnly]
 		internal static void Step()
 		{
 			if (!Track) return;
@@ -116,10 +116,10 @@ namespace Pile
 			}
 		}
 
-#if !DEBUG
-		[SkipCall]
-#endif
-		private static void TrackSection(String sectionName, TimeSpan time)
+		private static int64 StartSection() => trackWatch.[Friend]GetElapsedDateTimeTicks();
+
+		[DebugOnly]
+		private static void EndSection(String sectionName, TimeSpan time)
 		{
 			if (!Track) return;
 			let __pt = scope System.Diagnostics.Stopwatch(true); // Track this manually to not... infinite loop

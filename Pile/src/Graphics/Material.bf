@@ -209,11 +209,7 @@ namespace Pile
 					val[offset + 12], val[offset + 13], val[offset + 14], val[offset + 15]);
 			}
 
-#if !DEBUG
-			[SkipCall]
-#else
-			[Inline]
-#endif
+			[DebugOnly, Inline]
 			void AssertParameters(UniformType expected, int index)
 			{
 				// Assure valid access
