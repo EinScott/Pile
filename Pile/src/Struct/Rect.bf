@@ -53,7 +53,9 @@ namespace Pile
 
 		public Point2 Position
 		{
+			[Inline]
 			get => .(X, Y);
+			[Inline]
 			set mut
 			{
 				X = value.X;
@@ -63,7 +65,9 @@ namespace Pile
 
 		public Point2 Size
 		{
+			[Inline]
 			get => .(Width, Height);
+			[Inline]
 			set mut
 			{
 				Width = value.X;
@@ -73,7 +77,9 @@ namespace Pile
 
 		public Point2 TopLeft
 		{
+			[Inline]
 		    get => Point2(Left, Top);
+			[Inline]
 		    set mut
 		    {
 		        Left = value.X;
@@ -83,7 +89,9 @@ namespace Pile
 
 		public Point2 TopCenter
 		{
+			[Inline]
 		    get => Point2(CenterX, Top);
+			[Inline]
 		    set mut
 		    {
 		        CenterX = value.X;
@@ -93,7 +101,9 @@ namespace Pile
 
 		public Point2 TopRight
 		{
+			[Inline]
 		    get => Point2(Right, Top);
+			[Inline]
 		    set mut
 		    {
 		        Right = value.X;
@@ -103,7 +113,9 @@ namespace Pile
 
 		public Point2 CenterLeft
 		{
+			[Inline]
 		    get => Point2(Left, CenterY);
+			[Inline]
 		    set mut
 		    {
 		        Left = value.X;
@@ -115,7 +127,6 @@ namespace Pile
 		{
 			[Inline]
 		    get => Point2(CenterX, CenterY);
-
 			[Inline]
 		    set mut
 		    {
@@ -126,7 +137,9 @@ namespace Pile
 
 		public Point2 CenterRight
 		{
+			[Inline]
 		    get => Point2(Right, CenterY);
+			[Inline]
 		    set mut
 		    {
 		        Right = value.X;
@@ -136,7 +149,9 @@ namespace Pile
 
 		public Point2 BottomLeft
 		{
+			[Inline]
 		    get => Point2(Left, Bottom);
+			[Inline]
 		    set mut
 		    {
 		        Left = value.X;
@@ -146,7 +161,9 @@ namespace Pile
 
 		public Point2 BottomCenter
 		{
+			[Inline]
 		    get => Point2(CenterX, Bottom);
+			[Inline]
 		    set mut
 		    {
 		        CenterX = value.X;
@@ -156,7 +173,9 @@ namespace Pile
 
 		public Point2 BottomRight
 		{
+			[Inline]
 		    get => Point2(Right, Bottom);
+			[Inline]
 		    set mut
 		    {
 		        Right = value.X;
@@ -166,37 +185,49 @@ namespace Pile
 
 		public int Left
 		{
+			[Inline]
 			get => X;
+			[Inline]
 			set	mut => X = value;
 		}
 
 		public int Right
 		{
+			[Inline]
 			get => X + Width;
+			[Inline]
 			set	mut => X = value - Width;
 		}
 
 		public int Top
 		{
+			[Inline]
 			get => Y;
+			[Inline]
 			set mut => Y = value;
 		}
 
 		public int Bottom
 		{
+			[Inline]
 			get => Y + Height;
+			[Inline]
 			set mut => Y = value - Height;
 		}
 
 		public int CenterX
 		{
+			[Inline]
 		    get => X + Width / 2;
+			[Inline]
 		    set mut => X = value - Width / 2;
 		}
 
 		public int CenterY
 		{
+			[Inline]
 		    get => Y + Height / 2;
+			[Inline]
 		    set mut => Y = value - Height / 2;
 		}
 
@@ -234,16 +265,19 @@ namespace Pile
 		    return rect;
 		}
 
+		[Inline]
 		public bool Overlaps(Rect rect)
 		{
 			return (X + Width) > rect.X	&& (rect.X + rect.Width) > X && (Y + Height) > rect.Y && (rect.Y + rect.Height) > Y;
 		}
 
+		[Inline]
 		public bool Contains(Rect rect)
 		{
 		    return (Left < rect.Left && Top < rect.Top && Bottom > rect.Bottom && Right > rect.Right);
 		}
 
+		[Inline]
 		public bool Contains(Point2 point)
 		{
 			return point.X >= X && point.X < X + Width && point.Y >= Y && point.Y < Y + Height;

@@ -189,7 +189,7 @@ namespace Pile
 
 			for (int i = 0; i < material.ParameterCount; i++)
 			{
-				let parameter = material[i];
+				let parameter = ref material[[Unchecked]i];
 				let uniform = parameter.Uniform;
 
 				switch (uniform.Type)

@@ -4,15 +4,17 @@ namespace Pile
 {
 	public class ShaderUniform
 	{
-		readonly String name = new String() ~ delete _;
-		public StringView Name => name;
+		readonly String nameStr = new String() ~ delete _;
+		public readonly StringView Name;
 		public readonly int Location;
 		public readonly int Length;
 		public readonly UniformType Type;
 
 		internal this(StringView name, int location, int length, UniformType type)
 		{
-			this.name.Set(name);
+			nameStr.Set(name);
+			Name = StringView(nameStr);
+			
 			Location = location;
 			Length = length;
 			Type = type;

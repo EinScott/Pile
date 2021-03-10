@@ -79,11 +79,13 @@ namespace Pile
 			SDL.SetCursor(sdlCursors[index]);
 		}
 
+		[Inline]
 		public override void SetClipboardString(System.String value)
 		{
 			SDL.SetClipboardText(value);
 		}
 
+		[Inline]
 		public override void GetClipboardString(System.String buffer)
 		{
 			if (SDL.HasClipboardText() == SDL.Bool.True)
@@ -92,6 +94,7 @@ namespace Pile
 
 		public override Point2 MousePosition
 		{
+			[Inline]
 			get
 			{
 				SDL.GetWindowPosition(Core.Window.window, let winX, let winY);
@@ -100,7 +103,8 @@ namespace Pile
 				return Point2(x - winX, y - winY);
 			}
 
-			set =>SDL.WarpMouseInWindow(Core.Window.window, (int32)value.X, (int32)value.Y);
+			[Inline]
+			set => SDL.WarpMouseInWindow(Core.Window.window, (int32)value.X, (int32)value.Y);
 		}
 
 		internal void ProcessEvent(SDL.Event e)

@@ -70,6 +70,8 @@ namespace Pile
 
 		readonly String TextureUniformName ~ delete _;
 		readonly String MatrixUniformName ~ delete _;
+		int textureUniformIndex;
+		int matrixUniformIndex;
 
 		public Matrix3x2 MatrixStack = Matrix3x2.Identity;
 		readonly List<Matrix3x2> matrixStack = new List<Matrix3x2>() ~ delete _;
@@ -95,6 +97,11 @@ namespace Pile
 
 			TextureUniformName = new String(textureUniformName);
 			MatrixUniformName = new String(matrixUniformName);
+
+			// todo: should find an optimisation that works the same for all materials! also see renderBatch() below
+			// Optimization for default shader
+			textureUniformIndex = defaultMaterial.IndexOf(TextureUniformName);
+			matrixUniformIndex = defaultMaterial.IndexOf(MatrixUniformName);
 
 			Mesh = new Mesh();
 
@@ -174,8 +181,16 @@ namespace Pile
 			// If the user set these on the Material themselves, they will be overwritten here
 
 			pass.material = batch.material ?? DefaultMaterial;
-			pass.material[TextureUniformName].SetTexture(batch.texture);
-			pass.material[MatrixUniformName].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
+			if (batch.material == DefaultMaterial)
+			{
+				pass.material[textureUniformIndex].SetTexture(batch.texture);
+				pass.material[matrixUniformIndex].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
+			}
+			else
+			{
+				pass.material[TextureUniformName].SetTexture(batch.texture);
+				pass.material[MatrixUniformName].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
+			}
 
 			pass.meshIndexStart = batch.offset * 3;
 			pass.meshIndexCount = batch.elements * 3;

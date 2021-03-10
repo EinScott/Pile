@@ -142,38 +142,29 @@ namespace Pile
 
 		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
-			if (target is Window)
+			// Bind target
+			if (lastRenderTarget != target)
 			{
-				// Assume context is set right since there is only one -- basically we assume this everywhere
+				if (target is Window) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				else if (let fb = target as FrameBuffer) fb.Bind();
 
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				Clear(this, target, flags, color, depth, stencil, viewport);
+				lastRenderTarget = target;
 			}
-			else if (let fb = target as FrameBuffer)
-			{
-				// Bind frame buffer
-				fb.Bind();
-				Clear(this, target, flags, color, depth, stencil, viewport);
-			}
-		}
 
-		[Inline]
-		static void Clear(Graphics graphics, IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
-		{
 			// update the viewport
 			{
 				var viewport;
 			    viewport.Y = (int)target.RenderSize.Y - viewport.Y - viewport.Height;
 
-			    if (graphics.viewport != viewport)
+			    if (viewport != viewport)
 			    {
 			        glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
-			        graphics.viewport = viewport;
+			        viewport = viewport;
 			    }
 			}
 
 			// we disable the scissor for clearing
-			graphics.forceScissorUpdate = true;
+			forceScissorUpdate = true;
 			glDisable(GL_SCISSOR_TEST);
 
 			// clear
@@ -198,7 +189,6 @@ namespace Pile
 			}
 
 			glClear(mask);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
 		protected internal override void RenderInternal(RenderPass pass)

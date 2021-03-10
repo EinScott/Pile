@@ -231,6 +231,9 @@ namespace Pile
 
 		public this(Shader shader)
 		{
+			// todo: change this for shader recompiling
+			// shader will need to notify this about changes!
+
 			Shader = shader;
 
 			parameters = new Parameter[shader.Uniforms.Count];
@@ -245,9 +248,21 @@ namespace Pile
 			delete parameters;
 		}
 
+		public int IndexOf(StringView name)
+		{
+			for (int i < parameters.Count)
+			{
+				let param = ref parameters[[Unchecked]i];
+
+				if (param.Uniform.Name == name)
+					return i;
+			}
+
+			return -1;
+		}
+
 		public ref Parameter this[StringView name]
 		{
-			[Inline]
 			get
 			{
 				for (var param in ref parameters)
@@ -258,10 +273,13 @@ namespace Pile
 			}
 		}
 
-		public Parameter this[int index]
+		public ref Parameter this[int index]
 		{
 			[Inline]
-			get => parameters[index];
+			get => ref parameters[index];
+
+			[Inline, Unchecked]
+			get => ref parameters[[Unchecked]index];
 		}
 	}
 }
