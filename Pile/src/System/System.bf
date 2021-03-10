@@ -29,7 +29,7 @@ namespace Pile
 			delete UserPath;
 		}
 
-		protected internal virtual void DetermineDataPaths(StringView title)
+		protected internal void DetermineDataPaths(StringView title)
 		{
 			String exePath = Environment.GetExecutableFilePath(.. scope .());
 			String exeDir = Path.GetDirectoryPath(exePath, .. scope .());

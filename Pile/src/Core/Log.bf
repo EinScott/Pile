@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Diagnostics;
 
 namespace Pile
 {
+	[Optimize]
 	public static class Log
 	{
 		public enum Types
@@ -36,11 +38,11 @@ namespace Pile
 		public static Event<delegate void(Types type, String message)> OnLine;
 
 #if DEBUG // Different defaults
-		public static bool PrintToConsole = true;
 		public static bool SaveOnError = false;
+		public static bool PrintToConsole = true;
 #else
-		public static bool PrintToConsole = false;
 		public static bool SaveOnError = true;
+		public static bool PrintToConsole = false;
 #endif
 
 		static int32 recordLength = 64;
@@ -192,6 +194,10 @@ namespace Pile
 					Console.ForegroundColor = .Gray;
 					Console.WriteLine(message);
 				}
+
+#if DEBUG
+				Debug.WriteLine(fullMessage);
+#endif
 			}
 		}
 
