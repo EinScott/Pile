@@ -2,8 +2,6 @@ using System;
 
 namespace Pile
 {
-	// todo: this should be a struct... when that is possbile again
-
 	class Asset<T> where T : class
 	{
 		readonly String name ~ delete _;

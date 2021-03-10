@@ -1,6 +1,7 @@
 using Pile;
 using SDL2;
 using System;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -333,6 +334,15 @@ namespace Pile
 		{
 			get => mouseFocus;
 		}
+
+		public override Monitor Monitor
+		{
+			get
+			{
+				int index = SDL.SDL_GetWindowDisplayIndex(window);
+				return Core.System.monitors[index];
+			}
+		}	
 
 		public override void SetFocused()
 		{

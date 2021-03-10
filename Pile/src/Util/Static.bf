@@ -7,10 +7,7 @@ namespace Pile
 	static
 	{
 		[AttributeUsage(.Method)]
-		struct DebugCallAttribute : Attribute // Useless, basically
-		{
-
-		}
+		struct DebugCallAttribute : Attribute {} // Useless, basically
 
 		// This is somehow hacky and genius at the same time
 #if DEBUG

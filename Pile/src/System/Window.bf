@@ -55,6 +55,8 @@ namespace Pile
 
 		public extern bool Focus { get; }
 		public extern bool MouseOver { get; }
+		
+		public extern Monitor Monitor { get; }
 
 		public extern void SetFocused();
 

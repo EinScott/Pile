@@ -12,7 +12,10 @@ namespace Pile
 		public override String Info => String.Empty;
 
 		[SkipCall]
-		protected internal override void Initialize() {}
+		protected internal override void Initialize()
+		{
+			monitors.Add(new Monitor());
+		}	
 
 		[SkipCall]
 		protected internal override void Step() {}
