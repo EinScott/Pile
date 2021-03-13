@@ -75,7 +75,7 @@ namespace Pile
 					Environment.GetEnvironmentVariable("APPDATA", userPath);
 					if (!userPath.IsEmpty)
 						Path.Clean(Path.InternalCombine(.. scope .(), userPath, fsTitle), userDir);
-				}	 
+				}
 			}
 #endif
 #if BF_PLATFORM_LINUX

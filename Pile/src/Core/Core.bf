@@ -57,17 +57,21 @@ namespace Pile
 
 		static Game Game;
 
-		internal static Result<void> Run(uint32 windowWidth, uint32 windowHeight, Game game, StringView gameTitle)
+		internal static Result<void> Run(RunPreferences prefs)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(game != null, "Game cannot be null");
+			Debug.Assert(prefs.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
+			Debug.Assert(prefs.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
 			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
+
+			let game = prefs.createGame();
+			Debug.Assert(game != null, "Game cannot be null");
 
 			run = true;
 
 			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
-			Title.Set(gameTitle);
+			Title.Set(prefs.gameTitle);
 			System = new System();
 			Graphics = new Graphics();
 			Audio = new Audio();
@@ -87,7 +91,7 @@ namespace Pile
 				System.DetermineDataPaths(Title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
-				Window = new Window(gameTitle, windowWidth, windowHeight);
+				Window = new Window(prefs.windowTitle.Ptr == null ? prefs.gameTitle : prefs.windowTitle, prefs.windowWidth, prefs.windowHeight, prefs.windowMode);
 				Input = new Input();
 
 				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");

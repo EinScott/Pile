@@ -4,7 +4,7 @@ namespace System
 {
 	extension Environment
 	{
-		public static void GetEnvironmentVariable(String key, String outString)
+		public static bool GetEnvironmentVariable(String key, String outString)
 		{
 			let dict = new Dictionary<String, String>();
 			defer
@@ -13,9 +13,11 @@ namespace System
 			}
 
 			Environment.GetEnvironmentVariables(dict);
-			if (!dict.ContainsKey(key)) return;
+			if (!dict.ContainsKey(key)) return false;
 
 			outString.Append(dict[key]);
+
+			return true;
 		}
 	}
 }

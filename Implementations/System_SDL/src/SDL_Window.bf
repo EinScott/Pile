@@ -14,12 +14,21 @@ namespace Pile
 
 		internal SDL_Context context = null;
 
-		protected internal override void Initialize(StringView name, uint32 width, uint32 height)
+		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowMode mode)
 		{
-			SDL.WindowFlags flags = .Shown | .AllowHighDPI;
-			if (Core.System.glGraphics) flags |= .OpenGL;
+			SDL.WindowFlags sdlFlags = .Shown | .AllowHighDPI;
+			if (Core.System.glGraphics) sdlFlags |= .OpenGL;
 
-			window = SDL.CreateWindow(scope String(name).CStr(), .Centered, .Centered, (.)width, (.)height, flags);
+			switch (mode)
+			{
+			case .Windowed:
+			case .Maximized:
+				sdlFlags |= .Maximized;
+			case .Fullscreen:
+				sdlFlags |= .FullscreenDesktop;
+			}
+
+			window = SDL.CreateWindow(scope String(name).CStr(), .Centered, .Centered, (.)width, (.)height, sdlFlags);
 			windowID = SDL.GetWindowID(window);
 
 			// Set current values
@@ -48,8 +57,8 @@ namespace Pile
 
 			if (dpi != 1)
 			{
-				SDL.GetDesktopDisplayMode(index, let mode);
-				SDL.SetWindowPosition(window, (int32)(mode.w - width * dpi) / 2, (int32)(mode.h - height * dpi) / 2);
+				SDL.GetDesktopDisplayMode(index, let displayMode);
+				SDL.SetWindowPosition(window, (int32)(displayMode.w - width * dpi) / 2, (int32)(displayMode.h - height * dpi) / 2);
 				SDL.SetWindowSize(window, (int32)(width * dpi), (int32)(height * dpi));
 			}
 		}

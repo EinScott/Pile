@@ -102,7 +102,7 @@ namespace Pile
 			Path.InternalCombine(logPath, Core.System.UserPath, @"log.txt");
 
 			// Make sure init output is saved at least once
-			if (!File.Exists(logPath))
+			if (!File.Exists(logPath) && SaveOnError)
 				SaveToFile().IgnoreError();
 		}
 
