@@ -91,7 +91,7 @@ namespace Pile
 				System.DetermineDataPaths(Title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
-				Window = new Window(prefs.windowTitle.Ptr == null ? prefs.gameTitle : prefs.windowTitle, prefs.windowWidth, prefs.windowHeight, prefs.windowMode);
+				Window = new Window(prefs.windowTitle.Ptr == null ? prefs.gameTitle : prefs.windowTitle, prefs.windowWidth, prefs.windowHeight, prefs.windowState);
 				Input = new Input();
 
 				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");

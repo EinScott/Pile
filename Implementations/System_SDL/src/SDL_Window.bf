@@ -14,18 +14,22 @@ namespace Pile
 
 		internal SDL_Context context = null;
 
-		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowMode mode)
+		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowState state)
 		{
 			SDL.WindowFlags sdlFlags = .Shown | .AllowHighDPI;
 			if (Core.System.glGraphics) sdlFlags |= .OpenGL;
 
-			switch (mode)
+			switch (state)
 			{
 			case .Windowed:
+			case .WindowedBorderless:
+				sdlFlags |= .Borderless;
+				bordered = false;
 			case .Maximized:
 				sdlFlags |= .Maximized;
 			case .Fullscreen:
 				sdlFlags |= .FullscreenDesktop;
+				fullscreen = true;
 			}
 
 			window = SDL.CreateWindow(scope String(name).CStr(), .Centered, .Centered, (.)width, (.)height, sdlFlags);

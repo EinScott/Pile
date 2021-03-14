@@ -20,6 +20,15 @@ namespace System.IO
 				cleanPath.RemoveFromEnd(1);
 		}
 
+		/// Will force the path to forward slashes
+		/// This will modify on given string
+		public static void Unify(String unifyPath)
+		{
+			unifyPath.Replace('\\', '/');
+			if (unifyPath.EndsWith('/'))
+				unifyPath.RemoveFromEnd(1);
+		}
+
 		public static void InternalCombineViews(String target, params StringView[] components)
 		{
 			for (var component in components)

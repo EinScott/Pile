@@ -20,6 +20,7 @@ namespace Pile
 		[Serializable]
 		internal class PackageData
 		{
+			public bool use_path_names;
 			public List<ImportData> imports ~ DeleteContainerAndItems!(_);
 
 			[Serializable]
@@ -428,11 +429,14 @@ namespace Pile
 			return .Ok;
 		}
 
-		static mixin GetScopedAssetName(StringView filePath, PackageData.ImportData import)
+		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath, PackageData config, PackageData.ImportData import)
 		{
 			let s = scope:mixin String();
 			if (import.name_prefix != null) s.Append(import.name_prefix);
-			Path.GetFileNameWithoutExtension(filePath, s);
+
+			if (config.use_path_names) // Make it use the relative path with uniform forward slashes
+				s.Append(Path.Unify(.. Path.GetRelativePath(filePath, assetsFolderPath, .. scope .())));
+			else Path.GetFileNameWithoutExtension(filePath, s);
 			s
 		}
 
@@ -447,6 +451,13 @@ namespace Pile
 			{
 				delete packageData;
 				return .Err;
+			}
+
+			String assetsFolderPath = null;
+			if (packageData.use_path_names) // If we use relative path names as names, we need the path to make it relative to
+			{
+				Path.GetDirectoryPath(cPackageBuildFilePath, assetsFolderPath = new .());
+				defer:: delete assetsFolderPath;
 			}
 
 			// Package data
@@ -552,9 +563,13 @@ namespace Pile
 					{
 						path.Trim();
 
-						let fullPath = Path.Clean(.. (Path.IsPathRooted(path)
-							? scope String(path)
-							: Path.InternalCombineViews(.. scope String(), rootPath, path)));
+						if (Path.IsPathRooted(path))
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a relative and direct path to items contained inside the asset folder");
+
+						let fullPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), rootPath, path));
+
+						if (fullPath.Contains("../") || fullPath.EndsWith("/..") || fullPath == "..")
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
 
 						// Check if containing folder exists
 						let dirPath = scope String();
@@ -595,7 +610,7 @@ namespace Pile
 										if (!entry.IsDirectory)
 										{
 											// Hash name
-											let s = GetScopedAssetName!(enumeratePath, import);
+											let s = GetScopedAssetName!(enumeratePath, assetsFolderPath, packageData, import);
 											hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
 
 											let includeFilePath = scope:IMPORT String(enumeratePath);
@@ -632,7 +647,7 @@ namespace Pile
 					for (var filePath in includePaths) // For each INCLUDED file (which might already be in last build)
 					{
 						// Make name
-						let name = GetScopedAssetName!(filePath, import);
+						let name = GetScopedAssetName!(filePath, assetsFolderPath, packageData, import);
 
 						if (name.Length == 0)
 						{

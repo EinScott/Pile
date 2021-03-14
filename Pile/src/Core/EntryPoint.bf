@@ -9,7 +9,7 @@ namespace Pile
 {
 	public struct RunPreferences
 	{
-		public WindowMode windowMode;
+		public WindowState windowState;
 		public uint32 windowWidth = 1280;
 		public uint32 windowHeight = 720;
 		public StringView gameTitle;
@@ -42,7 +42,7 @@ namespace Pile
 			// In debug, run this on actual execute for debugging perks
 			TrySilent!(RunPackager());
 #endif
-
+			
 			// Run onStart
 			Core.Assert(OnStart() case .Ok, "Error in OnStart");
 			OnStart.Dispose();
