@@ -1,3 +1,4 @@
+#if BF_PLATFORM_WINDOWS
 namespace System
 {
 	extension Windows
@@ -11,3 +12,4 @@ namespace System
 		public static extern COM_IUnknown.HResult SHGetKnownFolderPath(Guid rfid, uint32 dwFlags, Handle hToken, char16** ppszPath);
 	}
 }
+#endif
