@@ -12,6 +12,14 @@ RuntimeChecks = false
 EmitDynamicCastCheck = false
 EmitObjectAccessCheck = false
 
+[[Configs.Test.Win64.DistinctOptions]]
+Filter = "OpenGL43.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "LinesOnly"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
 [[Configs.Release.Win64.DistinctOptions]]
 Filter = "OpenGL43.*"
 BfOptimizationLevel = "O3"
@@ -19,3 +27,28 @@ EmitDebugInfo = "LinesOnly"
 RuntimeChecks = false
 EmitDynamicCastCheck = false
 EmitObjectAccessCheck = false
+
+[[Configs.Debug.Linux64.DistinctOptions]]
+Filter = "OpenGL43.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "LinesOnly"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
+[[Configs.Test.Linux64.DistinctOptions]]
+Filter = "OpenGL43.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "LinesOnly"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+
+[[Configs.Release.Linux64.DistinctOptions]]
+Filter = "OpenGL43.*"
+BfOptimizationLevel = "O3"
+EmitDebugInfo = "LinesOnly"
+RuntimeChecks = false
+EmitDynamicCastCheck = false
+EmitObjectAccessCheck = false
+

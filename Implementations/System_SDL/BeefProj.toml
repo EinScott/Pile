@@ -10,6 +10,32 @@ BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
+[Configs.Test.Win64]
+BuildCommandsOnCompile = "IfFilesChanged"
+BuildCommandsOnRun = "IfFilesChanged"
+LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
+
+[Configs.Paranoid.Win64]
+LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
+PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
+
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
+
+[Configs.Debug.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+
+[Configs.Test.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+
+[Configs.Paranoid.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+
+[Configs.Release.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"

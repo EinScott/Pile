@@ -7,3 +7,6 @@ Name = "Pile"
 # on release we run the packager as part of the build process
 [Configs.Release.Win64]
 PostBuildCmds = ["Execute(\"$(TargetPath PileGame).exe -packager\")"]
+
+[Configs.Release.Linux64]
+PostBuildCmds = ["Execute(\"$(TargetPath PileGame) -packager\")"]
