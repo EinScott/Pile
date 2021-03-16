@@ -82,19 +82,19 @@ namespace Pile
 			Environment.GetEnvironmentVariable("XDG_DATA_HOME", userPath);
 			if (!userPath.IsEmpty)
 			{
-				Path.Clean(Path.InternalCombine(.. scope .(), userPath, lowerTitle), userDir);
+				Path.Clean(Path.InternalCombine(.. scope .(), userPath, fsTitle), userDir);
 			}
 			else
 			{
 				Environment.GetEnvironmentVariable("HOME", userPath);
 				if (!userPath.IsEmpty)
-					Path.Clean(Path.InternalCombine(.. scope .(), userPath, ".local", "share", lowerTitle), userDir);
+					Path.Clean(Path.InternalCombine(.. scope .(), userPath, ".local", "share", fsTitle), userDir);
 			}
 #endif
 #if BF_PLATFORM_MACOS
 			Environment.GetEnvironmentVariable("HOME", userPath);
 			if (!userPath.IsEmpty)
-				Path.Clean(Path.InternalCombine(.. scope .(), userPath, "Library", "Application Support", lowerTitle), userDir);
+				Path.Clean(Path.InternalCombine(.. scope .(), userPath, "Library", "Application Support", fsTitle), userDir);
 #endif
 
 			if (userDir.IsEmpty)
