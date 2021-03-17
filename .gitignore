@@ -1,3 +1,6 @@
 build/
 recovery/
 BeefSpace_User.toml
+
+#ignore dist folders for linux
+linux64/

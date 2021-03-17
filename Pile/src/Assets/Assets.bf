@@ -10,7 +10,7 @@ namespace Pile
 	[Optimize]
 	public class Assets
 	{
-		Packer packer = new Packer() { /*combineDuplicates = true*/ } ~ delete _; // todo: improve packer image hashing
+		Packer packer = new Packer() ~ delete _;
 		List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
 
 		Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>() ~
