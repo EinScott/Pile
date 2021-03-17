@@ -38,10 +38,8 @@ namespace Pile
 		public static Event<delegate void(Types type, String message)> OnLine;
 
 #if DEBUG // Different defaults
-		public static bool SaveOnError = false;
 		public static bool PrintToConsole = true;
 #else
-		public static bool SaveOnError = true;
 		public static bool PrintToConsole = false;
 #endif
 
@@ -77,7 +75,7 @@ namespace Pile
 			}
 		}
 
-		static bool discontinued;
+		internal static bool discontinued;
 		static int writeIndex = 0;
 
 		static String[] record = new String[RecordLength];
@@ -100,10 +98,6 @@ namespace Pile
 		internal static void Initialize()
 		{
 			Path.InternalCombine(logPath, Core.System.UserPath, @"log.txt");
-
-			// Make sure init output is saved at least once
-			if (!File.Exists(logPath) && SaveOnError)
-				SaveToFile().IgnoreError();
 		}
 
 		// Logging functions
@@ -140,25 +134,16 @@ namespace Pile
 		public static void Error(String message)
 		{
 			Log(.Error, message);
-			
-			if (SaveOnError)
-				SaveToFile().IgnoreError();
 		}
 		public static void Error(Object message)
 		{
 			Log(.Error, message);
-
-			if (SaveOnError)
-				SaveToFile().IgnoreError();
 		}
 		public static void Error(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
 			message.AppendF(format, params inserts).IgnoreError();
 			Log(.Error, message);
-
-			if (SaveOnError)
-				SaveToFile().IgnoreError();
 		}
 
 		// Actually log lines
@@ -223,6 +208,29 @@ namespace Pile
 		
 		// Save log record (and clear record)
 
+		public static new void ToString(String buffer)
+		{
+			buffer.Append(Environment.NewLine);
+			DateTime.UtcNow.ToString(buffer, "yyyy-MM-dd\"T\"HH:mm:ss\" UTC (Local offset: \"");
+			TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).Hours.ToString(buffer);
+			buffer..Append(")").Append(Environment.NewLine);
+
+			// Save and empty log
+
+			// writeIndex is where we *would* write next, and since the newest output (index before this)
+			// is printed last, we start here at the (if existent) oldest and go around once
+			for (int x = 0, int i = writeIndex; x < RecordLength; x++, i = (i + 1) < RecordLength ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
+			{
+				// Skip empty/cleared lines
+				if (record[i].Length == 0)
+					continue;
+
+				// Append string
+				buffer.Append(record[i]);
+				buffer.Append(Environment.NewLine);
+			}
+		}
+
 		public static Result<void> SaveToFile(String path = logPath)
 		{
 			var directory = scope String();
@@ -243,25 +251,7 @@ namespace Pile
 			if (discontinued) fileLog.Append("CONTINUES LOG FROM BELOW");
 			else fileLog.Append("START OF LOG OUTPUT");
 
-			fileLog.Append(Environment.NewLine);
-			DateTime.UtcNow.ToString(fileLog, "yyyy-MM-dd\"T\"HH:mm:ss\" UTC (Local offset: \"");
-			TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).Hours.ToString(fileLog);
-			fileLog..Append(")").Append(Environment.NewLine);
-
-			// Save and empty log
-
-			// writeIndex is where we *would* write next, and since the newest output (index before this)
-			// is printed last, we start here at the (if existent) oldest and go around once
-			for (int x = 0, int i = writeIndex; x < RecordLength; x++, i = (i + 1) < RecordLength ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
-			{
-				// Skip empty/cleared lines
-				if (record[i].Length == 0)
-					continue;
-
-				// Append string
-				fileLog.Append(record[i]);
-				fileLog.Append(Environment.NewLine);
-			}
+			ToString(fileLog);
 			ClearRecord();
 
 			// Append possibly existing file
