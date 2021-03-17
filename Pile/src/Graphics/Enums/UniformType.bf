@@ -47,7 +47,7 @@ namespace Pile
 			case .Sampler:
 				return sizeof(Texture) * length;
 			default:
-				Core.FatalError("Unknown uniform type");
+				Runtime.FatalError("Unknown uniform type");
 			}
 		}
 	}

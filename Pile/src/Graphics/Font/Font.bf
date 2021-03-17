@@ -25,14 +25,14 @@ namespace Pile
 
 		public this(Span<uint8> buffer)
 		{
-			Core.Assert(buffer.Length > 0 && stbtt.stbtt__isfont(&buffer[0]) == 1, "Invalid font buffer");
+			Runtime.Assert(buffer.Length > 0 && stbtt.stbtt__isfont(&buffer[0]) == 1, "Invalid font buffer");
 
 		    fontBuffer = new uint8[buffer.Length];
 			buffer.CopyTo(fontBuffer);
 		    fontInfo = new stbtt_fontinfo();
 
 		    let res = stbtt.stbtt_InitFont(fontInfo, &fontBuffer[0], 0);
-			Core.Assert(res == 1, "Failed to load font from buffer");
+			Runtime.Assert(res == 1, "Failed to load font from buffer");
 
 		    GetName(fontInfo, 1, FamilyName);
 		    GetName(fontInfo, 2, StyleName);

@@ -12,7 +12,7 @@ namespace Pile
 
 		public this(uint32 width, uint32 height, Span<Color> pixels)
 		{
-			Core.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
+			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
 			Width = width;
 			Height = height;
@@ -23,7 +23,7 @@ namespace Pile
 
 		public this(uint32 width, uint32 height)
 		{
-			Core.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
+			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 
 			Width = width;
 			Height = height;
@@ -43,13 +43,13 @@ namespace Pile
 			[Checked, Inline]
 			get
 			{
-				Core.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				Runtime.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
 				return ref Pixels[x + y * Width];
 			}
 			[Checked]
 			set
 			{
-				Core.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				Runtime.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
 				Pixels[x + y * Width] = value;
 			}
 
@@ -71,14 +71,14 @@ namespace Pile
 			[Checked, Inline]
 			get
 			{
-				Core.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				Runtime.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
 				return ref Pixels[(.)(x + y * Width)];
 			}
 
 			[Checked]
 			set
 			{
-				Core.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
+				Runtime.Assert(x < Width && y < Height, "Trying to access pixel outside of bitmap");
 				Pixels[(.)(x + y * Width)] = value;
 			}
 
@@ -111,7 +111,7 @@ namespace Pile
 		/// Buffered will only reallocate if pixel buffer isnt long enough
 		public void Reset(uint32 width, uint32 height, Span<Color> pixels, bool buffered = false)
 		{
-			Core.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
+			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
 			Width = width;
 			Height = height;
@@ -128,7 +128,7 @@ namespace Pile
 		/// Buffered will only reallocate if pixel buffer isnt long enough
 		public void ResizeAndClear(uint32 width, uint32 height, bool buffered = false)
 		{
-			Core.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
+			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 
 			Width = width;
 			Height = height;
@@ -148,14 +148,14 @@ namespace Pile
 
 		public void SetPixels(Span<Color> pixels)
 		{
-			Core.Assert(Width * Height <= pixels.Length, "Number of Pixels in array needs to be at least Width * Height");
+			Runtime.Assert(Width * Height <= pixels.Length, "Number of Pixels in array needs to be at least Width * Height");
 
 			pixels.CopyTo(Pixels);
 		}
 
 		public void SetPixels(Rect dest, Span<Color> pixels)
 		{
-			Core.Assert(dest.Width > 0 && dest.Height > 0 && dest.Width * dest.Height <= pixels.Length, "Destination Rect Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Destination.Width * Destination.Height");
+			Runtime.Assert(dest.Width > 0 && dest.Height > 0 && dest.Width * dest.Height <= pixels.Length, "Destination Rect Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Destination.Width * Destination.Height");
 
 			let dst = Span<Color>(Pixels);
 

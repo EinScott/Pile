@@ -214,9 +214,9 @@ namespace Pile
 			{
 				// Assure valid access
 				if (Uniform.Type != expected)
-					Core.FatalError(scope $"Material Parameter {Uniform.Name} was expected to be of UniformType {expected} instead of {Uniform.Type}");
+					Runtime.FatalError(scope $"Material Parameter {Uniform.Name} was expected to be of UniformType {expected} instead of {Uniform.Type}");
 				if (index < 0 || index >= Uniform.Length)
-					Core.FatalError(scope $"The Size of Material Parameter {Uniform.Name} is {Uniform.Length}, but was trying to access index {index}");
+					Runtime.FatalError(scope $"The Size of Material Parameter {Uniform.Name} is {Uniform.Length}, but was trying to access index {index}");
 			}
 		}
 
@@ -265,7 +265,7 @@ namespace Pile
 					if (param.Uniform.Name == name)
 						return ref param;
 
-				Core.FatalError("Couldn't find Parameter with given name on material");
+				Runtime.FatalError("Couldn't find Parameter with given name on material");
 			}
 		}
 

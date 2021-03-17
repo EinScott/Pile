@@ -44,11 +44,11 @@ namespace Pile
 #endif
 			
 			// Run onStart
-			Core.Assert(OnStart() case .Ok, "Error in OnStart");
+			Runtime.Assert(OnStart() case .Ok, "Error in OnStart");
 			OnStart.Dispose();
 			
 			// Run with registered settings
-			Core.Assert(Core.Run(Preferences) case .Ok, "Error while running");
+			Runtime.Assert(Core.Run(Preferences) case .Ok, "Error while running");
 
 			return 0;
 		}

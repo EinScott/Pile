@@ -107,7 +107,7 @@ namespace Pile
 			if (!Directory.Exists(userDir))
 			{
 				if (Directory.CreateDirectory(userDir) case .Err(let err))
-					Core.FatalError(scope $"Couldn't create directory for UserPath: {err}");
+					Runtime.FatalError(scope $"Couldn't create directory for UserPath: {err}");
 			}
 		}
 

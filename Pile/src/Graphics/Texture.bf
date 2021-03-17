@@ -91,7 +91,7 @@ namespace Pile
 		public void SetColor(ref Span<Color> buffer) => SetData<Color>(ref buffer);
 		public void SetData<T>(ref Span<T> buffer)
 		{
-			Core.Assert(sizeof(T) * buffer.Length * sizeof(T) >= (.)Size, "Buffer size must be at least equal to the size of the texture");
+			Runtime.Assert(sizeof(T) * buffer.Length * sizeof(T) >= (.)Size, "Buffer size must be at least equal to the size of the texture");
 
 			SetData(&buffer[0]);
 		}
@@ -99,7 +99,7 @@ namespace Pile
 		public void GetColor(ref Span<Color> buffer) => GetData<Color>(ref buffer);
 		public void GetData<T>(ref Span<T> buffer)
 		{
-			Core.Assert(sizeof(T) * buffer.Length * sizeof(T) >= (.)Size, "Buffer size must be at least equal to the size of the texture");
+			Runtime.Assert(sizeof(T) * buffer.Length * sizeof(T) >= (.)Size, "Buffer size must be at least equal to the size of the texture");
 
 			GetData(&buffer[0]);
 		}

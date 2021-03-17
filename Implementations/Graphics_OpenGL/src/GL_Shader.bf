@@ -44,7 +44,7 @@ namespace Pile
 						var s = scope char8[len];
 
 						GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
-						Core.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
+						Runtime.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
 					}
 				}
 			}
@@ -149,7 +149,7 @@ namespace Pile
 
 						GL.glGetShaderInfoLog(id, len, &len, &s[0]);
 
-						Core.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(&s[0], len)));
+						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(&s[0], len)));
 					}
 				}
 
