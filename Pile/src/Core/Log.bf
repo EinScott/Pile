@@ -210,12 +210,9 @@ namespace Pile
 
 		public static new void ToString(String buffer)
 		{
-			buffer.Append(Environment.NewLine);
 			DateTime.UtcNow.ToString(buffer, "yyyy-MM-dd\"T\"HH:mm:ss\" UTC (Local offset: \"");
 			TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).Hours.ToString(buffer);
 			buffer..Append(")").Append(Environment.NewLine);
-
-			// Save and empty log
 
 			// writeIndex is where we *would* write next, and since the newest output (index before this)
 			// is printed last, we start here at the (if existent) oldest and go around once
@@ -251,6 +248,8 @@ namespace Pile
 			if (discontinued) fileLog.Append("CONTINUES LOG FROM BELOW");
 			else fileLog.Append("START OF LOG OUTPUT");
 
+			// Get log contents and clear
+			fileLog.Append(Environment.NewLine);
 			ToString(fileLog);
 			ClearRecord();
 

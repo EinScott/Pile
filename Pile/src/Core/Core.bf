@@ -112,6 +112,7 @@ namespace Pile
 			Assets = new Assets();
 			Log.Initialize();
 			Performance.Initialize();
+			BeefPlatform.Initialize();
 
 			w.Stop();
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");

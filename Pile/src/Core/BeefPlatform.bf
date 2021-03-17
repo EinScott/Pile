@@ -4,15 +4,15 @@ using internal Pile;
 
 namespace Pile
 {
-	[AlwaysInclude, StaticInitPriority(-10)]
 	static class BeefPlatform
 	{
+		/// Only has an effect when set before Core.Run() (i. e. during static initialization or OnStart)
 		public static bool OfferCrashRelaunch = true;
 
 		[CallingConvention(.Stdcall), CLink]
 		private static extern void BfpSystem_AddCrashInfo(char8* str);
 
-		static this()
+		internal static void Initialize()
 		{
 			Runtime.[Friend]AddCrashInfoFunc((void*)((function void()) => OnCrash));
 			if (OfferCrashRelaunch)
@@ -28,11 +28,11 @@ namespace Pile
 
 		static void OnCrash()
 		{
-			if (!Core.run) // Don't do this on static init or when Pile wasn't used
-				return;
-
-			let logStr = new String("\nPILE LOG RECORD");
+			let logStr = new String(256);
+			logStr.Append(Environment.NewLine);
+			logStr.Append("PILE LOG RECORD");
 			if (Log.discontinued) logStr.Append(" - only newest part (by default, see log.txt at the game's save location)");
+			logStr.Append(Environment.NewLine);
 			BfpSystem_AddCrashInfo(Log.ToString(.. logStr).CStr());
 		}
 	}
