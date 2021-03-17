@@ -26,12 +26,12 @@ namespace Pile
 		static void* GetProcAddress(StringView procName) => system.GetGLProcAddress(procName);
 		static ISystemOpenGL system;
 
-		private delegate void DeleteResource(ref uint32 id);
-		readonly DeleteResource deleteTexture = new (id) => glDeleteTextures(1, &id);
-		readonly DeleteResource deleteBuffer = new (id) => glDeleteBuffers(1, &id);
-		readonly DeleteResource deleteProgram = new (id) => glDeleteProgram(id);
-		readonly DeleteResource deleteVertexArray = new (id) => glDeleteVertexArrays(1, &id);
-		readonly DeleteResource deleteFrameBuffer = new (id) => glDeleteFramebuffers(1, &id);
+		private function void DeleteResource(ref uint32 id);
+		static void DeleteTexture(ref uint32 id) => glDeleteTextures(1, &id);
+		static void DeleteBuffer(ref uint32 id) => glDeleteBuffers(1, &id);
+		static void DeleteProgram(ref uint32 id) => glDeleteProgram(id);
+		static void DeleteVertexArray(ref uint32 id) => glDeleteVertexArrays(1, &id);
+		static void DeleteFrameBuffer(ref uint32 id) => glDeleteFramebuffers(1, &id);
 
 		// These were in context's ContextMeta class before and can be put back if we ever need multiple contexts
 		bool forceScissorUpdate;
@@ -63,12 +63,6 @@ namespace Pile
 			system = null;
 
 			RunDeleteLists();
-
-			delete deleteTexture;
-			delete deleteBuffer;
-			delete deleteProgram;
-			delete deleteVertexArray;
-			delete deleteFrameBuffer;
 		}
 
 		protected internal override void Initialize()
@@ -111,6 +105,7 @@ namespace Pile
 			}
 		}
 
+		[Inline]
 		protected internal override void Step()
 		{
 			RunDeleteLists();
@@ -118,20 +113,20 @@ namespace Pile
 
 		void RunDeleteLists()
 		{
-			DeleteResources(deleteTexture, texturesToDelete);
-			DeleteResources(deleteBuffer, buffersToDelete);
-			DeleteResources(deleteProgram, programsToDelete);
-			DeleteResources(deleteVertexArray, vertexArraysToDelete);
-			DeleteResources(deleteFrameBuffer, frameBuffersToDelete);
-		}
+			DeleteResources(=> DeleteTexture, texturesToDelete);
+			DeleteResources(=> DeleteBuffer, buffersToDelete);
+			DeleteResources(=> DeleteProgram, programsToDelete);
+			DeleteResources(=> DeleteVertexArray, vertexArraysToDelete);
+			DeleteResources(=> DeleteFrameBuffer, frameBuffersToDelete);
 
-		private void DeleteResources(DeleteResource deleter, List<uint32> list)
-		{
-			if (list.Count > 0)
+			void DeleteResources(DeleteResource deleter, List<uint32> list)
 			{
-				for (int i = list.Count - 1; i >= 0; i--)
-					deleter(ref list[i]);
-				list.Clear();
+				if (list.Count > 0)
+				{
+					for (int i = list.Count - 1; i >= 0; i--)
+						deleter(ref list[[Unchecked]i]);
+					list.Clear();
+				}
 			}
 		}
 
