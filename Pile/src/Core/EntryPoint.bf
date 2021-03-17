@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public struct RunPreferences
+	public struct RunConfig
 	{
 		public WindowState windowState;
 		public uint32 windowWidth = 1280;
@@ -21,7 +21,7 @@ namespace Pile
 	public static class EntryPoint
 	{
 		public static Event<delegate Result<void>()> OnStart ~ OnStart.Dispose();
-		public static RunPreferences Preferences = .();
+		public static RunConfig Config = .();
 		
 		public static String[] CommandLine;
 
@@ -48,7 +48,7 @@ namespace Pile
 			OnStart.Dispose();
 			
 			// Run with registered settings
-			Runtime.Assert(Core.Run(Preferences) case .Ok, "Error while running");
+			Runtime.Assert(Core.Run(Config) case .Ok, "Error while running");
 
 			return 0;
 		}

@@ -57,21 +57,21 @@ namespace Pile
 
 		static Game Game;
 
-		internal static Result<void> Run(RunPreferences prefs)
+		internal static Result<void> Run(RunConfig config)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(prefs.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
-			Debug.Assert(prefs.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
+			Debug.Assert(config.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
+			Debug.Assert(config.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
 			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
-			let game = prefs.createGame();
+			let game = config.createGame();
 			Debug.Assert(game != null, "Game cannot be null");
 
 			run = true;
 
 			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
-			Title.Set(prefs.gameTitle);
+			Title.Set(config.gameTitle);
 			System = new System();
 			Graphics = new Graphics();
 			Audio = new Audio();
@@ -91,7 +91,7 @@ namespace Pile
 				System.DetermineDataPaths(Title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
-				Window = new Window(prefs.windowTitle.Ptr == null ? prefs.gameTitle : prefs.windowTitle, prefs.windowWidth, prefs.windowHeight, prefs.windowState);
+				Window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
 				Input = new Input();
 
 				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
