@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class Subtexture
+	class Subtexture
 	{
 		public readonly Vector2[4] TexCoords { get; private set; }
  		public readonly Point2[4] DrawCoords { get; private set; }
@@ -90,7 +90,7 @@ namespace Pile
 		    return new Subtexture(Texture, source, frame);
 		}
 
-		private void UpdateCoords()
+		void UpdateCoords()
 		{
 		    DrawCoords[0].X = -frame.X;
 		    DrawCoords[0].Y = -frame.Y;

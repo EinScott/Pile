@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public interface IRenderTarget
+	interface IRenderTarget
 	{
 		public bool Renderable { get; }
 

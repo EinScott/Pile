@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public interface ISystemOpenGL
+	interface ISystemOpenGL
 	{
 		public abstract class Context
 		{

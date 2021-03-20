@@ -4,7 +4,7 @@ using System.Collections;
 namespace Pile
 {
 	[RegisterImporter]
-	public class RawImporter : Importer
+	class RawImporter : Importer
 	{
 		public virtual String Name => "raw";
 
@@ -28,7 +28,7 @@ namespace Pile
 		}
 	}
 
-	public class RawAsset
+	class RawAsset
 	{
 		public readonly StringView text;
 		public readonly uint8[] data ~ delete _;

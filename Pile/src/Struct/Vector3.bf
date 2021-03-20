@@ -7,7 +7,7 @@ using System;
 namespace Pile
 {
 	[Ordered]
-	public struct Vector3 : IFormattable, IEquatable<Vector3>, IEquatable
+	struct Vector3 : IFormattable, IEquatable<Vector3>, IEquatable
 	{
 		public const Vector3 Zero = .(0, 0, 0);
 		public const Vector3 One = .(1, 1, 1);

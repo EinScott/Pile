@@ -4,7 +4,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Audio
+	class Audio
 	{
 		public extern uint32 MajorVersion { get; }
 		public extern uint32 MinorVersion { get; }

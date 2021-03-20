@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pile
 {
-	public class SpriteFont
+	class SpriteFont
 	{
 		public class Character
 		{

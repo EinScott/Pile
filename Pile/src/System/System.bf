@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class System
+	class System
 	{
 		public extern uint32 MajorVersion { get; }
 		public extern uint32 MinorVersion { get; }

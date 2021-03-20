@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Texture
+	class Texture
 	{
 		public static TextureFilter DefaultTextureFilter = TextureFilter.Linear;
 
@@ -41,7 +41,7 @@ namespace Pile
 
 		public this(uint32 width, uint32 height, TextureFormat format = .Color, TextureFilter filter = DefaultTextureFilter)
 		{
-			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
+			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
 			Debug.Assert(width > 0 && height > 0, "Texture size must be larger than 0");
 

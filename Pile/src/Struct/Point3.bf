@@ -3,7 +3,7 @@ using System;
 namespace Pile
 {
 	[Ordered]
-	public struct Point3 : IFormattable, IEquatable<Point3>, IEquatable
+	struct Point3 : IFormattable, IEquatable<Point3>, IEquatable
 	{
 		public const Point3 Zero = .(0, 0, 0);
 		public const Point3 One = .(1, 1, 1);

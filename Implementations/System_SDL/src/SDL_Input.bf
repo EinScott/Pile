@@ -221,7 +221,7 @@ namespace Pile
 			}
 		}
 		
-		private static Buttons GamepadButtonToEnum(uint8 button)
+		static Buttons GamepadButtonToEnum(uint8 button)
 		{
 			Buttons output;
 		    switch (button)
@@ -246,7 +246,7 @@ namespace Pile
 			return output;
 		}
 
-		private static Axes GamepadAxisToEnum(uint8 axes)
+		static Axes GamepadAxisToEnum(uint8 axes)
 		{
 			Axes output;
 		    switch (axes)
@@ -261,7 +261,7 @@ namespace Pile
 			return output;
 		}
 
-		private static Keys KeycodeToEnum(SDL.Keycode keycode)
+		static Keys KeycodeToEnum(SDL.Keycode keycode)
 		{
 			Keys output;
 			switch (keycode)

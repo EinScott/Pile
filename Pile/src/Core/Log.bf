@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Pile
 {
 	[Optimize]
-	public static class Log
+	static class Log
 	{
 		public enum Types
 		{
@@ -54,7 +54,7 @@ namespace Pile
 				{
 					// Create new
 					let newRec = new String[value];
-					for (int i = 0; i < value; i++)
+					for (int i < value)
 						newRec[i] = new String(64);
 
 					// Copy over all common content
@@ -65,7 +65,7 @@ namespace Pile
 					}
 
 					// Delete old
-					for (int i = 0; i < recordLength; i++)
+					for (int i < recordLength)
 						delete record[i];
 					delete record;
 
@@ -84,13 +84,13 @@ namespace Pile
 
 		static this()
 		{
-			for (int i = 0; i < RecordLength; i++)
+			for (int i < RecordLength)
 				record[i] = new String(64);
 		}
 
 		static ~this()
 		{
-			for (int i = 0; i < RecordLength; i++)
+			for (int i < RecordLength)
 				delete record[i];
 			delete record;
 		}

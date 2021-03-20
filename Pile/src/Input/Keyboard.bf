@@ -2,18 +2,18 @@ using System;
 
 namespace Pile
 {
-	public struct Keyboard
+	struct Keyboard
 	{
 		public const int MaxKeys = 400;
 
 		readonly Input input;
 
-		internal readonly bool[] pressed = new bool[MaxKeys];
-		internal readonly bool[] down = new bool[MaxKeys];
-		internal readonly bool[] released = new bool[MaxKeys];
-		internal readonly int64[] timestamp = new int64[MaxKeys];
+		internal bool[MaxKeys] pressed = .();
+		internal bool[MaxKeys] down = .();
+		internal bool[MaxKeys] released = .();
+		internal int64[MaxKeys] timestamp = .();
 
-		public readonly String Text = new String();
+		public readonly String Text = new String(8);
 
 		internal this(Input input)
 		{
@@ -22,14 +22,10 @@ namespace Pile
 
 		internal void Dispose()
 		{
-			delete pressed;
-			delete down;
-			delete released;
-			delete timestamp;
 			delete Text;
 		}
 
-		internal void Step()
+		internal void Step() mut
 		{
 			for (int i = 0; i < MaxKeys; i++)
 			{
@@ -40,12 +36,12 @@ namespace Pile
 			Text.Clear();
 		}
 
-		internal void Copy(Keyboard from)
+		internal void Copy(Keyboard from) mut
 		{
-			from.pressed.CopyTo(pressed);
-			from.down.CopyTo(down);
-			from.released.CopyTo(released);
-			from.timestamp.CopyTo(timestamp);
+			pressed = from.pressed;
+			down = from.down;
+			released = from.released;
+			timestamp = from.timestamp;
 
 			Text.Clear();
 			Text.Append(from.Text);

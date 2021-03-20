@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	public enum RoutineReturn
+	enum RoutineReturn
 	{
 		case Continue; // Simply returns
 		case Break; // Stop the routine and lastly call end if not null
@@ -16,7 +16,7 @@ namespace Pile
 		case ChangePhase(int index); // Change current index of phase array
 	}
 
-	public interface IRoutine
+	interface IRoutine
 	{
 		public bool Done { get; }
 
@@ -26,7 +26,7 @@ namespace Pile
 	}
 
 	/// For convenience, you probably just want TData to be a tuple like (float amount, int iter, int end, Routine wait) or something
-	public class Routine<TData> : IRoutine where TData : struct
+	class Routine<TData> : IRoutine where TData : struct
 	{
 		public function RoutineReturn RoutineUpdate(ref TData data);
 		public function void RoutineEnd(ref TData data);

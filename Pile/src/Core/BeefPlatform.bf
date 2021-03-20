@@ -10,7 +10,7 @@ namespace Pile
 		public static bool OfferCrashRelaunch = true;
 
 		[CallingConvention(.Stdcall), CLink]
-		private static extern void BfpSystem_AddCrashInfo(char8* str);
+		static extern void BfpSystem_AddCrashInfo(char8* str);
 
 		internal static void Initialize()
 		{

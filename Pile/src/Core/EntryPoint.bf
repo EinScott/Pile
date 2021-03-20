@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public struct RunConfig
+	struct RunConfig
 	{
 		public WindowState windowState;
 		public uint32 windowWidth = 1280;
@@ -17,8 +17,8 @@ namespace Pile
 		public function Game() createGame;
 	}
 
-	[Optimize,StaticInitPriority(100)]
-	public static class EntryPoint
+	[Optimize, StaticInitPriority(PILE_SINIT_ENTRY)]
+	static class EntryPoint
 	{
 		public static Event<delegate Result<void>()> OnStart ~ OnStart.Dispose();
 		public static RunConfig Config = .();

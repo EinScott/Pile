@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public struct VertexAttribute : IDisposable
+	struct VertexAttribute : IDisposable
 	{
 		readonly String name = new String();
 		public StringView Name => name;

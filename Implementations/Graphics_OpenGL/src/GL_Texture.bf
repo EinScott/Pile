@@ -47,12 +47,12 @@ namespace Pile
 		{
 			if (textureID != 0)
 			{
-				Core.Graphics.texturesToDelete.Add(textureID);
+				Graphics.texturesToDelete.Add(textureID);
 				textureID = 0;
 			}
 		}
 
-		private void Create(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
+		void Create(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
 		{
 			GL.glGenTextures(1, &textureID);
 			Prepare();

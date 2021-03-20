@@ -3,7 +3,7 @@ using System;
 
 namespace Pile
 {
-	public static class Compression
+	static class Compression
 	{
 		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
 		{

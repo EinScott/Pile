@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public struct InputState
+	struct InputState
 	{
 		public Keyboard keyboard;
 		public Mouse mouse;
@@ -25,10 +25,7 @@ namespace Pile
 		internal void Dispose()
 		{
 			keyboard.Dispose();
-			mouse.Dispose();
 
-			for	(int i = 0; i < controllers.Count; i++)
-				controllers[i].Dispose();
 			delete controllers;
 		}
 

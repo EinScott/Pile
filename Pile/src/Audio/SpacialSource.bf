@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	public class SpacialSource : AudioSource
+	class SpacialSource : AudioSource
 	{
 		public extern Vector3 Position { get; set; }
 		public extern Vector3 Velocity { get; set; }

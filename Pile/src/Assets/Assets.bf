@@ -8,7 +8,7 @@ using internal Pile;
 namespace Pile
 {
 	[Optimize]
-	public class Assets
+	class Assets
 	{
 		Packer packer = new Packer() ~ delete _;
 		List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
@@ -185,8 +185,8 @@ namespace Pile
 			if (!Directory.Exists(packagesPath))
 				LogErrorReturn!(scope $"Couldn't load package {packageName}. Path directory doesn't exist: {packagesPath}");
 
-			for (int i = 0; i < loadedPackages.Count; i++)
-				if (loadedPackages[i].Name == packageName)
+			for (int i < loadedPackages.Count)
+				if (loadedPackages[[Unchecked]i].Name == packageName)
 					LogErrorReturn!(scope $"Package {packageName} is already loaded");
 
 			List<Packages.Node> nodes = new List<Packages.Node>();
@@ -259,10 +259,10 @@ namespace Pile
 		public Result<void> UnloadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Package package = null;
-			for (int i = 0; i < loadedPackages.Count; i++)
-				if (loadedPackages[i].Name == packageName)
+			for (int i < loadedPackages.Count)
+				if (loadedPackages[[Unchecked]i].Name == packageName)
 				{
-					package = loadedPackages[i];
+					package = loadedPackages[[Unchecked]i];
 					loadedPackages.RemoveAtFast(i);
 				}
 
@@ -533,10 +533,10 @@ namespace Pile
 			for (; i < output.Pages.Count; i++)
 			{
 				if (atlas.Count <= i)
-					atlas.Add(new Texture(output.Pages[i]));
-				else atlas[i].Set(output.Pages[i]);
+					atlas.Add(new Texture(output.Pages[[Unchecked]i]));
+				else atlas[[Unchecked]i].Set(output.Pages[[Unchecked]i]);
 
-				delete output.Pages[i];
+				delete output.Pages[[Unchecked]i];
 			}
 
 			// Delete unused textures from atlas
@@ -563,9 +563,9 @@ namespace Pile
 		// Basically copy-pasta from Dictionary.ValueEnumerator
 		public struct AssetEnumerator<TAsset> : IEnumerator<TAsset>, IResettable
 		{
-			private Dictionary<String, Object> mDictionary;
-			private int_cosize mIndex;
-			private TAsset mCurrent;
+			Dictionary<String, Object> mDictionary;
+			int_cosize mIndex;
+			TAsset mCurrent;
 
 			const int_cosize cDictEntry = 1;
 			const int_cosize cKeyValuePair = 2;

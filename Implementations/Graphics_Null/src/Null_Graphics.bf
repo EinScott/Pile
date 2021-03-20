@@ -4,14 +4,19 @@ using internal Pile;
 
 namespace Pile
 {
-	extension Graphics : IGraphicsOpenGL
+	extension Graphics
 	{
-		public override uint32 MajorVersion => 1;
-		public override uint32 MinorVersion => 0;
-		public override String ApiName => "Null Graphics";
-		public override String Info => String.Empty;
+		public static override String ApiName => "Null Graphics";
+		public static override String Info => String.Empty;
 
-		public override DebugDrawMode DebugDraw
+		static this
+		{
+			MajorVersion = 1;
+			MinorVersion = 0;
+			// renderer will default to dummy
+		}
+
+		public static override DebugDrawMode DebugDraw
 		{
 			get => .Disabled;
 
@@ -20,23 +25,18 @@ namespace Pile
 		}
 
 		[SkipCall]
-		protected internal override void Initialize() {}
+		protected internal static override void Initialize() {}
 
 		[SkipCall]
-		protected internal override void Step() {}
+		protected internal static override void Step() {}
 
 		[SkipCall]
-		protected internal override void AfterRender() {}
+		protected internal static override void AfterRender() {}
 
 		[SkipCall]
-		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
+		protected internal static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
 
 		[SkipCall]
-		protected internal override void RenderInternal(RenderPass pass) {}
-
-		public IGraphicsOpenGL.GLProfile Profile
-		{
-			get => .Core;
-		}
+		protected internal static override void RenderInternal(RenderPass pass) {}
 	}
 }

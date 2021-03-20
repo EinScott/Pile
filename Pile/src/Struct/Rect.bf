@@ -3,7 +3,7 @@ using System;
 namespace Pile
 {
 	[Ordered]
-	public struct Rect
+	struct Rect
 	{
 		public const Rect Zero = Rect();
 		public const Rect SizeOne = Rect(0, 0, 1, 1);

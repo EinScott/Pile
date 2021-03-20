@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public struct RenderPass
+	struct RenderPass
 	{
 		public IRenderTarget target;
 		public Rect? viewport;

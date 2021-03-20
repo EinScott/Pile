@@ -7,7 +7,7 @@ using System;
 namespace Pile
 {
 	[Ordered]
-	public struct Matrix3x2 : IFormattable, IEquatable<Matrix3x2>, IEquatable
+	struct Matrix3x2 : IFormattable, IEquatable<Matrix3x2>, IEquatable
 	{
 		public const Matrix3x2 Identity = Matrix3x2(
 			1, 0,

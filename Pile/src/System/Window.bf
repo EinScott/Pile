@@ -4,7 +4,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Window : IRenderTarget
+	class Window : IRenderTarget
 	{
 		public bool Closed { get; internal set; }
 

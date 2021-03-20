@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Pile
 {
-	public struct ReadOnlyList<T> : IEnumerable<T>
+	struct ReadOnlyList<T> : IEnumerable<T>
 	{
 		// Read only list wrapper
 		List<T> underlying;
@@ -141,9 +141,9 @@ namespace Pile
 
 		public struct Enumerator : IEnumerator<T>, IResettable
 		{
-	        private List<T> mList;
-	        private int mIndex;
-	        private T* mCurrent;
+	        List<T> mList;
+	        int mIndex;
+	        T* mCurrent;
 
 	        public this(List<T> list)
 	        {

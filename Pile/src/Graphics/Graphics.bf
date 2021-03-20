@@ -5,36 +5,35 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Graphics
+	[StaticInitPriority(PILE_SINIT_IMPL)]
+	static class Graphics
 	{
-		// version has to be set before initialize is called! (may be used by System.Initialize)
-		public extern uint32 MajorVersion { get; }
-		public extern uint32 MinorVersion { get; }
-		public extern String ApiName { get; }
-		public extern String Info { get; }
+		public static readonly uint32 MajorVersion;
+		public static readonly uint32 MinorVersion;
+		public static readonly Renderer Renderer;
 
-		public int32 MaxTextureSize { get; protected set; }
-		public bool OriginBottomLeft { get; protected set; }
+		public static extern String ApiName { get; }
+		public static extern String Info { get; }
+
+		public static int32 MaxTextureSize { get; protected set; }
+		public static bool OriginBottomLeft { get; protected set; }
 
 		public enum DebugDrawMode { Disabled, WireFrame }
-		public extern DebugDrawMode DebugDraw { get; set; }
+		public static extern DebugDrawMode DebugDraw { get; set; }
 
-		internal this() {}
-		internal ~this() {}
-
-		protected internal extern void Initialize();
-		protected internal extern void Step();
-		protected internal extern void AfterRender();
+		protected internal static extern void Initialize();
+		protected internal static extern void Step();
+		protected internal static extern void AfterRender();
 
 		[Inline]
-		public void Clear(IRenderTarget target, Color color) =>
+		public static void Clear(IRenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
 		[Inline]
-		public void Clear(IRenderTarget target, Color color, float depth, int stencil) =>
+		public static void Clear(IRenderTarget target, Color color, float depth, int stencil) =>
 			Clear(target, .All, color, depth, stencil, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public void Clear(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		public static void Clear(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			Debug.Assert(target.Renderable, "Render Target cannot currently be drawn to");
 
@@ -45,9 +44,9 @@ namespace Pile
 			ClearInternal(target, flags, color, depth, stencil, clamped);
 		}
 
-		protected internal extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
+		protected internal static extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
-		public void Render(RenderPass pass)
+		public static void Render(RenderPass pass)
 		{
 			var pass;
 
@@ -66,6 +65,6 @@ namespace Pile
 			RenderInternal(pass);
 		}
 
-		protected internal extern void RenderInternal(RenderPass pass);
+		protected internal static extern void RenderInternal(RenderPass pass);
 	}
 }

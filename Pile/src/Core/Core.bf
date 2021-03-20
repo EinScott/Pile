@@ -9,7 +9,7 @@ using internal Pile;
 namespace Pile
 {
 	[Optimize]
-	public static class Core
+	static class Core
 	{
 		static this()
 		{
@@ -23,7 +23,7 @@ namespace Pile
 			delete Title;
 		}
 
-		static void Delete()
+		static void Delete() // @do we'll see what really remains of this, maybe we can just make all static, maybe we need some conducting / static init order
 		{
 			// Delete assets and textures while modules are still present
 			delete Assets;
@@ -32,7 +32,6 @@ namespace Pile
 			delete Input;
 
 			delete Audio;
-			delete Graphics;
 			delete System;
 		}
 
@@ -47,7 +46,6 @@ namespace Pile
 		public static String Title { get; private set; }
 
 		public static System System { get; private set; }
-		public static Graphics Graphics { get; private set; }
 		public static Audio Audio { get; private set; }
 
 		public static Input Input { get; private set; }
@@ -73,7 +71,6 @@ namespace Pile
 			var w = scope Stopwatch(true);
 			Title.Set(config.gameTitle);
 			System = new System();
-			Graphics = new Graphics();
 			Audio = new Audio();
 
 			// Print platform

@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class Camera2D
+	class Camera2D
 	{
 	    Matrix4x4 matrix;
 	    bool dirty = true;
@@ -16,7 +16,7 @@ namespace Pile
 	        }
 	    }
 
-	    private UPoint2 viewport;
+	    UPoint2 viewport;
 	    public UPoint2 Viewport
 	    {
 	        get => viewport;
@@ -27,8 +27,8 @@ namespace Pile
 	        }
 	    }
 
-	    private Vector2 remainder;
-	    private Point2 point;
+	    Vector2 remainder;
+	    Point2 point;
 	    public Vector2 Position
 	    {
 	        get => point + remainder;
@@ -100,7 +100,7 @@ namespace Pile
 	    public int Left => point.X - (int)(viewport.X / 2);
 	    public int Right => point.X + (int)(viewport.X / 2);
 
-	    private void UpdateMatrix()
+	    void UpdateMatrix()
 	    {
 	        // Create orthographics matrix centered on the position point
 	        matrix = Matrix4x4.CreateOrthographicOffCenter(

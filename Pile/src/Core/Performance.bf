@@ -8,7 +8,7 @@ using internal Pile;
 namespace Pile
 {
 	[AttributeUsage(.Method)]
-	public struct PerfTrackAttribute : Attribute, IComptimeMethodApply
+	struct PerfTrackAttribute : Attribute, IComptimeMethodApply
 	{
 		String sectionNameOverride;
 		bool appendOverride;
@@ -54,7 +54,7 @@ namespace Pile
 		}
 	}
 
-	public static class Performance
+	static class Performance
 	{
 		// We need double buffering here because render functions should also be able to fill these
 		// Thus the stats will just be delayed by one frame
@@ -116,10 +116,10 @@ namespace Pile
 			}
 		}
 
-		private static int64 StartSection() => trackWatch.[Friend]GetElapsedDateTimeTicks();
+		static int64 StartSection() => trackWatch.[Friend]GetElapsedDateTimeTicks();
 
 		[DebugOnly]
-		private static void EndSection(String sectionName, TimeSpan time)
+		static void EndSection(String sectionName, TimeSpan time)
 		{
 			if (!Track) return;
 			let __pt = scope System.Diagnostics.Stopwatch(true); // Track this manually to not... infinite loop

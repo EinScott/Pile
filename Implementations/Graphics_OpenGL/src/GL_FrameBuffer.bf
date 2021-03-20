@@ -60,7 +60,7 @@ namespace Pile
 		{
 			if (frameBufferID > 0)
 			{
-				Core.Graphics.frameBuffersToDelete.Add(frameBufferID);
+				Graphics.frameBuffersToDelete.Add(frameBufferID);
 				frameBufferID = 0;
 			}
 		}

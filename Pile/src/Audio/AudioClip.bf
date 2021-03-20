@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class AudioClip
+	class AudioClip
 	{
 		public this(Span<uint8> data)
 		{

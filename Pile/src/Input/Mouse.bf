@@ -2,32 +2,24 @@ using System;
 
 namespace Pile
 {
-	public struct Mouse
+	struct Mouse
 	{
 		public const int MaxButtons = 6;
 
-		internal readonly bool[] pressed = new bool[MaxButtons];
-		internal readonly bool[] down = new bool[MaxButtons];
-		internal readonly bool[] released = new bool[MaxButtons];
-		internal readonly int64[] timestamp = new int64[MaxButtons];
+		internal bool[MaxButtons] pressed = .();
+		internal bool[MaxButtons] down = .();
+		internal bool[MaxButtons] released = .();
+		internal int64[MaxButtons] timestamp = .();
 		internal Vector2 wheelValue = .Zero;
 
 		internal this() {}
-
-		internal void Dispose()
-		{
-			delete pressed;
-			delete down;
-			delete released;
-			delete timestamp;
-		}
 
 		internal void Step() mut
 		{
 			for (int i = 0; i < MaxButtons; i++)
 			{
 				pressed[i] = false;
-				released[i] = false; // for some reason this doesnt reset it
+				released[i] = false;
 			}
 
 			wheelValue.X = 0;
@@ -36,10 +28,10 @@ namespace Pile
 
 		internal void Copy(Mouse from) mut
 		{
-			from.pressed.CopyTo(pressed);
-			from.down.CopyTo(down);
-			from.released.CopyTo(released);
-			from.timestamp.CopyTo(timestamp);
+			pressed = from.pressed;
+			down = from.down;
+			released = from.released;
+			timestamp = from.timestamp;
 
 			wheelValue = from.wheelValue;
 		}

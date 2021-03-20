@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class MixingBus : AudioBus
+	class MixingBus : AudioBus
 	{
 		internal AudioBus output;
 

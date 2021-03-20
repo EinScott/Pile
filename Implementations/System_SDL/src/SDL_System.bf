@@ -40,11 +40,11 @@ namespace Pile
 
 			info.AppendF("patch: {}", ver.patch);
 
-			if (Core.Graphics is IGraphicsOpenGL)
+			if (Graphics.Renderer == .OpenGLCore)
 			{
-				GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Core.Graphics.MajorVersion);
-				GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Core.Graphics.MinorVersion);
-				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, (int32)(Core.Graphics as IGraphicsOpenGL).Profile);
+				GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Graphics.MajorVersion);
+				GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Graphics.MinorVersion);
+				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, SDL_GLProfile.GL_CONTEXT_PROFILE_CORE);
 				GL_SetAttribute(.GL_CONTEXT_FLAGS, (int32)SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
 				glGraphics = true;

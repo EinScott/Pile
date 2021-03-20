@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class GlobalSource : AudioSource
+	class GlobalSource : AudioSource
 	{
 		public extern float Pan { get; set; }
 

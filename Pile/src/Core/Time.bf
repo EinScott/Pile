@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	public static class Time
+	static class Time
 	{
 		const int DEFAULT_TARGET_FPS = 60;
 		const int DEFAULT_MIN_FPS = 20;

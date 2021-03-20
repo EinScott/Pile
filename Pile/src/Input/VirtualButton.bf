@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class VirtualButton
+	class VirtualButton
 	{
 		public abstract class Node
 		{
@@ -111,8 +111,8 @@ namespace Pile
 		    public Axes axis;
 		    public float threshold;
 
-		    private float pressedTimestamp;
-		    private const float AXIS_EPSILON = 0.00001f;
+		    float pressedTimestamp;
+		    const float AXIS_EPSILON = 0.00001f;
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
@@ -187,7 +187,7 @@ namespace Pile
 		public float repeatInterval;
 		public float buffer;
 
-		private int64 lastBufferConsumeTime;
+		int64 lastBufferConsumeTime;
 
 		public this(float buffer = 0f)
 		{
@@ -198,10 +198,10 @@ namespace Pile
 			repeatDelay = Core.Input.repeatDelay;
 		}
 
-		internal bool deletingList; // Don't remove from the list when we are about to delete the list
 		public ~this()
 		{
-			if (!deletingList) Core.Input.virtualButtons.Remove(this);
+			// Don't remove from the list when we are about to delete the list
+			if (!Core.Input.deleting) Core.Input.virtualButtons.Remove(this);
 		}
 
 		internal void Update()

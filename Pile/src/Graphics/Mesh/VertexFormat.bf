@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class VertexFormat
+	class VertexFormat
 	{
 		public readonly VertexAttribute[] Attributes;
 		public readonly int32 Stride;

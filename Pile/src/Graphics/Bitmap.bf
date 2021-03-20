@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	public class Bitmap
+	class Bitmap
 	{
 		public Color[] Pixels { get; private set; }
 		public uint32 Width { get; private set; }

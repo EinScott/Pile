@@ -14,7 +14,7 @@ namespace Pile
 #if !DEBUG
 	[Optimize]
 #endif
-	public static class Packages
+	static class Packages
 	{
 		// Represents the json data in the package import file
 		[Serializable]

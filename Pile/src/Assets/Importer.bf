@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public interface Importer
+	interface Importer
 	{
 		public String Name { get; }
 
@@ -16,10 +16,10 @@ namespace Pile
 	}
 
 	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.Methods)] // todo .DefaultConstructor should work too, change later
-	public struct RegisterImporterAttribute : Attribute {}
+	struct RegisterImporterAttribute : Attribute {}
 
-	[AlwaysInclude,StaticInitPriority(-1)]
-	public static class Importers
+	[AlwaysInclude, StaticInitPriority(-1)]
+	static class Importers
 	{
 		internal static Dictionary<String, Importer> importers = new .() ~ DeleteDictionaryAndValues!(_);
 		internal static Package currentPackage;

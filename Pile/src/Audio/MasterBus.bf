@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	public class MasterBus : AudioBus
+	class MasterBus : AudioBus
 	{
 		float volume = 1;
 

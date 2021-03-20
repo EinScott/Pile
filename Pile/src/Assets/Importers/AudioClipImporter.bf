@@ -4,7 +4,7 @@ using System.IO;
 namespace Pile
 {
 	[RegisterImporter]
-	public class AudioClipImporter : RawImporter
+	class AudioClipImporter : RawImporter
 	{
 		// todo: at the moment, we blindly believe that the buffer we received is in fact a valid format
 

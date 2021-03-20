@@ -6,9 +6,9 @@ using internal Pile;
 
 namespace Pile
 {
-	public static class PNG
+	static class PNG
 	{
-		private enum Colors : uint8
+		enum Colors : uint8
 		{
 		    Greyscale = 0,
 		    Truecolor = 2,
@@ -17,14 +17,14 @@ namespace Pile
 		    TruecolorAlpha = 6
 		}
 
-		private enum Interlace : uint8
+		enum Interlace : uint8
 		{
 		    None = 0,
 		    Adam7 = 1
 		}
 
-		private static readonly uint8[8] header = uint8[8]( 137, 80, 78, 71, 13, 10, 26, 10 );
-		private static readonly uint32[] crcTable = new uint32[256] ~ delete _;
+		static readonly uint8[8] header = uint8[8]( 137, 80, 78, 71, 13, 10, 26, 10 );
+		static readonly uint32[] crcTable = new uint32[256] ~ delete _;
 
 		static this()
 		{
@@ -558,7 +558,7 @@ namespace Pile
 		}
 
 		[Inline]
-		private static uint8 PaethPredictor(uint8 a, uint8 b, uint8 c)
+		static uint8 PaethPredictor(uint8 a, uint8 b, uint8 c)
 		{
 		    int32 p = (int32)a + b - c;
 		    int32 pa = Math.Abs((int32)p - a);
@@ -574,7 +574,7 @@ namespace Pile
 		}
 
 		[Inline]
-		private static bool Check(String name, uint8[4] buffer)
+		static bool Check(String name, uint8[4] buffer)
 		{
 		    if (buffer.Count < name.Length)
 		        return false;
@@ -589,7 +589,7 @@ namespace Pile
 		}
 
 		[Inline]
-		private static int32 SwapEndian(int32 input)
+		static int32 SwapEndian(int32 input)
 		{
 		    if (BitConverter.IsLittleEndian)
 		    {

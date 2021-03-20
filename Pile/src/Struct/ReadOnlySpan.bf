@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Pile
 {
-	public struct ReadOnlySpan<T>
+	struct ReadOnlySpan<T>
 	{
 		readonly T* mPtr;
 		readonly int mLength;
@@ -89,9 +89,9 @@ namespace Pile
 
 		public struct Enumerator : IEnumerator<T>
 		{
-		    private ReadOnlySpan<T> mList;
-		    private int mIndex;
-		    private T* mCurrent;
+		    ReadOnlySpan<T> mList;
+		    int mIndex;
+		    T* mCurrent;
 
 		    public this(ReadOnlySpan<T> list)
 		    {
@@ -115,7 +115,7 @@ namespace Pile
 		        return MoveNextRare();
 		    }
 
-		    private bool MoveNextRare() mut
+		    bool MoveNextRare() mut
 		    {
 		    	mIndex = mList.mLength + 1;
 		        mCurrent = null;

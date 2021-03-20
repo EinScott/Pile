@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class ShaderData
+	class ShaderData
 	{
 		// TODO: may need to be redone when doing other graphics platforms, very gl specific atm
 		// Source will be graphics platform specific

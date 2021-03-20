@@ -6,27 +6,20 @@ using internal Pile;
 
 namespace Pile
 {
-	extension Graphics : IGraphicsOpenGL
+	extension Graphics
 	{
-		/*const uint32 MIN_VERSION_MAJOR = 3, MAX_VERSION_MAJOR = 4,
-					VERSION_3_MINOR = 3, MIN_VERSION_MINOR = 0, MAX_VERSION_MINOR = 6;*/
-
-		public override String ApiName => "OpenGL Core";
-		String info = new String() ~ delete _;
-		public override String Info
+		public static override String ApiName => "OpenGL Core";
+		static String info = new String() ~ delete _;
+		public static override String Info
 		{
 			get => info;
 		}
-		public IGraphicsOpenGL.GLProfile Profile => IGraphicsOpenGL.GLProfile.Core;
-		uint32 majorVersion = 3, minorVersion = 3;
-		public override uint32 MajorVersion => majorVersion;
-		public override uint32 MinorVersion => minorVersion;
 
 		// Method needs to be static, so work around it like this, since there should only be one instance at a time anyway
 		static void* GetProcAddress(StringView procName) => system.GetGLProcAddress(procName);
 		static ISystemOpenGL system;
 
-		private function void DeleteResource(ref uint32 id);
+		function void DeleteResource(ref uint32 id);
 		static void DeleteTexture(ref uint32 id) => glDeleteTextures(1, &id);
 		static void DeleteBuffer(ref uint32 id) => glDeleteBuffers(1, &id);
 		static void DeleteProgram(ref uint32 id) => glDeleteProgram(id);
@@ -34,38 +27,35 @@ namespace Pile
 		static void DeleteFrameBuffer(ref uint32 id) => glDeleteFramebuffers(1, &id);
 
 		// These were in context's ContextMeta class before and can be put back if we ever need multiple contexts
-		bool forceScissorUpdate;
-		Rect viewport;
-		RenderPass? lastRenderState;
-		IRenderTarget lastRenderTarget;
-		internal List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
-		internal List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
+		static bool forceScissorUpdate;
+		static Rect viewport;
+		static RenderPass? lastRenderState;
+		static IRenderTarget lastRenderTarget;
+		internal static List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
+		internal static List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
 		// --
 
-		internal List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
-		internal List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
-		internal List<uint32> programsToDelete = new List<uint32>() ~ delete _;
+		internal static List<uint32> texturesToDelete = new List<uint32>() ~ delete _;
+		internal static List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
+		internal static List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
-		/*this
+		static this()
 		{
-			// Keep version within the supported spectrum
-			this.majorVersion = Math.Min(MAX_VERSION_MAJOR, Math.Max(MIN_VERSION_MAJOR, majorVersion));
-			this.minorVersion = majorVersion == 3 ? VERSION_3_MINOR : Math.Min(MAX_VERSION_MINOR, Math.Max(MIN_VERSION_MINOR, minorVersion));
-		}*/
+			MajorVersion = 3;
+			MinorVersion = 3;
+			Renderer = .OpenGLCore;
 
-		this
-		{
 			OriginBottomLeft = true;
 		}
 
-		internal ~this()
+		static ~this()
 		{
 			system = null;
 
 			RunDeleteLists();
 		}
 
-		protected internal override void Initialize()
+		protected internal static override void Initialize()
 		{
 			if (!(Core.System is ISystemOpenGL)) Runtime.FatalError("System must support openGL");
 			system = Core.System as ISystemOpenGL;
@@ -86,8 +76,8 @@ namespace Pile
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
 		}
 
-		DebugDrawMode mode;
-		public override DebugDrawMode DebugDraw
+		static DebugDrawMode mode;
+		public static override DebugDrawMode DebugDraw
 		{
 			get => mode;
 
@@ -106,12 +96,12 @@ namespace Pile
 		}
 
 		[Inline]
-		protected internal override void Step()
+		protected internal static override void Step()
 		{
 			RunDeleteLists();
 		}
 
-		void RunDeleteLists()
+		static void RunDeleteLists()
 		{
 			DeleteResources(=> DeleteTexture, texturesToDelete);
 			DeleteResources(=> DeleteBuffer, buffersToDelete);
@@ -130,12 +120,12 @@ namespace Pile
 			}
 		}
 
-		protected internal override void AfterRender()
+		protected internal static override void AfterRender()
 		{
 			glFlush();
 		}
 
-		protected internal override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		protected internal static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			// Bind target
 			if (lastRenderTarget != target)
@@ -186,7 +176,7 @@ namespace Pile
 			glClear(mask);
 		}
 
-		protected internal override void RenderInternal(RenderPass pass)
+		protected internal static override void RenderInternal(RenderPass pass)
 		{
 			// Get last state
 			RenderPass lastPass;
@@ -311,10 +301,10 @@ namespace Pile
 			{
 				viewport.Top = size.Y - viewport.Y - viewport.Height;
 
-				if (updateAll || this.viewport != viewport)
+				if (updateAll || Graphics.viewport != viewport)
 				{
 					glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
-					this.viewport = viewport;
+					Graphics.viewport = viewport;
 				}
 			}
 

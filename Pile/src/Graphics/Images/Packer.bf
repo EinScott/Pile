@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace Pile
 {
-	public class Packer
+	class Packer
 	{
 		public class Entry
 		{

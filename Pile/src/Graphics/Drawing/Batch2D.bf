@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Pile
 {
-	public class Batch2D
+	class Batch2D
 	{
 		// TODO: improve this at some point
 
@@ -39,7 +39,7 @@ namespace Pile
 			}
 		}
 
-		private struct Batch
+		struct Batch
 		{
 			//public int layer; // unused in foster, may use later
 			public Material material;
@@ -130,14 +130,14 @@ namespace Pile
 
 		public void Render(IRenderTarget target, Color clearColor)
 		{
-		    Core.Graphics.Clear(target, clearColor);
+		    Graphics.Clear(target, clearColor);
 		    Render(target);
 		}
 
 		public void Render(IRenderTarget target, Matrix4x4 matrix, Rect? viewport = null, Color? clearColor = null)
 		{
 			if (clearColor != null)
-			    Core.Graphics.Clear(target, clearColor.Value);
+			    Graphics.Clear(target, clearColor.Value);
 
 			pass = RenderPass(target, Mesh, DefaultMaterial);
 			pass.viewport = viewport;
@@ -195,7 +195,7 @@ namespace Pile
 			pass.meshIndexStart = batch.offset * 3;
 			pass.meshIndexCount = batch.elements * 3;
 
-			Core.Graphics.Render(pass);
+			Graphics.Render(pass);
 		}
 
 		// SET BATCH STATE
@@ -401,7 +401,7 @@ namespace Pile
 		    vertices[VertexCount + 2].texcoord = t2;
 		    vertices[VertexCount + 3].texcoord = t3;
 
-		    if (Core.Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
+		    if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
 		        VerticalFlip(ref vertices[VertexCount + 0].texcoord, ref vertices[VertexCount + 1].texcoord, ref vertices[VertexCount + 2].texcoord, ref vertices[VertexCount + 3].texcoord);
 
 		    // COL
@@ -489,7 +489,7 @@ namespace Pile
 		    vertices[VertexCount + 2].texcoord = t2;
 		    vertices[VertexCount + 3].texcoord = t3;
 
-		    if (Core.Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
+		    if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
 		        VerticalFlip(ref vertices[VertexCount + 0].texcoord, ref vertices[VertexCount + 1].texcoord, ref vertices[VertexCount + 2].texcoord, ref vertices[VertexCount + 3].texcoord);
 
 		    // COL

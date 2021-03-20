@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public abstract class AudioSource
+	abstract class AudioSource
 	{
 		internal AudioBus output;
 

@@ -31,11 +31,11 @@ namespace Pile
 
 		public ~this()
 		{
-			if (vertexArrayID > 0) Core.Graphics.vertexArraysToDelete.Add(vertexArrayID);
+			if (vertexArrayID > 0) Graphics.vertexArraysToDelete.Add(vertexArrayID);
 
-			if (vertexBufferID > 0) Core.Graphics.buffersToDelete.Add(vertexBufferID);
-			if (instanceBufferID > 0) Core.Graphics.buffersToDelete.Add(instanceBufferID);
-			if (indexBufferID > 0) Core.Graphics.buffersToDelete.Add(indexBufferID);
+			if (vertexBufferID > 0) Graphics.buffersToDelete.Add(vertexBufferID);
+			if (instanceBufferID > 0) Graphics.buffersToDelete.Add(instanceBufferID);
+			if (indexBufferID > 0) Graphics.buffersToDelete.Add(indexBufferID);
 
 			vertexArrayID = 0;
 

@@ -6,7 +6,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class FontSize
+	class FontSize
 	{
 	    /// A single Font Character
 	    public struct Character

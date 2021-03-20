@@ -6,7 +6,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Shader
+	class Shader
 	{
 		readonly List<ShaderAttribute> attributes = new List<ShaderAttribute>() ~ DeleteContainerAndItems!(_);
 		readonly List<ShaderUniform> uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);
@@ -16,7 +16,7 @@ namespace Pile
 
 		public this(ShaderData source)
 		{
-			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
+			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
 			Initialize(source);
 

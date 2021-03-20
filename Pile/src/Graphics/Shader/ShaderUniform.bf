@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class ShaderUniform
+	class ShaderUniform
 	{
 		readonly String nameStr = new String() ~ delete _;
 		public readonly StringView Name;

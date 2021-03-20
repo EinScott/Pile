@@ -3,7 +3,7 @@ using System;
 namespace Pile
 {
 	[Ordered]
-	public struct Color
+	struct Color
 	{
 		public const Color White = Color(255, 255, 255, 255);
 		public const Color Black = Color(0, 0, 0, 255);

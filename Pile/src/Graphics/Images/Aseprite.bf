@@ -11,7 +11,7 @@ namespace Pile
 	///
 	/// Aseprite File Spec: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
 	/// This is not a complete implementation and focuses on usage in loading aseprite files for games
-	public class Aseprite
+	class Aseprite
 	{
 	    public enum Modes
 	    {
@@ -20,7 +20,7 @@ namespace Pile
 	        RGBA = 4
 	    }
 
-	    private enum Chunks
+	    enum Chunks
 	    {
 	        OldPaletteA = 0x0004,
 	        OldPaletteB = 0x0011,
@@ -38,7 +38,7 @@ namespace Pile
 	    public Modes Mode { get; private set; }
 	    public uint32 Width { get; private set; }
 	    public uint32 Height { get; private set; }
-	    private int frameCount;
+	    int frameCount;
 
 	    public readonly List<Layer> Layers = new List<Layer>() ~ DeleteContainerAndItems!(_);
 	    public readonly List<Frame> Frames = new List<Frame>() ~ DeleteContainerAndItems!(_);
@@ -187,7 +187,7 @@ namespace Pile
 
 	    #region .ase Parser
 
-	    private Result<void> Parse(Stream stream)
+	    Result<void> Parse(Stream stream)
 	    {
 	        // wrote these to match the documentation names so it's easier (for me, anyway) to parse
 	        uint8 BYTE() => stream.Read<uint8>();
@@ -495,10 +495,9 @@ namespace Pile
 		// todo: support more blend modes
 		// https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md#layer-chunk-0x2004
 
-	    private function void Blend(ref Color dest, Color src, uint8 opacity);
+	    function void Blend(ref Color dest, Color src, uint8 opacity);
 
-	    private static readonly Blend[] BlendModes = new Blend[]
-	    (
+	    static readonly Blend[] BlendModes = new Blend[](
 	        // 0 - NORMAL
 	        (dest, src, opacity) =>
 	        {
@@ -520,11 +519,10 @@ namespace Pile
 	                }
 
 	            }
-	        }
-	    ) ~ delete _;
+	        }) ~ delete _;
 
 	    [Inline]
-	    private static int MUL_UN8(int a, int b)
+	    static int MUL_UN8(int a, int b)
 	    {
 	        var t = (a * b) + 0x80;
 	        return (((t >> 8) + t) >> 8);
@@ -535,7 +533,7 @@ namespace Pile
 	    #region Utils
 
 	    /// Converts an array of Bytes to an array of Colors, using the specific Aseprite Mode & Palette
-	    private void BytesToPixels(Span<uint8> bytes, Span<Color> pixels, Modes mode, Color[] palette)
+	    void BytesToPixels(Span<uint8> bytes, Span<Color> pixels, Modes mode, Color[] palette)
 	    {
 	        int len = pixels.Length;
 	        if (mode == .RGBA)
@@ -564,7 +562,7 @@ namespace Pile
 	    }
 
 	    /// Applies a Cel's pixels to the Frame, using its Layer's BlendMode & Alpha
-	    private void CelToFrame(Frame frame, Cel cel)
+	    void CelToFrame(Frame frame, Cel cel)
 	    {
 	        var opacity = (uint8)((cel.Alpha * cel.Layer.Alpha) * 255);
 	        var pxLen = frame.Bitmap.Pixels.Count;

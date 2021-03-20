@@ -5,7 +5,7 @@ using System.Collections;
 namespace Pile
 {
 	[RegisterImporter]
-	public class PNGImporter : Importer
+	class PNGImporter : Importer
 	{
 		public virtual String Name => "png";
 

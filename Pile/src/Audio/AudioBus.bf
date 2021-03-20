@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public abstract class AudioBus
+	abstract class AudioBus
 	{
 		public abstract float Volume { get; set; }
 

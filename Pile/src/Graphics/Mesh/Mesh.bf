@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Mesh
+	class Mesh
 	{
 		public uint VertexCount { get; private set; }
 		public uint InstanceCount { get; private set; }
@@ -17,7 +17,7 @@ namespace Pile
 
 		public this()
 		{
-			Debug.Assert(Core.Graphics != null, "Core needs to be initialized before creating platform dependent objects");
+			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
 			Initialize();
 		}

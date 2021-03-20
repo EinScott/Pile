@@ -6,12 +6,12 @@ using stbtt;
 
 namespace Pile
 {
-	public class Font
+	class Font
 	{
 		internal readonly stbtt_fontinfo fontInfo ~ delete _;
 
-		private readonly uint8[] fontBuffer ~ delete _;
-		private readonly Dictionary<char32, int32> glyphs = new Dictionary<char32, int32>() ~ delete _;
+		readonly uint8[] fontBuffer ~ delete _;
+		readonly Dictionary<char32, int32> glyphs = new Dictionary<char32, int32>() ~ delete _;
 
 		public readonly String FamilyName = new .() ~ delete _;
 		public readonly String StyleName = new .() ~ delete _;

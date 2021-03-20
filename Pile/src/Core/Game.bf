@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public abstract class Game<T> : Game where T : Game, new
+	abstract class Game<T> : Game where T : Game, new
 	{
 		public static T Instance;
 
@@ -23,7 +23,7 @@ namespace Pile
 		}
 	}
 
-	public abstract class Game
+	abstract class Game
 	{
 		protected virtual void Startup() {}
 		protected virtual void Shutdown() {}

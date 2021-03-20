@@ -174,7 +174,7 @@ namespace Pile
 		{
 			if (programID != 0)
 			{
-				Core.Graphics.programsToDelete.Add(programID);
+				Graphics.programsToDelete.Add(programID);
 			}
 		}
 

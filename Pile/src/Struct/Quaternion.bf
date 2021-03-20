@@ -9,7 +9,7 @@ namespace Pile
 	[Ordered]
 	/// A structure encapsulating a four-dimensional vector (x,y,z,w), 
 	/// which is used to efficiently rotate an object about the (x,y,z) vector by the angle theta, where w = cos(theta/2).
-	public struct Quaternion : IFormattable, IEquatable<Quaternion>, IEquatable
+	struct Quaternion : IFormattable, IEquatable<Quaternion>, IEquatable
 	{
 		public const Quaternion Identity = Quaternion(0, 0, 0, 1);
 

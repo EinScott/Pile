@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class VirtualAxis
+	class VirtualAxis
 	{
 	    public enum Overlaps
 	    {
@@ -94,14 +94,14 @@ namespace Pile
 	    public readonly List<Node> Nodes = new List<Node>() ~ DeleteContainerAndItems!(_);
 	    public Overlaps overlapBehaviour;
 
-	    private const float EPSILON = 0.00001f;
+	    const float EPSILON = 0.00001f;
 
 	    public this(Overlaps overlapBehaviour = .CancelOut)
 	    {
 	        this.overlapBehaviour = overlapBehaviour;
 	    }
 
-	    private float GetValue(bool deadzone)
+	    float GetValue(bool deadzone)
 	    {
 	        var value = 0f;
 

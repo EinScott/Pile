@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class Monitor
+	class Monitor
 	{
 		internal this() {}
 		internal ~this() {}

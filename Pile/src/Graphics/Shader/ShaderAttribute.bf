@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class ShaderAttribute
+	class ShaderAttribute
 	{
 		readonly String name = new String() ~ delete _;
 		public StringView Name => name;

@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public class VirtualStick
+	class VirtualStick
 	{
 	    public VirtualAxis horizontal ~ delete _;
 	    public VirtualAxis vertical ~ delete _;

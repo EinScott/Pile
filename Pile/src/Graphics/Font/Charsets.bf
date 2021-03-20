@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Pile
 {
-	public static class Charsets
+	static class Charsets
 	{
 		public static readonly char32[] ASCII ~ delete _;
 

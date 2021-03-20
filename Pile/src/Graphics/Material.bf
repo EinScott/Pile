@@ -6,7 +6,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class Material
+	class Material
 	{
 		public struct Parameter
 		{

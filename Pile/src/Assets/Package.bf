@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Pile
 {
-	public class Package
+	class Package
 	{
 		internal Dictionary<Type, List<StringView>> ownedAssets = new Dictionary<Type, List<StringView>>() ~ DeleteDictionaryAndValues!(_);
 		internal List<StringView> ownedTextureAssets = new List<StringView>() ~ delete _;

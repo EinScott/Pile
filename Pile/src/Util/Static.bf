@@ -6,6 +6,12 @@ namespace Pile
 {
 	static
 	{
+		// EntryPoint is initialized first in this lib
+		internal const int PILE_SINIT_ENTRY = 50;
+		// Implementations (such as Graphics, ...) are initialized after, but before Core
+		// Even in static init and destruction Core can rely on the implementation modules
+		internal const int PILE_SINIT_IMPL = 40;
+
 		[AttributeUsage(.Method)]
 		struct DebugCallAttribute : Attribute {} // Useless, basically
 

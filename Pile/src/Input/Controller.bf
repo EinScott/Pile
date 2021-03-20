@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public struct Controller
+	struct Controller
 	{
 		public const uint MaxButtons = 24;
 		public const uint MaxAxis = 12;
@@ -14,12 +14,12 @@ namespace Pile
 		public int Buttons { get; private set mut; }
 		public int Axes { get; private set mut; }
 
-		internal readonly bool[] pressed = new bool[MaxButtons];
-		internal readonly bool[] down = new bool[MaxButtons];
-		internal readonly bool[] released = new bool[MaxButtons];
-		internal readonly int64[] timestamp = new int64[MaxButtons];
-		internal readonly float[] axis = new float[MaxAxis];
-		internal readonly int64[] axisTimestamp = new int64[MaxAxis];
+		internal bool[MaxButtons] pressed = .();
+		internal bool[MaxButtons] down = .();
+		internal bool[MaxButtons] released = .();
+		internal int64[MaxButtons] timestamp = .();
+		internal float[MaxAxis] axis = .();
+		internal int64[MaxAxis] axisTimestamp = .();
 
 		internal this(Input input)
 		{
@@ -29,16 +29,6 @@ namespace Pile
 			IsGamepad = false;
 			Buttons = 0;
 			Axes = 0;
-		}
-
-		internal void Dispose()
-		{
-			delete pressed;
-			delete down;
-			delete released;
-			delete timestamp;
-			delete axis;
-			delete axisTimestamp;
 		}
 
 		internal void Connect(uint buttonCount, uint axisCount, bool isGamepad) mut
@@ -71,7 +61,7 @@ namespace Pile
 			}
 		}
 
-		internal void Step()
+		internal void Step() mut
 		{
 			for (int i = 0; i < MaxButtons; i++)
 			{
@@ -87,12 +77,12 @@ namespace Pile
 			Buttons = from.Buttons;
 			Axes = from.Axes;
 
-			from.pressed.CopyTo(pressed);
-			from.down.CopyTo(down);
-			from.released.CopyTo(released);
-			from.timestamp.CopyTo(timestamp);
-			from.axis.CopyTo(axis);
-			from.axisTimestamp.CopyTo(axisTimestamp);
+			pressed = from.pressed;
+			down = from.down;
+			released = from.released;
+			timestamp = from.timestamp;
+			axis = from.axis;
+			axisTimestamp = from.axisTimestamp;
 		}
 
 		[Inline]

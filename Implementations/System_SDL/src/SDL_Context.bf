@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	public class SDL_Context : ISystemOpenGL.Context
+	class SDL_Context : ISystemOpenGL.Context
 	{
 		SDL.SDL_GLContext context;
 		Window window;
