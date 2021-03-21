@@ -11,7 +11,8 @@ namespace Game
 		static this()
 		{
 			EntryPoint.Config.createGame = () => new ExampleGame();
-			EntryPoint.Config.gameTitle = "Example Game";
+			EntryPoint.Config.gameTitle = "example";
+			EntryPoint.Config.windowTitle = "Example Game";
 		}
 
 		const float rectSpeed = 140;
