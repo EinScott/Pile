@@ -47,7 +47,7 @@ namespace Pile
 			ClearInternal(target, flags, color, depth, stencil, clamped);
 		}
 
-		protected internal static extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
+		protected static extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
 		public static void Render(RenderPass pass)
 		{
@@ -68,6 +68,6 @@ namespace Pile
 			RenderInternal(pass);
 		}
 
-		protected internal static extern void RenderInternal(RenderPass pass);
+		protected static extern void RenderInternal(RenderPass pass);
 	}
 }

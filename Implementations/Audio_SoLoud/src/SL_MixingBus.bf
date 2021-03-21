@@ -19,14 +19,14 @@ namespace Pile
 			SL_Bus.Destroy(slBus);
 		}
 
-		protected internal override void Initialize()
+		protected override void Initialize()
 		{
 			slBus = SL_Bus.Create();
 
 			Debug.Assert(slBus != null, "Failed to create SL_MixingBus (Bus)");
 		}
 
-		protected internal override void SetVolume(float volume)
+		protected override void SetVolume(float volume)
 		{
 			SL_Bus.SetVolume(slBus, volume);
 		}
@@ -59,7 +59,8 @@ namespace Pile
 			sourceInputs.Remove(source);
 		}
 
-		protected internal override void RedirectInputsToMaster()
+		protected ´
+			 override void RedirectInputsToMaster()
 		{
 			for (let mixingBus in busInputs)
 			{

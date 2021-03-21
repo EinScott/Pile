@@ -5,7 +5,7 @@ namespace Pile
 	extension Input
 	{
 		[SkipCall]
-		protected internal static override void InitializeInternal() {}
+		protected internal static override void Initialize() {}
 
 		[SkipCall]
 		public override static void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration) {}

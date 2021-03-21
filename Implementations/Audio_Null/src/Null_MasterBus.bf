@@ -7,10 +7,10 @@ namespace Pile
 	extension MasterBus
 	{
 		[SkipCall]
-		protected internal override void Initialize() {}
+		protected override void Initialize() {}
 
 		[SkipCall]
-		protected internal override void SetVolume(float volume) {}
+		protected override void SetVolume(float volume) {}
 
 		[SkipCall]
 		protected internal override void AddBus(MixingBus bus) {}

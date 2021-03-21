@@ -7,9 +7,9 @@ namespace Pile
 	extension Shader
 	{
 		[SkipCall]
-		protected internal override void Initialize(ShaderData source) {}
+		protected override void Initialize() {}
 
 		[SkipCall]
-		protected internal override void Compile(ShaderData source) {}
+		protected override void Set(ShaderData source) {}
 	}
 }

@@ -9,7 +9,7 @@ namespace Pile
 		public override bool Playing => false;
 
 		[SkipCall]
-		protected internal override void Initialize() {}
+		protected override void Initialize() {}
 
 		public override float Volume { get; set; }
 		public override float Pan { get; set; }
@@ -18,7 +18,7 @@ namespace Pile
 		public override bool Paused { get; set; }
 
 		[SkipCall]
-		protected internal override void PlayInternal(AudioClip clip, float delay) {}
+		protected override void PlayInternal(AudioClip clip, float delay) {}
 
 		[SkipCall]
 		public override void Stop() {}

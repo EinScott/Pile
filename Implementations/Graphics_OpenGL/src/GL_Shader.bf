@@ -10,14 +10,14 @@ namespace Pile
 	{
 		uint32 programID;
 
-		protected internal override void Initialize(ShaderData source)
-		{
-			Compile(source);
-		}
+		protected override void Initialize() {}
 
-		protected internal override void Compile(ShaderData source)
+		protected override void Set(ShaderData source)
 		{
 			Debug.Assert(source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
+
+			if (programID != 0)
+				Graphics.programsToDelete.Add(programID);
 
 			programID = (uint32)GL.glCreateProgram();
 

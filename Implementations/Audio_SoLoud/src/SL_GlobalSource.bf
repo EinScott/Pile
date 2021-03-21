@@ -22,7 +22,7 @@ namespace Pile
 			SL_Bus.Destroy(slBus);
 		}
 
-		protected internal override void Initialize()
+		protected override void Initialize()
 		{
 			slBus = SL_Bus.Create();
 			SL_Bus.SetInaudibleBehavior(slBus, SL_TRUE, SL_FALSE);
@@ -31,7 +31,7 @@ namespace Pile
 			Debug.Assert(slBus != null && group != 0, "Failed to create SL_AudioSource (Bus or VoiceGroup)");
 		}
 
-		protected internal override void PlayInternal(AudioClip clip, float delay)
+		protected override void PlayInternal(AudioClip clip, float delay)
 		{
 			uint32 handle;
 			if (delay == 0 || Paused)

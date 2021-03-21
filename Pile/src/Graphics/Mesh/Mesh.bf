@@ -63,9 +63,9 @@ namespace Pile
 			SetIndices(_indices);
 		}
 
-		protected internal extern void Initialize();
-		protected internal extern void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
-		protected internal extern void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
-		protected internal extern void SetIndices(Span<uint8> rawIndexData);
+		protected extern void Initialize();
+		protected extern void SetVertices(Span<uint8> rawVertexData, VertexFormat format);
+		protected extern void SetInstances(Span<uint8> rawVertexData, VertexFormat format);
+		protected extern void SetIndices(Span<uint8> rawIndexData);
 	}
 }

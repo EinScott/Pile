@@ -24,7 +24,7 @@ namespace Pile
 		Shader lastShader;
 		bool bound;
 
-		protected internal override void Initialize()
+		protected override void Initialize()
 		{
 
 		}
@@ -45,7 +45,7 @@ namespace Pile
 			bound = false;
 		}
 
-		protected internal override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
+		protected override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
 		{
 			if (lastVertexFormat != format)
 			{
@@ -56,7 +56,7 @@ namespace Pile
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length, ref vertexBufferSize);
 		}
 
-		protected internal override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
+		protected override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
 		{
 			if (lastInstanceFormat != format)
 			{
@@ -67,7 +67,7 @@ namespace Pile
 			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length, ref instanceBufferSize);
 		}
 
-		protected internal override void SetIndices(Span<uint8> rawIndexData)
+		protected override void SetIndices(Span<uint8> rawIndexData)
 		{
 			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, rawIndexData.Length, ref indexBufferSize);
 		}

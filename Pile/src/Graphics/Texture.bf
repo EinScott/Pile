@@ -104,11 +104,11 @@ namespace Pile
 			GetData(&buffer[0]);
 		}
 
-		protected internal extern void Initialize();
-		protected internal extern void ResizeAndClearInternal(uint32 width, uint32 height);
-		protected internal extern void SetFilter(TextureFilter filter);
-		protected internal extern void SetWrap(TextureWrap x, TextureWrap y);
-		protected internal extern void SetData(void* buffer);
-		protected internal extern void GetData(void* buffer);
+		protected extern void Initialize();
+		protected extern void ResizeAndClearInternal(uint32 width, uint32 height);
+		protected extern void SetFilter(TextureFilter filter);
+		protected extern void SetWrap(TextureWrap x, TextureWrap y);
+		protected extern void SetData(void* buffer);
+		protected extern void GetData(void* buffer);
 	}
 }

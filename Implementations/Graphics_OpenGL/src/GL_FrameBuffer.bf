@@ -9,7 +9,7 @@ namespace Pile
 	{
 		uint32 frameBufferID;
 
-		protected internal override void Initialize(uint32 width, uint32 height, TextureFormat[] attachments)
+		protected override void Initialize(uint32 width, uint32 height, TextureFormat[] attachments)
 		{
 			Attachments.Count = attachments.Count;
 			for (int i = 0; i < attachments.Count; i++)
@@ -25,7 +25,7 @@ namespace Pile
 			Delete();
 		}
 
-		protected internal override void ResizeAndClearInternal(uint32 width, uint32 height)
+		protected override void ResizeAndClearInternal(uint32 width, uint32 height)
 		{
 			Delete();
 

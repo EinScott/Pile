@@ -52,8 +52,8 @@ namespace Pile
 			}
 		}
 
-		protected internal extern void Initialize(uint32 width, uint32 height, TextureFormat[] attachments);
-		protected internal extern void ResizeAndClearInternal(uint32 width, uint32 height);
+		protected extern void Initialize(uint32 width, uint32 height, TextureFormat[] attachments);
+		protected extern void ResizeAndClearInternal(uint32 width, uint32 height);
 
 		public static operator Texture(FrameBuffer target) => target.Attachments[0];
 	}

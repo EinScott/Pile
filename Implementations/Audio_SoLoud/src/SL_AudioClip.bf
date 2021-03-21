@@ -18,7 +18,7 @@ namespace Pile
 			SL_Wav.Destroy(audio);
 		}
 
-		protected internal override void Initialize(Span<uint8> data)
+		protected override void Initialize(Span<uint8> data)
 		{
 			audio = SL_Wav.Create();
 

@@ -7,10 +7,10 @@ namespace Pile
 	extension MixingBus
 	{
 		[SkipCall]
-		protected internal override void Initialize() {}
+		protected override void Initialize() {}
 
 		[SkipCall]
-		protected internal override void SetVolume(float volume) {}
+		protected override void SetVolume(float volume) {}
 
 		[SkipCall]
 		protected internal override void AddBus(MixingBus bus) {}
@@ -25,6 +25,6 @@ namespace Pile
 		protected internal override void RemoveSource(AudioSource source) {}
 
 		[SkipCall]
-		protected internal override void RedirectInputsToMaster() {}
+		protected override void RedirectInputsToMaster() {}
 	}
 }

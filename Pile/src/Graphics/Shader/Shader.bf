@@ -18,13 +18,16 @@ namespace Pile
 		{
 			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
-			Initialize(source);
+			Initialize();
+			Set(source);
 
 			Attributes = ReadOnlyList<ShaderAttribute>(attributes);
 			Uniforms = ReadOnlyList<ShaderUniform>(uniforms);
 		}
 
-		protected internal extern void Initialize(ShaderData source);
-		protected internal extern void Compile(ShaderData source);
+		protected extern void Initialize();
+
+		// TODO: this should be public, but we also need to revisit code in Material to allow shaders to reset their source
+		protected extern void Set(ShaderData source);
 	}
 }

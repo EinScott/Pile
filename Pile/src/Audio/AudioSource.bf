@@ -51,7 +51,7 @@ namespace Pile
 		public abstract extern bool Playing { get; }
 		public abstract extern void Stop();
 
-		protected internal abstract extern void Initialize();
-		protected internal abstract extern void PlayInternal(AudioClip clip, float delay);
+		protected abstract extern void Initialize();
+		protected abstract extern void PlayInternal(AudioClip clip, float delay);
 	}
 }

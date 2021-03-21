@@ -121,7 +121,7 @@ namespace Pile
 			glFlush();
 		}
 
-		protected internal static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		protected static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			// Bind target
 			if (lastRenderTarget != target)
@@ -172,7 +172,7 @@ namespace Pile
 			glClear(mask);
 		}
 
-		protected internal static override void RenderInternal(RenderPass pass)
+		protected static override void RenderInternal(RenderPass pass)
 		{
 			// Get last state
 			RenderPass lastPass;

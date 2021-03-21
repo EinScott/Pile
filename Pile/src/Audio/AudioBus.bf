@@ -6,8 +6,8 @@ namespace Pile
 	{
 		public abstract float Volume { get; set; }
 
-		protected internal abstract extern void Initialize();
-		protected internal abstract extern void SetVolume(float volume);
+		protected abstract extern void Initialize();
+		protected abstract extern void SetVolume(float volume);
 
 		// Called from other MixingBusses
 		protected internal abstract extern void AddBus(MixingBus bus);

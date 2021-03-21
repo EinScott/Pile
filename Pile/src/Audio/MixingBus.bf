@@ -43,7 +43,7 @@ namespace Pile
 		}
 
 		// When this is deleted, things feeding into this bus need to be redirected
-		protected internal extern void RedirectInputsToMaster();
+		protected extern void RedirectInputsToMaster();
 
 		// TODO: Filterstuff -- create some abstraction... somewhat like material?
 		// -> do here and in MasterBus. Public api should be enforced by IAudioBus

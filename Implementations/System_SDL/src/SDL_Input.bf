@@ -13,7 +13,7 @@ namespace Pile
 		static SDL.SDL_Joystick*[] sdlJoysticks;
 		static SDL.SDL_GameController*[] sdlGamepads;
 
-		protected internal static override void InitializeInternal()
+		protected internal static override void Initialize()
 		{
 			sdlCursors = new SDL.SDL_Cursor*[(int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL];
 			sdlJoysticks = new SDL.SDL_Joystick*[MaxControllers];

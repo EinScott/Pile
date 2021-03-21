@@ -6,9 +6,9 @@ namespace Pile
 {
 	extension MasterBus
 	{
-		protected internal override void Initialize() {}
+		protected override void Initialize() {}
 
-		protected internal override void SetVolume(float volume)
+		protected override void SetVolume(float volume)
 		{
 			SL_Soloud.SetGlobalVolume(Audio.slPtr, volume);
 		}

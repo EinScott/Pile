@@ -14,6 +14,6 @@ namespace Pile
 			Initialize(data);
 		}
 
-		protected internal extern void Initialize(Span<uint8> data);
+		protected extern void Initialize(Span<uint8> data);
 	}
 }
