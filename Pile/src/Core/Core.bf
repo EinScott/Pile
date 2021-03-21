@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.Threading;
 using System.IO;
@@ -25,7 +24,7 @@ namespace Pile
 		[Inline]
 		public static StringView Title => title;
 
-		internal static Result<void> Run(RunConfig config)
+		internal static void Run(RunConfig config)
 		{
 			Debug.Assert(!run, "Core was already run");
 			Debug.Assert(config.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
@@ -118,7 +117,9 @@ namespace Pile
 				}
 
 				{
+#if PILE_PERFTRACK
 					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Update"));
+#endif
 
 					// Raw time
 					Time.RawDuration += diffTime;
@@ -156,7 +157,9 @@ namespace Pile
 				}
 
 				{
+#if PILE_PERFTRACK
 					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Render"));
+#endif
 
 					// Render
 					if (!exiting && !System.Window.Closed)
@@ -170,7 +173,7 @@ namespace Pile
 					// Record FPS
 					frameCount++;
 					let newTime = timer.[Friend]GetElapsedDateTimeTicks();
-					if ((float)(newTime - lastCounted) / TimeSpan.TicksPerSecond >= 1)
+					if (newTime - lastCounted >= TimeSpan.TicksPerSecond)
 					{
 						Time.FPS = frameCount;
 						lastCounted = timer.[Friend]GetElapsedDateTimeTicks();
@@ -195,7 +198,6 @@ namespace Pile
 			Game.[Friend]Shutdown();
 
 			delete Game;
-			return .Ok;
 		}
 
 		public static void Exit()

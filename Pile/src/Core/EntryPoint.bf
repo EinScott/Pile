@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-using System.Collections;
-using System.Diagnostics;
 
 using internal Pile;
 
@@ -48,7 +45,7 @@ namespace Pile
 			OnStart.Dispose();
 			
 			// Run with registered settings
-			Runtime.Assert(Core.Run(Config) case .Ok, "Error while running");
+			Core.Run(Config);
 
 			return 0;
 		}

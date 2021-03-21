@@ -59,8 +59,7 @@ namespace Pile
 			sourceInputs.Remove(source);
 		}
 
-		protected ´
-			 override void RedirectInputsToMaster()
+		protected override void RedirectInputsToMaster()
 		{
 			for (let mixingBus in busInputs)
 			{
