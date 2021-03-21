@@ -43,13 +43,7 @@ namespace Pile
 			}
 
 			// Put tracking on method
-			Compiler.EmitMethodEntry(methodInfo, scope $"""
-				let __pt = scope System.Diagnostics.Stopwatch(true);
-				defer
-				{{
-					Pile.Performance.[System.FriendAttribute]EndSection("{sectionName}", __pt.Elapsed);
-				}}
-				""");
+			Compiler.EmitMethodEntry(methodInfo, Performance.MakePerfTrackScopeCode(sectionName));
 #endif
 		}
 	}
@@ -131,6 +125,25 @@ namespace Pile
 			else sectionDurationsFill.Add(sectionName, time);
 
 			trackOverhead += __pt.Elapsed;
+		}
+
+		[Comptime]
+		/// Can be used together with Compiler.Mixin
+		public static String MakePerfTrackScopeCode(String scopeName)
+		{
+#if DEBUG
+			let rNum = scope Random().NextI32();
+
+			return new $"""
+				let __pt_s{rNum} = scope System.Diagnostics.Stopwatch(true);
+				defer
+				{{
+					Pile.Performance.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{rNum}.Elapsed);
+				}}
+				""";
+#else
+			return "";
+#endif
 		}
 
 		[PerfTrack]

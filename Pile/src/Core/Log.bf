@@ -95,7 +95,7 @@ namespace Pile
 			delete record;
 		}
 
-		internal static void Initialize()
+		internal static void CreateDefaultPath()
 		{
 			Path.InternalCombine(logPath, System.UserPath, @"log.txt");
 		}

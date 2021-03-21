@@ -11,37 +11,19 @@ namespace Pile
 	[Optimize]
 	static class Core
 	{
-		static this()
-		{
-			Title = new .();
-		}
-
-		static ~this()
-		{
-			if (run) Delete();
-
-			delete Title;
-		}
-
-		static void Delete() // @do we'll see what really remains of this, maybe we can just make all static, maybe we need some conducting / static init order
-		{
-			// Delete assets and textures while modules are still present
-			delete Assets;
-		}
-
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
 		// '.Minor' should be incremented for changes incompatible with older versions.
 		// '.Major' is incremented at milestones or big changes.
-		static readonly Version Version = .(1, 1);
+		static readonly Version Version = .(2, 0);
 
 		internal static bool run;
 		static bool exiting;
 
-		public static String Title { get; private set; }
-
-		public static Assets Assets { get; private set; }
-
+		static String title = new .() ~ delete _;
 		static Game Game;
+
+		[Inline]
+		public static StringView Title => title;
 
 		internal static Result<void> Run(RunConfig config)
 		{
@@ -57,7 +39,7 @@ namespace Pile
 
 			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
-			Title.Set(config.gameTitle);
+			title.Set(config.gameTitle);
 
 			// Print platform
 			{
@@ -71,7 +53,7 @@ namespace Pile
 			{
 				System.Initialize();
 				
-				System.DetermineDataPaths(Title);
+				System.DetermineDataPaths(title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
 				System.Window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
@@ -91,11 +73,12 @@ namespace Pile
 				Audio.Initialize();
 				Log.Info(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
 			}
+			
+			Log.CreateDefaultPath();
 
-			Assets = new Assets();
-			Log.Initialize();
-			Performance.Initialize();
 			BeefPlatform.Initialize();
+			Performance.Initialize();
+			Assets.Initialize();
 
 			w.Stop();
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
@@ -134,9 +117,54 @@ namespace Pile
 					lastTime = currTime;
 				}
 
-				CallUpdate(diffTime);
+				{
+					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Update"));
 
-				CallRender();
+					// Raw time
+					Time.RawDuration += diffTime;
+					Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
+					
+					Performance.Step();
+
+					// Update core modules
+					Graphics.Step();
+					Input.Step();
+					System.Step();
+
+					if (Time.freeze > float.Epsilon)
+					{
+						// Freeze time
+						Time.freeze -= Time.RawDelta;
+
+						Time.Delta = 0;
+						Game.[Friend]Step();
+
+						if (Time.freeze <= float.Epsilon)
+							Time.freeze = 0;
+					}
+					else
+					{
+						// Scaled time
+						Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
+						Time.Delta = Time.RawDelta * Time.Scale;
+
+						// Update game
+						Game.[Friend]Step();
+						Game.[Friend]Update();
+					}
+					Audio.AfterUpdate();
+				}
+
+				{
+					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Render"));
+
+					// Render
+					if (!exiting && !System.Window.Closed)
+					{
+						System.Window.Render(); // Calls WindowRender()
+						System.Window.Present();
+					}
+				}
 
 				{
 					// Record FPS
@@ -183,55 +211,6 @@ namespace Pile
 		{
 			Game.[Friend]Render();
 			Graphics.AfterRender();
-		}
-
-		[PerfTrack, Inline]
-		static void CallRender()
-		{
-			// Render
-			if (!exiting && !System.Window.Closed)
-			{
-				System.Window.Render(); // Calls WindowRender()
-				System.Window.Present();
-			}
-		}
-
-		[PerfTrack, Inline]
-		static void CallUpdate(int64 diffTime)
-		{
-			// Raw time
-			Time.RawDuration += diffTime;
-			Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
-			
-			Performance.Step();
-
-			// Update core modules
-			Graphics.Step();
-			Input.Step();
-			System.Step();
-
-			if (Time.freeze > float.Epsilon)
-			{
-				// Freeze time
-				Time.freeze -= Time.RawDelta;
-
-				Time.Delta = 0;
-				Game.[Friend]Step();
-
-				if (Time.freeze <= float.Epsilon)
-					Time.freeze = 0;
-			}
-			else
-			{
-				// Scaled time
-				Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
-				Time.Delta = Time.RawDelta * Time.Scale;
-
-				// Update game
-				Game.[Friend]Step();
-				Game.[Friend]Update();
-			}
-			Audio.AfterUpdate();
 		}
 	}
 }

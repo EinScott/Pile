@@ -13,16 +13,16 @@ namespace Pile
 		{
 			name = new String(assetName);
 
-			Core.Assets.OnLoadPackage.Add(new => PackageLoaded);
-			Core.Assets.OnUnloadPackage.Add(new => PackageUnloaded);
+			Assets.OnLoadPackage.Add(new => PackageLoaded);
+			Assets.OnUnloadPackage.Add(new => PackageUnloaded);
 
-			asset = Core.Assets.Get<T>(name); // Will set it to reference the asset or null
+			asset = Assets.Get<T>(name); // Will set it to reference the asset or null
 		}
 
 		public ~this()
 		{
-			Core.Assets.OnLoadPackage.Remove(scope => PackageLoaded, true);
-			Core.Assets.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
+			Assets.OnLoadPackage.Remove(scope => PackageLoaded, true);
+			Assets.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
 		}
 
 		public T AssetOrDefault(T def) => asset == null ? def : asset;
@@ -33,7 +33,7 @@ namespace Pile
 
 			if (package.OwnsAsset(typeof(T), name) || (typeof(T) == typeof(Subtexture) && package.OwnsTextureAsset(name)))
 			{
-				asset = Core.Assets.Get<T>(name); // Get it
+				asset = Assets.Get<T>(name); // Get it
 			}
 		}
 

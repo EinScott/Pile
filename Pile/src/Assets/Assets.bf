@@ -8,12 +8,12 @@ using internal Pile;
 namespace Pile
 {
 	[Optimize]
-	class Assets
+	static class Assets
 	{
-		Packer packer = new Packer() ~ delete _;
-		List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
+		static Packer packer = new Packer() ~ delete _;
+		static List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
 
-		Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>() ~
+		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>() ~
 			{
 				for (let dic in _.Values)
 					DeleteDictionaryAndKeysAndValues!(dic);
@@ -21,12 +21,12 @@ namespace Pile
 				delete _;
 			};
 
-		Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>() ~  DeleteDictionaryAndValues!(_);
-		List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
-		String packagesPath = new String() ~ delete _;
+		static Dictionary<Type, List<StringView>> dynamicAssets = new Dictionary<Type, List<StringView>>() ~  DeleteDictionaryAndValues!(_);
+		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
+		static String packagesPath = new String() ~ delete _;
 
-		public int TextureCount => packer.SourceImageCount;
-		public int AssetCount
+		public static int TextureCount => packer.SourceImageCount;
+		public static int AssetCount
 		{
 			get
 			{
@@ -37,7 +37,7 @@ namespace Pile
 				return c;
 			}
 		}
-		public int DynamicAssetCount
+		public static int DynamicAssetCount
 		{
 			get
 			{
@@ -50,10 +50,10 @@ namespace Pile
 		}
 
 		public delegate void PackageEvent(Package package);
-		public Event<PackageEvent> OnLoadPackage ~ _.Dispose(); // Called after a package was loaded
-		public Event<PackageEvent> OnUnloadPackage ~ _.Dispose(); // Called before a package was unloaded (assets not yet deleted)
+		public static Event<PackageEvent> OnLoadPackage ~ _.Dispose(); // Called after a package was loaded
+		public static Event<PackageEvent> OnUnloadPackage ~ _.Dispose(); // Called before a package was unloaded (assets not yet deleted)
 
-		internal this()
+		internal static void Initialize()
 		{
 			// Get packages path
 			Path.Clean(Path.InternalCombine(.. scope .(), System.DataPath, "packages"), packagesPath);
@@ -63,11 +63,11 @@ namespace Pile
 
 			let assetsSource = GetScopedAssetsSourcePath!();
 			if (Directory.Exists(assetsSource))
-				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, Internal.UnsafeCastToPtr(this), null);
+				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, null, null);
 #endif
 		}
 
-		internal ~this()
+		static ~this()
 		{
 #if DEBUG
 			System.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
@@ -76,16 +76,15 @@ namespace Pile
 		}
 
 #if DEBUG
-		Platform.BfpFileWatcher* assetsWatcher;
-		internal bool assetsChanged;
+		static Platform.BfpFileWatcher* assetsWatcher;
+		internal static bool assetsChanged;
 
 		static void OnBfpDirectoryChanged(Platform.BfpFileWatcher* watcher, void* userData, Platform.BfpFileChangeKind changeKind, char8* directory, char8* fileName, char8* oldName)
 		{
-			let assets = (Assets)Internal.UnsafeCastToObject(userData);
-			assets.assetsChanged = true;
+			Assets.assetsChanged = true;
 		}
 
-		void OnWindowFocusChanged()
+		static void OnWindowFocusChanged()
 		{
 			// The window was just focused again and the game is not just starting
 			if (assetsChanged && System.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
@@ -96,7 +95,7 @@ namespace Pile
 		}
 #endif		
 
-		public bool Has<T>(String name) where T : class
+		public static bool Has<T>(String name) where T : class
 		{
 			let type = typeof(T);
 
@@ -109,7 +108,7 @@ namespace Pile
 			return true;
 		}
 
-		public bool Has<T>() where T : class
+		public static bool Has<T>() where T : class
 		{
 			let type = typeof(T);
 
@@ -119,7 +118,7 @@ namespace Pile
 			return true;
 		}
 
-		public bool Has(Type type, String name)
+		public static bool Has(Type type, String name)
 		{
 			if (!type.IsObject || !type.HasDestructor)
 				return false;
@@ -133,7 +132,7 @@ namespace Pile
 			return true;
 		}
 
-		public bool Has(Type type)
+		public static bool Has(Type type)
 		{
 			if (!type.IsObject || !type.HasDestructor)
 				return false;
@@ -144,7 +143,7 @@ namespace Pile
 			return true;
 		}
 
-		public T Get<T>(String name) where T : class
+		public static T Get<T>(String name) where T : class
  		{
 			 if (!Has<T>(name))
 				 return null;
@@ -152,7 +151,7 @@ namespace Pile
 			 return (T)assets.GetValue(typeof(T)).Get().GetValue(name).Get();
 		}
 
-		public Object Get(Type type, String name)
+		public static Object Get(Type type, String name)
 		{
 			if (!Has(type, name))
 				return false;
@@ -160,7 +159,7 @@ namespace Pile
 			return assets.GetValue(type).Get().GetValue(name).Get();
 		}
 
-		public AssetEnumerator<T> Get<T>() where T : class
+		public static AssetEnumerator<T> Get<T>() where T : class
 		{
 			if (!Has<T>())
 				return AssetEnumerator<T>(null);
@@ -168,7 +167,7 @@ namespace Pile
 			return AssetEnumerator<T>(assets.GetValue(typeof(T)).Get());
 		}
 
-		public Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
+		public static Result<Dictionary<String, Object>.ValueEnumerator> Get(Type type)
 		{
 			if (!Has(type))
 				return .Err;
@@ -178,7 +177,7 @@ namespace Pile
 
 		//=== PACKAGE MANAGEMENT
 
-		public Result<Package> LoadPackage(StringView packageName, bool packAndUpdateTextures = true)
+		public static Result<Package> LoadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Debug.Assert(packagesPath != null, "Initialize Core first!");
 
@@ -222,7 +221,7 @@ namespace Pile
 				if (@return case .Err)
 				{
 					Importers.currentPackage = null;
-					this.UnloadPackage(package.name, false).IgnoreError();
+					Assets.UnloadPackage(package.name, false).IgnoreError();
 				}
 			}
 
@@ -256,7 +255,7 @@ namespace Pile
 		}
 
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive LoadPackage() calls.
-		public Result<void> UnloadPackage(StringView packageName, bool packAndUpdateTextures = true)
+		public static Result<void> UnloadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Package package = null;
 			for (int i < loadedPackages.Count)
@@ -285,7 +284,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		public bool PackageLoaded(StringView packageName, out Package package)
+		public static bool PackageLoaded(StringView packageName, out Package package)
 		{
 			for (let p in loadedPackages)
 				if (p.Name == packageName)
@@ -300,7 +299,7 @@ namespace Pile
 
 		[DebugOnly]
 		/// Will try to rebuild and reload all packages. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
-		internal Result<void> HotReloadPackages(bool force = false)
+		internal static Result<void> HotReloadPackages(bool force = false)
 #if DEBUG
 		{
 			Result<void> err = .Ok;
@@ -338,7 +337,7 @@ namespace Pile
 		//=== DYNAMIC ASSETS
 
 		/// Use Packages for static assets, use this for ones you don't know at build time.
-		public Result<void> AddDynamicAsset(StringView name, Object asset)
+		public static Result<void> AddDynamicAsset(StringView name, Object asset)
 		{
 			let type = asset.GetType();
 
@@ -356,7 +355,7 @@ namespace Pile
 
 		/// Use Packages for static assets, use this for ones you don't know at build time.
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
-		public Result<Subtexture> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
+		public static Result<Subtexture> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
 			// Add object in assets
 			let nameView = Try!(AddTextureAsset(name, bitmap, let asset));
@@ -373,7 +372,7 @@ namespace Pile
 			return .Ok(asset);
 		}
 
-		public void RemoveDynamicAsset(Type type, StringView name)
+		public static void RemoveDynamicAsset(Type type, StringView name)
 		{
 			if (!dynamicAssets.ContainsKey(type))
 				return;
@@ -384,7 +383,7 @@ namespace Pile
 		}
 
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
-		public void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
+		public static void RemoveDynamicTextureAsset(StringView name, bool packAndUpdateTextures = true)
 		{
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
 				return;
@@ -399,7 +398,7 @@ namespace Pile
 
 		//=== INTERNAL MANAGEMENT
 
-		internal Result<StringView> AddAsset(Type type, StringView name, Object object)
+		internal static Result<StringView> AddAsset(Type type, StringView name, Object object)
 		{
 			Debug.Assert(Core.run);
 
@@ -429,7 +428,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		internal Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset)
+		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset)
 		{
 			Debug.Assert(Core.run);
 			asset = null;
@@ -464,7 +463,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		internal void RemoveAsset(Type type, StringView name)
+		internal static void RemoveAsset(Type type, StringView name)
 		{
 			let string = scope String(name);
 
@@ -487,7 +486,7 @@ namespace Pile
 			}
 		}
 
-		internal void RemoveTextureAsset(StringView name)
+		internal static void RemoveTextureAsset(StringView name)
 		{
 			let string = scope String(name);
 
@@ -515,7 +514,7 @@ namespace Pile
 			}
 		}
 
-		internal void PackAndUpdateTextures()
+		internal static void PackAndUpdateTextures()
 		{
 			Debug.Assert(Core.run);
 

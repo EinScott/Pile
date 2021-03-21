@@ -32,16 +32,16 @@ namespace Game
 			Log.Info("Hello!");
 
 			// This is automatically built for us. See BeefProj.toml and Pile/Core/EntryPoint.bf @ RunPackager
-			Core.Assets.LoadPackage("shaders");
+			Assets.LoadPackage("shaders");
 
 			// Setup default shader for drawing with Batch2D
-			let source = scope ShaderData(Core.Assets.Get<RawAsset>("s_batch2dVert").text, Core.Assets.Get<RawAsset>("s_batch2dFrag").text); 
+			let source = scope ShaderData(Assets.Get<RawAsset>("s_batch2dVert").text, Assets.Get<RawAsset>("s_batch2dFrag").text); 
 			batchShader = new Shader(source);
 			batchMat = new Material(batchShader);
 
 			batch = new Batch2D(batchMat);
 
-			Core.Assets.UnloadPackage("shaders"); // No need to have shader source code loaded anymore
+			Assets.UnloadPackage("shaders"); // No need to have shader source code loaded anymore
 		}
 
 		protected override void Update()
