@@ -15,10 +15,6 @@ namespace Pile
 			get => info;
 		}
 
-		// Method needs to be static, so work around it like this, since there should only be one instance at a time anyway
-		static void* GetProcAddress(StringView procName) => system.GetGLProcAddress(procName);
-		static ISystemOpenGL system;
-
 		function void DeleteResource(ref uint32 id);
 		static void DeleteTexture(ref uint32 id) => glDeleteTextures(1, &id);
 		static void DeleteBuffer(ref uint32 id) => glDeleteBuffers(1, &id);
@@ -50,27 +46,27 @@ namespace Pile
 
 		static ~this()
 		{
-			system = null;
-
 			RunDeleteLists();
 		}
 
 		protected internal static override void Initialize()
 		{
-			if (!(Core.System is ISystemOpenGL)) Runtime.FatalError("System must support openGL");
-			system = Core.System as ISystemOpenGL;
+			if (System.RendererSupport case .OpenGLCore(let GetProcAddress, let SetGLAttributes))
+			{
+				// Config GL on System
+				SetGLAttributes(24, 8, 1, 4);
+	
+				// Init & Config GL
+				Init(=> GetProcAddress);
+			}
+			else Runtime.FatalError("System must support OpenGLCore");
 
-			// Config gl on system
-			system.SetGLAttributes(24, 8, 1, 4);
-
-			// Init & Config GL
-			Init(=> GetProcAddress);
 			glDepthMask(GL_TRUE);
 
 			glEnable(GL_DEBUG_OUTPUT);
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
-			if (glDebugMessageCallback != null) glDebugMessageCallback(=> DebugCallback, null); // This may be not be avaiable depending on the version
+			if (glDebugMessageCallback != null) glDebugMessageCallback(=> DebugCallback, null); // This may be not be available depending on the version
 
 			info.AppendF("device: {}, vendor: {}", StringView(glGetString(GL_RENDERER)), StringView(glGetString(GL_VENDOR)));
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);

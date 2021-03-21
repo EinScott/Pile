@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public enum BlendOperations : uint8
+	enum BlendOperations : uint8
 	{
 	    Add,
 	    Subtract,
@@ -11,7 +11,7 @@ namespace Pile
 	    Max
 	}
 
-	public enum BlendFactors : uint8
+	enum BlendFactors : uint8
 	{
 	    Zero,
 	    One,
@@ -34,7 +34,7 @@ namespace Pile
 	    OneMinusSrc1Alpha
 	}
 
-	public enum BlendMask : uint8
+	enum BlendMask : uint8
 	{
 	    None    = 0,
 	    Red     = 1,
@@ -45,7 +45,7 @@ namespace Pile
 	    RGBA    = Red | Green | Blue | Alpha
 	}
 
-	public struct BlendMode : IEquatable<BlendMode>
+	struct BlendMode : IEquatable<BlendMode>
 	{
 	    public BlendOperations colorOperation;
 	    public BlendFactors colorSource;

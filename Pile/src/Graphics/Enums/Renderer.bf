@@ -1,12 +1,17 @@
+using System;
+
 namespace Pile
 {
-	public enum Renderer
+	enum Renderer
 	{
-		Dummy = 0,
-		OpenGLCore,
-		OpenGLES,
-		Vulkan,
-		Direct3D,
-		Metal
+		case Dummy = 0;
+		case OpenGLCore;
+		case OpenGLES;
+		case Vulkan;
+		case Direct3D;
+		case Metal;
+
+		[Inline]
+		public bool IsOpenGL => this == .OpenGLCore || this == .OpenGLES;
 	}
 }

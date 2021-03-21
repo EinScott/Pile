@@ -97,7 +97,7 @@ namespace Pile
 
 		internal static void Initialize()
 		{
-			Path.InternalCombine(logPath, Core.System.UserPath, @"log.txt");
+			Path.InternalCombine(logPath, System.UserPath, @"log.txt");
 		}
 
 		// Logging functions

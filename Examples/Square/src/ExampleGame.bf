@@ -10,8 +10,8 @@ namespace Game
 	{
 		static this()
 		{
-			EntryPoint.Preferences.createGame = () => new ExampleGame();
-			EntryPoint.Preferences.gameTitle = "Example Game";
+			EntryPoint.Config.createGame = () => new ExampleGame();
+			EntryPoint.Config.gameTitle = "Example Game";
 		}
 
 		const float rectSpeed = 140;
@@ -53,23 +53,14 @@ namespace Game
 		protected override void Render()
 		{
 			// Clear screen and bacher buffer
-			Core.Graphics.Clear(Core.Window, .Black);
+			Graphics.Clear(System.Window, .Black);
 			batch.Clear();
 
 			// Raw rect at position
 			batch.Rect(Rect(rectPos.Round() + relativeRect.Position, relativeRect.Size), .Red);
 
 			// Render batch buffer
-			batch.Render(Core.Window);
-
-			//let pos = dragging ? Point2(1, 2) : Point2(0, (int)87f); // @do report bug: having this integrate in call below will error codegen
-			Draw(batch, 5, dragging ? Point2(1, 2) : Point2(0, (int)87f));
-		}
-
-		bool dragging;
-		void Draw(Batch2D batch, int frame, Point2 pos)
-		{
-			Console.Write('d');
+			batch.Render(System.Window);
 		}
 	}
 }

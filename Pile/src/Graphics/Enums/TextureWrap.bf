@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum TextureWrap
+	enum TextureWrap
 	{
 		Wrap,
 		Clamp

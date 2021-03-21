@@ -6,8 +6,6 @@ namespace Pile
 	{
 		public const int MaxKeys = 400;
 
-		readonly Input input;
-
 		internal bool[MaxKeys] pressed = .();
 		internal bool[MaxKeys] down = .();
 		internal bool[MaxKeys] released = .();
@@ -15,10 +13,7 @@ namespace Pile
 
 		public readonly String Text = new String(8);
 
-		internal this(Input input)
-		{
-			this.input = input;
-		}
+		internal this() {}
 
 		internal void Dispose()
 		{
@@ -85,7 +80,7 @@ namespace Pile
 
 		public bool Repeated(Keys key)
 		{
-		    return Repeated(key, input.repeatDelay, input.repeatInterval);
+		    return Repeated(key, Input.repeatDelay, Input.repeatInterval);
 		}
 
 		public bool Repeated(Keys key, float delay, float interval)

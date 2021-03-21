@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Cursors
+	enum Cursors
 	{
 		Hidden,
 		Default,

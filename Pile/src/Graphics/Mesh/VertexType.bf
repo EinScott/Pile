@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum VertexType : uint8
+	enum VertexType : uint8
 	{
 		case Byte;
 		case Short;

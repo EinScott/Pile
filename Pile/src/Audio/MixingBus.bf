@@ -28,11 +28,11 @@ namespace Pile
 
 		public this(MixingBus output = null)
 		{
-			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependent objects");
+			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
 			Initialize();
 
-			this.output = output == null ? output : Core.Audio.MasterBus;
+			this.output = output == null ? output : Audio.MasterBus;
 			Output.AddBus(this);
 		}
 

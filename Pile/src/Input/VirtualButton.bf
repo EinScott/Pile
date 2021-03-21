@@ -22,10 +22,10 @@ namespace Pile
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
-		        if (Core.Input.Keyboard.Pressed(key))
+		        if (Input.Keyboard.Pressed(key))
 		            return true;
 
-		        var timestamp = Core.Input.Keyboard.Timestamp(key);
+		        var timestamp = Input.Keyboard.Timestamp(key);
 		        var time = Time.Duration.Ticks;
 
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
@@ -34,9 +34,13 @@ namespace Pile
 		        return false;
 		    }
 
-		    public override bool Down => Core.Input.Keyboard.Down(key);
-		    public override bool Released => Core.Input.Keyboard.Released(key);
-		    public override bool Repeated(float delay, float interval) => Core.Input.Keyboard.Repeated(key, delay, interval);
+			[Inline]
+		    public override bool Down => Input.Keyboard.Down(key);
+			[Inline]
+		    public override bool Released => Input.Keyboard.Released(key);
+			[Inline]
+		    public override bool Repeated(float delay, float interval) => Input.Keyboard.Repeated(key, delay, interval);
+			[SkipCall]
 		    protected internal override void Update() { }
 
 		    internal this(Keys key)
@@ -51,10 +55,10 @@ namespace Pile
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
-		        if (Core.Input.Mouse.Pressed(mouseButton))
+		        if (Input.Mouse.Pressed(mouseButton))
 		            return true;
 
-		        var timestamp = Core.Input.Mouse.Timestamp(mouseButton);
+		        var timestamp = Input.Mouse.Timestamp(mouseButton);
 		        var time = Time.Duration.Ticks;
 
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
@@ -63,9 +67,13 @@ namespace Pile
 		        return false;
 		    }
 
-		    public override bool Down => Core.Input.Mouse.Down(mouseButton);
-		    public override bool Released => Core.Input.Mouse.Released(mouseButton);
-		    public override bool Repeated(float delay, float interval) => Core.Input.Mouse.Repeated(mouseButton, delay, interval);
+			[Inline]
+		    public override bool Down => Input.Mouse.Down(mouseButton);
+			[Inline]
+		    public override bool Released => Input.Mouse.Released(mouseButton);
+			[Inline]
+		    public override bool Repeated(float delay, float interval) => Input.Mouse.Repeated(mouseButton, delay, interval);
+			[SkipCall]
 		    protected internal override void Update() { }
 
 		    internal this(MouseButtons mouseButton)
@@ -81,10 +89,10 @@ namespace Pile
 
 		    public override bool Pressed(float buffer, int64 lastBufferConsumedTime)
 		    {
-		        if (Core.Input.state.controllers[index].Pressed(button))
+		        if (Input.state.controllers[index].Pressed(button))
 		            return true;
 
-		        var timestamp = Core.Input.state.controllers[index].Timestamp(button);
+		        var timestamp = Input.state.controllers[index].Timestamp(button);
 		        var time = Time.Duration.Ticks;
 
 		        if (time - timestamp <= buffer * TimeSpan.TicksPerSecond && timestamp > lastBufferConsumedTime)
@@ -93,14 +101,18 @@ namespace Pile
 		        return false;
 		    }
 
-		    public override bool Down => Core.Input.state.controllers[index].Down(button);
-		    public override bool Released => Core.Input.state.controllers[index].Released(button);
-		    public override bool Repeated(float delay, float interval) => Core.Input.state.controllers[index].Repeated(button, delay, interval);
+			[Inline]
+		    public override bool Down => Input.state.controllers[index].Down(button);
+			[Inline]
+		    public override bool Released => Input.state.controllers[index].Released(button);
+			[Inline]
+		    public override bool Repeated(float delay, float interval) => Input.state.controllers[index].Repeated(button, delay, interval);
+			[SkipCall]
 		    protected internal override void Update() { }
 
 		    internal this(int controller, Buttons button)
 		    {
-		        this.index = controller < (int)Core.Input.maxControllers ? controller : 0;
+		        this.index = controller < (int)Input.MaxControllers ? controller : 0;
 		        this.button = button;
 		    }
 		}
@@ -132,12 +144,12 @@ namespace Pile
 		        get
 		        {
 		            if (Math.Abs(threshold) <= AXIS_EPSILON)
-		                return Math.Abs(Core.Input.state.controllers[index].Axis(axis)) > AXIS_EPSILON;
+		                return Math.Abs(Input.state.controllers[index].Axis(axis)) > AXIS_EPSILON;
 
 		            if (threshold < 0)
-		                return Core.Input.state.controllers[index].Axis(axis) <= threshold;
+		                return Input.state.controllers[index].Axis(axis) <= threshold;
 		            
-		            return Core.Input.state.controllers[index].Axis(axis) >= threshold;
+		            return Input.state.controllers[index].Axis(axis) >= threshold;
 		        }
 		    }
 
@@ -146,37 +158,38 @@ namespace Pile
 		        get
 		        {
 		            if (Math.Abs(threshold) <= AXIS_EPSILON)
-		                return Math.Abs(Core.Input.lastState.controllers[index].Axis(axis)) > AXIS_EPSILON && Math.Abs(Core.Input.state.controllers[index].Axis(axis)) < AXIS_EPSILON;
+		                return Math.Abs(Input.lastState.controllers[index].Axis(axis)) > AXIS_EPSILON && Math.Abs(Input.state.controllers[index].Axis(axis)) < AXIS_EPSILON;
 
 		            if (threshold < 0)
-		                return Core.Input.lastState.controllers[index].Axis(axis) <= threshold && Core.Input.state.controllers[index].Axis(axis) > threshold;
+		                return Input.lastState.controllers[index].Axis(axis) <= threshold && Input.state.controllers[index].Axis(axis) > threshold;
 
-		            return Core.Input.lastState.controllers[index].Axis(axis) >= threshold && Core.Input.state.controllers[index].Axis(axis) < threshold;
+		            return Input.lastState.controllers[index].Axis(axis) >= threshold && Input.state.controllers[index].Axis(axis) < threshold;
 		        }
 		    }
 
+			[Inline]
 		    public override bool Repeated(float delay, float interval) => false;
 
 		    private bool Pressed()
 		    {
 		        if (Math.Abs(threshold) <= AXIS_EPSILON)
-		            return (Math.Abs(Core.Input.lastState.controllers[index].Axis(axis)) < AXIS_EPSILON && Math.Abs(Core.Input.state.controllers[index].Axis(axis)) > AXIS_EPSILON);
+		            return (Math.Abs(Input.lastState.controllers[index].Axis(axis)) < AXIS_EPSILON && Math.Abs(Input.state.controllers[index].Axis(axis)) > AXIS_EPSILON);
 
 		        if (threshold < 0)
-		            return (Core.Input.lastState.controllers[index].Axis(axis) > threshold && Core.Input.state.controllers[index].Axis(axis) <= threshold);
+		            return (Input.lastState.controllers[index].Axis(axis) > threshold && Input.state.controllers[index].Axis(axis) <= threshold);
 		        
-		        return (Core.Input.lastState.controllers[index].Axis(axis) < threshold && Core.Input.state.controllers[index].Axis(axis) >= threshold);
+		        return (Input.lastState.controllers[index].Axis(axis) < threshold && Input.state.controllers[index].Axis(axis) >= threshold);
 		    }
 
 		    protected internal override void Update()
 		    {
 		        if (Pressed())
-		            pressedTimestamp = Core.Input.state.controllers[index].Timestamp(axis);
+		            pressedTimestamp = Input.state.controllers[index].Timestamp(axis);
 		    }
 
 		    internal this(int controller, Axes axis, float threshold)
 		    {
-		        this.index = controller < (int)Core.Input.maxControllers ? controller : 0;
+		        this.index = controller < (int)Input.MaxControllers ? controller : 0;
 		        this.axis = axis;
 		        this.threshold = threshold;
 		    }
@@ -191,17 +204,17 @@ namespace Pile
 
 		public this(float buffer = 0f)
 		{
-			Core.Input.virtualButtons.Add(this);
+			Input.virtualButtons.Add(this);
 
 			this.buffer = buffer;
-			repeatInterval = Core.Input.repeatInterval;
-			repeatDelay = Core.Input.repeatDelay;
+			repeatInterval = Input.repeatInterval;
+			repeatDelay = Input.repeatDelay;
 		}
 
 		public ~this()
 		{
 			// Don't remove from the list when we are about to delete the list
-			if (!Core.Input.deleting) Core.Input.virtualButtons.Remove(this);
+			if (!Input.deleting) Input.virtualButtons.Remove(this);
 		}
 
 		internal void Update()

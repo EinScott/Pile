@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum CullMode
+	enum CullMode
 	{
 		None,
 		Front,

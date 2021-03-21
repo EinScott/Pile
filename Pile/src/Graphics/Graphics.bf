@@ -10,6 +10,9 @@ namespace Pile
 	{
 		public static readonly uint32 MajorVersion;
 		public static readonly uint32 MinorVersion;
+
+		/// The graphics API this implementation will use.
+		/// Used by system to prepare for the graphics initialization.
 		public static readonly Renderer Renderer;
 
 		public static extern String ApiName { get; }

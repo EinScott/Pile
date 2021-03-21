@@ -10,15 +10,15 @@ namespace Pile
 	{
 		uint32 group;
 
-		public override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(Core.Audio.slPtr, group) && !Paused;
+		public override bool Playing => !SL_Soloud.IsVoiceGroupEmpty(Audio.slPtr, group) && !Paused;
 
 		public ~this()
 		{
 			if (StopOnDelete || Paused)
-				SL_Soloud.Stop(Core.Audio.slPtr, group);
+				SL_Soloud.Stop(Audio.slPtr, group);
 			else Looping = false; // Since we are throwing our handles into the void, lets make sure the sounds end eventually
 
-			SL_Soloud.DestroyVoiceGroup(Core.Audio.slPtr, group);
+			SL_Soloud.DestroyVoiceGroup(Audio.slPtr, group);
 			SL_Bus.Destroy(slBus);
 		}
 
@@ -26,7 +26,7 @@ namespace Pile
 		{
 			slBus = SL_Bus.Create();
 			SL_Bus.SetInaudibleBehavior(slBus, SL_TRUE, SL_FALSE);
-			group = SL_Soloud.CreateVoiceGroup(Core.Audio.slPtr);
+			group = SL_Soloud.CreateVoiceGroup(Audio.slPtr);
 
 			Debug.Assert(slBus != null && group != 0, "Failed to create SL_AudioSource (Bus or VoiceGroup)");
 		}
@@ -39,7 +39,7 @@ namespace Pile
 			else handle = SL_Bus.PlayClocked(slBus, delay, clip.audio, volume, Pan);
 
 			// Apply source config
-			let ptr = Core.Audio.slPtr;
+			let ptr = Audio.slPtr;
 			SL_Soloud.SetInaudibleBehavior(ptr, handle, StopInaudible ? SL_FALSE : SL_TRUE, StopInaudible ? SL_TRUE : SL_FALSE);
 			if (Prioritized) SL_Soloud.SetProtectVoice(ptr, handle, SL_TRUE);
 
@@ -67,7 +67,7 @@ namespace Pile
 			{
 				if (value == volume) return;
 
-				SL_Soloud.SetVolume(Core.Audio.slPtr, group, Math.Max(0, value));
+				SL_Soloud.SetVolume(Audio.slPtr, group, Math.Max(0, value));
 				volume = value;
 			}
 		}
@@ -80,7 +80,7 @@ namespace Pile
 			{
 				if (pan == value) return;
 
-				SL_Soloud.SetPan(Core.Audio.slPtr, group, value);
+				SL_Soloud.SetPan(Audio.slPtr, group, value);
 				pan = value;
 			}
 		}
@@ -92,7 +92,7 @@ namespace Pile
 			{
 				if (value == speed) return;
 
-				SL_Soloud.SetRelativePlaySpeed(Core.Audio.slPtr, group, Math.Max(float.Epsilon, value));
+				SL_Soloud.SetRelativePlaySpeed(Audio.slPtr, group, Math.Max(float.Epsilon, value));
 				speed = value;
 			}
 		}
@@ -104,7 +104,7 @@ namespace Pile
 			{
 				if (value == looping) return;
 
-				SL_Soloud.SetLooping(Core.Audio.slPtr, group, value ? SL_TRUE : SL_FALSE);
+				SL_Soloud.SetLooping(Audio.slPtr, group, value ? SL_TRUE : SL_FALSE);
 				looping = value;
 			}
 		}
@@ -116,14 +116,14 @@ namespace Pile
 			{
 				if (value == paused) return;
 
-				SL_Soloud.SetPause(Core.Audio.slPtr, group, value ? SL_TRUE : SL_FALSE);
+				SL_Soloud.SetPause(Audio.slPtr, group, value ? SL_TRUE : SL_FALSE);
 				paused = value;
 			}
 		}
 
 		public override void Stop()
 		{
-			SL_Soloud.Stop(Core.Audio.slPtr, group);
+			SL_Soloud.Stop(Audio.slPtr, group);
 		}
 	}
 }

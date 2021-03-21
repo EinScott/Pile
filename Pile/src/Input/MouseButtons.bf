@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum MouseButtons
+	enum MouseButtons
 	{
 		Unknown = 0,
 		Left = 1,

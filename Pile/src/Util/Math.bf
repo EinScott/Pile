@@ -1,6 +1,6 @@
 namespace System
 {
-	public extension Math
+	extension Math
 	{
 		public const float HalfPI_f = (.)(Math.PI_d / 2);
 		public const double HalfPI_d = Math.PI_d / 2;

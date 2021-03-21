@@ -25,8 +25,10 @@ namespace Pile
 	        public Keys key;
 	        public bool positive;
 
-	        public override float Value(bool deadzone) => (Core.Input.Keyboard.Down(key) ? (positive ? 1 : -1) : 0);
-	        public override double Timestamp => Core.Input.Keyboard.Timestamp(key);
+			[Inline]
+	        public override float Value(bool deadzone) => (Input.Keyboard.Down(key) ? (positive ? 1 : -1) : 0);
+			[Inline]
+	        public override double Timestamp => Input.Keyboard.Timestamp(key);
 
 	        internal this(Keys key, bool positive)
 	        {
@@ -41,8 +43,9 @@ namespace Pile
 	        public Buttons button;
 	        public bool positive;
 
-	        public override float Value(bool deadzone) => (Core.Input.state.controllers[index].Down(button) ? (positive ? 1 : -1) : 0);
-	        public override double Timestamp => Core.Input.state.controllers[index].Timestamp(button);
+	        public override float Value(bool deadzone) => (Input.state.controllers[index].Down(button) ? (positive ? 1 : -1) : 0);
+			[Inline]
+	        public override double Timestamp => Input.state.controllers[index].Timestamp(button);
 
 	        internal this(int controller, Buttons button, bool positive)
 	        {
@@ -61,8 +64,8 @@ namespace Pile
 
 	        public override float Value(bool deadzone)
 	        {
-	            if (!deadzone || Math.Abs(Core.Input.state.controllers[index].Axis(axis)) >= this.deadzone)
-	                return Core.Input.state.controllers[index].Axis(axis) * (positive ? 1 : -1);
+	            if (!deadzone || Math.Abs(Input.state.controllers[index].Axis(axis)) >= this.deadzone)
+	                return Input.state.controllers[index].Axis(axis) * (positive ? 1 : -1);
 	            return 0f;
 	        }
 
@@ -70,9 +73,9 @@ namespace Pile
 	        {
 	            get
 	            {
-	                if (Math.Abs(Core.Input.state.controllers[index].Axis(axis)) < deadzone)
+	                if (Math.Abs(Input.state.controllers[index].Axis(axis)) < deadzone)
 	                    return 0;
-	                return Core.Input.state.controllers[index].Timestamp(axis);
+	                return Input.state.controllers[index].Timestamp(axis);
 	            }
 	        }
 

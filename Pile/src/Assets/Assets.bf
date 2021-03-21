@@ -56,10 +56,10 @@ namespace Pile
 		internal this()
 		{
 			// Get packages path
-			Path.Clean(Path.InternalCombine(.. scope .(), Core.System.DataPath, "packages"), packagesPath);
+			Path.Clean(Path.InternalCombine(.. scope .(), System.DataPath, "packages"), packagesPath);
 
 #if DEBUG
-			Core.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
+			System.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 
 			let assetsSource = GetScopedAssetsSourcePath!();
 			if (Directory.Exists(assetsSource))
@@ -70,7 +70,7 @@ namespace Pile
 		internal ~this()
 		{
 #if DEBUG
-			Core.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
+			System.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
 			if (assetsWatcher != null) Platform.BfpFileWatcher_Release(assetsWatcher);
 #endif
 		}
@@ -88,7 +88,7 @@ namespace Pile
 		void OnWindowFocusChanged()
 		{
 			// The window was just focused again and the game is not just starting
-			if (assetsChanged && Core.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
+			if (assetsChanged && System.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
 			{
 				HotReloadPackages();
 				assetsChanged = false;

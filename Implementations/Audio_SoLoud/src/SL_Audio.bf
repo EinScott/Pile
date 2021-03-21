@@ -10,26 +10,22 @@ namespace Pile
 	{
 		// TODO: maybe some debug mode (SL_Bus.SetVisualizationEnable(bus, true);) like graphics
 
-		uint32 majVer;
-		uint32 minVer;
-		public override uint32 MajorVersion => majVer;
-		public override uint32 MinorVersion => minVer;
-		public override String ApiName => "SoLoud";
+		public static override String ApiName => "SoLoud";
 
-		String info = new String() ~ delete _;
-		public override String Info => info;
+		static String info = new String() ~ delete _;
+		public static override String Info => info;
 
-		MasterBus master ~ delete _;
-		public override MasterBus MasterBus => master;
+		static MasterBus master ~ delete _;
+		public static override MasterBus MasterBus => master;
 
-		Backend Backend;
-		uint32 MaxVoiceCount;
+		static Backend Backend;
+		static uint32 MaxVoiceCount;
 
-		internal Soloud* slPtr;
-		internal bool spacialDirty;
+		internal static Soloud* slPtr;
+		internal static bool spacialDirty;
 
-		Vector3 up = .(0, 1, 0);
-		public override Vector3 SpacialListenerUp
+		static Vector3 up = .(0, 1, 0);
+		public static override Vector3 SpacialListenerUp
 		{
 			get => up;
 			set
@@ -43,8 +39,8 @@ namespace Pile
 			}
 		}
 
-		Vector3 listener;
-		public override Vector3 SpacialListenerPosition
+		static Vector3 listener;
+		public static override Vector3 SpacialListenerPosition
 		{
 			get => listener;
 			set
@@ -58,8 +54,8 @@ namespace Pile
 			}
 		}
 
-		Vector3 facing;
-		public override Vector3 SpacialListenerFacing
+		static Vector3 facing;
+		public static override Vector3 SpacialListenerFacing
 		{
 			get => facing;
 			set
@@ -73,8 +69,8 @@ namespace Pile
 			}
 		}
 
-		Vector3 velocity;
-		public override Vector3 SpacialListenerVelocity
+		static Vector3 velocity;
+		public static override Vector3 SpacialListenerVelocity
 		{
 			get => velocity;
 			set
@@ -88,8 +84,8 @@ namespace Pile
 			}
 		}
 
-		float soundSpeed = 343; // SoLoud default - assumes 1 using is 1 meter
-		public override float SpacialSoundSpeed
+		static float soundSpeed = 343; // SoLoud default - assumes 1 using is 1 meter
+		public static override float SpacialSoundSpeed
 		{
 			get => soundSpeed;
 			set
@@ -104,24 +100,29 @@ namespace Pile
 		}
 
 		// When changed, wont apply to sounds that are already played/scheduled
-		public override bool SimulateSpacialDelay { get; set; }
+		public static override bool SimulateSpacialDelay { get; set; }
 
-		public override uint AudibleSoundCount => (.)GetActiveVoiceCount(slPtr);
-		public override uint SoundCount => (.)GetVoiceCount(slPtr);
+		public static override uint AudibleSoundCount => (.)GetActiveVoiceCount(slPtr);
+		public static override uint SoundCount => (.)GetVoiceCount(slPtr);
 
-		this
+		static this()
 		{
+			// Version
+			let ver = GetVersion(slPtr);
+			MajorVersion = (uint32)Math.Floor((float)ver / 100);
+			MinorVersion = ver - (MajorVersion * 100);
+
 			Backend = .AUTO;
 			MaxVoiceCount = 24;
 		}
 
-		internal ~this()
+		static ~this()
 		{
 			Deinit(slPtr);
 			Destroy(slPtr);
 		}
 
-		protected internal override void Initialize()
+		protected internal static override void Initialize()
 		{
 			// Create master bus (cant do earlier since we need to have Core.Auio assigned)
 			master = new MasterBus();
@@ -130,16 +131,11 @@ namespace Pile
 			Init(slPtr, .CLIP_ROUNDOFF, Backend, AUTO, AUTO, .TWO);
 			SetMaxActiveVoiceCount(slPtr, MaxVoiceCount);
 
-			// Version
-			let ver = GetVersion(slPtr);
-			majVer = (uint32)Math.Floor((float)ver / 100);
-			minVer = ver - (majVer * 100);
-
 			// Info
 			info.AppendF("backend: {}, buffer size: {}", GetBackendId(slPtr), GetBackendBufferSize(slPtr));
 		}
 
-		protected internal override void AfterUpdate()
+		protected internal static override void AfterUpdate()
 		{
 			if (spacialDirty)
 			{

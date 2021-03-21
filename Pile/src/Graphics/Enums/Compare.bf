@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Compare
+	enum Compare
 	{
 		None, // Ignore
 		Always, // Always passes

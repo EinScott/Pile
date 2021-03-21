@@ -40,7 +40,7 @@ namespace Pile
 
 		protected internal override void RemoveBus(MixingBus mixingBus)
 		{
-			SL_Soloud.Stop(Core.Audio.slPtr, mixingBus.slBusHandle);
+			SL_Soloud.Stop(Audio.slPtr, mixingBus.slBusHandle);
 
 			busInputs.Remove(mixingBus);
 		}
@@ -54,7 +54,7 @@ namespace Pile
 
 		protected internal override void RemoveSource(AudioSource source)
 		{
-			SL_Soloud.Stop(Core.Audio.slPtr, source.slBusHandle);
+			SL_Soloud.Stop(Audio.slPtr, source.slBusHandle);
 
 			sourceInputs.Remove(source);
 		}
@@ -64,22 +64,22 @@ namespace Pile
 			for (let mixingBus in busInputs)
 			{
 				// Stop voice
-				SL_Soloud.Stop(Core.Audio.slPtr, mixingBus.slBusHandle);
+				SL_Soloud.Stop(Audio.slPtr, mixingBus.slBusHandle);
 
 				// Replay
-				mixingBus.output = Core.Audio.MasterBus;
-				Core.Audio.MasterBus.AddBus(mixingBus);
+				mixingBus.output = Audio.MasterBus;
+				Audio.MasterBus.AddBus(mixingBus);
 			}
 			busInputs.Clear();
 
 			for (let audioSource in sourceInputs)
 			{
 				// Stop voice
-				SL_Soloud.Stop(Core.Audio.slPtr, audioSource.slBusHandle);
+				SL_Soloud.Stop(Audio.slPtr, audioSource.slBusHandle);
 
 				// Replay
-				audioSource.output = Core.Audio.MasterBus;
-				Core.Audio.MasterBus.AddSource(audioSource);
+				audioSource.output = Audio.MasterBus;
+				Audio.MasterBus.AddSource(audioSource);
 			}
 			busInputs.Clear();
 		}

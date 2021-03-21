@@ -7,8 +7,6 @@ namespace Pile
 		public const uint MaxButtons = 24;
 		public const uint MaxAxis = 12;
 
-		readonly Input input;
-
 		public bool Connected { get; private set mut; }
 		public bool IsGamepad { get; private set mut; }
 		public int Buttons { get; private set mut; }
@@ -21,10 +19,8 @@ namespace Pile
 		internal float[MaxAxis] axis = .();
 		internal int64[MaxAxis] axisTimestamp = .();
 
-		internal this(Input input)
+		internal this()
 		{
-			this.input = input;
-
 			Connected = false;
 			IsGamepad = false;
 			Buttons = 0;
@@ -114,7 +110,7 @@ namespace Pile
 
 		public bool Repeated(Buttons button)
 		{
-		    return Repeated(button, input.repeatDelay, input.repeatInterval);
+		    return Repeated(button, Input.repeatDelay, Input.repeatInterval);
 		}
 
 		public bool Repeated(Buttons button, float delay, float interval)

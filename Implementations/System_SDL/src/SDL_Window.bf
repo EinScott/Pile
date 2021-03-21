@@ -7,17 +7,18 @@ using internal Pile;
 
 namespace Pile
 {
-	public extension Window
+	extension Window
 	{
 		internal SDL.Window* window;
 		internal uint32 windowID;
 
-		internal SDL_Context context = null;
+		internal SDL.SDL_GLContext context;
+		bool isGL;
 
 		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowState state)
 		{
 			SDL.WindowFlags sdlFlags = .Shown | .AllowHighDPI;
-			if (Core.System.glGraphics) sdlFlags |= .OpenGL;
+			if (Graphics.Renderer.IsOpenGL) sdlFlags |= .OpenGL;
 
 			switch (state)
 			{
@@ -41,15 +42,6 @@ namespace Pile
 
 			size = .(width, height);
 
-			// Create graphics context
-			if (Core.System.glGraphics)
-			{
-				context = new SDL_Context(this);
-
-				if (*SDL.GetError() != '\0')
-					Log.Error(scope $"Error while creating window: {StringView(SDL.GetError())}");
-			}
-
 			// Scale to dpi
 			float hidpiRes = 72f;
 			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -65,6 +57,16 @@ namespace Pile
 				SDL.SetWindowPosition(window, (int32)(displayMode.w - width * dpi) / 2, (int32)(displayMode.h - height * dpi) / 2);
 				SDL.SetWindowSize(window, (int32)(width * dpi), (int32)(height * dpi));
 			}
+
+			// Create graphics context
+			if (Graphics.Renderer.IsOpenGL)
+			{
+				context = SDL.GL_CreateContext(window);
+				isGL = true;
+			}
+
+			if (*SDL.GetError() != '\0')
+				Runtime.FatalError(scope $"Error while creating window: {StringView(SDL.GetError())}");
 		}
 
 		public override Result<void> SetIcon(Bitmap bitmap)
@@ -97,10 +99,10 @@ namespace Pile
 		protected override void CloseInternal()
 		{
 			SDL.DestroyWindow(window);
-			if (Core.System.glGraphics && context != null)
+			if (Graphics.Renderer.IsOpenGL && context != 0)
 			{
-				delete context;
-				context = null;
+				SDL.GL_DeleteContext(context);
+				context = 0;
 			}
 		}
 
@@ -236,7 +238,7 @@ namespace Pile
 			{
 				int32 w = 0, h = 0;
 
-				if (Core.System.glGraphics)
+				if (isGL)
 					SDL.GL_GetDrawableSize(window, out w, out h);
 				else
 					SDL.GetWindowSize(window, out w, out h);
@@ -332,7 +334,7 @@ namespace Pile
 			{
 				vSync = value;
 
-				if (Core.System.glGraphics) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
+				if (isGL) SDL.GL_SetSwapInterval(vSync ? 1 : 0);
 			}
 		}
 
@@ -353,7 +355,7 @@ namespace Pile
 			get
 			{
 				int index = SDL.SDL_GetWindowDisplayIndex(window);
-				return Core.System.monitors[index];
+				return System.monitors[index];
 			}
 		}	
 
@@ -364,7 +366,7 @@ namespace Pile
 
 		protected internal override void Present()
 		{
-			if (Core.System.glGraphics)
+			if (isGL)
 			{
 				SDL.GL_SwapWindow(window);
 			}

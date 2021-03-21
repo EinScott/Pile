@@ -8,19 +8,19 @@ namespace Pile
 {
 	extension Input
 	{
-		bool cursorHidden;
-		SDL.SDL_Cursor*[] sdlCursors;
-		SDL.SDL_Joystick*[] sdlJoysticks;
-		SDL.SDL_GameController*[] sdlGamepads;
+		static bool cursorHidden;
+		static SDL.SDL_Cursor*[] sdlCursors;
+		static SDL.SDL_Joystick*[] sdlJoysticks;
+		static SDL.SDL_GameController*[] sdlGamepads;
 
-		protected internal override void Initialize()
+		protected internal static override void InitializeInternal()
 		{
 			sdlCursors = new SDL.SDL_Cursor*[(int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL];
-			sdlJoysticks = new SDL.SDL_Joystick*[maxControllers];
-			sdlGamepads = new SDL.SDL_GameController*[maxControllers];
+			sdlJoysticks = new SDL.SDL_Joystick*[MaxControllers];
+			sdlGamepads = new SDL.SDL_GameController*[MaxControllers];
 		}
 
-		internal ~this()
+		static ~this()
 		{
 			for (int i = 0; i < sdlCursors.Count; i++)
 			{
@@ -34,7 +34,7 @@ namespace Pile
 			delete sdlGamepads;
 		}
 
-		public override void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration)
+		public static override void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration)
 		{
 			if (sdlGamepads[index] != null)
 			{
@@ -46,7 +46,7 @@ namespace Pile
 			}
 		}
 
-		public override void SetMouseCursor(Cursors cursor)
+		public static override void SetMouseCursor(Cursors cursor)
 		{
 			if (cursor == .Hidden)
 			{
@@ -80,34 +80,34 @@ namespace Pile
 		}
 
 		[Inline]
-		public override void SetClipboardString(System.String value)
+		public static override void SetClipboardString(System.String value)
 		{
 			SDL.SetClipboardText(value);
 		}
 
 		[Inline]
-		public override void GetClipboardString(System.String buffer)
+		public static override void GetClipboardString(System.String buffer)
 		{
 			if (SDL.HasClipboardText() == SDL.Bool.True)
 				buffer.Append(SDL.GetClipboardText());
 		}
 
-		public override Point2 MousePosition
+		public static override Point2 MousePosition
 		{
 			[Inline]
 			get
 			{
-				SDL.GetWindowPosition(Core.Window.window, let winX, let winY);
+				SDL.GetWindowPosition(System.Window.window, let winX, let winY);
 				int32 x = 0, y = 0;
 				SDL.GetGlobalMouseState(&x, &y);
 				return Point2(x - winX, y - winY);
 			}
 
 			[Inline]
-			set => SDL.WarpMouseInWindow(Core.Window.window, (int32)value.X, (int32)value.Y);
+			set => SDL.WarpMouseInWindow(System.Window.window, (int32)value.X, (int32)value.Y);
 		}
 
-		internal void ProcessEvent(SDL.Event e)
+		internal static void ProcessEvent(SDL.Event e)
 		{
 			switch (e.type)
 			{
@@ -138,7 +138,7 @@ namespace Pile
 			case .JoyDeviceAdded:
 				let index = e.jdevice.which;
 
-				if (index >= 0 && maxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
+				if (index >= 0 && MaxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
 				{
 				    let ptr = sdlJoysticks[index] = SDL.JoystickOpen(index);
 				    let buttonCount = SDL.JoystickNumButtons(ptr);
@@ -149,7 +149,7 @@ namespace Pile
 			case .JoyDeviceRemoved:
 				let index = e.jdevice.which;
 
-				if (index >= 0 && maxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
+				if (index >= 0 && MaxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
 				{
 				    OnJoystickDisconnect((uint)index);
 

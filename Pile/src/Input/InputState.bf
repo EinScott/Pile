@@ -12,13 +12,13 @@ namespace Pile
 		internal readonly Controller[] controllers;
 		public ref Controller GetController(int index) => ref controllers[index];
 
-		internal this(Input input, int maxControllers)
+		internal this(int maxControllers)
 		{
 			controllers = new Controller[maxControllers];
 			for (int i = 0; i < controllers.Count; i++)
-				controllers[i] = Controller(input);
+				controllers[i] = Controller();
 
-			keyboard = Keyboard(input);
+			keyboard = Keyboard();
 			mouse = Mouse();
 		}
 

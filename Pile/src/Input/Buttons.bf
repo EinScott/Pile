@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Buttons
+	enum Buttons
 	{
 		Unknown = 0,
 		A = 1,

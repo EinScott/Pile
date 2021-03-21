@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public enum IndexType : uint8
+	enum IndexType : uint8
 	{
 		case UnsignedInt;
 		case UnsignedShort;

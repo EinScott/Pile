@@ -11,7 +11,7 @@ namespace Pile
 
 		public this(MixingBus output = null, bool prioritized = false, bool stopOnDelete = true, bool stopInaudible = false)
 		{
-			Debug.Assert(Core.Audio != null, "Core needs to be initialized before creating platform dependent objects");
+			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
 			Prioritized = prioritized;
 			StopOnDelete = stopOnDelete;

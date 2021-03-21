@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Attenuation
+	enum Attenuation
 	{
 		None,
 		InverseDistance,

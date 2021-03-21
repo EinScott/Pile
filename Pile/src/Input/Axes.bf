@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Axes
+	enum Axes
 	{
 		Unknown = 0,
 		LeftX = 1,

@@ -7,29 +7,36 @@ using internal Pile;
 
 namespace Pile
 {
-	class System
+	[StaticInitPriority(PILE_SINIT_IMPL)]
+	static class System
 	{
-		public extern uint32 MajorVersion { get; }
-		public extern uint32 MinorVersion { get; }
-		public extern String ApiName { get; }
-		public extern String Info { get; }
+		public static readonly uint32 MajorVersion;
+		public static readonly uint32 MinorVersion;
+		public static extern String ApiName { get; }
+		public static extern String Info { get; }
 
-		internal List<Monitor> monitors ~ DeleteContainerAndItems!(_); // Fill in Initialize()
-		public readonly ReadOnlyList<Monitor> Monitors;
+		internal static List<Monitor> monitors = new .() ~ DeleteContainerAndItems!(_); // Fill in Initialize()
+		public static readonly ReadOnlyList<Monitor> Monitors = ReadOnlyList<Monitor>(monitors);
+		
+		public static String DataPath { get; private set; }
+		public static String UserPath { get; private set; }
 
-		internal this()
+		/// Based on Graphics.Renderer, the System implementation is expected to set this up in Initialize()
+		/// So that Graphics.Initialize() may use it. If this doesn't cater towards Graphics.Renderer, it
+		/// will assume that the System implementation doesn't support the Renderer (and error/crash probably).
+		internal static RendererSupport RendererSupport = .None;
+
+		public static Window Window { get; internal set; }
+
+		static ~this()
 		{
-			monitors = new List<Pile.Monitor>();
-			Monitors = ReadOnlyList<Monitor>(monitors);
-		}
+			delete Window;
 
-		internal ~this()
-		{
 			delete DataPath;
 			delete UserPath;
 		}
 
-		protected internal void DetermineDataPaths(StringView title)
+		internal static void DetermineDataPaths(StringView title)
 		{
 			String exePath = Environment.GetExecutableFilePath(.. scope .());
 			String exeDir = Path.GetDirectoryPath(exePath, .. scope .());
@@ -111,10 +118,7 @@ namespace Pile
 			}
 		}
 
-		protected internal extern void Initialize();
-		protected internal extern void Step();
-
-		public String DataPath { get; private set; }
-		public String UserPath { get; private set; }
+		protected internal static extern void Initialize();
+		protected internal static extern void Step();
 	}
 }

@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum TextureFilter
+	enum TextureFilter
 	{
 		Nearest,
 		Linear

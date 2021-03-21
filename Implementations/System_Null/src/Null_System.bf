@@ -4,29 +4,24 @@ using internal Pile;
 
 namespace Pile
 {
-	public extension System : ISystemOpenGL
+	extension System
 	{
-		public override uint32 MajorVersion => 1;
-		public override uint32 MinorVersion => 0;
-		public override String ApiName => "Null System";
-		public override String Info => String.Empty;
+		public static override String ApiName => "Null System";
+		public static override String Info => String.Empty;
+
+		static this()
+		{
+			MajorVersion = 1;
+			MinorVersion = 0;
+		}
 
 		[SkipCall]
-		protected internal override void Initialize()
+		protected internal static override void Initialize()
 		{
 			monitors.Add(new Monitor());
 		}	
 
 		[SkipCall]
-		protected internal override void Step() {}
-
-		[SkipCall]
-		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples) {}
-
-		public void* GetGLProcAddress(StringView procName) => null;
-
-		Null_Context context = new Null_Context() ~ delete _;
-
-		public ISystemOpenGL.Context GetGLContext() => context;
+		protected internal static override void Step() {}
 	}
 }

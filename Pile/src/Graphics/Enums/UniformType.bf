@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	public enum UniformType
+	enum UniformType
 	{
 		case Unknown;
 		case Int;

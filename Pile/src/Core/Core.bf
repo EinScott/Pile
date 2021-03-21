@@ -27,12 +27,6 @@ namespace Pile
 		{
 			// Delete assets and textures while modules are still present
 			delete Assets;
-
-			delete Window;
-			delete Input;
-
-			delete Audio;
-			delete System;
 		}
 
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
@@ -44,12 +38,6 @@ namespace Pile
 		static bool exiting;
 
 		public static String Title { get; private set; }
-
-		public static System System { get; private set; }
-		public static Audio Audio { get; private set; }
-
-		public static Input Input { get; private set; }
-		public static Window Window { get; private set; }
 
 		public static Assets Assets { get; private set; }
 
@@ -70,8 +58,6 @@ namespace Pile
 			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
 			var w = scope Stopwatch(true);
 			Title.Set(config.gameTitle);
-			System = new System();
-			Audio = new Audio();
 
 			// Print platform
 			{
@@ -88,8 +74,8 @@ namespace Pile
 				System.DetermineDataPaths(Title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
-				Window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
-				Input = new Input();
+				System.Window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
+				Input.Initialize();
 
 				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
 			}
@@ -203,10 +189,10 @@ namespace Pile
 		static void CallRender()
 		{
 			// Render
-			if (!exiting && !Window.Closed)
+			if (!exiting && !System.Window.Closed)
 			{
-				Window.Render(); // Calls WindowRender()
-				Window.Present();
+				System.Window.Render(); // Calls WindowRender()
+				System.Window.Present();
 			}
 		}
 

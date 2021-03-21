@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Keys
+	enum Keys
 	{
 	    Unknown = 0,
 

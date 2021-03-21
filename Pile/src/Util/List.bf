@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace System.Collections
 {
-	public extension List<T>
+	extension List<T>
 	{
 		public void Reverse()
 		{				   

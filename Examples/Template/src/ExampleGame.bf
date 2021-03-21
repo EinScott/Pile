@@ -24,7 +24,7 @@ namespace Game
 
 		protected override void Render()
 		{
-			Core.Graphics.Clear(Core.Window, .Black);
+			Graphics.Clear(System.Window, .Black);
 		}
 	}
 }

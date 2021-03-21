@@ -39,7 +39,7 @@ namespace Pile
 
 		protected void SetupOutput(MixingBus output)
 		{
-			this.output = output == null ? Core.Audio.MasterBus : output;
+			this.output = output == null ? Audio.MasterBus : output;
 			Output.AddSource(this);
 		}
 		

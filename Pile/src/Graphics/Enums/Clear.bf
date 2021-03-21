@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum Clear : uint8
+	enum Clear : uint8
 	{
 		Color   = 0b001,
 		Depth   = 0b010,

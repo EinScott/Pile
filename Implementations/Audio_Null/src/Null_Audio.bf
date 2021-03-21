@@ -6,32 +6,35 @@ namespace Pile
 {
 	extension Audio
 	{
-		public override uint32 MajorVersion => 1;
-		public override uint32 MinorVersion => 0;
+		public static override String ApiName => "Null Audio";
 
-		public override String ApiName => "Null Audio";
+		public static override String Info => String.Empty;
 
-		public override String Info => String.Empty;
+		static MasterBus masterBus ~ delete _;
+		public static override MasterBus MasterBus => masterBus;
 
-		MasterBus masterBus ~ delete _;
-		public override MasterBus MasterBus => masterBus;
+		public static override uint SoundCount => 0;
 
-		public override uint SoundCount => 0;
+		public static override uint AudibleSoundCount => 0;
 
-		public override uint AudibleSoundCount => 0;
+		public static override Vector3 SpacialListenerUp { get; set; }
+		public static override Vector3 SpacialListenerPosition { get; set; }
+		public static override Vector3 SpacialListenerFacing { get; set; }
+		public static override Vector3 SpacialListenerVelocity { get; set; }
+		public static override float SpacialSoundSpeed { get; set; }
+		public static override bool SimulateSpacialDelay { get; set; }
 
-		public override Vector3 SpacialListenerUp { get; set; }
-		public override Vector3 SpacialListenerPosition { get; set; }
-		public override Vector3 SpacialListenerFacing { get; set; }
-		public override Vector3 SpacialListenerVelocity { get; set; }
-		public override float SpacialSoundSpeed { get; set; }
-		public override bool SimulateSpacialDelay { get; set; }
+		static this()
+		{
+			MajorVersion = 1;
+			MinorVersion = 0;
+		}
 
-		protected internal override void Initialize()
+		protected internal static override void Initialize()
 		{
 			masterBus = new MasterBus();
 		}
 
-		protected internal override void AfterUpdate() {}
+		protected internal static override void AfterUpdate() {}
 	}
 }

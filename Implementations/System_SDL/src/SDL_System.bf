@@ -6,25 +6,33 @@ using internal Pile;
 
 namespace Pile
 {
-	extension System : ISystemOpenGL
+	extension System
 	{
-		uint32 majVer;
-		uint32 minVer;
-		public override uint32 MajorVersion => majVer;
-		public override uint32 MinorVersion => minVer;
-		public override String ApiName => "SDL2";
-
-		String info = new String() ~ delete _;
-		public override String Info => info;
+		public static override String ApiName => "SDL2";
 		
-		internal bool glGraphics;
+		static String info = new String() ~ delete _;
+		public static override String Info => info;
 
 #if BF_PLATFORM_WINDOWS 
 		[Import("user32.lib"), CLink, CallingConvention(.Stdcall)]
-		public static extern bool SetProcessDPIAware();
+		static extern bool SetProcessDPIAware();
 #endif
 
-		protected internal override void Initialize()
+		static this()
+		{
+			// Version
+			GetVersion(let ver);
+			MajorVersion = ver.major;
+			MinorVersion = ver.minor;
+			info.AppendF("patch: {}", ver.patch);
+		}
+
+		static ~this()
+		{
+			Quit();
+		}
+
+		protected internal static override void Initialize()
 		{
 #if BF_PLATFORM_WINDOWS 
 			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -33,21 +41,17 @@ namespace Pile
 
 			Init(.Video | .Joystick | .GameController | .Events);
 
-			// Version
-			GetVersion(let ver);
-			majVer = ver.major;
-			minVer = ver.minor;
-
-			info.AppendF("patch: {}", ver.patch);
-
-			if (Graphics.Renderer == .OpenGLCore)
+			if (Graphics.Renderer.IsOpenGL)
 			{
 				GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Graphics.MajorVersion);
 				GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Graphics.MinorVersion);
-				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, SDL_GLProfile.GL_CONTEXT_PROFILE_CORE);
+				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, Graphics.Renderer == .OpenGLCore ? SDL_GLProfile.GL_CONTEXT_PROFILE_CORE : SDL_GLProfile.GL_CONTEXT_PROFILE_ES);
 				GL_SetAttribute(.GL_CONTEXT_FLAGS, (int32)SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
-				glGraphics = true;
+
+				if (Graphics.Renderer == .OpenGLCore)
+					RendererSupport = .OpenGLCore(=> GetGLProcAddress, => SetGLAttributes);
+				else Runtime.NotImplemented(); // TODO
 			}
 
 			// Displays
@@ -56,12 +60,7 @@ namespace Pile
 			    monitors.Add(new Monitor(i));
 		}
 
-		internal ~this()
-		{
-			Quit();
-		}
-
-		protected internal override void Step()
+		protected internal static override void Step()
 		{
 			Event event;
 			while (PollEvent(out event) != 0)
@@ -72,53 +71,53 @@ namespace Pile
 					Core.Exit();
 					return;
 				case .WindowEvent:
-					if (!Core.Window.Closed && event.window.windowID == Core.Window.windowID)
+					if (!Window.Closed && event.window.windowID == Window.windowID)
 					{
 						switch (event.window.windowEvent)
 						{
 						case .Close:
-							Core.Window.OnClose();
-							Core.Window.Closed = true;
+							Window.OnClose();
+							Window.Closed = true;
 							return;
 
-						case .SizeChanged: // Preceeds .Resize, is always triggered when size changes
-							Core.Window.OnResized();
+						case .SizeChanged: // Precedes .Resize, is always triggered when size changes
+							Window.OnResized();
 
 						// Size
-						case .Resized: // Only resize through external causes
-							Core.Window.size.X = (.)event.window.data1;
-							Core.Window.size.Y = (.)event.window.data2;
-							Core.Window.OnUserResized();
+						case .Resized: // Only re-size through external causes
+							Window.size.X = (.)event.window.data1;
+							Window.size.Y = (.)event.window.data2;
+							Window.OnUserResized();
 		
 						// Moved
 						case .Moved:
-							Core.Window.position.X = event.window.data1;
-							Core.Window.position.Y = event.window.data2;
-							Core.Window.OnMoved();
+							Window.position.X = event.window.data1;
+							Window.position.Y = event.window.data2;
+							Window.OnMoved();
 		
 						// Focus
 						case .TAKE_FOCUS:
-							SDL_SetWindowInputFocus(Core.Window.window); // Take focus
+							SDL_SetWindowInputFocus(Window.window); // Take focus
 						case .FocusGained:
-							Core.Window.focus = true;
-							Core.Window.OnFocusChanged();
+							Window.focus = true;
+							Window.OnFocusChanged();
 						case .Focus_lost:
-							Core.Window.focus = false;
-							Core.Window.OnFocusChanged();
+							Window.focus = false;
+							Window.OnFocusChanged();
 		
 						// Visible
 						case .Restored, .Shown, .Maximized:
-							Core.Window.visible = true;
-							Core.Window.OnVisibilityChanged();
+							Window.visible = true;
+							Window.OnVisibilityChanged();
 						case .Hidden, .Minimized:
-							Core.Window.visible = false;
-							Core.Window.OnVisibilityChanged();
+							Window.visible = false;
+							Window.OnVisibilityChanged();
 
 						// MouseOver
 						case .Enter:
-							Core.Window.mouseFocus = true;
+							Window.mouseFocus = true;
 						case .Leave:
-							Core.Window.mouseFocus = false;
+							Window.mouseFocus = false;
 						default:
 						}
 					}
@@ -126,7 +125,7 @@ namespace Pile
 					 .MouseButtonDown, .MouseButtonUp, .MouseWheel,
 					 .JoyAxisMotion, .JoyBallMotion, .JoyButtonDown, .JoyButtonUp, .JoyDeviceAdded, .JoyDeviceRemoved, .JoyHatMotion,
 					 .ControllerAxismotion, .ControllerButtondown, .ControllerButtonup, .ControllerDeviceadded, .ControllerDeviceremapped, .ControllerDeviceremoved:
-					Core.Input.ProcessEvent(event);
+					Input.ProcessEvent(event);
 				default:
 				}
 
@@ -138,24 +137,17 @@ namespace Pile
 			}
 		}
 
-		[NoShow]
-		public void* GetGLProcAddress(StringView procName)
+		static void* GetGLProcAddress(StringView procName)
 		{
 			return SDL_GL_GetProcAddress(procName.ToScopeCStr!());
 		}
 
-		[NoShow]
-		public void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples)
+		static void SetGLAttributes(uint32 depthSize, uint32 stencilSize, uint32 multisamplerBuffers, uint32 multisamplerSamples)
 		{
 			GL_SetAttribute(.GL_DEPTH_SIZE, (int32)depthSize);
 			GL_SetAttribute(.GL_STENCIL_SIZE, (int32)stencilSize);
 			GL_SetAttribute(.GL_MULTISAMPLEBUFFERS, (int32)multisamplerBuffers);
 			GL_SetAttribute(.GL_MULTISAMPLESAMPLES, (int32)multisamplerSamples);
-		}
-
-		public ISystemOpenGL.Context GetGLContext()
-		{
-			return Core.Window.context;
 		}
 	}
 }

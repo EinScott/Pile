@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum VertexAttrib : uint8
+	enum VertexAttrib : uint8
 	{
 	    Position,
 	    Normal,

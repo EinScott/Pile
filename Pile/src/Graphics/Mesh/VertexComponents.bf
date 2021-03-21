@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum VertexComponents : uint8
+	enum VertexComponents : uint8
 	{
 		One = 1,
 		Two = 2,

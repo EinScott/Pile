@@ -1,6 +1,6 @@
 namespace Pile
 {
-	public enum TextureFormat
+	enum TextureFormat
 	{
 		case R;
 		case RG;
