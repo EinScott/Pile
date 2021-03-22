@@ -6,7 +6,7 @@ namespace Pile
 {
 	class Window : IRenderTarget
 	{
-		public bool Closed { get; internal set; }
+		public bool Closed { [Inline]get; internal set; }
 
 		internal this(StringView name, uint32 width, uint32 height, WindowState state)
 		{

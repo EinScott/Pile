@@ -132,13 +132,24 @@ namespace Pile
 		public static String MakePerfTrackScopeCode(String scopeName)
 		{
 #if DEBUG
-			let rNum = scope Random().NextI32();
+			// Crappy 64 bit hash
+			uint sNum = 0;
+			for (let i < scopeName.Length)
+			{
+				let val = (uint8)scopeName[i];
+
+				if (val % 5 == 0 && val % 2 == 0)
+					sNum ^= val;
+				else if (val % 3 == 0)
+					sNum *= val;
+				else sNum += val;
+			}
 
 			return new $"""
-				let __pt_s{rNum} = scope System.Diagnostics.Stopwatch(true);
+				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
 				defer
 				{{
-					Pile.Performance.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{rNum}.Elapsed);
+					Pile.Performance.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum}.Elapsed);
 				}}
 				""";
 #else

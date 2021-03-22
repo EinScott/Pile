@@ -26,7 +26,8 @@ namespace Pile
 		/// will assume that the System implementation doesn't support the Renderer (and error/crash probably).
 		internal static RendererSupport RendererSupport = .None;
 
-		public static Window Window { get; internal set; }
+		internal static Window window;
+		public static Window Window => window;
 
 		static ~this()
 		{

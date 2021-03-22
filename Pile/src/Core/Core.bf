@@ -31,9 +31,6 @@ namespace Pile
 			Debug.Assert(config.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
 			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
-			let game = config.createGame();
-			Debug.Assert(game != null, "Game cannot be null");
-
 			run = true;
 
 			Log.Info(scope $"Initializing Pile {Version.Major}.{Version.Minor}");
@@ -55,7 +52,7 @@ namespace Pile
 				System.DetermineDataPaths(title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
-				System.Window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
+				System.window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
 				Input.Initialize();
 
 				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
@@ -83,7 +80,8 @@ namespace Pile
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
 
 			// Prepare for running game
-			Game = game;
+			Game = config.createGame();
+			Debug.Assert(Game != null, "Game cannot be null");
 
 			let timer = scope Stopwatch(true);
 			var frameCount = 0;
@@ -98,32 +96,28 @@ namespace Pile
 
 			while(!exiting)
 			{
-				// Step time and diff
-				if (Time.targetTicks != 0 && Time.maxTicks == Time.targetTicks) // Cannot lock frame rate to 0
-				{
-					// Still calculate actual fps
-					currTime = timer.[Friend]GetElapsedDateTimeTicks();
+				currTime = timer.[Friend]GetElapsedDateTimeTicks();
 
-					// Force diffTime and therefore deltas regardless of actual performance
-					diffTime = Time.targetTicks;
-				}
-				else
+				// Step time and diff
+				if (!Time.forceFixed)
 				{
-					// Run variable time step
-					currTime = timer.[Friend]GetElapsedDateTimeTicks();
-					
 					diffTime = Math.Min(Time.maxTicks, currTime - lastTime);
 					lastTime = currTime;
 				}
-
+				else
 				{
-#if PILE_PERFTRACK
+					// Force diffTime and therefore deltas regardless of actual performance
+					diffTime = Time.targetTicks;
+				}
+				
+				{
+#if PILE_CORE_PERFTRACK
 					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Update"));
 #endif
 
 					// Raw time
-					Time.RawDuration += diffTime;
-					Time.RawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
+					Time.rawDuration += diffTime;
+					Time.rawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
 					
 					Performance.Step();
 
@@ -132,60 +126,64 @@ namespace Pile
 					Input.Step();
 					System.Step();
 
-					if (Time.freeze > float.Epsilon)
-					{
-						// Freeze time
-						Time.freeze -= Time.RawDelta;
-
-						Time.Delta = 0;
-						Game.[Friend]Step();
-
-						if (Time.freeze <= float.Epsilon)
-							Time.freeze = 0;
-					}
-					else
+					if (!Time.freezing)
 					{
 						// Scaled time
-						Time.Duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
-						Time.Delta = Time.RawDelta * Time.Scale;
+						Time.duration += Time.Scale == 1 ? diffTime : (int64)Math.Round(diffTime * Time.Scale);
+						Time.delta = Time.rawDelta * Time.Scale;
 
 						// Update game
 						Game.[Friend]Step();
 						Game.[Friend]Update();
 					}
+					else
+					{
+						// Freeze time
+						Time.freeze -= Time.rawDelta;
+
+						Time.delta = 0;
+						Game.[Friend]Step();
+
+						if (Time.freeze <= float.Epsilon)
+						{
+							Time.freeze = 0;
+							Time.freezing = false;
+						}
+					}
 					Audio.AfterUpdate();
 				}
 
 				{
-#if PILE_PERFTRACK
+#if PILE_CORE_PERFTRACK
 					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Render"));
 #endif
 
 					// Render
-					if (!exiting && !System.Window.Closed)
+					if (!exiting && !System.window.Closed)
 					{
-						System.Window.Render(); // Calls WindowRender()
-						System.Window.Present();
+						System.window.Render(); // Calls WindowRender()
+						System.window.Present();
 					}
 				}
 
+				// Record FPS
+				frameCount++;
+				let endCurrTime = timer.[Friend]GetElapsedDateTimeTicks();
+				if (endCurrTime - lastCounted >= TimeSpan.TicksPerSecond)
 				{
-					// Record FPS
-					frameCount++;
-					let newTime = timer.[Friend]GetElapsedDateTimeTicks();
-					if (newTime - lastCounted >= TimeSpan.TicksPerSecond)
-					{
-						Time.FPS = frameCount;
-						lastCounted = timer.[Friend]GetElapsedDateTimeTicks();
-						frameCount = 0;
-					}
-
-					// Record loop ticks (delta without sleep)
-					Time.loopTicks = newTime - currTime;
+					Time.fps = frameCount;
+					lastCounted = endCurrTime;
+					frameCount = 0;
 				}
+
+				// Record loop ticks (delta without sleep)
+				Time.loopTicks = endCurrTime - currTime;
+#if PILE_CORE_PERFTRACK
+				Performance.[Friend]EndSection("Pile.Core.Run:Loop (no sleep)", TimeSpan(Time.loopTicks));
+#endif
 
 				// Wait for FPS
-				if (timer.[Friend]GetElapsedDateTimeTicks() - currTime < Time.targetTicks && !exiting)
+				if (endCurrTime - currTime < Time.targetTicks && !exiting)
 				{
 					let sleep = Time.targetTicks - (timer.[Friend]GetElapsedDateTimeTicks() - currTime);
 					
