@@ -44,11 +44,6 @@ namespace Pile
 			OriginBottomLeft = true;
 		}
 
-		static ~this()
-		{
-			RunDeleteLists();
-		}
-
 		protected internal static override void Initialize()
 		{
 			if (System.RendererSupport case .OpenGLCore(let GetProcAddress, let SetGLAttributes))
@@ -70,6 +65,11 @@ namespace Pile
 
 			info.AppendF("device: {}, vendor: {}", StringView(glGetString(GL_RENDERER)), StringView(glGetString(GL_VENDOR)));
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
+		}
+
+		protected internal override static void Destroy()
+		{
+			RunDeleteLists();
 		}
 
 		static DebugDrawMode mode;
@@ -104,15 +104,15 @@ namespace Pile
 			DeleteResources(=> DeleteProgram, programsToDelete);
 			DeleteResources(=> DeleteVertexArray, vertexArraysToDelete);
 			DeleteResources(=> DeleteFrameBuffer, frameBuffersToDelete);
+		}
 
-			void DeleteResources(DeleteResource deleter, List<uint32> list)
+		static void DeleteResources(DeleteResource deleter, List<uint32> list)
+		{
+			if (list.Count > 0)
 			{
-				if (list.Count > 0)
-				{
-					for (int i = list.Count - 1; i >= 0; i--)
-						deleter(ref list[[Unchecked]i]);
-					list.Clear();
-				}
+				for (int i = list.Count - 1; i >= 0; i--)
+					deleter(ref list[[Unchecked]i]);
+				list.Clear();
 			}
 		}
 

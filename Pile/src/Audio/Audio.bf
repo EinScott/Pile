@@ -39,6 +39,8 @@ namespace Pile
 		public static extern uint AudibleSoundCount { get; }
 
 		protected internal static extern void Initialize();
+		protected internal static extern void Destroy();
+
 		protected internal static extern void AfterUpdate();
 	}
 }

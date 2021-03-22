@@ -18,11 +18,11 @@ PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
 [Configs.Paranoid.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
 [Configs.Debug.Linux64]
 LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]

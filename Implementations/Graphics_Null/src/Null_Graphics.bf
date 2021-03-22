@@ -28,6 +28,9 @@ namespace Pile
 		protected internal static override void Initialize() {}
 
 		[SkipCall]
+		protected internal static override void Destroy() {}
+
+		[SkipCall]
 		protected internal static override void Step() {}
 
 		[SkipCall]

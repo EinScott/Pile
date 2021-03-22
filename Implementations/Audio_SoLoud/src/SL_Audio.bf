@@ -15,7 +15,8 @@ namespace Pile
 		static String info = new String() ~ delete _;
 		public static override String Info => info;
 
-		static MasterBus master ~ delete _;
+		static MasterBus master;
+		[Inline]
 		public static override MasterBus MasterBus => master;
 
 		static Backend Backend;
@@ -116,10 +117,12 @@ namespace Pile
 			MaxVoiceCount = 24;
 		}
 
-		static ~this()
+		protected internal static override void Destroy()
 		{
-			Deinit(slPtr);
-			Destroy(slPtr);
+			delete master;
+
+			SL_Soloud.Deinit(slPtr);
+			SL_Soloud.Destroy(slPtr);
 		}
 
 		protected internal static override void Initialize()

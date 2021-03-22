@@ -195,7 +195,21 @@ namespace Pile
 			// Shutdown game
 			Game.[Friend]Shutdown();
 
+			// Destroy
 			delete Game;
+
+			// Destroy things that are only set when Pile was actually run.
+			// Since Pile isn't necessarily run (Tests, packager) things that
+			// are created in static initialization should be deleted in static
+			// destruction, and things from Initialize() in Destroy() or Delete()
+			Assets.Destroy();
+
+			Audio.Destroy();
+			Graphics.Destroy();
+
+			Input.Destroy();
+			System.Delete();
+			System.Destroy();
 		}
 
 		public static void Exit()

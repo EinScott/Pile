@@ -18,11 +18,11 @@ PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
 [Configs.Paranoid.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
-PostBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
+PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
 [Configs.Debug.Linux64]
 LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]

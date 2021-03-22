@@ -9,18 +9,16 @@ namespace Pile
 	extension Input
 	{
 		static bool cursorHidden;
-		static SDL.SDL_Cursor*[] sdlCursors;
-		static SDL.SDL_Joystick*[] sdlJoysticks;
-		static SDL.SDL_GameController*[] sdlGamepads;
+		static SDL.SDL_Cursor*[(int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL] sdlCursors = .();
+		static SDL.SDL_Joystick*[MaxControllers] sdlJoysticks = .();
+		static SDL.SDL_GameController*[MaxControllers] sdlGamepads = .();
 
 		protected internal static override void Initialize()
 		{
-			sdlCursors = new SDL.SDL_Cursor*[(int)SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL];
-			sdlJoysticks = new SDL.SDL_Joystick*[MaxControllers];
-			sdlGamepads = new SDL.SDL_GameController*[MaxControllers];
+			
 		}
 
-		static ~this()
+		protected internal override static void Destroy()
 		{
 			for (int i = 0; i < sdlCursors.Count; i++)
 			{
@@ -28,10 +26,6 @@ namespace Pile
 					SDL.FreeCursor(sdlCursors[i]);
 				delete sdlCursors[i];
 			}
-			delete sdlCursors;
-
-			delete sdlJoysticks;
-			delete sdlGamepads;
 		}
 
 		public static override void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration)

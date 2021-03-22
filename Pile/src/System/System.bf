@@ -15,7 +15,7 @@ namespace Pile
 		public static extern String ApiName { get; }
 		public static extern String Info { get; }
 
-		internal static List<Monitor> monitors = new .() ~ DeleteContainerAndItems!(_); // Fill in Initialize()
+		internal static List<Monitor> monitors = new .() ~ delete _; // Fill in Initialize()
 		public static readonly ReadOnlyList<Monitor> Monitors = ReadOnlyList<Monitor>(monitors);
 		
 		public static String DataPath { get; private set; }
@@ -27,14 +27,20 @@ namespace Pile
 		internal static RendererSupport RendererSupport = .None;
 
 		internal static Window window;
+
+		[Inline]
 		public static Window Window => window;
 
 		static ~this()
 		{
-			delete Window;
-
 			delete DataPath;
 			delete UserPath;
+		}
+
+		internal static void Delete()
+		{
+			ClearAndDeleteItems!(monitors);
+			delete window;
 		}
 
 		internal static void DetermineDataPaths(StringView title)
@@ -120,6 +126,8 @@ namespace Pile
 		}
 
 		protected internal static extern void Initialize();
+		protected internal static extern void Destroy();
+
 		protected internal static extern void Step();
 	}
 }

@@ -10,7 +10,7 @@ namespace Pile
 
 		public static override String Info => String.Empty;
 
-		static MasterBus masterBus ~ delete _;
+		static MasterBus masterBus;
 		public static override MasterBus MasterBus => masterBus;
 
 		public static override uint SoundCount => 0;
@@ -33,6 +33,11 @@ namespace Pile
 		protected internal static override void Initialize()
 		{
 			masterBus = new MasterBus();
+		}
+
+		protected internal override static void Destroy()
+		{
+			delete masterBus;
 		}
 
 		protected internal static override void AfterUpdate() {}

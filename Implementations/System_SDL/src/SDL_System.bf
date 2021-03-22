@@ -27,11 +27,6 @@ namespace Pile
 			info.AppendF("patch: {}", ver.patch);
 		}
 
-		static ~this()
-		{
-			Quit();
-		}
-
 		protected internal static override void Initialize()
 		{
 #if BF_PLATFORM_WINDOWS 
@@ -58,6 +53,11 @@ namespace Pile
 			let numDisplays = SDL_GetNumVideoDisplays();
 			for (int32 i = 0; i < numDisplays; i ++)
 			    monitors.Add(new Monitor(i));
+		}
+
+		protected internal static override void Destroy()
+		{
+			Quit();
 		}
 
 		protected internal static override void Step()

@@ -9,12 +9,11 @@ namespace Pile
 	{
 		public Keyboard keyboard;
 		public Mouse mouse;
-		internal readonly Controller[] controllers;
-		public ref Controller GetController(int index) => ref controllers[index];
+		internal Controller[Input.MaxControllers] controllers = .();
+		public ref Controller GetController(int index) mut => ref controllers[index];
 
-		internal this(int maxControllers)
+		internal this()
 		{
-			controllers = new Controller[maxControllers];
 			for (int i = 0; i < controllers.Count; i++)
 				controllers[i] = Controller();
 
@@ -22,11 +21,10 @@ namespace Pile
 			mouse = Mouse();
 		}
 
+		[Inline]
 		internal void Dispose()
 		{
 			keyboard.Dispose();
-
-			delete controllers;
 		}
 
 		internal void Step() mut

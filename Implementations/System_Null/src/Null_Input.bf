@@ -8,6 +8,9 @@ namespace Pile
 		protected internal static override void Initialize() {}
 
 		[SkipCall]
+		protected internal static override void Destroy() {}
+
+		[SkipCall]
 		public override static void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration) {}
 
 		[SkipCall]

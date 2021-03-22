@@ -10,9 +10,9 @@ namespace Pile
 	{
 		public const uint MaxControllers = 8;
 
-		internal static InputState state = InputState(MaxControllers);
-		internal static InputState lastState = InputState(MaxControllers);
-		internal static InputState nextState = InputState(MaxControllers);
+		internal static InputState state = InputState();
+		internal static InputState lastState = InputState();
+		internal static InputState nextState = InputState();
 
 		public static readonly Keyboard Keyboard => state.keyboard;
 		public static readonly Mouse Mouse => state.mouse;
@@ -25,6 +25,7 @@ namespace Pile
 		internal static bool deleting;
 
 		protected internal static extern void Initialize();
+		protected internal static extern void Destroy();
 
 		static ~this()
 		{

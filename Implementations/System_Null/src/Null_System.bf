@@ -21,6 +21,11 @@ namespace Pile
 			monitors.Add(new Monitor());
 		}	
 
+		protected internal override static void Destroy()
+		{
+
+		}
+
 		[SkipCall]
 		protected internal static override void Step() {}
 	}

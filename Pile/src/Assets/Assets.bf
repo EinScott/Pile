@@ -67,7 +67,7 @@ namespace Pile
 #endif
 		}
 
-		static ~this()
+		internal static void Destroy()
 		{
 #if DEBUG
 			System.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
