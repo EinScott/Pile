@@ -15,8 +15,8 @@ namespace Pile
 		public static extern String ApiName { get; }
 		public static extern String Info { get; }
 
-		internal static List<Monitor> monitors = new .() ~ delete _; // Fill in Initialize()
-		public static readonly ReadOnlyList<Monitor> Monitors = ReadOnlyList<Monitor>(monitors);
+		internal static List<Display> displays = new .() ~ delete _; // Fill in Initialize()
+		public static readonly ReadOnlyList<Display> Displays = ReadOnlyList<Display>(displays);
 		
 		public static String DataPath { get; private set; }
 		public static String UserPath { get; private set; }
@@ -39,7 +39,7 @@ namespace Pile
 
 		internal static void Delete()
 		{
-			ClearAndDeleteItems!(monitors);
+			ClearAndDeleteItems!(displays);
 			delete window;
 		}
 

@@ -3,7 +3,7 @@ using SDL2;
 
 namespace Pile
 {
-	extension Monitor
+	extension Display
 	{
 		readonly int32 index;
 

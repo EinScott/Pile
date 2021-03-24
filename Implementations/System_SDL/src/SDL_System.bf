@@ -52,7 +52,7 @@ namespace Pile
 			// Displays
 			let numDisplays = SDL_GetNumVideoDisplays();
 			for (int32 i = 0; i < numDisplays; i ++)
-			    monitors.Add(new Monitor(i));
+			    displays.Add(new Display(i));
 		}
 
 		protected internal static override void Destroy()

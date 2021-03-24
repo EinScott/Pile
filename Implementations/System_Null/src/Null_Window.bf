@@ -53,7 +53,7 @@ namespace Pile
 
 		public override bool MouseOver => true;
 
-		public override Monitor Monitor => System.Monitors[0];
+		public override Display Display => System.Displays[0];
 
 		[SkipCall]
 		public override void SetFocused() {}

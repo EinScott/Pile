@@ -18,7 +18,7 @@ namespace Pile
 		[SkipCall]
 		protected internal static override void Initialize()
 		{
-			monitors.Add(new Monitor());
+			displays.Add(new Display());
 		}	
 
 		protected internal override static void Destroy()

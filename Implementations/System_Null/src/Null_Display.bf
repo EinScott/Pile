@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	extension Monitor
+	extension Display
 	{
 		public override Pile.Rect Bounds => .(0, 0, 1920, 1080);
 

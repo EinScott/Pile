@@ -350,12 +350,12 @@ namespace Pile
 			get => mouseFocus;
 		}
 
-		public override Monitor Monitor
+		public override Display Display
 		{
 			get
 			{
 				int index = SDL.SDL_GetWindowDisplayIndex(window);
-				return System.monitors[index];
+				return System.displays[index];
 			}
 		}	
 
