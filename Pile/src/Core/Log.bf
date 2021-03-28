@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Pile
 {
@@ -175,10 +176,49 @@ namespace Pile
 				}
 
 #if DEBUG
-				Debug.WriteLine(fullMessage);
+				debugWriteMonitor.Enter();
+				if (debugNeedsWrite < 8)
+					debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
+				else debugWriteBuffer[7].Set(fullMessage); // rest in peace previous message...
+				debugWriteMonitor.Exit();
 #endif
 			}
 		}
+
+#if DEBUG
+		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
+		static Monitor debugWriteMonitor = new Monitor() ~ delete _;
+		static uint8 debugNeedsWrite;
+		static String[] debugWriteBuffer = {
+			var s = new String[8]();
+			for (let i < 8)
+				s[i] = new String(128);
+			s
+		} ~ DeleteContainerAndItems!(_);
+		static bool debugExit;
+
+		static void DebugWriteThread()
+		{
+			while (true)
+			{
+				if (debugNeedsWrite > 0 && debugWriteMonitor.TryEnter())
+				{
+					for (uint8 i < debugNeedsWrite)
+					{
+						Debug.WriteLine(debugWriteBuffer[i]);
+					}
+					debugNeedsWrite = 0;
+
+					debugWriteMonitor.Exit();
+				}
+
+				if (debugExit)
+					break;
+
+				Thread.Sleep(1);
+			}
+		}
+#endif
 
 		// Record stuff
 		[Inline]
