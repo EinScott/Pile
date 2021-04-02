@@ -9,7 +9,7 @@ namespace Pile
 {
 	static
 	{
-		[Comptime]
+		[Comptime, DebugOnly]
 		public static mixin PerfTrack(String scopeName)
 		{
 			let sNum = Perf.CrappyCompHash(scopeName);
@@ -22,7 +22,7 @@ namespace Pile
 			Compiler.Mixin(MakePerfTrackString(scopeName, sNum));
 		}
 
-		[Comptime]
+		[Comptime, DebugOnly]
 		internal static String MakePerfTrackString(String scopeName, uint sNum)
 		{
 			return scope $"""
@@ -96,7 +96,7 @@ namespace Pile
 		static int collectCounter;
 
 		public static int Scale = 3;
-		public static int PerfTrackDisplayCount = 10;
+		public static int TrackDisplayCount = 10;
 
 		[DebugOnly]
 		internal static void Initialize()
@@ -240,7 +240,7 @@ namespace Pile
 						let ranked = ref ranking[i];
 						if (ranked.value < pair.value) // The pair should be here in the table
 						{
-							if (ranking.Count == PerfTrackDisplayCount) // Remove if we would push beyond what we need
+							if (ranking.Count == TrackDisplayCount) // Remove if we would push beyond what we need
 								ranking.PopBack();
 
 							ranking.Insert(i, pair);
@@ -249,7 +249,7 @@ namespace Pile
 						}
 					}
 
-					if (!inserted && ranking.Count < PerfTrackDisplayCount)
+					if (!inserted && ranking.Count < TrackDisplayCount)
 						ranking.Add(pair);
 				}
 
