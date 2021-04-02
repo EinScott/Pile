@@ -95,9 +95,6 @@ namespace Pile
 		public static int TrackCollectInterval = 30; // in steps/frames/loops
 		static int collectCounter;
 
-		public static int Scale = 3;
-		public static int TrackDisplayCount = 10;
-
 		[DebugOnly]
 		internal static void Initialize()
 		{
@@ -178,9 +175,9 @@ namespace Pile
 
 #unwarn // yes... we don't need [Friend] here... calm down
 		[PerfTrack]
-		public static void Render(Batch2D batch, SpriteFont font)
+		public static void Render(Batch2D batch, SpriteFont font, int scale = 3, int perfTrackDisplayCount = 10)
 		{
-			Debug.Assert(Scale > 0);
+			Debug.Assert(scale > 0);
 
 			// Current raw delta drawn as bar
 			{
@@ -194,7 +191,7 @@ namespace Pile
 				else // Assume mark to be at default target frame rate (60fps)
 					targetTicks = defaultTargetTicks;
 
-				batch.Rect(.(targetOffset * Scale, Point2(1, Scale * 3)), .Red);
+				batch.Rect(.(targetOffset * scale, Point2(1, scale * 3)), .Red);
 
 				// If minFPS is enforced and we're not on fixed time step (it's the same as target)
 				if (Time.MinFPS != 0 && Time.maxTicks != Time.targetTicks)
@@ -202,19 +199,19 @@ namespace Pile
 					// draw bar where delta time cap is!
 					batch.Rect(
 						.(Point2((int)(targetOffset.X * ((double)Time.maxTicks / targetTicks)),
-							targetOffset.Y) * Scale,
-							Point2(1, Scale * 3)),
+							targetOffset.Y) * scale,
+							Point2(1, scale * 3)),
 						.LightGray);
 				}
 
 				batch.Rect(
-					.(barOffset * Scale,
-						Point2((int)((targetOffset.X * Scale) * ((double)Time.loopTicks / targetTicks)),
-						Scale)),
+					.(barOffset * scale,
+						Point2((int)((targetOffset.X * scale) * ((double)Time.loopTicks / targetTicks)),
+						scale)),
 					.White);
 			}
 
-			let scale = Vector2(((float)Scale / font.Size) * 5);
+			let textScale = Vector2(((float)scale / font.Size) * 5);
 
 			String perfText = scope .();
 
@@ -240,7 +237,7 @@ namespace Pile
 						let ranked = ref ranking[i];
 						if (ranked.value < pair.value) // The pair should be here in the table
 						{
-							if (ranking.Count == TrackDisplayCount) // Remove if we would push beyond what we need
+							if (ranking.Count == perfTrackDisplayCount) // Remove if we would push beyond what we need
 								ranking.PopBack();
 
 							ranking.Insert(i, pair);
@@ -249,7 +246,7 @@ namespace Pile
 						}
 					}
 
-					if (!inserted && ranking.Count < TrackDisplayCount)
+					if (!inserted && ranking.Count < perfTrackDisplayCount)
 						ranking.Add(pair);
 				}
 
@@ -260,7 +257,7 @@ namespace Pile
 			}
 #endif
 
-			batch.Text(font, perfText, .(Scale, 4 * Scale), scale, .Zero, 0, .White);
+			batch.Text(font, perfText, .(scale, 4 * scale), textScale, .Zero, 0, .White);
 		}
 
 		[Inline]
