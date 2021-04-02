@@ -74,7 +74,7 @@ namespace Pile
 			Log.CreateDefaultPath();
 
 			BeefPlatform.Initialize();
-			Performance.Initialize();
+			Perf.Initialize();
 			Assets.Initialize();
 
 			w.Stop();
@@ -120,7 +120,7 @@ namespace Pile
 					Time.rawDuration += diffTime;
 					Time.rawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
 					
-					Performance.Step();
+					Perf.Step();
 
 					// Update core modules
 					Graphics.Step();

@@ -12,7 +12,7 @@ namespace Pile
 		[Comptime]
 		public static mixin PerfTrack(String scopeName)
 		{
-			let sNum = Performance.CrappyCompHash(scopeName);
+			let sNum = Perf.CrappyCompHash(scopeName);
 
 			// This needed so many workarounds to work...
 			// -> string interpolation not allowed? well make the string in another comptimed function
@@ -27,7 +27,7 @@ namespace Pile
 		{
 			return scope $"""
 				let __pt_s{sNum} = scope:mixin System.Diagnostics.Stopwatch(true);
-				defer:mixin Pile.Performance.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum});
+				defer:mixin Pile.Perf.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum});
 				""";
 		}
 	}
@@ -67,18 +67,18 @@ namespace Pile
 					sectionName..Append(' ')..Append(sectionNameOverride);
 			}
 
-			let sNum = Performance.CrappyCompHash(sectionName);
+			let sNum = Perf.CrappyCompHash(sectionName);
 
 			// Put tracking on method
 			Compiler.EmitMethodEntry(methodInfo, scope $"""
 				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
-				defer Pile.Performance.[System.FriendAttribute]EndSection("{sectionName}", __pt_s{sNum});
+				defer Pile.Perf.[System.FriendAttribute]EndSection("{sectionName}", __pt_s{sNum});
 				""");
 #endif
 		}
 	}
 
-	static class Performance
+	static class Perf
 	{
 		// We need double buffering here because render functions should also be able to fill these
 		// Thus the stats will just be delayed by one collection cycle
