@@ -113,7 +113,7 @@ namespace Pile
 				
 				{
 #if PILE_CORE_PERFTRACK
-					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Update"));
+					PerfTrack!("Pile.Core.Run:Update");
 #endif
 
 					// Raw time
@@ -156,7 +156,7 @@ namespace Pile
 
 				{
 #if PILE_CORE_PERFTRACK
-					Compiler.Mixin(Performance.MakePerfTrackScopeCode("Pile.Core.Run:Render"));
+					PerfTrack!("Pile.Core.Run:Render");
 #endif
 
 					// Render
@@ -180,6 +180,7 @@ namespace Pile
 				// Record loop ticks (delta without sleep)
 				Time.loopTicks = endCurrTime - currTime;
 #if PILE_CORE_PERFTRACK
+				// We already have a timer running here...
 				Performance.[Friend]EndSection("Pile.Core.Run:Loop (no sleep)", TimeSpan(Time.loopTicks));
 #endif
 

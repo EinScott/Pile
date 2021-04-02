@@ -7,6 +7,31 @@ using internal Pile;
 
 namespace Pile
 {
+	static
+	{
+		[Comptime]
+		public static mixin PerfTrack(String scopeName)
+		{
+			let sNum = Performance.CrappyCompHash(scopeName);
+
+			// This needed so many workarounds to work...
+			// -> string interpolation not allowed? well make the string in another comptimed function
+			// -> the emitted defer block doesn't find the __pt_s identifier anymore when switched to defer:mixin? -> use a defer call (to instant evaluate the args)
+			// -> __pt_s.Elapsed is still 0 when instant evaluating? well feed in the Stopwatch instance since we know it's still valid when the call happens later!
+			// I'm impressed this works... finally
+			Compiler.Mixin(MakePerfTrackString(scopeName, sNum));
+		}
+
+		[Comptime]
+		internal static String MakePerfTrackString(String scopeName, uint sNum)
+		{
+			return scope $"""
+				let __pt_s{sNum} = scope:mixin System.Diagnostics.Stopwatch(true);
+				defer:mixin Pile.Performance.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum});
+				""";
+		}
+	}
+
 	[AttributeUsage(.Method)]
 	struct PerfTrackAttribute : Attribute, IComptimeMethodApply
 	{
@@ -42,8 +67,13 @@ namespace Pile
 					sectionName..Append(' ')..Append(sectionNameOverride);
 			}
 
+			let sNum = Performance.CrappyCompHash(sectionName);
+
 			// Put tracking on method
-			Compiler.EmitMethodEntry(methodInfo, Performance.MakePerfTrackScopeCode(sectionName));
+			Compiler.EmitMethodEntry(methodInfo, scope $"""
+				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
+				defer Pile.Performance.[System.FriendAttribute]EndSection("{sectionName}", __pt_s{sNum});
+				""");
 #endif
 		}
 	}
@@ -51,11 +81,9 @@ namespace Pile
 	static class Performance
 	{
 		// We need double buffering here because render functions should also be able to fill these
-		// Thus the stats will just be delayed by one frame
+		// Thus the stats will just be delayed by one collection cycle
 		static Dictionary<String, TimeSpan> sectionDurationsFill ~ DeleteNotNull!(_);
 		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
-
-		static Stopwatch trackWatch ~ DeleteNotNull!(_);
 
 		const String trackSection = "Pile.Performance (PerfTrack overhead)";
 		static TimeSpan trackOverhead = .Zero;
@@ -64,18 +92,17 @@ namespace Pile
 		/// PerfTrack is always disabled if DEBUG is not defined
 		public static bool Track = false;
 
+		public static int TrackCollectInterval = 30; // in steps/frames/loops
+		static int collectCounter;
+
 		public static int Scale = 3;
 		public static int PerfTrackDisplayCount = 10;
-		public static int PerfTrackCollectInterval = 30; // in steps/frames/loops
-		static int collectCounter = PerfTrackCollectInterval - 1;
 
 		[DebugOnly]
 		internal static void Initialize()
 		{
 			sectionDurationsFill = new .();
 			sectionDurationsRead = new .();
-
-			trackWatch = new .(true);
 		}
 
 		[DebugOnly]
@@ -85,7 +112,7 @@ namespace Pile
 			let __pt = scope System.Diagnostics.Stopwatch(true);
 
 			// Only collect on interval so you can actually read the numbers, especially in the lower digits
-			if (collectCounter >= PerfTrackCollectInterval)
+			if (collectCounter >= TrackCollectInterval)
 			{
 				Swap!(sectionDurationsFill, sectionDurationsRead);
 				sectionDurationsFill.Clear();
@@ -93,14 +120,14 @@ namespace Pile
 				for (let pair in ref sectionDurationsRead)
 				{
 					// Average over collection interval
-					*pair.valueRef = TimeSpan((*pair.valueRef).Ticks / PerfTrackCollectInterval);
+					*pair.valueRef = TimeSpan((*pair.valueRef).Ticks / TrackCollectInterval);
 				}
 
 				collectCounter = 0;
 
 				// Sneak our internal time into the read dictionary we just switched
 				trackOverhead += __pt.Elapsed;
-				sectionDurationsRead.Add(trackSection, TimeSpan(trackOverhead.Ticks / PerfTrackCollectInterval));
+				sectionDurationsRead.Add(trackSection, TimeSpan(trackOverhead.Ticks / TrackCollectInterval));
 				trackOverhead = .Zero;
 			}
 			else
@@ -109,8 +136,6 @@ namespace Pile
 				trackOverhead += __pt.Elapsed;
 			}
 		}
-
-		static int64 StartSection() => trackWatch.[Friend]GetElapsedDateTimeTicks();
 
 		[DebugOnly]
 		static void EndSection(String sectionName, TimeSpan time)
@@ -127,16 +152,20 @@ namespace Pile
 			trackOverhead += __pt.Elapsed;
 		}
 
-		[Comptime]
-		/// Can be used together with Compiler.Mixin
-		public static String MakePerfTrackScopeCode(String scopeName)
+		[DebugOnly, Inline]
+		static void EndSection(String sectionName, Stopwatch watch)
 		{
-#if DEBUG
+			EndSection(sectionName, watch.Elapsed);
+		}
+
+		[Comptime]
+		internal static uint CrappyCompHash(String string)
+		{
 			// Crappy 64 bit hash
 			uint sNum = 0;
-			for (let i < scopeName.Length)
+			for (let i < string.Length)
 			{
-				let val = (uint8)scopeName[i];
+				let val = (uint8)string[i];
 
 				if (val % 5 == 0 && val % 2 == 0)
 					sNum ^= val;
@@ -144,19 +173,10 @@ namespace Pile
 					sNum *= val;
 				else sNum += val;
 			}
-
-			return new $"""
-				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
-				defer
-				{{
-					Pile.Performance.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum}.Elapsed);
-				}}
-				""";
-#else
-			return "";
-#endif
+			return sNum;
 		}
 
+#unwarn // yes... we don't need [Friend] here... calm down
 		[PerfTrack]
 		public static void Render(Batch2D batch, SpriteFont font)
 		{
@@ -241,6 +261,12 @@ namespace Pile
 #endif
 
 			batch.Text(font, perfText, .(Scale, 4 * Scale), scale, .Zero, 0, .White);
+		}
+
+		[Inline]
+		public static Dictionary<String, TimeSpan>.Enumerator EnumerateTrackingResults()
+		{
+			return sectionDurationsRead.GetEnumerator();
 		}
 	}
 }
