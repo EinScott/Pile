@@ -17,6 +17,7 @@ namespace Pile
 
 		internal static bool run;
 		static bool exiting;
+		static uint forceSleepMS;
 
 		static String title = new .() ~ delete _;
 		static Game Game;
@@ -190,6 +191,15 @@ namespace Pile
 					if (sleep > 0)
 						Thread.Sleep((int32)((float)sleep / TimeSpan.TicksPerMillisecond));
 				}
+
+				// Force sleep
+				if (forceSleepMS != 0)
+				{
+					timer.Stop();
+					Thread.Sleep((int32)forceSleepMS);
+					forceSleepMS = 0;
+					timer.Start();
+				}
 			}
 
 			// Shutdown game
@@ -218,6 +228,11 @@ namespace Pile
 			{
 				exiting = true;
 			}
+		}
+
+		public static void Sleep(uint ms)
+		{
+			forceSleepMS = ms;
 		}
 
 		[Inline]
