@@ -74,7 +74,7 @@ namespace Pile
 			Log.CreateDefaultPath();
 
 			BeefPlatform.Initialize();
-			Performance.Initialize();
+			Perf.Initialize();
 			Assets.Initialize();
 
 			w.Stop();
@@ -120,7 +120,7 @@ namespace Pile
 					Time.rawDuration += diffTime;
 					Time.rawDelta = (float)(diffTime * TimeSpan.[Friend]SecondsPerTick);
 					
-					Performance.Step();
+					Perf.Step();
 
 					// Update core modules
 					Graphics.Step();
@@ -181,7 +181,7 @@ namespace Pile
 				Time.loopTicks = endCurrTime - currTime;
 #if PILE_CORE_PERFTRACK
 				// We already have a timer running here...
-				Performance.[Friend]EndSection("Pile.Core.Run:Loop (no sleep)", TimeSpan(Time.loopTicks));
+				Perf.[Friend]EndSection("Pile.Core.Run:Loop (no sleep)", TimeSpan(Time.loopTicks));
 #endif
 
 				// Wait for FPS
