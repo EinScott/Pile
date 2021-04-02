@@ -70,8 +70,8 @@ namespace Pile
 				Path.ChangeExtension(inPath, ".bin", inPath);
 			
 			// Get file
-			let fs = scope FileStream();
-			if (fs.Open(inPath, .Open, .Read) case .Err(let err))
+			let fs = scope BufferedFileStream();
+			if (fs.Open(inPath, .Open, .Read, .None, 65536) case .Err(let err))
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error reading file: {err}");
 
 			// HEADER (3 bytes)
@@ -102,16 +102,29 @@ namespace Pile
 
 			mixin ReadInto(var thing)
 			{
-				if (fs.TryRead((Span<uint8>)thing) case .Err)
-					LogErrorReturn!(scope $"Couldn't read package. Error reading data to {inPath}");
+				switch (fs.TryRead((Span<uint8>)thing))
+				{
+				case .Err:
+					LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath}");
+				case .Ok(let val):
+					if (val != ((Span<uint8>)thing).Length)
+						LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath} (unexpected partial read)");
+				}
+
 				thing
 			}
 
 			mixin ReadUInt()
 			{
 				uint8[4] data = .();
-				if (fs.TryRead(data) case .Err)
-					LogErrorReturn!(scope $"Couldn't read package. Error reading data to {inPath}");
+				switch (fs.TryRead(data))
+				{
+				case .Err:
+					LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath}");
+				case .Ok(let val):
+					if (val != data.Count)
+						LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath} (unexpected partial read)");
+				}
 				(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3]) // big endian
 			}
 
@@ -233,8 +246,8 @@ namespace Pile
 			if (!Directory.Exists(dir) && (Directory.CreateDirectory(dir) case .Err(let err)))
 				LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
 
-			let fs = scope FileStream();
-			if (fs.Open(outPath, .Create, .Write) case .Err)
+			let fs = scope BufferedFileStream();
+			if (fs.Open(outPath, .Create, .Write, .None, 65536) case .Err)
 				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to {outPath}");
 
 			// HEADER (3 bytes)
