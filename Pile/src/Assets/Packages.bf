@@ -720,17 +720,21 @@ namespace Pile
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");
 							}
 
-							// Add to node and duplicate lookup
-							let nameData = new uint8[name.Length];
-							Span<uint8>((uint8*)name.Ptr, name.Length).CopyTo(nameData);
-
 							// Add data
 							if (patchIndex == -1)
+							{
+								// Add to node and duplicate lookup
+								let nameData = new uint8[name.Length];
+								Span<uint8>((uint8*)name.Ptr, name.Length).CopyTo(nameData);
+
 								nodes.Add(Node((uint32)currentImporter, nameData, buildData));
+							}
 							else
 							{
-								nodes[patchIndex].Dispose(); // Swap out
-								nodes[patchIndex] = Node((uint32)currentImporter, nameData, buildData);
+								delete nodes[patchIndex].Data; // Swap out
+
+								// reuse Name (to not confuse our previousNames list)
+								nodes[patchIndex] = Node((uint32)currentImporter, nodes[patchIndex].Name, buildData);
 							}
 
 							importerUsed = true;
