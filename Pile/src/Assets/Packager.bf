@@ -17,7 +17,7 @@ namespace Pile
 			let dirPath = scope String();
 			if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
 			{
-				assetsPath.Append(Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String()));
+				assetsPath.Append(Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String()));
 			}
 			assetsPath
 		}
@@ -40,12 +40,16 @@ namespace Pile
 				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
 				{
 					// this test is weird... maybe make cleaner at some point?
-					let markerPath = Path.GetAbsolutePath(@"..\Pile\Pile__.lib", dirPath, .. scope String());
+#if BF_PLATFORM_WINDOWS
+					let markerPath = Path.GetAbsolutePath(@"../Pile/Pile__.lib", dirPath, .. scope String());
+#else
+					let markerPath = Path.GetAbsolutePath(@"../Pile/Pile_Core.o", dirPath, .. scope String());
+#endif
 
 					// If we are inside the build output directory
 					if (File.Exists(markerPath))
 					{
-						inPath.Append(Path.GetAbsolutePath(@"..\..\..\assets", dirPath, .. scope String()));
+						inPath.Append(Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String()));
 						outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
 					}
 					else LogErrorReturn!("Packager should only be called for development purposes when the application is inside the project build directory");

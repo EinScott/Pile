@@ -25,17 +25,13 @@ LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
 [Configs.Debug.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
 
 [Configs.Test.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
 
 [Configs.Paranoid.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
 
 [Configs.Release.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/SDL2.a"]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lhidapi-hidraw"
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
