@@ -19,14 +19,17 @@ namespace Pile
 		static bool exiting;
 		static uint forceSleepMS;
 
+		// This is interchangable.. if you really need to
+		internal static function void() coreLoop = => DoCoreLoop;
+
+		internal static Event<Action> OnInit = .() ~ _.Dispose();
+		internal static Event<Action> OnDestroy = .() ~ _.Dispose();
+
 		static String title = new .() ~ delete _;
 		static Game Game;
 
 		[Inline]
 		public static StringView Title => title;
-
-		public static Event<Action> OnInit = .() ~ _.Dispose();
-		public static Event<Action> OnDestroy = .() ~ _.Dispose();
 
 		internal static void Run(RunConfig config)
 		{
@@ -89,6 +92,35 @@ namespace Pile
 			Game = config.createGame();
 			Debug.Assert(Game != null, "Game cannot be null");
 
+			// Startup game
+			Game.[Friend]Startup();
+
+			coreLoop();
+
+			// Shutdown game
+			Game.[Friend]Shutdown();
+
+			// Destroy
+			delete Game;
+
+			OnDestroy();
+
+			// Destroy things that are only set when Pile was actually run.
+			// Since Pile isn't necessarily run (Tests, packager) things that
+			// are created in static initialization should be deleted in static
+			// destruction, and things from Initialize() in Destroy() or Delete()
+			Assets.Destroy();
+
+			Audio.Destroy();
+			Graphics.Destroy();
+
+			Input.Destroy();
+			System.Delete();
+			System.Destroy();
+		}
+
+		internal static void DoCoreLoop()
+		{
 			let timer = scope Stopwatch(true);
 			var frameCount = 0;
 			var lastCounted = 0L;
@@ -96,9 +128,6 @@ namespace Pile
 			int64 lastTime = 0;
 			int64 currTime;
 			int64 diffTime;
-
-			// Startup game
-			Game.[Friend]Startup();
 
 			while(!exiting)
 			{
@@ -118,7 +147,7 @@ namespace Pile
 				
 				{
 #if PILE_CORE_PERFTRACK
-					PerfTrack!("Pile.Core.Run:Update");
+					PerfTrack!("Pile.Core.DoCoreLoop:Update");
 #endif
 
 					// Raw time
@@ -161,7 +190,7 @@ namespace Pile
 
 				{
 #if PILE_CORE_PERFTRACK
-					PerfTrack!("Pile.Core.Run:Render");
+					PerfTrack!("Pile.Core.DoCoreLoop:Render");
 #endif
 
 					// Render
@@ -186,7 +215,7 @@ namespace Pile
 				Time.loopTicks = endCurrTime - currTime;
 #if PILE_CORE_PERFTRACK
 				// We already have a timer running here...
-				Perf.[Friend]EndSection("Pile.Core.Run:Loop (no sleep)", TimeSpan(Time.loopTicks));
+				Perf.[Friend]EndSection("Pile.Core.DoCoreLoop (no sleep)", TimeSpan(Time.loopTicks));
 #endif
 
 				// Wait for FPS
@@ -207,27 +236,6 @@ namespace Pile
 					timer.Start();
 				}
 			}
-
-			// Shutdown game
-			Game.[Friend]Shutdown();
-
-			// Destroy
-			delete Game;
-
-			OnDestroy();
-
-			// Destroy things that are only set when Pile was actually run.
-			// Since Pile isn't necessarily run (Tests, packager) things that
-			// are created in static initialization should be deleted in static
-			// destruction, and things from Initialize() in Destroy() or Delete()
-			Assets.Destroy();
-
-			Audio.Destroy();
-			Graphics.Destroy();
-
-			Input.Destroy();
-			System.Delete();
-			System.Destroy();
 		}
 
 		public static void Exit()

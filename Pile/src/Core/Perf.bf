@@ -85,7 +85,7 @@ namespace Pile
 		static Dictionary<String, TimeSpan> sectionDurationsFill ~ DeleteNotNull!(_);
 		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
 
-		const String trackSection = "Pile.Performance (PerfTrack overhead)";
+		const String trackSection = "Pile.Perf (PerfTrack overhead)";
 		static TimeSpan trackOverhead = .Zero;
 
 		/// Whether or not to track function performance.
