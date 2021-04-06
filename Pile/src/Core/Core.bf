@@ -25,6 +25,9 @@ namespace Pile
 		[Inline]
 		public static StringView Title => title;
 
+		public static Event<Action> OnInit = .() ~ _.Dispose();
+		public static Event<Action> OnDestroy = .() ~ _.Dispose();
+
 		internal static void Run(RunConfig config)
 		{
 			Debug.Assert(!run, "Core was already run");
@@ -79,6 +82,8 @@ namespace Pile
 
 			w.Stop();
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
+
+			OnInit();
 
 			// Prepare for running game
 			Game = config.createGame();
@@ -208,6 +213,8 @@ namespace Pile
 
 			// Destroy
 			delete Game;
+
+			OnDestroy();
 
 			// Destroy things that are only set when Pile was actually run.
 			// Since Pile isn't necessarily run (Tests, packager) things that
