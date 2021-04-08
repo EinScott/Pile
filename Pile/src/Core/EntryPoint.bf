@@ -31,7 +31,7 @@ namespace Pile
 			if (args.Count > 0 && args[0] == "-packager")
 			{
 				if (RunPackager() case .Err)
-					return 1;
+					Runtime.FatalError("Error while running packager");
 				return 0;
 			}
 

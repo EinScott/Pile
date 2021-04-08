@@ -61,7 +61,7 @@ namespace Pile
 #if DEBUG
 			System.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 
-			let assetsSource = GetScopedAssetsSourcePath!();
+			let assetsSource = MakeScopedAssetsSourcePath!();
 			if (Directory.Exists(assetsSource))
 				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, null, null);
 #endif

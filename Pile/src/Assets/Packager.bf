@@ -9,16 +9,17 @@ namespace Pile
 {
 	static
 	{
-		internal static mixin GetScopedAssetsSourcePath()
+		// Used for package hot reload
+		internal static mixin MakeScopedAssetsSourcePath()
 		{
 			String assetsPath = scope:mixin .();
-			let exePath = Environment.GetExecutableFilePath(.. scope String());
 
 			let dirPath = scope String();
-			if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
+			if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 			{
 				assetsPath.Append(Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String()));
 			}
+
 			assetsPath
 		}
 
@@ -34,25 +35,31 @@ namespace Pile
 			String inPath = scope .();
 			String outPath = scope .();
 			{
-				let exePath = Environment.GetExecutableFilePath(.. scope String());
-
 				let dirPath = scope String();
-				if (Path.GetDirectoryPath(exePath, dirPath) case .Ok)
+				if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 				{
-					// this test is weird... maybe make cleaner at some point?
-#if BF_PLATFORM_WINDOWS
-					let markerPath = Path.GetAbsolutePath(@"../Pile/Pile__.lib", dirPath, .. scope String());
-#else
-					let markerPath = Path.GetAbsolutePath(@"../Pile/Pile_Core.o", dirPath, .. scope String());
-#endif
+					let assetsPath = Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String());
 
-					// If we are inside the build output directory
-					if (File.Exists(markerPath))
+					// If the usual dir doesnt exist... try args
+					if (!File.Exists(assetsPath))
 					{
-						inPath.Append(Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String()));
-						outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
+						if (EntryPoint.CommandLine.Count > 1)
+						{
+							if (Path.IsPathRooted(EntryPoint.CommandLine[1]))
+								assetsPath.Set(EntryPoint.CommandLine[1]);
+							else
+							{
+								assetsPath.Clear();
+								Path.GetAbsolutePath(EntryPoint.CommandLine[1], dirPath, assetsPath);
+							}
+						}
+
+						if (!File.Exists(assetsPath))
+							LogErrorReturn!("Packager should only be called by the build process. Provide an absolute or relative path as a second arg for manual usage");
 					}
-					else LogErrorReturn!("Packager should only be called for development purposes when the application is inside the project build directory");
+
+					inPath.Append(assetsPath);
+					outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
 				}
 			}
 
