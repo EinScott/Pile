@@ -37,7 +37,7 @@ namespace Pile
 
 #if DEBUG
 			// In debug, run this on actual execute for debugging perks
-			TrySilent!(RunPackager());
+			RunPackager().IgnoreError();
 #endif
 			
 			// Run onStart

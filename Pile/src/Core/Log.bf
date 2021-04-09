@@ -186,36 +186,41 @@ namespace Pile
 		}
 
 #if DEBUG
-		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
 		static Monitor debugWriteMonitor = new Monitor() ~ delete _;
-		static uint8 debugNeedsWrite;
+		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
+		static bool debugExit;
+
 		static String[] debugWriteBuffer = {
 			var s = new String[8]();
 			for (let i < 8)
 				s[i] = new String(128);
 			s
-		} ~ DeleteContainerAndItems!(_);
-		static bool debugExit;
+		} ~ {
+			using (debugWriteMonitor.Enter())
+				DeleteContainerAndItems!(_);
+		};
+		static uint8 debugNeedsWrite;
 
 		static void DebugWriteThread()
 		{
 			while (true)
 			{
-				if (debugNeedsWrite > 0 && debugWriteMonitor.TryEnter())
+				while (debugNeedsWrite == 0)
+				{
+					Thread.Sleep(1);
+
+					if (debugExit)
+						return;
+				}
+
+				using (debugWriteMonitor.Enter())
 				{
 					for (uint8 i < debugNeedsWrite)
 					{
 						Debug.WriteLine(debugWriteBuffer[i]);
 					}
 					debugNeedsWrite = 0;
-
-					debugWriteMonitor.Exit();
 				}
-
-				if (debugExit)
-					break;
-
-				Thread.Sleep(1);
 			}
 		}
 #endif

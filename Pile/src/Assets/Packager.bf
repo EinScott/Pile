@@ -41,7 +41,7 @@ namespace Pile
 					let assetsPath = Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String());
 
 					// If the usual dir doesnt exist... try args
-					if (!File.Exists(assetsPath))
+					if (!Directory.Exists(assetsPath))
 					{
 						if (EntryPoint.CommandLine.Count > 1)
 						{
@@ -54,7 +54,7 @@ namespace Pile
 							}
 						}
 
-						if (!File.Exists(assetsPath))
+						if (!Directory.Exists(assetsPath))
 							LogErrorReturn!("Packager should only be called by the build process. Provide an absolute or relative path as a second arg for manual usage");
 					}
 
