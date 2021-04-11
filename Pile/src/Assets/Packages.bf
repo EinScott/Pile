@@ -233,6 +233,8 @@ namespace Pile
 			if (size != fs.Position)
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format: The file contains {size} bytes, but the file content ended at {fs.Position}");	
 
+			fs.Close(); // We did only read, this should never error.
+
 			return .Ok;
 		}
 
@@ -419,6 +421,9 @@ namespace Pile
 			let size = fs.Position;
 			fs.Seek(4);
 			PutUInt!(size);
+
+			if (fs.Close() case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath} when closing stream");
 
 			return .Ok;
 		}
