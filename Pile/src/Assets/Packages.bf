@@ -147,7 +147,7 @@ namespace Pile
 
 					let nameString = new String(importerNameLength);
 					nameString.Length = importerNameLength;
-					ReadInto!(Span<uint8>((uint8*)&nameString[0], importerNameLength));
+					ReadInto!(Span<uint8>((uint8*)nameString.Ptr, importerNameLength));
 
 					importerNames.Add(nameString);
 				}
@@ -204,7 +204,7 @@ namespace Pile
 							}*/
 
 							// @do temp
-							Internal.MemCpy(&uncompData[uncompWriteStart], &compData[0], compSize);
+							Internal.MemCpy(&uncompData[uncompWriteStart], compData.Ptr, compSize);
 							uncompWriteStart += (.)compSize;
 						}
 
@@ -687,7 +687,7 @@ namespace Pile
 								for (var i < nodes.Count)
 								{
 									let node = ref nodes[i];
-									if (StringView((char8*)&node.Name[0], node.Name.Count) == name)
+									if (StringView((char8*)node.Name.Ptr, node.Name.Count) == name)
 									{
 										patchIndex = i;
 										break;
@@ -766,7 +766,7 @@ namespace Pile
 							for (var i < nodes.Count)
 							{
 								let node = ref nodes[i];
-								if (StringView((char8*)&node.Name[0], node.Name.Count) == prevName)
+								if (StringView((char8*)node.Name.Ptr, node.Name.Count) == prevName)
 								{
 									node.Dispose();
 									nodes.RemoveAtFast(i);

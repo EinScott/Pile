@@ -392,7 +392,7 @@ namespace Pile
 
 		        // set RGBA data to Color array
 		        {
-		            let pixels = Span<Color>((Color*)&buffer[0], width * height);
+		            let pixels = Span<Color>((Color*)buffer.Ptr, width * height);
 					bitmap.SetPixels(pixels);
 		        }
 
@@ -422,7 +422,7 @@ namespace Pile
 		    {
 		        // write chunk
 	            HandleWrite!(stream.Write(SwapEndian((int32)buffer.Length)));
-	            HandleWrite!(stream.Write(Span<uint8>((uint8*)&title[0], title.Length)));
+	            HandleWrite!(stream.Write(Span<uint8>((uint8*)title.Ptr, title.Length)));
 	            HandleWrite!(stream.Write(buffer));
 
 		        // write CRC

@@ -203,7 +203,7 @@ namespace Pile
 				if (length != buf.Count)
 					LogErrorReturn!("Couldn't load Aseprite: Unexpected string size");
 
-				let s = scope:mixin String((char8*)&buf[0], buf.Count);
+				let s = scope:mixin String((char8*)buf.Ptr, buf.Count);
 				s
 			}
 	        void SEEK(int number) => stream.Position += number;

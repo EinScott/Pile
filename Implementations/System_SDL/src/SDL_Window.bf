@@ -81,7 +81,7 @@ namespace Pile
 
 			if (bitmap != null)
 			{
-				let iconSurface = SDL.CreateRGBSurfaceFrom(&bitmap.Pixels[0], (.)bitmap.Width, (.)bitmap.Height, 32, sizeof(Color) * (.)bitmap.Width, rmask, gmask, bmask, amask);
+				let iconSurface = SDL.CreateRGBSurfaceFrom(bitmap.Pixels.Ptr, (.)bitmap.Width, (.)bitmap.Height, 32, sizeof(Color) * (.)bitmap.Width, rmask, gmask, bmask, amask);
 				if (iconSurface == null)
 					LogErrorReturn!("Couldn't set application icon, SDL Surface not created");
 	

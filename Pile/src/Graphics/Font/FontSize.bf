@@ -102,7 +102,7 @@ namespace Pile
                 // we actually use the bitmap buffer as our temporary buffer, and fill the pixels out backwards after [FOSTERCOMMENT]
                 // kinda weird but it works & saves creating more memory
 
-                var input = (uint8*)&bitmap.Pixels[0];
+                var input = (uint8*)bitmap.Pixels.Ptr;
                 stbtt.stbtt_MakeGlyphBitmap(Font.fontInfo, input, (.)ch.Width, (.)ch.Height, (.)ch.Width, Scale, Scale, ch.Glyph);
 
                 for (int i = (.)(ch.Width * ch.Height - 1); i >= 0; i--)

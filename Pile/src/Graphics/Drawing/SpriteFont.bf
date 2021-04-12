@@ -104,7 +104,7 @@ namespace Pile
 					// Encoded unicode char
 					if (UTF8.GetDecodedLength(entry.Name[0]) > 1)
 					{
-						let ress = UTF8.Decode(&entry.Name[0], entry.Name.Length);
+						let ress = UTF8.Decode(entry.Name.Ptr, entry.Name.Length);
 
 						if (ress.c == (char32)-1)
 							continue; // Invalid

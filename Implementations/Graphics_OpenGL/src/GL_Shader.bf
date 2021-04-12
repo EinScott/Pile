@@ -43,8 +43,8 @@ namespace Pile
 					{
 						var s = scope char8[len];
 
-						GL.glGetProgramInfoLog(programID, len, &len, &s[0]);
-						Runtime.FatalError(scope $"Error linking shader program: {StringView(&s[0], len)}");
+						GL.glGetProgramInfoLog(programID, len, &len, s.Ptr);
+						Runtime.FatalError(scope $"Error linking shader program: {StringView(s.Ptr, len)}");
 					}
 				}
 			}
@@ -71,8 +71,8 @@ namespace Pile
 				{
 					uint32 trash2 = 0; // We dont care about these
 					int32 trash1 = 0;
-					GL.glGetActiveAttrib(programID, (uint)i, 256, &actualLength, &trash1, &trash2, &cBuf[0]);
-					string.Append(&cBuf[0], actualLength);
+					GL.glGetActiveAttrib(programID, (uint)i, 256, &actualLength, &trash1, &trash2, cBuf.Ptr);
+					string.Append(cBuf.Ptr, actualLength);
 
 					int location = GL.glGetAttribLocation(programID, string.CStr());
 					if (location >= 0)
@@ -91,8 +91,8 @@ namespace Pile
 				{
 					int32 length = 0;
 					uint32 type = 0;
-					GL.glGetActiveUniform(programID, (uint)i, 256, &actualLength, &length, &type, &cBuf[0]);
-					string.Append(&cBuf[0], actualLength);
+					GL.glGetActiveUniform(programID, (uint)i, 256, &actualLength, &length, &type, cBuf.Ptr);
+					string.Append(cBuf.Ptr, actualLength);
 
 					int location = GL.glGetUniformLocation(programID, string.CStr());
 					if (location >= 0)
@@ -147,9 +147,9 @@ namespace Pile
 						GL.glGetShaderiv(id, GL.GL_INFO_LOG_LENGTH, &len);
 						var s = scope char8[len];
 
-						GL.glGetShaderInfoLog(id, len, &len, &s[0]);
+						GL.glGetShaderInfoLog(id, len, &len, s.Ptr);
 
-						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(&s[0], len)));
+						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(s.Ptr, len)));
 					}
 				}
 
@@ -198,7 +198,7 @@ namespace Pile
 					{
 						int32[] n = scope int32[uniform.Length];
 
-						let textures = (Texture*)&parameter.memory[[Unchecked]0];
+						let textures = (Texture*)parameter.memory.Ptr;
 						for (int j = 0; j < uniform.Length; j++)
 						{
 						    let id = textures[j]?.textureID ?? 0;
@@ -210,22 +210,22 @@ namespace Pile
 						    textureSlot++;
 						}
 
-						GL.glUniform1iv(uniform.Location, uniform.Length, &n[0]);
+						GL.glUniform1iv(uniform.Location, uniform.Length, n.Ptr);
 					}
 				case .Int:
-					GL.glUniform1iv(uniform.Location, uniform.Length, (int32*)&parameter.memory[[Unchecked]0]);
+					GL.glUniform1iv(uniform.Location, uniform.Length, (int32*)parameter.memory.Ptr);
 				case .Float:
-					GL.glUniform1fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
+					GL.glUniform1fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
 				case .Float2:
-					GL.glUniform2fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
+					GL.glUniform2fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
 				case .Float3:
-					GL.glUniform3fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
+					GL.glUniform3fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
 				case .Float4:
-					GL.glUniform4fv(uniform.Location, uniform.Length, (float*)&parameter.memory[[Unchecked]0]);
+					GL.glUniform4fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
 				case .Matrix3x2:
-					GL.glUniformMatrix3x2fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)&parameter.memory[[Unchecked]0]);
+					GL.glUniformMatrix3x2fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)parameter.memory.Ptr);
 				case .Matrix4x4:
-					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)&parameter.memory[[Unchecked]0]);
+					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)parameter.memory.Ptr);
 				case .Unknown:
 				}
 			}

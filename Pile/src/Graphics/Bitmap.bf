@@ -97,7 +97,7 @@ namespace Pile
 
 		public void Premultiply()
 		{
-			uint8* rgba = (uint8*)&Pixels[0];
+			let rgba = (uint8*)Pixels.Ptr;
 
 			let len = Pixels.Count * 4;
 			for (int32 i = 0; i < len; i++)
@@ -143,7 +143,7 @@ namespace Pile
 
 		public void Clear()
 		{
-			Array.Clear(&Pixels[0], Pixels.Count);
+			Array.Clear(Pixels.Ptr, Pixels.Count);
 		}
 
 		public void SetPixels(Span<Color> pixels)

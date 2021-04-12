@@ -282,7 +282,7 @@ namespace Pile
 		        }
 
 		        let from = packed;
-		        var nodePtr = &buffer[0];
+		        var nodePtr = buffer.Ptr;
 		        var rootPtr = ResetNode(nodePtr++, 0, 0, sources[from].packed.Width + padding, sources[from].packed.Height + padding);
 
 		        while (packed < sources.Count)

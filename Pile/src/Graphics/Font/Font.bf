@@ -21,17 +21,17 @@ namespace Pile
 		public readonly int32 Height; // The Height of the Font (Ascent - Descent)
 		public readonly int32 LineHeight; // The Line Height of the Font (Height + LineGap). This is the total height of a single line, including the line gap
 
-		public static bool IsValid(Span<uint8> buffer) => stbtt.stbtt__isfont(&buffer[0]) == 1;
+		public static bool IsValid(Span<uint8> buffer) => stbtt.stbtt__isfont(buffer.Ptr) == 1;
 
 		public this(Span<uint8> buffer)
 		{
-			Runtime.Assert(buffer.Length > 0 && stbtt.stbtt__isfont(&buffer[0]) == 1, "Invalid font buffer");
+			Runtime.Assert(buffer.Length > 0 && stbtt.stbtt__isfont(buffer.Ptr) == 1, "Invalid font buffer");
 
 		    fontBuffer = new uint8[buffer.Length];
 			buffer.CopyTo(fontBuffer);
 		    fontInfo = new stbtt_fontinfo();
 
-		    let res = stbtt.stbtt_InitFont(fontInfo, &fontBuffer[0], 0);
+		    let res = stbtt.stbtt_InitFont(fontInfo, fontBuffer.Ptr, 0);
 			Runtime.Assert(res == 1, "Failed to load font from buffer");
 
 		    GetName(fontInfo, 1, FamilyName);

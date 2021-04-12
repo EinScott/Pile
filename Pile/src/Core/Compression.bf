@@ -8,7 +8,7 @@ namespace Pile
 		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			int destL = (int32)destination.Length;
-			let s = MiniZ.Compress(&destination[0], ref destL, &source[0], (int)(int32)source.Length, level);
+			let s = MiniZ.Compress(destination.Ptr, ref destL, source.Ptr, (int)(int32)source.Length, level);
 
 			switch (s)
 			{
@@ -42,7 +42,7 @@ namespace Pile
 		public static Result<int> Decompress(Span<uint8> source, Span<uint8> destination)
 		{
 			int destL = (int32)destination.Length;
-			let s = MiniZ.Uncompress(&destination[0], ref destL, &source[0], source.Length);
+			let s = MiniZ.Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
 
 			switch (s)
 			{

@@ -56,7 +56,7 @@ namespace Pile
 		public this(Bitmap bitmap, TextureFilter filter = DefaultTextureFilter)
 			: this(bitmap.Width, bitmap.Height, .Color, filter)
 		{
-			SetData(&bitmap.Pixels[0]);
+			SetData(bitmap.Pixels.Ptr);
 		}
 
 		public void CopyTo(Bitmap bitmap)
@@ -64,7 +64,7 @@ namespace Pile
 			bitmap.ResizeAndClear(Width, Height);
 
 			var span = Span<Color>(bitmap.Pixels);
-			GetData(&span[0]);
+			GetData(span.Ptr);
 		}
 
 		public void Set(Bitmap bitmap)
@@ -72,7 +72,7 @@ namespace Pile
 			if (bitmap.Width != Width || bitmap.Height != Height)
 				ResizeAndClear(bitmap.Width, bitmap.Height); // Resize this if needed
 
-			SetData(&bitmap.Pixels[0]);
+			SetData(bitmap.Pixels.Ptr);
 		}
 
 		public void ResizeAndClear(uint32 width, uint32 height)
@@ -93,7 +93,7 @@ namespace Pile
 		{
 			Runtime.Assert(sizeof(T) * buffer.Length * sizeof(T) >= (.)Size, "Buffer size must be at least equal to the size of the texture");
 
-			SetData(&buffer[0]);
+			SetData(buffer.Ptr);
 		}
 
 		public void GetColor(ref Span<Color> buffer) => GetData<Color>(ref buffer);
@@ -101,7 +101,7 @@ namespace Pile
 		{
 			Runtime.Assert(sizeof(T) * buffer.Length * sizeof(T) >= (.)Size, "Buffer size must be at least equal to the size of the texture");
 
-			GetData(&buffer[0]);
+			GetData(buffer.Ptr);
 		}
 
 		protected extern void Initialize();
