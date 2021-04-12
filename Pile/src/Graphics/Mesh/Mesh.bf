@@ -11,6 +11,9 @@ namespace Pile
 		public uint InstanceCount { get; private set; }
 		public uint IndexCount { get; private set; }
 
+		[Inline]
+		public uint TriangleCount => IndexCount / 3;
+
 		public VertexFormat VertexFormat { get; private set; }
 		public VertexFormat InstanceFormat { get; private set; }
 		public IndexType IndexType { get; private set; }
@@ -47,14 +50,13 @@ namespace Pile
 		public void SetIndices<T>(Span<T> indices) where T : IInteger, IUnsigned, struct
 		{
 			// Determine index type
-			switch (typeof(T))
+			switch (sizeof(T))
 			{
-			case typeof(uint8): IndexType = .UnsignedByte;
-			case typeof(uint16): IndexType = .UnsignedShort;
-			case typeof(uint32): IndexType = .UnsignedInt;
+			case sizeof(uint8): IndexType = .UnsignedByte;
+			case sizeof(uint16): IndexType = .UnsignedShort;
+			case sizeof(uint32): IndexType = .UnsignedInt;
 			default:
-				Debug.FatalError("Unexpected index type. Expected uint8, uint16 or uint32");
-				IndexType = .UnsignedInt;
+				Runtime.FatalError("Unexpected index type. Expected uint8, uint16 or uint32");
 			}
 
 			IndexCount = (uint)indices.Length;

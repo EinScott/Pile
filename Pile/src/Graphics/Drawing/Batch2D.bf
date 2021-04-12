@@ -5,11 +5,9 @@ using System.Text;
 
 namespace Pile
 {
-	class Batch2D
+	class Batch2D : BufferedMesh<Vertex>
 	{
-		// TODO: improve this at some point
-
-		public static readonly VertexFormat VertexFormat = new VertexFormat(
+		public static readonly VertexFormat BatchVertexFormat = new VertexFormat(
 			VertexAttribute("a_position", .Position, .Float, .Two, false),
 			VertexAttribute("a_tex", .TexCoord0, .Float, .Two, false),
 			VertexAttribute("a_color", .Color0, .Byte, .Four, true),
@@ -41,7 +39,7 @@ namespace Pile
 
 		struct Batch
 		{
-			//public int layer; // unused in foster, may use later
+			//public int layer; // TODO: implement, look at currentBatchInsert
 			public Material material;
 			public BlendMode blendMode;
 			public Matrix3x2 matrix;
@@ -66,7 +64,6 @@ namespace Pile
 		}
 
 		public readonly Material DefaultMaterial;
-		public readonly Mesh Mesh ~ delete _;
 
 		readonly String TextureUniformName ~ delete _;
 		readonly String MatrixUniformName ~ delete _;
@@ -76,22 +73,15 @@ namespace Pile
 		public Matrix3x2 MatrixStack = Matrix3x2.Identity;
 		readonly List<Matrix3x2> matrixStack = new List<Matrix3x2>() ~ delete _;
 
-		Vertex[] vertices = new Vertex[64] ~ delete _;
-		uint32[] indices = new uint32[64] ~ delete _;
 		RenderPass pass;
 
 		readonly List<Batch> batches = new List<Batch>() ~ delete _;
 		Batch currentBatch;
 		int currentBatchInsert;
-
-		bool dirty;
 		
-		public int VertexCount { get; private set; }
-		public int IndexCount { get; private set; }
-		public int TriangleCount => IndexCount / 3;
-		public int BatchCount => batches.Count + (currentBatch.elements > 0 ? 1 : 0);
+		public uint BatchCount => (.)batches.Count + (currentBatch.elements > 0 ? 1 : 0);
 
-		public this(Material defaultMaterial, StringView textureUniformName = "u_texture", StringView matrixUniformName = "u_matrix")
+		public this(Material defaultMaterial, StringView textureUniformName = "u_texture", StringView matrixUniformName = "u_matrix") : base(BatchVertexFormat)
 		{
 			DefaultMaterial = defaultMaterial;
 
@@ -103,15 +93,12 @@ namespace Pile
 			textureUniformIndex = defaultMaterial.IndexOf(TextureUniformName);
 			matrixUniformIndex = defaultMaterial.IndexOf(MatrixUniformName);
 
-			Mesh = new Mesh();
-
 			Clear();
 		}
 
-		public void Clear()
+		public new void Clear()
 		{
-			VertexCount = 0;
-			IndexCount = 0;
+			base.Clear();
 
 			currentBatchInsert = 0;
 			currentBatch = Batch(0, 0, .Identity, .Normal);
@@ -139,20 +126,14 @@ namespace Pile
 			if (clearColor != null)
 			    Graphics.Clear(target, clearColor.Value);
 
-			pass = RenderPass(target, Mesh, DefaultMaterial);
+			pass = RenderPass(target, UnderlyingMesh, DefaultMaterial);
 			pass.viewport = viewport;
 
 			Debug.Assert(matrixStack.Count <= 0, "Batch.MatrixStack Pushes more than it Pops");
 
 			if (batches.Count > 0 || currentBatch.elements > 0)
 			{
-			    if (dirty)
-			    {
-					Mesh.SetVertices(Span<Vertex>(vertices), VertexFormat);
-					Mesh.SetIndices(Span<uint32>(indices));
-
-			        dirty = false;
-			    }
+			    ApplyBuffers();
 
 			    // Render batches
 			    for (int i = 0; i < batches.Count; i++)
@@ -336,259 +317,93 @@ namespace Pile
 
 		// DRAW
 
+		public void Triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color color)
+		{
+		    let tri = PushTriangle();
+
+			tri[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255);
+			tri[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255);
+			tri[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255);
+
+			currentBatch.elements++;
+		}
+
+		public void Triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c0, Color c1, Color c2)
+		{
+		    let tri = PushTriangle();
+
+			tri[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255);
+			tri[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255);
+			tri[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255);
+
+			currentBatch.elements++;
+		}
+
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
+		{
+		    let quad = PushQuad();
+
+			quad[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255);
+			quad[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255);
+			quad[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255);
+			quad[3] = .(Transform(v3, MatrixStack), .Zero, color, 0, 0, 255);
+
+			currentBatch.elements += 2;
+		}
+
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Vector2 t0, Vector2 t1, Vector2 t2, Vector2 t3, Color color, bool washed = false)
+		{
+		    let quad = PushQuad();
+
+		    var mult = (uint8)(washed ? 0 : 255);
+		    var wash = (uint8)(washed ? 255 : 0);
+
+			quad[0] = .(Transform(v0, MatrixStack), t0, color, mult, wash, 0);
+			quad[1] = .(Transform(v1, MatrixStack), t1, color, mult, wash, 0);
+			quad[2] = .(Transform(v2, MatrixStack), t2, color, mult, wash, 0);
+			quad[3] = .(Transform(v3, MatrixStack), t3, color, mult, wash, 0);
+
+		    if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
+		        FlipUV(ref quad[0].texcoord, ref quad[1].texcoord, ref quad[2].texcoord, ref quad[3].texcoord);
+
+			currentBatch.elements += 2;
+		}
+
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Color c0, Color c1, Color c2, Color c3)
+		{
+		    let quad = PushQuad();
+
+		    quad[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255);
+			quad[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255);
+			quad[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255);
+			quad[3] = .(Transform(v3, MatrixStack), .Zero, c3, 0, 0, 255);
+
+			currentBatch.elements += 2;
+		}
+
+		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Vector2 t0, Vector2 t1, Vector2 t2, Vector2 t3, Color c0, Color c1, Color c2, Color c3, bool washed = false)
+		{
+		    let quad = PushQuad();
+
+		    var mult = (uint8)(washed ? 0 : 255);
+		    var wash = (uint8)(washed ? 255 : 0);
+
+			quad[0] = .(Transform(v0, MatrixStack), t0, c0, mult, wash, 0);
+			quad[1] = .(Transform(v1, MatrixStack), t1, c1, mult, wash, 0);
+			quad[2] = .(Transform(v2, MatrixStack), t2, c2, mult, wash, 0);
+			quad[3] = .(Transform(v3, MatrixStack), t3, c3, mult, wash, 0);
+
+			if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
+				FlipUV(ref quad[0].texcoord, ref quad[1].texcoord, ref quad[2].texcoord, ref quad[3].texcoord);
+
+			currentBatch.elements += 2;
+		}
+
 		public void Line(Vector2 from, Vector2 to, float thickness, Color color)
 		{
 			let normal = (to - from).Normalize();
 			let perp = Vector2(-normal.Y, normal.X) * thickness * 0.5f;
 			Quad(from + perp, from - perp, to - perp, to + perp, color);
-		}
-
-		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
-		{
-		    PushQuad();
-		    ExpandVertices(VertexCount + 4);
-
-		    // POS
-		    Transform(ref vertices[VertexCount + 0].position, v0, MatrixStack);
-		    Transform(ref vertices[VertexCount + 1].position, v1, MatrixStack);
-		    Transform(ref vertices[VertexCount + 2].position, v2, MatrixStack);
-		    Transform(ref vertices[VertexCount + 3].position, v3, MatrixStack);
-
-		    // COL
-		    vertices[VertexCount + 0].color = color;
-		    vertices[VertexCount + 1].color = color;
-		    vertices[VertexCount + 2].color = color;
-		    vertices[VertexCount + 3].color = color;
-
-		    // MULT
-		    vertices[VertexCount + 0].mult = 0;
-		    vertices[VertexCount + 1].mult = 0;
-		    vertices[VertexCount + 2].mult = 0;
-		    vertices[VertexCount + 3].mult = 0;
-
-		    // WASH
-		    vertices[VertexCount + 0].wash = 0;
-		    vertices[VertexCount + 1].wash = 0;
-		    vertices[VertexCount + 2].wash = 0;
-		    vertices[VertexCount + 3].wash = 0;
-
-		    // FILL
-		    vertices[VertexCount + 0].fill = 255;
-		    vertices[VertexCount + 1].fill = 255;
-		    vertices[VertexCount + 2].fill = 255;
-		    vertices[VertexCount + 3].fill = 255;
-
-		    VertexCount += 4;
-		}
-
-		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Vector2 t0, Vector2 t1, Vector2 t2, Vector2 t3, Color color, bool washed = false)
-		{
-		    PushQuad();
-		    ExpandVertices(VertexCount + 4);
-
-		    var mult = (uint8)(washed ? 0 : 255);
-		    var wash = (uint8)(washed ? 255 : 0);
-
-		    // POS
-		    Transform(ref vertices[VertexCount + 0].position, v0, MatrixStack);
-		    Transform(ref vertices[VertexCount + 1].position, v1, MatrixStack);
-		    Transform(ref vertices[VertexCount + 2].position, v2, MatrixStack);
-		    Transform(ref vertices[VertexCount + 3].position, v3, MatrixStack);
-
-		    // TEX
-		    vertices[VertexCount + 0].texcoord = t0;
-		    vertices[VertexCount + 1].texcoord = t1;
-		    vertices[VertexCount + 2].texcoord = t2;
-		    vertices[VertexCount + 3].texcoord = t3;
-
-		    if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
-		        VerticalFlip(ref vertices[VertexCount + 0].texcoord, ref vertices[VertexCount + 1].texcoord, ref vertices[VertexCount + 2].texcoord, ref vertices[VertexCount + 3].texcoord);
-
-		    // COL
-		    vertices[VertexCount + 0].color = color;
-		    vertices[VertexCount + 1].color = color;
-		    vertices[VertexCount + 2].color = color;
-		    vertices[VertexCount + 3].color = color;
-
-		    // MULT
-		    vertices[VertexCount + 0].mult = mult;
-		    vertices[VertexCount + 1].mult = mult;
-		    vertices[VertexCount + 2].mult = mult;
-		    vertices[VertexCount + 3].mult = mult;
-
-		    // WASH
-		    vertices[VertexCount + 0].wash = wash;
-		    vertices[VertexCount + 1].wash = wash;
-		    vertices[VertexCount + 2].wash = wash;
-		    vertices[VertexCount + 3].wash = wash;
-
-		    // FILL
-		    vertices[VertexCount + 0].fill = 0;
-		    vertices[VertexCount + 1].fill = 0;
-		    vertices[VertexCount + 2].fill = 0;
-		    vertices[VertexCount + 3].fill = 0;
-
-		    VertexCount += 4;
-		}
-
-		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Color c0, Color c1, Color c2, Color c3)
-		{
-		    PushQuad();
-		    ExpandVertices(VertexCount + 4);
-
-		    // POS
-		    Transform(ref vertices[VertexCount + 0].position, v0, MatrixStack);
-		    Transform(ref vertices[VertexCount + 1].position, v1, MatrixStack);
-		    Transform(ref vertices[VertexCount + 2].position, v2, MatrixStack);
-		    Transform(ref vertices[VertexCount + 3].position, v3, MatrixStack);
-
-		    // COL
-		    vertices[VertexCount + 0].color = c0;
-		    vertices[VertexCount + 1].color = c1;
-		    vertices[VertexCount + 2].color = c2;
-		    vertices[VertexCount + 3].color = c3;
-
-		    // MULT
-		    vertices[VertexCount + 0].mult = 0;
-		    vertices[VertexCount + 1].mult = 0;
-		    vertices[VertexCount + 2].mult = 0;
-		    vertices[VertexCount + 3].mult = 0;
-
-		    // WASH
-		    vertices[VertexCount + 0].wash = 0;
-		    vertices[VertexCount + 1].wash = 0;
-		    vertices[VertexCount + 2].wash = 0;
-		    vertices[VertexCount + 3].wash = 0;
-
-		    // FILL
-		    vertices[VertexCount + 0].fill = 255;
-		    vertices[VertexCount + 1].fill = 255;
-		    vertices[VertexCount + 2].fill = 255;
-		    vertices[VertexCount + 3].fill = 255;
-
-		    VertexCount += 4;
-		}
-
-		public void Quad(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3, Vector2 t0, Vector2 t1, Vector2 t2, Vector2 t3, Color c0, Color c1, Color c2, Color c3, bool washed = false)
-		{
-		    PushQuad();
-		    ExpandVertices(VertexCount + 4);
-
-		    var mult = (uint8)(washed ? 0 : 255);
-		    var wash = (uint8)(washed ? 255 : 0);
-
-		    // POS
-		    Transform(ref vertices[VertexCount + 0].position, v0, MatrixStack);
-		    Transform(ref vertices[VertexCount + 1].position, v1, MatrixStack);
-		    Transform(ref vertices[VertexCount + 2].position, v2, MatrixStack);
-		    Transform(ref vertices[VertexCount + 3].position, v3, MatrixStack);
-
-		    // TEX
-		    vertices[VertexCount + 0].texcoord = t0;
-		    vertices[VertexCount + 1].texcoord = t1;
-		    vertices[VertexCount + 2].texcoord = t2;
-		    vertices[VertexCount + 3].texcoord = t3;
-
-		    if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
-		        VerticalFlip(ref vertices[VertexCount + 0].texcoord, ref vertices[VertexCount + 1].texcoord, ref vertices[VertexCount + 2].texcoord, ref vertices[VertexCount + 3].texcoord);
-
-		    // COL
-		    vertices[VertexCount + 0].color = c0;
-		    vertices[VertexCount + 1].color = c1;
-		    vertices[VertexCount + 2].color = c2;
-		    vertices[VertexCount + 3].color = c3;
-
-		    // MULT
-		    vertices[VertexCount + 0].mult = mult;
-		    vertices[VertexCount + 1].mult = mult;
-		    vertices[VertexCount + 2].mult = mult;
-		    vertices[VertexCount + 3].mult = mult;
-
-		    // WASH
-		    vertices[VertexCount + 0].wash = wash;
-		    vertices[VertexCount + 1].wash = wash;
-		    vertices[VertexCount + 2].wash = wash;
-		    vertices[VertexCount + 3].wash = wash;
-
-		    // FILL
-		    vertices[VertexCount + 0].fill = 0;
-		    vertices[VertexCount + 1].fill = 0;
-		    vertices[VertexCount + 2].fill = 0;
-		    vertices[VertexCount + 3].fill = 0;
-
-		    VertexCount += 4;
-		}
-
-		public void Triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color color)
-		{
-		    PushTriangle();
-		    ExpandVertices(VertexCount + 3);
-
-		    // POS
-		    Transform(ref vertices[VertexCount + 0].position, v0, MatrixStack);
-		    Transform(ref vertices[VertexCount + 1].position, v1, MatrixStack);
-		    Transform(ref vertices[VertexCount + 2].position, v2, MatrixStack);
-
-		    // COL
-		    vertices[VertexCount + 0].color = color;
-		    vertices[VertexCount + 1].color = color;
-		    vertices[VertexCount + 2].color = color;
-
-		    // MULT
-		    vertices[VertexCount + 0].mult = 0;
-		    vertices[VertexCount + 1].mult = 0;
-		    vertices[VertexCount + 2].mult = 0;
-		    vertices[VertexCount + 3].mult = 0;
-
-		    // WASH
-		    vertices[VertexCount + 0].wash = 0;
-		    vertices[VertexCount + 1].wash = 0;
-		    vertices[VertexCount + 2].wash = 0;
-		    vertices[VertexCount + 3].wash = 0;
-
-		    // FILL
-		    vertices[VertexCount + 0].fill = 255;
-		    vertices[VertexCount + 1].fill = 255;
-		    vertices[VertexCount + 2].fill = 255;
-		    vertices[VertexCount + 3].fill = 255;
-
-		    VertexCount += 3;
-		}
-
-		public void Triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c0, Color c1, Color c2)
-		{
-		    PushTriangle();
-		    ExpandVertices(VertexCount + 3);
-
-		    // POS
-		    Transform(ref vertices[VertexCount + 0].position, v0, MatrixStack);
-		    Transform(ref vertices[VertexCount + 1].position, v1, MatrixStack);
-		    Transform(ref vertices[VertexCount + 2].position, v2, MatrixStack);
-
-		    // COL
-		    vertices[VertexCount + 0].color = c0;
-		    vertices[VertexCount + 1].color = c1;
-		    vertices[VertexCount + 2].color = c2;
-
-		    // MULT
-		    vertices[VertexCount + 0].mult = 0;
-		    vertices[VertexCount + 1].mult = 0;
-		    vertices[VertexCount + 2].mult = 0;
-		    vertices[VertexCount + 3].mult = 0;
-
-		    // WASH
-		    vertices[VertexCount + 0].wash = 0;
-		    vertices[VertexCount + 1].wash = 0;
-		    vertices[VertexCount + 2].wash = 0;
-		    vertices[VertexCount + 3].wash = 0;
-
-		    // FILL
-		    vertices[VertexCount + 0].fill = 255;
-		    vertices[VertexCount + 1].fill = 255;
-		    vertices[VertexCount + 2].fill = 255;
-		    vertices[VertexCount + 3].fill = 255;
-
-		    VertexCount += 3;
 		}
 
 		public void Rect(Rect rect, Color color)
@@ -649,173 +464,6 @@ namespace Pile
 		        Vector2(x, y + height),
 		        c0, c1, c2, c3);
 		}
-
-		public void RoundedRect(float x, float y, float width, float height, float radius, Color color)
-		{
-		    RoundedRect(x, y, width, height, radius, radius, radius, radius, color);
-		}
-
-		public void RoundedRect(Rect rect, float radius, Color color)
-		{
-		    RoundedRect(rect.X, rect.Y, rect.Width, rect.Height, radius, radius, radius, radius, color);
-		}
-
-		// TODO: This doesnt work
-		public void RoundedRect(float x, float y, float width, float height, float r0, float r1, float r2, float r3, Color color)
-		{
-		    // clamp
-		    let vr0 = Math.Min(Math.Min(Math.Max(0, r0), width / 2f), height / 2f);
-		    let vr1 = Math.Min(Math.Min(Math.Max(0, r1), width / 2f), height / 2f);
-		    let vr2 = Math.Min(Math.Min(Math.Max(0, r2), width / 2f), height / 2f);
-		    let vr3 = Math.Min(Math.Min(Math.Max(0, r3), width / 2f), height / 2f);
-
-		    if (vr0 <= 0 && vr1 <= 0 && vr2 <= 0 && vr3 <= 0)
-		    {
-		        Rect(x, y, width, height, color);
-		    }
-		    else
-		    {
-		        // get corners
-		        let r0_tl = Vector2(x, y);
-		        let r0_tr = r0_tl + Vector2(vr0, 0);
-		        let r0_br = r0_tl + Vector2(vr0, vr0);
-		        let r0_bl = r0_tl + Vector2(0, vr0);
-
-		        let r1_tl = Vector2(x + width, y) + Vector2(-vr1, 0);
-		        let r1_tr = r1_tl + Vector2(vr1, 0);
-		        let r1_br = r1_tl + Vector2(vr1, vr1);
-		        let r1_bl = r1_tl + Vector2(0, vr1);
-
-		        let r2_tl = Vector2(x + width, y + height) + Vector2(-vr2, -vr2);
-		        let r2_tr = r2_tl + Vector2(vr2, 0);
-		        let r2_bl = r2_tl + Vector2(0, vr2);
-		        let r2_br = r2_tl + Vector2(vr2, vr2);
-
-		        let r3_tl = Vector2(x, y + height) + Vector2(0, -vr3);
-		        let r3_tr = r3_tl + Vector2(vr3, 0);
-		        let r3_bl = r3_tl + Vector2(0, vr3);
-		        let r3_br = r3_tl + Vector2(vr3, vr3);
-
-		        // set tris
-		        {
-					Resize(ref indices, 30);
-
-		            // top quad
-		            {
-		                indices[IndexCount + 00] = (.)VertexCount + 00; // r0b
-		                indices[IndexCount + 01] = (.)VertexCount + 03; // r1a
-		                indices[IndexCount + 02] = (.)VertexCount + 05; // r1d
-
-		                indices[IndexCount + 03] = (.)VertexCount + 00; // r0b
-		                indices[IndexCount + 04] = (.)VertexCount + 05; // r1d
-		                indices[IndexCount + 05] = (.)VertexCount + 01; // r0c
-		            }
-
-		            // left quad
-		            {
-		                indices[IndexCount + 06] = (.)VertexCount + 02; // r0d
-		                indices[IndexCount + 07] = (.)VertexCount + 01; // r0c
-		                indices[IndexCount + 08] = (.)VertexCount + 10; // r3b
-
-		                indices[IndexCount + 09] = (.)VertexCount + 02; // r0d
-		                indices[IndexCount + 10] = (.)VertexCount + 10; // r3b
-		                indices[IndexCount + 11] = (.)VertexCount + 09; // r3a
-		            }
-
-		            // right quad
-		            {
-		                indices[IndexCount + 12] = (.)VertexCount + 05; // r1d
-		                indices[IndexCount + 13] = (.)VertexCount + 04; // r1c
-		                indices[IndexCount + 14] = (.)VertexCount + 07; // r2b
-
-		                indices[IndexCount + 15] = (.)VertexCount + 05; // r1d
-		                indices[IndexCount + 16] = (.)VertexCount + 07; // r2b
-		                indices[IndexCount + 17] = (.)VertexCount + 06; // r2a
-		            }
-
-		            // bottom quad
-		            {
-		                indices[IndexCount + 18] = (.)VertexCount + 10; // r3b
-		                indices[IndexCount + 19] = (.)VertexCount + 06; // r2a
-		                indices[IndexCount + 20] = (.)VertexCount + 08; // r2d
-
-		                indices[IndexCount + 21] = (.)VertexCount + 10; // r3b
-		                indices[IndexCount + 22] = (.)VertexCount + 08; // r2d
-		                indices[IndexCount + 23] = (.)VertexCount + 11; // r3c
-		            }
-
-		            // center quad
-		            {
-		                indices[IndexCount + 24] = (.)VertexCount + 01; // r0c
-		                indices[IndexCount + 25] = (.)VertexCount + 05; // r1d
-		                indices[IndexCount + 26] = (.)VertexCount + 06; // r2a
-
-		                indices[IndexCount + 27] = (.)VertexCount + 01; // r0c
-		                indices[IndexCount + 28] = (.)VertexCount + 06; // r2a
-		                indices[IndexCount + 29] = (.)VertexCount + 10; // r3b
-		            }
-
-		            IndexCount += 30;
-		            currentBatch.elements += 10;
-		            dirty = true;
-		        }
-
-		        // set verts
-		        {
-		            ExpandVertices(VertexCount + 12);
-
-					for (int i = 12; i < VertexCount; i++)
-						vertices[i] = Vertex(.Zero, .Zero, color, 0, 0, 255);
-
-		            Transform(ref vertices[VertexCount + 00].position, r0_tr, MatrixStack); // 0
-		            Transform(ref vertices[VertexCount + 01].position, r0_br, MatrixStack); // 1
-		            Transform(ref vertices[VertexCount + 02].position, r0_bl, MatrixStack); // 2
-
-		            Transform(ref vertices[VertexCount + 03].position, r1_tl, MatrixStack); // 3
-		            Transform(ref vertices[VertexCount + 04].position, r1_br, MatrixStack); // 4
-		            Transform(ref vertices[VertexCount + 05].position, r1_bl, MatrixStack); // 5
-
-		            Transform(ref vertices[VertexCount + 06].position, r2_tl, MatrixStack); // 6
-		            Transform(ref vertices[VertexCount + 07].position, r2_tr, MatrixStack); // 7
-		            Transform(ref vertices[VertexCount + 08].position, r2_bl, MatrixStack); // 8
-
-		            Transform(ref vertices[VertexCount + 09].position, r3_tl, MatrixStack); // 9
-		            Transform(ref vertices[VertexCount + 10].position, r3_tr, MatrixStack); // 10
-		            Transform(ref vertices[VertexCount + 11].position, r3_br, MatrixStack); // 11
-
-		            VertexCount += 12;
-		        }
-
-		        // top-left corner
-		        if (vr0 > 0)
-		            SemiCircle(r0_br, RoundedRectUp, -RoundedRectLeft, vr0, Math.Max(3, (int)(vr0 / 4)), color);
-		        else
-		            Quad(r0_tl, r0_tr, r0_br, r0_bl, color);
-
-		        // top-right corner
-		        if (vr1 > 0)
-		            SemiCircle(r1_bl, RoundedRectUp, RoundedRectRight, vr1, Math.Max(3, (int)(vr1 / 4)), color);
-		        else
-		            Quad(r1_tl, r1_tr, r1_br, r1_bl, color);
-
-		        // bottom-right corner
-		        if (vr2 > 0)
-		            SemiCircle(r2_tl, RoundedRectRight, RoundedRectDown, vr2, Math.Max(3, (int)(vr2 / 4)), color);
-		        else
-		            Quad(r2_tl, r2_tr, r2_br, r2_bl, color);
-
-		        // bottom-left corner
-		        if (vr3 > 0)
-		            SemiCircle(r3_tr, RoundedRectDown, RoundedRectLeft, vr3, Math.Max(3, (int)(vr3 / 4)), color);
-		        else
-		            Quad(r3_tl, r3_tr, r3_br, r3_bl, color);
-		    }
-		}
-
-		static readonly float RoundedRectLeft = Math.Atan2(-1, 0);
-		static readonly float RoundedRectRight = Math.Atan2(1, 0);
-		static readonly float RoundedRectUp = Math.Atan2(0, -1);
-		static readonly float RoundedRectDown = Math.Atan2(0, 1);
 
 		public void SemiCircle(Vector2 center, float startRadians, float endRadians, float radius, int steps, Color color)
 		{
@@ -1046,10 +694,10 @@ namespace Pile
 
 		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
-		    var px0 = -frame.X;
-		    var py0 = -frame.Y;
-		    var px1 = -frame.X + source.Width;
-		    var py1 = -frame.Y + source.Height;
+		    let px0 = -frame.X;
+		    let py0 = -frame.Y;
+		    let px1 = -frame.X + source.Width;
+		    let py1 = -frame.Y + source.Height;
 
 		    var tx0 = 0f;
 		    var ty0 = 0f;
@@ -1184,72 +832,21 @@ namespace Pile
 
 		// UTIL
 
-		void PushTriangle()
+		[Inline]
+		Vector2 Transform(Vector2 position, Matrix3x2 matrix)
 		{
-			Resize(ref indices, IndexCount + 3);
-
-		    indices[IndexCount + 0] = (.)VertexCount + 0;
-		    indices[IndexCount + 1] = (.)VertexCount + 1;
-		    indices[IndexCount + 2] = (.)VertexCount + 2;
-
-		    IndexCount += 3;
-		    currentBatch.elements++;
-		    dirty = true;
+			return .(
+		    	(position.X * matrix.M11) + (position.Y * matrix.M21) + matrix.M31,
+		    	(position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M32);
 		}
 
-		void PushQuad()
-		{
-		    int index = IndexCount;
-		    int vert = VertexCount;
-
-			Resize(ref indices, index + 6);
-
-		    indices[index + 0] = (.)vert + 0;
-		    indices[index + 1] = (.)vert + 1;
-		    indices[index + 2] = (.)vert + 2;
-		    indices[index + 3] = (.)vert + 0;
-		    indices[index + 4] = (.)vert + 2;
-		    indices[index + 5] = (.)vert + 3;
-
-		    IndexCount += 6;
-		    currentBatch.elements += 2;
-		    dirty = true;
-		}
-
-		void ExpandVertices(int index)
-		{
-			Resize(ref vertices, index);
-		}
-
-		void Transform(ref Vector2 to, Vector2 position, Matrix3x2 matrix)
-		{
-		    to.X = (position.X * matrix.M11) + (position.Y * matrix.M21) + matrix.M31;
-		    to.Y = (position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M32;
-		}
-
-		void VerticalFlip(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)
+		[Inline]
+		void FlipUV(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)
 		{
 		    uv0.Y = 1 - uv0.Y;
 		    uv1.Y = 1 - uv1.Y;
 		    uv2.Y = 1 - uv2.Y;
 		    uv3.Y = 1 - uv3.Y;
-		}
-
-		void Resize<T>(ref T[] array, int requiredSize)
-		{
-			// Get required size
-			var currSize = array.Count;
-			while (requiredSize >= currSize) // Reserve more
-				currSize *= 2;
-
-			if (currSize == array.Count)
-				return; // Nothing changed
-
-			// Reallocate
-			let newArray = new T[currSize];
-			Array.Copy(array, newArray, array.Count);
-			delete array;
-			array = newArray;
 		}
 	}
 }
