@@ -39,7 +39,7 @@ namespace Pile
 
 		struct Batch
 		{
-			//public int layer; // TODO: implement, look at currentBatchInsert
+			public int32 layer;
 			public Material material;
 			public BlendMode blendMode;
 			public Matrix3x2 matrix;
@@ -49,7 +49,7 @@ namespace Pile
 			public uint offset;
 			public uint elements;
 
-			public this(uint offset, uint elements, Matrix3x2 matrix, BlendMode blendMode, Texture texture = null, Material material = null)
+			public this(uint offset, uint elements, Matrix3x2 matrix, BlendMode blendMode, int32 layer = 0, Texture texture = null, Material material = null)
 			{
 				this.offset = offset;
 				this.elements = elements;
@@ -57,6 +57,8 @@ namespace Pile
 				this.matrix = matrix;
 				this.blendMode = blendMode;
 				this.scissor = null;
+
+				this.layer = layer;
 
 				this.material = material;
 				this.texture = texture;
@@ -67,6 +69,8 @@ namespace Pile
 
 		readonly String TextureUniformName ~ delete _;
 		readonly String MatrixUniformName ~ delete _;
+
+		Material lastMaterial;
 		int textureUniformIndex;
 		int matrixUniformIndex;
 
@@ -88,8 +92,7 @@ namespace Pile
 			TextureUniformName = new String(textureUniformName);
 			MatrixUniformName = new String(matrixUniformName);
 
-			// todo: should find an optimisation that works the same for all materials! also see renderBatch() below
-			// Optimization for default shader
+			lastMaterial = defaultMaterial;
 			textureUniformIndex = defaultMaterial.IndexOf(TextureUniformName);
 			matrixUniformIndex = defaultMaterial.IndexOf(MatrixUniformName);
 
@@ -162,16 +165,15 @@ namespace Pile
 			// If the user set these on the Material themselves, they will be overwritten here
 
 			pass.material = batch.material ?? DefaultMaterial;
-			if (batch.material == DefaultMaterial)
+			if (pass.material !== lastMaterial)
 			{
-				pass.material[textureUniformIndex].SetTexture(batch.texture);
-				pass.material[matrixUniformIndex].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
+				textureUniformIndex = pass.material.IndexOf(TextureUniformName);
+				matrixUniformIndex = pass.material.IndexOf(MatrixUniformName);
+				lastMaterial = pass.material;
 			}
-			else
-			{
-				pass.material[TextureUniformName].SetTexture(batch.texture);
-				pass.material[MatrixUniformName].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
-			}
+
+			pass.material[textureUniformIndex].SetTexture(batch.texture);
+			pass.material[matrixUniformIndex].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
 
 			pass.meshIndexStart = batch.offset * 3;
 			pass.meshIndexCount = batch.elements * 3;
@@ -195,11 +197,9 @@ namespace Pile
 				// Insert current state to save
 				batches.Insert(currentBatchInsert, currentBatch);
 
-				// Reset state and change material
+				// Reset state and change
 				currentBatch.material = material;
-				currentBatch.offset += currentBatch.elements;
-				currentBatch.elements = 0;
-				currentBatchInsert++;
+				ResetCurrentBatch();
 			}
 		}
 
@@ -214,11 +214,9 @@ namespace Pile
 				// Insert current state to save
 				batches.Insert(currentBatchInsert, currentBatch);
 
-				// Reset state and change material
+				// Reset state and change
 				currentBatch.blendMode = blendMode;
-				currentBatch.offset += currentBatch.elements;
-				currentBatch.elements = 0;
-				currentBatchInsert++;
+				ResetCurrentBatch();
 			}
 		}
 
@@ -233,11 +231,9 @@ namespace Pile
 				// Insert current state to save
 				batches.Insert(currentBatchInsert, currentBatch);
 
-				// Reset state and change material
+				// Reset state and change
 				currentBatch.matrix = matrix;
-				currentBatch.offset += currentBatch.elements;
-				currentBatch.elements = 0;
-				currentBatchInsert++;
+				ResetCurrentBatch();
 			}
 		}
 
@@ -252,11 +248,9 @@ namespace Pile
 				// Insert current state to save
 				batches.Insert(currentBatchInsert, currentBatch);
 
-				// Reset state and change material
+				// Reset state and change
 				currentBatch.scissor = scissor;
-				currentBatch.offset += currentBatch.elements;
-				currentBatch.elements = 0;
-				currentBatchInsert++;
+				ResetCurrentBatch();
 			}
 		}
 
@@ -271,15 +265,48 @@ namespace Pile
 				// Insert current state to save
 				batches.Insert(currentBatchInsert, currentBatch);
 
-				// Reset state and change material
+				// Reset state and change
 				currentBatch.texture = texture;
-				currentBatch.offset += currentBatch.elements;
-				currentBatch.elements = 0;
-				currentBatchInsert++;
+				ResetCurrentBatch();
 			}
 		}
 
-		// public void SetLayer(int32 layer)
+		public void SetLayer(int32 layer)
+		{
+			if (currentBatch.elements == 0)
+			{
+				currentBatch.layer = layer;
+			}
+			else if (currentBatch.layer != layer)
+			{
+				// Insert current state to save
+				batches.Insert(currentBatchInsert, currentBatch);
+
+				// Reset state and change
+				currentBatch.layer = layer;
+				ResetCurrentBatch();
+
+				// Set insert
+				currentBatchInsert = -1;
+				for (let i < batches.Count)
+					if (batches[i].layer > layer)
+					{
+						currentBatchInsert = i;
+						break;
+					}
+
+				if (currentBatchInsert == -1)
+					currentBatchInsert = batches.Count;
+			}
+		}
+
+		[Inline]
+		void ResetCurrentBatch()
+		{
+			currentBatch.offset += currentBatch.elements;
+			currentBatch.elements = 0;
+			currentBatchInsert++;
+		}
 
 		public void SetState(Matrix3x2 matrix, BlendMode blendMode, Rect? scissor, Material material = null)
 		{
