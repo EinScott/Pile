@@ -16,8 +16,8 @@ namespace Pile
 		Mesh mesh = new .() ~ delete _;
 		uint indexCount;
 		uint vertexCount;
-		TVert[] vertices = new TVert[64] ~ delete _;
-		uint32[] indices = new uint32[64] ~ delete _;
+		TVert[] vertices = new TVert[128] ~ delete _;
+		uint32[] indices = new uint32[128] ~ delete _;
 		bool dirty;
 
 		readonly VertexFormat format;
@@ -36,7 +36,6 @@ namespace Pile
 			indices[[Unchecked]ret.newIndex + 1] = count + 1;
 			indices[[Unchecked]ret.newIndex + 2] = count + 2;
 
-			dirty = true;
 			return .(&vertices[[Unchecked]ret.newVert], 3);
 		}
 
@@ -52,7 +51,6 @@ namespace Pile
 			indices[[Unchecked]ret.newIndex + 4] = count + 2;
 			indices[[Unchecked]ret.newIndex + 5] = count + 3;
 
-			dirty = true;
 			return .(&vertices[[Unchecked]ret.newVert], 4);
 		}
 
@@ -84,20 +82,22 @@ namespace Pile
 
 			vertexCount += addVertex;
 			indexCount += addIndex;
+			dirty = true;
 
 			return ret;
 
-			void EnsureCap<T>(ref T[] buffer, uint bufferFill, uint requiredSpace)
+			void EnsureCap<T>(ref T[] buffer, uint bufferFill, uint addCount)
 			{
 				// Get required size
 				var reserved = buffer.Count;
-				while (bufferFill + requiredSpace >= (.)reserved) // Reserve more
+				while (bufferFill + addCount >= (.)reserved) // Reserve more
 					reserved *= 2;
 
 				if (reserved != buffer.Count)
 				{
 					let newBuf = new T[reserved];
-					Internal.MemCpy(newBuf.Ptr, buffer.Ptr, (.)bufferFill);
+					// If i do Internal.MemCpy here, we have some tearing in the buffer when reallocating... hm
+					Array.Copy(buffer, newBuf, (.)bufferFill);
 					delete buffer;
 					buffer = newBuf;
 				}
