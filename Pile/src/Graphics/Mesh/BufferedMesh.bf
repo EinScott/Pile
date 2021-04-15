@@ -96,8 +96,7 @@ namespace Pile
 				if (reserved != buffer.Count)
 				{
 					let newBuf = new T[reserved];
-					// If i do Internal.MemCpy here, we have some tearing in the buffer when reallocating... hm
-					Array.Copy(buffer, newBuf, (.)bufferFill);
+					Internal.MemCpy(newBuf.Ptr, buffer.Ptr, (.)bufferFill * sizeof(T));
 					delete buffer;
 					buffer = newBuf;
 				}
