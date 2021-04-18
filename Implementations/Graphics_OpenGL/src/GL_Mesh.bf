@@ -130,7 +130,7 @@ namespace Pile
 				GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 			}
 
-			bool TrySetupAttributePointer(ShaderAttribute attribute, VertexFormat format, uint32 divisor)
+			bool TrySetupAttributePointer(ShaderAttrib attribute, VertexFormat format, uint32 divisor)
 			{
 				if (format.TryGetAttribute(attribute.Name, let vertexAttr, var offset))
 				{

@@ -2,7 +2,7 @@ using System;
 
 namespace Pile
 {
-	enum UniformType
+	enum UniformType : uint8
 	{
 		case Unknown;
 		case Int;
@@ -15,9 +15,9 @@ namespace Pile
 		case Sampler;
 
 		[Inline]
-		public int Elements =>
+		public uint32 Elements =>
 			{
-				int count = 1;
+				uint32 count = 1;
 				switch (this)
 				{
 				case .Float2:

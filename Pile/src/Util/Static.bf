@@ -55,5 +55,22 @@ namespace Pile
 				delete container;
 			}
 		}
+
+		public static mixin DeleteContainerAndDisposeItems(var container)
+		{
+			if (container != null)
+			{
+				for (var value in container)
+					value.Dispose();
+				delete container;
+			}
+		}
+
+		public static mixin ClearAndDisposeItems(var container)
+		{
+			for (var value in container)
+				value.Dispose();
+			container.Clear();
+		}
 	}
 }

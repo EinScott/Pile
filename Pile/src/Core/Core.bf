@@ -36,7 +36,6 @@ namespace Pile
 			Debug.Assert(!run, "Core was already run");
 			Debug.Assert(config.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
 			Debug.Assert(config.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
-			Runtime.Assert(EntryPoint.CommandLine != null, "Set Pile.EntryPoint as your project entry point location");
 
 			run = true;
 

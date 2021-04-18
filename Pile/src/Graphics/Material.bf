@@ -215,33 +215,67 @@ namespace Pile
 				// Assure valid access
 				if (Uniform.Type != expected)
 					Runtime.FatalError(scope $"Material Parameter {Uniform.Name} was expected to be of UniformType {expected} instead of {Uniform.Type}");
-				if (index < 0 || index >= Uniform.Length)
+				if (index < 0 || (uint)index >= Uniform.Length)
 					Runtime.FatalError(scope $"The Size of Material Parameter {Uniform.Name} is {Uniform.Length}, but was trying to access index {index}");
 			}
 		}
 
-		public readonly Shader Shader;
-
+		[Inline]
+		public Shader Shader => shader;
+		[Inline]
 		public int ParameterCount => parameters.Count;
-		readonly Parameter[] parameters;
+
+		// If this is null at some point, that means that the shader was already deleted. It will null itself on dependant materials
+		internal Shader shader;
+		Parameter[] parameters;
 
 		public this(Shader shader)
 		{
-			// todo: change this for shader recompiling
-			// shader will need to notify this about changes!
+			this.shader = shader;
+			shader.materialDependants.Add(this);
 
-			Shader = shader;
-
-			parameters = new Parameter[shader.Uniforms.Count];
-			for (int i = 0; i < shader.Uniforms.Count; i++)
-				parameters[i] = Parameter(shader.Uniforms[i]);
+			parameters = new Parameter[Shader.Uniforms.Count];
+			for (int i = 0; i < Shader.Uniforms.Count; i++)
+				parameters[i] = Parameter(Shader.Uniforms[i]);
 		}
 
 		public ~this()
 		{
+			if (shader != null)
+				shader.materialDependants.Remove(this);
+
 			for (let param in ref parameters)
 				param.Dispose();
 			delete parameters;
+		}
+
+		internal void OnShaderReset()
+		{
+			// Check if the uniforms have changed & patch
+			let newParams = scope List<Parameter>();
+			let current = scope List<Parameter>(parameters.GetEnumerator());
+
+			for (let s in Shader.Uniforms)
+			{
+				int alreadyExists = -1;
+				for (let i < current.Count)
+					if (current[i].Uniform === s && current[i].Uniform.Name == s.Name)
+						alreadyExists = i;
+
+				if (alreadyExists != -1)
+				{
+					newParams.Add(current[alreadyExists]);
+					current.RemoveAtFast(alreadyExists);
+				}
+				else newParams.Add(Parameter(s));
+			}
+
+			for (let p in current)
+				p.Dispose();
+			delete parameters;
+
+			parameters = new Parameter[newParams.Count];
+			newParams.CopyTo(parameters);
 		}
 
 		public int IndexOf(StringView name)

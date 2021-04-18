@@ -10,41 +10,46 @@ namespace Pile
 	{
 		uint32 programID;
 
+		public ~this()
+		{
+			if (programID != 0)
+			{
+				Graphics.programsToDelete.Add(programID);
+			}
+		}
+
 		protected override void Initialize() {}
 
-		protected override void Set(ShaderData source)
+		protected override Result<void> Set(ShaderData source)
 		{
 			Debug.Assert(source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
 
-			if (programID != 0)
-				Graphics.programsToDelete.Add(programID);
-
-			programID = (uint32)GL.glCreateProgram();
+			let newProg = (uint32)GL.glCreateProgram();
 
 			// Prepare shaders
-			let shaders = scope uint[2];
-			shaders[0] = PrepareShader(source.vertexSource, GL.GL_VERTEX_SHADER);
-			shaders[1] = PrepareShader(source.fragmentSource, GL.GL_FRAGMENT_SHADER);
-			shaders[1] = source.geometrySource == String.Empty ? 0 : PrepareShader(source.geometrySource, GL.GL_GEOMETRY_SHADER);
+			let shaders = scope uint[3];
+			shaders[0] = PrepareShader!(source.vertexSource, GL.GL_VERTEX_SHADER);
+			shaders[1] = PrepareShader!(source.fragmentSource, GL.GL_FRAGMENT_SHADER);
+			shaders[2] = source.geometrySource == String.Empty ? 0 : PrepareShader!(source.geometrySource, GL.GL_GEOMETRY_SHADER);
 
-			GL.glLinkProgram(programID);
+			GL.glLinkProgram(newProg);
 
 			// Error
 			{
 				int32 linked = GL.GL_FALSE;
-				GL.glGetProgramiv(programID, GL.GL_LINK_STATUS, &linked);
+				GL.glGetProgramiv(newProg, GL.GL_LINK_STATUS, &linked);
 
 				if (linked == GL.GL_FALSE)
 				{
 					int32 len = 0;
-					GL.glGetProgramiv(programID, GL.GL_INFO_LOG_LENGTH, &len);
+					GL.glGetProgramiv(newProg, GL.GL_INFO_LOG_LENGTH, &len);
 
 					if (len > 0)
 					{
 						var s = scope char8[len];
 
-						GL.glGetProgramInfoLog(programID, len, &len, s.Ptr);
-						Runtime.FatalError(scope $"Error linking shader program: {StringView(s.Ptr, len)}");
+						GL.glGetProgramInfoLog(newProg, len, &len, s.Ptr);
+						LogErrorReturn!(scope $"Error linking shader program: {StringView(s.Ptr, len)}");
 					}
 				}
 			}
@@ -54,79 +59,19 @@ namespace Pile
 			{
 				if (shaders[i] != 0)
 				{
-					GL.glDetachShader(programID, shaders[i]);
+					GL.glDetachShader(newProg, shaders[i]);
 					GL.glDeleteShader(shaders[i]);
 				}
 			}
 
-			// Get program parameters
-			{
-				// Get attributes
-				int32 count = 0;
-				var cBuf = scope char8[256];
-				let string = scope String();
-				int32 actualLength = 0;
-				GL.glGetProgramiv(programID, GL.GL_ACTIVE_ATTRIBUTES, &count);
-				for	(int i = 0; i < count; i++)
-				{
-					uint32 trash2 = 0; // We dont care about these
-					int32 trash1 = 0;
-					GL.glGetActiveAttrib(programID, (uint)i, 256, &actualLength, &trash1, &trash2, cBuf.Ptr);
-					string.Append(cBuf.Ptr, actualLength);
+			// Apply
+			if (programID != 0)
+				Graphics.programsToDelete.Add(programID);
+			programID = newProg;
 
-					int location = GL.glGetAttribLocation(programID, string.CStr());
-					if (location >= 0)
-						attributes.Add(new ShaderAttribute(string, (uint)location));
+			return .Ok;
 
-					string.Clear();
-
-					// Clear buf
-					for (int j = 0; j < cBuf.Count; j++)
-						cBuf[j] = 0;
-				}
-
-				// Get uniforms
-				GL.glGetProgramiv(programID, GL.GL_ACTIVE_UNIFORMS, &count);
-				for (int i = 0; i < count; i++)
-				{
-					int32 length = 0;
-					uint32 type = 0;
-					GL.glGetActiveUniform(programID, (uint)i, 256, &actualLength, &length, &type, cBuf.Ptr);
-					string.Append(cBuf.Ptr, actualLength);
-
-					int location = GL.glGetUniformLocation(programID, string.CStr());
-					if (location >= 0)
-					{
-						if (length > 1 && string.EndsWith("[0]"))
-							string.RemoveFromEnd(3);
-						uniforms.Add(new ShaderUniform(string, location, length, GlTypeToEnum(type)));
-					}
-
-					string.Clear();
-
-					// Clear buf
-					for (int j = 0; j < cBuf.Count; j++)
-						cBuf[j] = 0;
-				}
-			}
-
-			UniformType GlTypeToEnum(uint type)
-			{
-				switch (type)
-				{
-				case GL.GL_INT: return .Int;
-				case GL.GL_FLOAT: return .Float;
-				case GL.GL_FLOAT_VEC2: return .Float2;
-				case GL.GL_FLOAT_VEC3: return .Float3;
-				case GL.GL_FLOAT_VEC4: return .Float4;
-				case GL.GL_FLOAT_MAT3x2: return .Matrix3x2;
-				case GL.GL_FLOAT_MAT4: return .Matrix4x4;
-				case GL.GL_SAMPLER_2D: return .Sampler;
-				default: return .Unknown;
-				}
-			}
-
-			uint PrepareShader(String source, uint glShaderType)
+			mixin PrepareShader(String source, uint glShaderType)
 			{
 				uint id = GL.glCreateShader(glShaderType);
 
@@ -149,13 +94,13 @@ namespace Pile
 
 						GL.glGetShaderInfoLog(id, len, &len, s.Ptr);
 
-						Runtime.FatalError(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(s.Ptr, len)));
+						LogErrorReturn!(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(s.Ptr, len)));
 					}
 				}
 
-				GL.glAttachShader(programID, id);
+				GL.glAttachShader(newProg, id);
 
-				return id;
+				id
 			}
 
 			StringView GetShaderTypeName(uint glShaderType)
@@ -170,11 +115,86 @@ namespace Pile
 			}
 		}
 
-		public ~this()
+		protected override void ReflectCounts(out uint attributeCount, out uint uniformCount)
 		{
-			if (programID != 0)
+			Debug.Assert(programID != 0, "No shader program");
+
+			attributeCount = Probe(GL.GL_ACTIVE_ATTRIBUTES);
+			uniformCount = Probe(GL.GL_ACTIVE_UNIFORMS);
+
+			uint Probe(uint glParam)
 			{
-				Graphics.programsToDelete.Add(programID);
+				int32 count = 0;
+				GL.glGetProgramiv(programID, glParam, &count);
+				return (.)count;
+			}
+		}
+
+		protected override Result<void> ReflectAttrib(uint index, String nameBuffer, out uint32 location, out uint32 length)
+		{
+			// Get attribute
+			var cBuf = scope char8[256];
+			uint32 outType = ?;
+			int32 outLen = ?;
+			int32 outNameLen = ?;
+			GL.glGetActiveAttrib(programID, index, 256, &outNameLen, &outLen, &outType, cBuf.Ptr);
+			let outLoc = GL.glGetAttribLocation(programID, cBuf.Ptr);
+
+			if (outLoc >= 0)
+			{
+				nameBuffer.Append(cBuf.Ptr, outNameLen);
+				location = (.)outLoc;
+				length = (.)outLen;
+				return .Ok;
+			}
+
+			location = 0;
+			length = 0;
+			return .Err;
+		}
+
+		protected override Result<void> ReflectUniform(uint index, String nameBuffer, out uint32 location, out uint32 length, out UniformType type)
+		{
+			// Get uniform
+			var cBuf = scope char8[256];
+			uint32 outType = ?;
+			int32 outLen = ?;
+			int32 outNameLen = ?;
+			GL.glGetActiveUniform(programID, index, 256, &outNameLen, &outLen, &outType, cBuf.Ptr);
+			let outLoc = GL.glGetUniformLocation(programID, cBuf.Ptr);
+
+			if (outLoc >= 0)
+			{
+				nameBuffer.Append(cBuf.Ptr, outNameLen);
+				if (outLen > 1 && nameBuffer.EndsWith("[0]"))
+					nameBuffer.RemoveFromEnd(3);
+
+				location = (.)outLoc;
+				length = (.)outLen;
+				type = GlTypeToEnum(outType);
+				return .Ok;
+			}
+
+			location = 0;
+			length = 0;
+			type = .Unknown;
+			return .Err;
+		}
+
+		[Inline]
+		UniformType GlTypeToEnum(uint type)
+		{
+			switch (type)
+			{
+			case GL.GL_INT: return .Int;
+			case GL.GL_FLOAT: return .Float;
+			case GL.GL_FLOAT_VEC2: return .Float2;
+			case GL.GL_FLOAT_VEC3: return .Float3;
+			case GL.GL_FLOAT_VEC4: return .Float4;
+			case GL.GL_FLOAT_MAT3x2: return .Matrix3x2;
+			case GL.GL_FLOAT_MAT4: return .Matrix4x4;
+			case GL.GL_SAMPLER_2D: return .Sampler;
+			default: return .Unknown;
 			}
 		}
 
