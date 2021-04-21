@@ -2,11 +2,12 @@ using System;
 
 namespace Pile
 {
-	class Asset<T> where T : class
+	class Asset<T> where T : class, delete
 	{
 		readonly String name ~ delete _;
 		T asset;
 
+		[Inline]
 		public T Asset => asset;
 
 		public this(StringView assetName)
@@ -47,6 +48,7 @@ namespace Pile
 			}
 		}
 
+		[Inline]
 		public static implicit operator T(Asset<T> assetHandler) => assetHandler.asset;
 	}
 }

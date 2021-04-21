@@ -56,7 +56,8 @@ namespace Pile
 		public bool powerOfTwo = false;
 		public bool combineDuplicates = false;
 
-		public int SourceImageCount => sources.Count;
+		[Inline]
+		public uint SourceImageCount => (.)sources.Count;
 
 		readonly List<Source> sources = new List<Source>() ~ DeleteContainerAndItems!(_);
 		readonly Dictionary<int32, Source> duplicateLookup = new Dictionary<int32, Source>() ~ delete _;

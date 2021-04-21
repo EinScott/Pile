@@ -25,25 +25,25 @@ namespace Pile
 		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
 		static String packagesPath = new String() ~ delete _;
 
-		public static int TextureCount => packer.SourceImageCount;
-		public static int AssetCount
+		public static uint TextureCount => packer.SourceImageCount;
+		public static uint AssetCount
 		{
 			get
 			{
-				int c = 0;
+				uint c = 0;
 				for (let typeDict in assets.Values)
-					c += typeDict.Count;
+					c += (.)typeDict.Count;
 
 				return c;
 			}
 		}
-		public static int DynamicAssetCount
+		public static uint DynamicAssetCount
 		{
 			get
 			{
-				int c = 0;
+				uint c = 0;
 				for (let nameList in dynamicAssets.Values)
-					c += nameList.Count;
+					c += (.)nameList.Count;
 
 				return c;
 			}
@@ -95,7 +95,7 @@ namespace Pile
 		}
 #endif		
 
-		public static bool Has<T>(String name) where T : class
+		public static bool Has<T>(String name) where T : class, delete
 		{
 			let type = typeof(T);
 
@@ -108,7 +108,7 @@ namespace Pile
 			return true;
 		}
 
-		public static bool Has<T>() where T : class
+		public static bool Has<T>() where T : class, delete
 		{
 			let type = typeof(T);
 
@@ -120,7 +120,7 @@ namespace Pile
 
 		public static bool Has(Type type, String name)
 		{
-			if (!type.IsObject || !type.HasDestructor)
+			if (!type.IsObject || !type.HasDestructor || type.IsBoxed)
 				return false;
 
 			if (!assets.ContainsKey(type))
@@ -134,7 +134,7 @@ namespace Pile
 
 		public static bool Has(Type type)
 		{
-			if (!type.IsObject || !type.HasDestructor)
+			if (!type.IsObject || !type.HasDestructor || type.IsBoxed)
 				return false;
 
 			if (!assets.ContainsKey(type))
@@ -143,7 +143,7 @@ namespace Pile
 			return true;
 		}
 
-		public static T Get<T>(String name) where T : class
+		public static T Get<T>(String name) where T : class, delete
  		{
 			 if (!Has<T>(name))
 				 return null;
@@ -159,7 +159,7 @@ namespace Pile
 			return assets.GetValue(type).Get().GetValue(name).Get();
 		}
 
-		public static AssetEnumerator<T> Get<T>() where T : class
+		public static AssetEnumerator<T> Get<T>() where T : class, delete
 		{
 			if (!Has<T>())
 				return AssetEnumerator<T>(null);
@@ -390,10 +390,12 @@ namespace Pile
 
 			// Remove asset if dynamics assets contained one with the name
 			if (dynamicAssets.GetValue(typeof(Subtexture)).Get().Remove(name))
+			{
 				RemoveTextureAsset(name);
 
-			if (packAndUpdateTextures)
-				PackAndUpdateTextures();
+				if (packAndUpdateTextures)
+					PackAndUpdateTextures();
+			}
 		}
 
 		//=== INTERNAL MANAGEMENT
@@ -412,7 +414,7 @@ namespace Pile
 				LogErrorReturn!(scope $"Couldn't submit asset {name}: An object of this type ({type}) is already registered under this name");
 			}
 
-			if (!type.HasDestructor)
+			if (!type.HasDestructor || type.IsBoxed)
 				LogErrorReturn!(scope $"Couldn't add asset {nameString} of type {object.GetType()}, because only classes can be treated as assets");
 
 			if (!object.GetType().IsSubtypeOf(type))

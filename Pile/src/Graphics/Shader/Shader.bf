@@ -6,7 +6,7 @@ using internal Pile;
 
 namespace Pile
 {
-	class Shader
+	class Shader : IPersistentAsset<ShaderData>
 	{
 		readonly List<ShaderAttrib> attributes = new List<ShaderAttrib>() ~ DeleteContainerAndItems!(_);
 		readonly List<ShaderUniform> uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);
@@ -22,22 +22,22 @@ namespace Pile
 		public readonly ReadOnlyList<ShaderAttrib> Attributes;
 		public readonly ReadOnlyList<ShaderUniform> Uniforms;
 
-		public this(ShaderData source)
+		public this(ShaderData data)
 		{
 			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
 			Initialize();
 
-			Set(source);
+			Set(data);
 			ReflectShader();
 
 			Attributes = ReadOnlyList<ShaderAttrib>(attributes);
 			Uniforms = ReadOnlyList<ShaderUniform>(uniforms);
 		}
 
-		public Result<void> Reset(ShaderData source)
+		public Result<void> Reset(ShaderData data)
 		{
-			Try!(Set(source));
+			Try!(Set(data));
 			ReflectShader();
 
 			for (let m in materialDependants)
@@ -107,7 +107,7 @@ namespace Pile
 		protected extern void Initialize();
 
 		/// On .Err, the Shader should still function like before ideally
-		protected extern Result<void> Set(ShaderData source);
+		protected extern Result<void> Set(ShaderData data);
 
 		protected extern void ReflectCounts(out uint attributeCount, out uint uniformCount);
 		protected extern Result<void> ReflectAttrib(uint index, String nameBuffer, out uint32 location, out uint32 length);
