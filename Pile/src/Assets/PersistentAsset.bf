@@ -2,6 +2,9 @@ using System;
 
 namespace Pile
 {
+	/// For assets such as shaders and audoClips, where their content is set from intermediate data
+	/// which can be disposed of afterwards. TReset is only guaranteed to exist for the Reset() call.
+	/// If you need the asset to exist permanently, just use Asset<T> directly with your asset.
 	class PersistentAsset<T, TReset> where T : IPersistentAsset<TReset>, class, delete where TReset : class, delete
 	{
 		readonly String resetName ~ delete _;
@@ -43,6 +46,8 @@ namespace Pile
 			{
 				reset = Assets.Get<TReset>(resetName); // Get it
 			}
+
+			asset.Reset(reset);
 		}
 
 		void PackageUnloaded(Package package)
