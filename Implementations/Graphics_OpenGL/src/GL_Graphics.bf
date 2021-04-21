@@ -58,16 +58,13 @@ namespace Pile
 
 			glDepthMask(GL_TRUE);
 			
-#if DEBUG
-			glEnable(GL_DEBUG_OUTPUT);
-			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-
 			if (glDebugMessageCallback != null)
 			{
+				glEnable(GL_DEBUG_OUTPUT);
+				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 				glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, null, GL_FALSE);
-				glDebugMessageCallback(=> DebugCallback, null); // This may be not be available depending on the version
+				glDebugMessageCallback(=> DebugCallback, null);
 			}
-#endif
 
 			info.AppendF("device: {}, vendor: {}", StringView(glGetString(GL_RENDERER)), StringView(glGetString(GL_VENDOR)));
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
