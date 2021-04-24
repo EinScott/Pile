@@ -25,6 +25,7 @@ namespace Pile
 		public this(ShaderData data)
 		{
 			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
+			Debug.Assert(data != null, "ShaderData cannot be null");
 
 			Initialize();
 
@@ -37,6 +38,8 @@ namespace Pile
 
 		public Result<void> Reset(ShaderData data)
 		{
+			Debug.Assert(data != null, "ShaderData cannot be null");
+
 			Try!(Set(data));
 			ReflectShader();
 

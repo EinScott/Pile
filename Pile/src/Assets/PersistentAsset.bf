@@ -45,9 +45,10 @@ namespace Pile
 			if (package.OwnsAsset(typeof(TReset), resetName) || (typeof(TReset) == typeof(Subtexture) && package.OwnsTextureAsset(resetName)))
 			{
 				reset = Assets.Get<TReset>(resetName); // Get it
-			}
 
-			asset.Reset(reset);
+				if (asset.Reset(reset) case .Err)
+					Log.Warn(scope $"Reset on persistent asset of {resetName} failed");
+			}
 		}
 
 		void PackageUnloaded(Package package)
