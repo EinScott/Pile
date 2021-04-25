@@ -58,7 +58,7 @@ namespace Pile
 
 				// Just a prettier error for debug builds, add won't allow duplicates anyway
 				Debug.Assert(!importers.ContainsKey(i.Name), scope $"Importer with name {i.Name} already exists");
-				
+
 				importers.Add(i.Name, i);
 			}
 		}

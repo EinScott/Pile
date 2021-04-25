@@ -719,7 +719,9 @@ namespace Pile
 							if (ress case .Err)
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
 							uint8[] buildData = ress.Get();
-							if (buildData.Count <= 0)
+							if (buildData == null)
+								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Data returned is null");
+							else if (buildData.Count <= 0)
 							{
 								delete buildData;
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath} with {import.importer}: Length of returned data cannot be 0");

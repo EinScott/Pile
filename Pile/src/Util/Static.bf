@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 using internal Pile;
 
@@ -25,6 +26,10 @@ namespace Pile
 		public static mixin LogErrorReturn(String errMsg)
 		{
 			Log.Error(errMsg);
+#if DEBUG
+			// Give the IDE debug out thread time to send the message
+			Thread.Sleep(1);
+#endif
 			return .Err(default);
 		}
 

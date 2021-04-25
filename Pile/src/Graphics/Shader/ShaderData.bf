@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace Pile
 {
@@ -8,11 +9,15 @@ namespace Pile
 		public String fragmentSource = new .() ~ delete _;
 		public String geometrySource = new .() ~ delete _;
 
-		public this(StringView vertexShader, StringView fragmentShader, StringView geometryShader = String.Empty)
+		public this(StringView vertexShader, StringView fragmentShader, StringView geometryShader = .())
 		{
+			Debug.Assert(vertexShader.Ptr != null && fragmentShader.Ptr != null);
+
 			vertexSource.Set(vertexShader);
 			fragmentSource.Set(fragmentShader);
-			geometrySource.Set(geometryShader);
+
+			if (geometryShader.Ptr != null)
+				geometrySource.Set(geometryShader);
 		}
 	}
 }

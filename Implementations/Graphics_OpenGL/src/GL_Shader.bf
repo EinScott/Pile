@@ -94,7 +94,7 @@ namespace Pile
 
 						GL.glGetShaderInfoLog(id, len, &len, s.Ptr);
 
-						LogErrorReturn!(scope String()..AppendF("Error compiling {} shader: {}", GetShaderTypeName(glShaderType), StringView(s.Ptr, len)));
+						LogErrorReturn!(scope $"Error compiling {GetShaderTypeName(glShaderType)} shader: {StringView(s.Ptr, len)}");
 					}
 				}
 
