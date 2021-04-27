@@ -176,12 +176,32 @@ namespace Pile
 				}
 
 #if DEBUG
-				debugWriteMonitor.Enter();
-				if (debugNeedsWrite < 8)
-					debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
-				else debugWriteBuffer[7].Set(fullMessage); // rest in peace previous message...
-				debugWriteMonitor.Exit();
+				using (debugWriteMonitor.Enter())
+				{
+					if (debugNeedsWrite < 8)
+						debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
+					else debugWriteBuffer[7].Set(fullMessage); // rest in peace previous message...
+				}
 #endif
+			}
+		}
+
+		[DebugOnly]
+		static void FlushDebugWrite()
+		{
+			DoDebugWriteBuffer();
+		}
+
+		[DebugOnly,Inline]
+		static void DoDebugWriteBuffer()
+		{
+			using (debugWriteMonitor.Enter())
+			{
+				for (uint8 i < debugNeedsWrite)
+				{
+					Debug.WriteLine(debugWriteBuffer[i]);
+				}
+				debugNeedsWrite = 0;
 			}
 		}
 
@@ -213,14 +233,7 @@ namespace Pile
 						return;
 				}
 
-				using (debugWriteMonitor.Enter())
-				{
-					for (uint8 i < debugNeedsWrite)
-					{
-						Debug.WriteLine(debugWriteBuffer[i]);
-					}
-					debugNeedsWrite = 0;
-				}
+				DoDebugWriteBuffer();
 			}
 		}
 #endif
