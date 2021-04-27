@@ -187,15 +187,22 @@ namespace Pile
 					Audio.AfterUpdate();
 				}
 
+				// Render
+				if (!exiting && !System.window.Closed)
 				{
+					{
 #if PILE_CORE_PERFTRACK
-					PerfTrack!("Pile.Core.DoCoreLoop:Render");
+						PerfTrack!("Pile.Core.DoCoreLoop:Render");
 #endif
 
-					// Render
-					if (!exiting && !System.window.Closed)
-					{
 						System.window.Render(); // Calls WindowRender()
+					}
+
+					{
+#if PILE_CORE_PERFTRACK
+						PerfTrack!("Pile.Core.DoCoreLoop:Preset");
+#endif
+
 						System.window.Present();
 					}
 				}
