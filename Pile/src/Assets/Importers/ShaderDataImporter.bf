@@ -33,6 +33,7 @@ namespace Pile
 		}
 
 		public String Name => "shader";
+		public bool RebuildOnAdditionalChanged => true;
 
 		public Result<void> Load(StringView name, Span<uint8> data)
 		{
@@ -58,14 +59,18 @@ namespace Pile
 				LogErrorReturn!("At least VertexPath and FragmentPath need to be declared in json structure");
 
 			// Load the actual files
-			let currDir = Path.GetDirectoryPath(dataFilePath, .. scope .());
+			let currDir = scope String();
+			Try!(Path.GetDirectoryPath(dataFilePath, currDir));
 
-			let vSource = File.ReadAllText(Path.GetAbsolutePath(f.vertexPath, currDir, .. scope .()), .. scope .(), true);
-			let fSource = File.ReadAllText(Path.GetAbsolutePath(f.fragmentPath, currDir, .. scope .()), .. scope .(), true);
+			let vSource = scope String();
+			Try!(File.ReadAllText(Path.GetAbsolutePath(f.vertexPath, currDir, .. scope .()), vSource, true));
+			let fSource = scope String();
+			Try!(File.ReadAllText(Path.GetAbsolutePath(f.fragmentPath, currDir, .. scope .()), fSource, true));
 			String gSource = null;
 			if (f.geometryPath != null)
 			{
-				gSource = File.ReadAllText(Path.GetAbsolutePath(f.geometryPath, currDir, .. scope .()), .. scope .(), true);
+				gSource = scope String();
+				Try!(File.ReadAllText(Path.GetAbsolutePath(f.geometryPath, currDir, .. scope .()), gSource, true));
 			}
 
 			// todo: this could be nicer; rewrite when redoing packagefiles and passing streams to here

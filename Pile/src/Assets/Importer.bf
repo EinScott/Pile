@@ -11,6 +11,13 @@ namespace Pile
 	{
 		public String Name { get; }
 
+		/// Useful for when this relies on other files included "additional"
+		/// -> they will cause reloads, but if this is false, this importer won't
+		/// be notified since the actual file it imports hasn't been changed.
+		/// On true, Build will always be called again when an additional file has
+		/// changed for all imports of this importer.
+		public bool RebuildOnAdditionalChanged => false;
+
 		public Result<void> Load(StringView name, Span<uint8> data);
 		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath);
 	}
@@ -21,6 +28,8 @@ namespace Pile
 	[AlwaysInclude, StaticInitPriority(-1)]
 	static class Importers
 	{
+		public const String None = "none";
+
 		internal static Dictionary<String, Importer> importers = new .() ~ DeleteDictionaryAndValues!(_);
 		internal static Package currentPackage;
 

@@ -21,6 +21,7 @@ namespace Pile
 		internal class PackageData
 		{
 			public bool use_path_names;
+			public List<String> additionals ~ if (_ != null) DeleteContainerAndItems!(_);
 			public List<ImportData> imports ~ DeleteContainerAndItems!(_);
 
 			[Serializable]
@@ -438,6 +439,9 @@ namespace Pile
 			if (JsonConvert.Deserialize(packageData, jsonFile) case .Err)
 				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error reading json");
 
+			if (packageData.imports == null)
+				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. \"imports\" array has to be specified in root object");
+
 			for (let imp in packageData.imports)
 			{
 				if (imp.path == null || imp.importer == null)
@@ -456,6 +460,79 @@ namespace Pile
 				s.Append(Path.Unify(.. Path.GetRelativePath(filePath, assetsFolderPath, .. scope .())));
 			else Path.GetFileNameWithoutExtension(filePath, s);
 			s
+		}
+
+		static Result<void> GetFilesFromPathsRec(StringView rootPath, StringView cPackageBuildFilePath, StringView paths, delegate void(FileFindEntry e, StringView path) onFile)
+		{
+			for (var path in paths.Split(';'))
+			{
+				path.Trim();
+
+				if (Path.IsPathRooted(path))
+					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a relative and direct path to items contained inside the asset folder");
+
+				let fullPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), rootPath, path));
+
+				if (fullPath.Contains("../") || fullPath.EndsWith("/..") || fullPath == "..")
+					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
+
+				// Check if containing folder exists
+				let dirPath = scope String();
+				if ((Path.GetDirectoryPath(fullPath, dirPath) case .Err) || !Directory.Exists(dirPath))
+					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Failed to find containing directory of {path}");
+
+				// Import everything that matches
+				SEARCH:
+				{
+					let wildCard = Path.GetFileName(fullPath, .. scope String());
+
+					let importDirs = scope List<String>(8);
+					importDirs.Add(scope:SEARCH String(dirPath));
+
+					String currImportPath;
+					let enumeratePath = scope String(128);
+					let searchPath = scope String(128);
+					let wildCardPath = scope String(128);
+					repeat // For each entry in import dirs
+					{
+						let current = importDirs.Count - 1;
+						currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
+
+						searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
+						wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
+
+						bool match = false;
+						for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
+						{
+							enumeratePath.Clear();
+							entry.GetFilePath(enumeratePath);
+
+							if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
+							{
+								match = true;
+
+								// Add matching files in this directory to import list
+								if (!entry.IsDirectory)
+								{
+									onFile(entry, enumeratePath);
+								}
+								// Look for matching sub dirs and add to importDirs list
+								else
+									importDirs.Add(scope:SEARCH String(enumeratePath));
+							}
+						}
+
+						if (!match)
+							Log.Warn(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
+
+						// Tidy up
+						importDirs.RemoveAtFast(current);
+					}
+					while (importDirs.Count > 0);
+				}
+			}
+
+			return .Ok;
 		}
 
 		/// If force is false, the package will only be built if there is no file at outPath or the package source changed and patched otherwise
@@ -559,8 +636,28 @@ namespace Pile
 				// Build hash from all names
 				SHA256 hashBuilder = .();
 
+				// Check additional files
+				bool additionalChanged = false; // If we are doing a full build, this will not matter (only forces imports on change, but we do that anyway here)
+				if (packageData.additionals != null)
+				{
+					for (let incl in packageData.additionals)
+					{
+						Try!(GetFilesFromPathsRec(rootPath, cPackageBuildFilePath, incl, scope [&](entry, path) =>
+							{
+								// Hash name always
+								let s = scope String();
+								Path.GetFileNameWithoutExtension(path, s);
+								hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
+
+								// If we are patching and an additional file has changed, some importers
+								// may want to rebuild in response
+								if (patchBuild && entry.GetLastWriteTimeUtc() > lastPackageBuildDate)
+									additionalChanged = true;
+							}));
+					}
+				}
+
 				for (let import in packageData.imports)
-				IMPORT:
 				{
 					Importer importer;
 
@@ -577,82 +674,20 @@ namespace Pile
 					}
 
 					// Interpret path string (put all final paths in importPaths)
-					for (var path in import.path.Split(';'))
-					{
-						path.Trim();
-
-						if (Path.IsPathRooted(path))
-							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a relative and direct path to items contained inside the asset folder");
-
-						let fullPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), rootPath, path));
-
-						if (fullPath.Contains("../") || fullPath.EndsWith("/..") || fullPath == "..")
-							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
-
-						// Check if containing folder exists
-						let dirPath = scope String();
-						if ((Path.GetDirectoryPath(fullPath, dirPath) case .Err) || !Directory.Exists(dirPath))
-							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Failed to find containing directory of {path}");
-
-						// Import everything that matches
-						SEARCH:
+					Try!(GetFilesFromPathsRec(rootPath, cPackageBuildFilePath, import.path, scope [&](entry, path) =>
 						{
-							let wildCard = Path.GetFileName(fullPath, .. scope String());
+							// Hash name
+							let s = GetScopedAssetName!(path, assetsFolderPath, packageData, import);
+							hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
 
-							let importDirs = scope List<String>(8);
-							importDirs.Add(scope:SEARCH String(dirPath));
+							let includeFilePath = new String(path);
+							includePaths.Add(includeFilePath);
 
-							String currImportPath;
-							let enumeratePath = scope String(128);
-							let searchPath = scope String(128);
-							let wildCardPath = scope String(128);
-							repeat // For each entry in import dirs
-							{
-								let current = importDirs.Count - 1;
-								currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
-
-								searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
-								wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
-
-								bool match = false;
-								for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
-								{
-									enumeratePath.Clear();
-									entry.GetFilePath(enumeratePath);
-
-									if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
-									{
-										match = true;
-
-										// Add matching files in this directory to import list
-										if (!entry.IsDirectory)
-										{
-											// Hash name
-											let s = GetScopedAssetName!(enumeratePath, assetsFolderPath, packageData, import);
-											hashBuilder.Update(Span<uint8>((uint8*)s.Ptr, s.Length));
-
-											let includeFilePath = scope:IMPORT String(enumeratePath);
-											includePaths.Add(includeFilePath);
-
-											// If we need to import this file (if this is a full build, the file was changed, or its new)
-											if (!patchBuild || entry.GetLastWriteTimeUtc() > lastPackageBuildDate || !previousNames.Contains(s))
-												importPaths.Add(includeFilePath);
-										}
-										// Look for matching sub dirs and add to importDirs list
-										else
-											importDirs.Add(scope:SEARCH String(enumeratePath));
-									}
-								}
-
-								if (!match)
-									Log.Warn(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
-
-								// Tidy up
-								importDirs.RemoveAtFast(current);
-							}
-							while (importDirs.Count > 0);
-						}
-					}
+							// If we need to import this file (if this is a full build, the file was changed, or its new)
+							if (!patchBuild || entry.GetLastWriteTimeUtc() > lastPackageBuildDate || !previousNames.Contains(s)
+								|| additionalChanged && importer.RebuildOnAdditionalChanged)
+								importPaths.Add(includeFilePath);
+						}));
 
 					// If anything changed this import statement, we know that we WILL build
 					// somethingChanged is already true if !patchBuild
@@ -750,7 +785,7 @@ namespace Pile
 						// Add name data interpreted as string back to duplicate lookup in any case
 						duplicateNameLookup.Add(scope:BUILD String(name));
 					}
-					includePaths.Clear();
+					ClearAndDeleteItems!(includePaths);
 					importPaths.Clear();
 
 					if (importerUsed && currentImporter == importerNames.Count) // The importer doesnt already have an index
