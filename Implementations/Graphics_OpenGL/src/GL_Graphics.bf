@@ -35,6 +35,8 @@ namespace Pile
 		internal static List<uint32> buffersToDelete = new List<uint32>() ~ delete _;
 		internal static List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
+		static Shader defaultBatchShader; // may be null
+
 		static this()
 		{
 			MajorVersion = 3;
@@ -72,6 +74,8 @@ namespace Pile
 
 		protected internal override static void Destroy()
 		{
+			if (defaultBatchShader != null) delete defaultBatchShader;
+
 			RunDeleteLists();
 		}
 
@@ -393,6 +397,61 @@ namespace Pile
 				case .OneMinusSrc1Alpha: 		return GL_ONE_MINUS_SRC1_ALPHA;
 				}
 			}
+		}
+
+		protected internal override static Shader GetDefaultBatch2dShader()
+		{
+			if (defaultBatchShader == null)
+			{
+				// Create
+				let source = scope ShaderData("""
+					#version 330 core
+
+					uniform mat4 u_matrix;
+
+					in vec2 a_position;
+					in vec2 a_tex;
+					in vec4 a_color;
+					in vec3 a_type;
+
+					out vec2 v_tex;
+					out vec4 v_col;
+					out vec3 v_type;
+
+					void main(void)
+					{
+						gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+
+						v_tex = a_tex;
+						v_col = a_color;
+						v_type = a_type;
+					}
+					""",
+					"""
+					#version 330 core
+
+					uniform sampler2D u_texture;
+
+					in vec2 v_tex;
+					in vec4 v_col;
+					in vec3 v_type;
+
+					out vec4 o_color;
+
+					void main(void)
+					{
+						vec4 color = texture(u_texture, v_tex);
+						o_color =
+							v_type.x * color * v_col +
+							v_type.y * color.a * v_col +
+							v_type.z * v_col;
+					}
+					""");
+
+				defaultBatchShader = new Shader(source);
+			}
+
+			return defaultBatchShader;
 		}
 
 		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)

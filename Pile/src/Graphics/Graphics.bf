@@ -71,5 +71,7 @@ namespace Pile
 		}
 
 		protected static extern void RenderInternal(RenderPass pass);
+
+		protected internal static extern Shader GetDefaultBatch2dShader();
 	}
 }

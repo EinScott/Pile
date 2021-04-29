@@ -16,10 +16,7 @@ namespace Game
 		}
 
 		const float rectSpeed = 140;
-
-		Shader batchShader ~ delete _;
-		Material batchMat ~ delete _;
-		Batch2D batch ~ delete _;
+		Batch2D batch = new .() ~ delete _;
 
 		// Virtual input of WASD and controller 0
 		VirtualStick input = new VirtualStick()..Add(.A, .D, .W, .S)..AddLeftJoystick(0) ~ delete _;
@@ -32,17 +29,10 @@ namespace Game
 		{
 			Log.Info("Hello!");
 
+			// todo: no need to load default stuff anymore, but this is kind of a good example... load some png here?
+
 			// This is automatically built for us. See BeefProj.toml and Pile/Core/EntryPoint.bf @ RunPackager
-			Assets.LoadPackage("shaders");
-
-			// Setup default shader for drawing with Batch2D
-			let source = scope ShaderData(Assets.Get<RawAsset>("s_batch2dVert").text, Assets.Get<RawAsset>("s_batch2dFrag").text); 
-			batchShader = new Shader(source);
-			batchMat = new Material(batchShader);
-
-			batch = new Batch2D(batchMat);
-
-			Assets.UnloadPackage("shaders"); // No need to have shader source code loaded anymore
+			//Assets.LoadPackage("shaders");
 		}
 
 		protected override void Update()

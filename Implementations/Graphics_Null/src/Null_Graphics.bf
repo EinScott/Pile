@@ -9,7 +9,7 @@ namespace Pile
 		public static override String ApiName => "Null Graphics";
 		public static override String Info => String.Empty;
 
-		static this
+		static this()
 		{
 			MajorVersion = 1;
 			MinorVersion = 0;
@@ -41,5 +41,10 @@ namespace Pile
 
 		[SkipCall]
 		protected static override void RenderInternal(RenderPass pass) {}
+
+		protected internal override static Shader GetDefaultBatch2dShader()
+		{
+			return new Shader(scope .("", ""));
+		}
 	}
 }

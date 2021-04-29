@@ -3,6 +3,8 @@ using System.Collections;
 using System.Diagnostics;
 using System.Text;
 
+using internal Pile;
+
 namespace Pile
 {
 	class Batch2D : BufferedMesh<Vertex>
@@ -65,7 +67,8 @@ namespace Pile
 			}
 		}
 
-		public readonly Material DefaultMaterial;
+		public readonly Material DefaultMaterial ~ if (OwnsDefaultMaterial) delete _;
+		readonly bool OwnsDefaultMaterial;
 
 		readonly String TextureUniformName ~ delete _;
 		readonly String MatrixUniformName ~ delete _;
@@ -85,16 +88,20 @@ namespace Pile
 		
 		public uint BatchCount => (.)batches.Count + (currentBatch.elements > 0 ? 1 : 0);
 
-		public this(Material defaultMaterial, StringView textureUniformName = "u_texture", StringView matrixUniformName = "u_matrix") : base(BatchVertexFormat)
+		/// Creates a Batch2D with the default shader. Other materials provided are expected to use the default "u_texture" and "u_matrix" uniforms
+		public this() : this(new Material(Graphics.GetDefaultBatch2dShader()), true) {}
+
+		public this(Material defaultMaterial, bool ownsDefaultMaterial = false, StringView textureUniformName = "u_texture", StringView matrixUniformName = "u_matrix") : base(BatchVertexFormat)
 		{
 			DefaultMaterial = defaultMaterial;
+			OwnsDefaultMaterial = ownsDefaultMaterial;
 
 			TextureUniformName = new String(textureUniformName);
 			MatrixUniformName = new String(matrixUniformName);
 
-			lastMaterial = defaultMaterial;
-			textureUniformIndex = defaultMaterial.IndexOf(TextureUniformName);
-			matrixUniformIndex = defaultMaterial.IndexOf(MatrixUniformName);
+			lastMaterial = DefaultMaterial;
+			textureUniformIndex = DefaultMaterial.IndexOf(TextureUniformName);
+			matrixUniformIndex = DefaultMaterial.IndexOf(MatrixUniformName);
 
 			Clear();
 		}

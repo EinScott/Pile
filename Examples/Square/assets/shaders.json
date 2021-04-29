@@ -1,9 +1,0 @@
-{
-  "imports": [
-    {
-      "path": "shaders/*",
-      "importer": "raw",
-	    "name_prefix": "s_"
-    }
-  ]
-}
