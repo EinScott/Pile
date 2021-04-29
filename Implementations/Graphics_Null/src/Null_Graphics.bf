@@ -34,7 +34,7 @@ namespace Pile
 		protected internal static override void Step() {}
 
 		[SkipCall]
-		protected internal static override void AfterRender() {}
+		protected static override void AfterRenderInternal() {}
 
 		[SkipCall]
 		protected static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}

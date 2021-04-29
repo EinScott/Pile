@@ -221,7 +221,7 @@ namespace Pile
 				if (Time.loopTicks > 0)
 					tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
 
-				perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0);
+				perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nDraw Calls: {:00}, TriCount: {:0000}, SoundCount: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, Graphics.DebugInfo.drawCalls, Graphics.debugInfo.triCount, Audio.SoundCount, Audio.AudibleSoundCount);
 			}
 
 #if DEBUG

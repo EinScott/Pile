@@ -24,11 +24,29 @@ namespace Pile
 		public enum DebugDrawMode { Disabled, WireFrame }
 		public static extern DebugDrawMode DebugDraw { get; set; }
 
+		public struct DebugInfoContainer
+		{
+			public uint drawCalls;
+			public uint triCount;
+		}
+		internal static DebugInfoContainer debugInfo; // Will be assigned to and reset on frame end
+		public static DebugInfoContainer DebugInfo { get; internal set; }
+
 		protected internal static extern void Initialize();
 		protected internal static extern void Destroy();
 
 		protected internal static extern void Step();
-		protected internal static extern void AfterRender();
+		[Inline]
+		internal static void AfterRender()
+		{
+#if DEBUG
+			DebugInfo = debugInfo;
+			debugInfo = .();
+#endif			
+
+			AfterRenderInternal();
+		}
+		protected static extern void AfterRenderInternal();
 
 		[Inline]
 		public static void Clear(IRenderTarget target, Color color) =>
@@ -68,6 +86,11 @@ namespace Pile
 			}
 
 			RenderInternal(pass);
+
+#if DEBUG
+			debugInfo.drawCalls++;
+			debugInfo.triCount += pass.mesh.TriangleCount;
+#endif
 		}
 
 		protected static extern void RenderInternal(RenderPass pass);

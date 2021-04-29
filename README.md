@@ -1,5 +1,5 @@
 # Pile
-Pile is a small game framework made in [Beef Language](https://github.com/beefytech/Beef), similar to frameworks like MonoGame/FNA and directly inspired by [Foster](https://github.com/NoelFB/Foster).
+Pile is a small game engine made in the [Beef Language](https://github.com/beefytech/Beef), similar to frameworks like MonoGame/FNA and directly inspired by [Foster](https://github.com/NoelFB/Foster).
 
 It focusses on handling and abstracting some of the basic underlying workings of a game in a reasonably extendable and performant way as well as on giving you control about the structure of the actual game logic.
 
@@ -15,7 +15,7 @@ The included core modules rely on
 - SoLoud for the Audio module
 Custom implementations are possible.
 
-It also includes an extendable system for managing assets, a sprite batcher capable UTF8 Unicode text rendering via SpriteFonts using TrueType fonts, performance tools and a logging system.
+It also includes an extendable system for managing assets, a sprite batcher, UTF8 Unicode text rendering via SpriteFonts using TrueType fonts, performance tools and a logging system.
 
 There are also some math structs, like Vector2 & 3, Point2 & 3, Quaternion and Rect (of integers) as well as some extensions to corelib classes, especially Math.
 

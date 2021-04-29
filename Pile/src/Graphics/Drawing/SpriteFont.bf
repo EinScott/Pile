@@ -60,11 +60,12 @@ namespace Pile
 				name.Append(ch.Unicode);
 
 				// Pack bitmap
-				if (fontSize.Render(ch.Unicode, buffer, true))
+				bool hasImage;
+				if ((hasImage = fontSize.Render(ch.Unicode, buffer, true)))
 					packer.AddBitmap(name, buffer);
 
 				// Create character
-				let sprChar = new Character(new Subtexture(), Vector2(ch.OffsetX, ch.OffsetY), ch.Advance);
+				let sprChar = new Character(hasImage ? new Subtexture() : null, Vector2(ch.OffsetX, ch.OffsetY), ch.Advance);
 				Charset.Add(ch.Unicode, sprChar);
 
 				// Get kerning

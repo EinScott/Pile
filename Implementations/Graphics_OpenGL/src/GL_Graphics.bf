@@ -123,7 +123,7 @@ namespace Pile
 			}
 		}
 
-		protected internal static override void AfterRender()
+		protected static override void AfterRenderInternal()
 		{
 			glFlush();
 		}
