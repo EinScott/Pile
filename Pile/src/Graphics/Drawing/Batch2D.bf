@@ -707,7 +707,7 @@ namespace Pile
 
 		public void Image(Subtexture subtex, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, bool washed = false)
 		{
-		    var was = MatrixStack;
+		    let was = MatrixStack;
 
 		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
@@ -722,9 +722,9 @@ namespace Pile
 
 		public void Image(Subtexture subtex, Rect clip, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, bool washed = false)
 		{
-		    var (source, frame) = subtex.GetClip(clip);
-		    var tex = subtex.Texture;
-		    var was = MatrixStack;
+		    let (source, frame) = subtex.GetClip(clip);
+		    let tex = subtex.Texture;
+		    let was = MatrixStack;
 
 		    MatrixStack = Matrix3x2.CreateTransform(position, origin, scale, rotation) * MatrixStack;
 
@@ -755,91 +755,103 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		// Render an UTF8 string
-		public void Text(SpriteFont font, StringView text, Color color)
+		// Returns decode success
+		bool DecodeAt(StringView text, ref int index, ref char32 char)
 		{
-		    var position = Vector2(0, font.Ascent);
+			// Encoded unicode char
+			if (UTF8.GetDecodedLength(text[index]) > 1)
+			{
+				let res = UTF8.Decode(&text[index], Math.Min(5, text.Length - index));
+				
+				index += res.length - 1;
+
+				if (res.c == (char32)-1)
+					return false; // Invalid
+
+				char = res.c;
+			}
+			else char = text[index];
+
+			return true;
+		}
+
+		// Returns char advance
+		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, Color color)
+		{
+			if (!font.Charset.TryGetValue(char, let ch))
+			    return 0;
+
+			// Image offset/kerning
+			if (ch.Image != null)
+			{
+			    var at = relativePos + ch.Offset;
+
+				// Look ahead
+				do
+				{
+			        if (index < text.Length - 1 && text[index + 1] != '\n')
+			        {
+						// Look up next char
+						char32 nextChar = ?;
+
+						var nextIndex = index + 1;
+						if (!DecodeAt(text, ref nextIndex, ref nextChar))
+							break;
+
+			            if (ch.Kerning.TryGetValue(nextChar, let kerning))
+			                at.X += kerning;
+			        }
+				}
+
+				// Render glyph
+			    Image(ch.Image, at, color, true);
+			}
+
+			return ch.Advance;
+		}
+
+		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Color color)
+		{
+		    var relativePos = Vector2(0, font.Ascent);
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				char32 char = ?;
-
-				// Encoded unicode char
-				if (UTF8.GetDecodedLength(text[i]) > 1)
-				{
-					let res = UTF8.Decode(&text[i], Math.Min(5, text.Length - i));
-					
-					i += res.length - 1;
-
-					if (res.c == (char32)-1)
-						continue; // Invalid
-
-					char = res.c;
-				}
-				else char = text[i];
+				if (!DecodeAt(text, ref i, ref char))
+					continue;
 
 		        if (char == '\n')
 		        {
-		            position.X = 0;
-		            position.Y += font.LineHeight;
+		            relativePos.X = 0;
+		            relativePos.Y += font.LineHeight;
 		            continue;
 		        }
 
-		        if (!font.Charset.TryGetValue(char, let ch))
-		            continue;
-
-				// Image offset/kerning
-		        if (ch.Image != null)
-		        {
-		            var at = position + ch.Offset;
-
-					// Look ahead
-					do
-					{
-			            if (i < text.Length - 1 && text[i + 1] != '\n')
-			            {
-							// Look up next char
-							char32 nextChar = ?;
-	
-							// Encoded unicode char
-							if (UTF8.GetDecodedLength(text[i + 1]) > 1)
-							{
-								let res = UTF8.Decode(&text[i + 1], Math.Min(5, text.Length - i));
-	
-								if (res.c == (char32)-1)
-									break;
-	
-								nextChar = res.c;
-							}
-							else nextChar = text[i + 1];
-	
-			                if (ch.Kerning.TryGetValue(nextChar, let kerning))
-			                    at.X += kerning;
-			            }
-					}
-
-					// Render glyph
-		            Image(ch.Image, at, color, true);
-		        }
-
-		        position.X += ch.Advance;
+		        relativePos.X += ProcessChar(font, text, i, relativePos, char, color);
 		    }
+
+			return Transform(relativePos, MatrixStack);
 		}
 
-		// Render an UTF8 string
-		public void Text(SpriteFont font, StringView text, Vector2 position, Color color)
+		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Color color)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
-		    Text(font, text, color);
+		    let end = Text(font, text, color);
 		    PopMatrix();
+
+			return end;
 		}
 
-		// Render an UTF8 string
-		public void Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
+		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
-		    Text(font, text, color);
+		    let end = Text(font, text, color);
 		    PopMatrix();
+
+			return end;
 		}
 
 		public void CheckeredPattern(Rect bounds, float cellWidth, float cellHeight, Color a, Color b)

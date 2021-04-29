@@ -9,6 +9,7 @@ namespace Pile
 
 		public Texture Texture
 		{
+			[Inline]
 			get => texture;
 			set
 			{
@@ -22,6 +23,7 @@ namespace Pile
 
 		public Rect Source
 		{
+			[Inline]
 			get => source;
 			set
 			{
@@ -32,6 +34,7 @@ namespace Pile
 
 		public Rect Frame
 		{
+			[Inline]
 		    get => frame;
 		    set
 		    {
@@ -51,6 +54,16 @@ namespace Pile
 		public this(Texture texture) : this(texture, Rect(0, 0, texture.Width, texture.Height), Rect(0, 0, texture.Width, texture.Height)) {}
 		public this(Texture texture, Rect source) : this(texture, Rect(0, 0, source.Width, source.Height)) {}
 
+		public this(TextureView view)
+		{
+			this.texture = view.texture;
+			this.source = view.source;
+			this.frame = view.frame;
+
+			TexCoords = view.TexCoords;
+			DrawCoords = view.DrawCoords;
+		}
+
 		public this(Texture texture, Rect source, Rect frame)
 		{
 			Reset(texture, source, frame);
@@ -67,12 +80,12 @@ namespace Pile
 
 		public (Rect Source, Rect Frame) GetClip(Rect clip)
 		{
-			(Rect Source, Rect Frame) result = default;
+			(Rect Source, Rect Frame) result = ?;
 
-			result.Source = (clip + Point2(Source.Left, Source.Top) + Point2(Frame.Left, Frame.Top)).OverlapRect(Source);
+			result.Source = (clip + Point2(source.Left, source.Top) + Point2(frame.Left, frame.Top)).OverlapRect(source);
 
-			result.Frame.X = Math.Min(0, Frame.X + clip.X);
-			result.Frame.Y = Math.Min(0, Frame.Y + clip.Y);
+			result.Frame.X = Math.Min(0, frame.X + clip.X);
+			result.Frame.Y = Math.Min(0, frame.Y + clip.Y);
 			result.Frame.Width = clip.Width;
 			result.Frame.Height = clip.Height;
 
@@ -84,10 +97,10 @@ namespace Pile
 		    return GetClip(Rect(x, y, w, h));
 		}
 
-		public Subtexture GetClipSubtexture(Rect clip)
+		public void GetClipSubtexture(Subtexture into, Rect clip)
 		{
-		    var (source, frame) = GetClip(clip);
-		    return new Subtexture(Texture, source, frame);
+		    let (source, frame) = GetClip(clip);
+		    into.Reset(texture, source, frame);
 		}
 
 		void UpdateCoords()
@@ -118,5 +131,7 @@ namespace Pile
 		        TexCoords[3].Y = ty1;
 		    }
 		}
+
+		public static operator TextureView(Subtexture t) => .(t);
 	}
 }

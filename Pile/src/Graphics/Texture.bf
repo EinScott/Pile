@@ -110,5 +110,7 @@ namespace Pile
 		protected extern void SetWrap(TextureWrap x, TextureWrap y);
 		protected extern void SetData(void* buffer);
 		protected extern void GetData(void* buffer);
+
+		public static operator TextureView(Texture t) => .(t);
 	}
 }

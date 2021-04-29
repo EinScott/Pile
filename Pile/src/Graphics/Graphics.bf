@@ -42,7 +42,7 @@ namespace Pile
 #if DEBUG
 			DebugInfo = debugInfo;
 			debugInfo = .();
-#endif			
+#endif
 
 			AfterRenderInternal();
 		}

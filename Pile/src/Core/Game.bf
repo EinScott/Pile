@@ -5,7 +5,7 @@ using internal Pile;
 
 namespace Pile
 {
-	abstract class Game<T> : Game where T : Game, new
+	abstract class Game<T> : Game where T : Game
 	{
 		public static T Instance;
 
