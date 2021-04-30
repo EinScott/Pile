@@ -116,6 +116,8 @@ namespace Pile
 			Input.Destroy();
 			System.Delete();
 			System.Destroy();
+
+			run = false;
 		}
 
 		internal static void DoCoreLoop()

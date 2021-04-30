@@ -854,10 +854,14 @@ namespace Pile
 			return end;
 		}
 
+		struct MixedDrawCmd : this(int insertIndex, Vector2 drawPos);
+
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color textureColor, params TextureView[] inserts)
 		{
+			let draws = scope List<MixedDrawCmd>((.)(inserts.Count * 1.3f));
+
 		    var relativePos = Vector2(0, font.Ascent);
 			var autoInsertIndex = 0;
 
@@ -931,16 +935,13 @@ namespace Pile
 
 					// Render insert image
 					{
+						// Draw the actual stuff later. Drawing these
+						// will probably mean a change of texture, thus
+						// another draw call, so do these in bulk
+						draws.Add(.(insertIndex, relativePos));
+
 						let image = ref inserts[insertIndex];
-						let was = MatrixStack;
 						Vector2 scale = .(font.Height) / image.Height;
-
-						MatrixStack = Matrix3x2.CreateTransform(relativePos - .(0, font.Ascent), scale, 0) * MatrixStack;
-
-						Image(image.texture, image.DrawCoords[0], image.DrawCoords[1], image.DrawCoords[2], image.DrawCoords[3],
-							image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], textureColor, false);
-
-						MatrixStack = was;
 
 						relativePos.X += image.Width * scale.X;
 					}
@@ -949,6 +950,20 @@ namespace Pile
 					i += j - i;
 				}
 		    }
+
+			for (let draw in draws)
+			{
+				let image = ref inserts[draw.insertIndex];
+				let was = MatrixStack;
+				Vector2 scale = .(font.Height) / image.Height;
+
+				MatrixStack = Matrix3x2.CreateTransform(draw.drawPos - .(0, font.Ascent), scale, 0) * MatrixStack;
+
+				Image(image.texture, image.DrawCoords[0], image.DrawCoords[1], image.DrawCoords[2], image.DrawCoords[3],
+					image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], textureColor, false);
+
+				MatrixStack = was;
+			}
 
 			return Transform(relativePos, MatrixStack);
 		}
