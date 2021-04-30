@@ -854,6 +854,146 @@ namespace Pile
 			return end;
 		}
 
+		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
+		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color textureColor, params TextureView[] inserts)
+		{
+		    var relativePos = Vector2(0, font.Ascent);
+			var autoInsertIndex = 0;
+
+		    for (int i = 0; i < text.Length; i++)
+		    {
+				char32 char = ?;
+				if (!DecodeAt(text, ref i, ref char))
+					continue;
+
+		        if (char == '\n')
+		        {
+		            relativePos.X = 0;
+		            relativePos.Y += font.LineHeight;
+		            continue;
+		        }
+
+				if (char == '}')
+				{
+					if (i + 1 < text.Length && text[i + 1] == '}')
+						i++;
+					else return .Err; // Invalid formatting
+				}
+
+				bool isInsert = false;
+				if (char == '{')
+				{
+					if (i + 1 >= text.Length)
+						return .Err; // Invalid format
+
+					if (text[i + 1] == '{')
+						i++;
+					else isInsert = true;
+				}
+
+				if (!isInsert)
+		        	relativePos.X += ProcessChar(font, text, i, relativePos, char, textColor);
+				else
+				{
+					// Check that { also has }
+					var j = i + 1;
+					for (; j < text.Length; j++)
+					{
+						if (text[j] == '}')
+							break;
+						else if (!text[j].IsNumber)
+							return .Err; // Invalid format
+					}
+
+					if (j >= text.Length)
+						return .Err; // Insert not closed
+
+					// Parse in-between
+					var insertIndex = 0;
+					if (j - i - 1 == 0)
+						insertIndex = autoInsertIndex++;
+					else
+					{
+						let start = i + 1;
+						let len = j - i - 1;
+						for (let k < len)
+						{
+							let ch = text[start + k];
+							Debug.Assert(ch >= '0' && ch <= '9'); // We should have caught this before
+
+							insertIndex = insertIndex * 10 + ch - '0';
+						}
+					}
+
+					if (insertIndex >= inserts.Count)
+						return .Err; // not enough inserts given, index out of range
+
+					// Render insert image
+					{
+						let image = ref inserts[insertIndex];
+						let was = MatrixStack;
+						Vector2 scale = .(font.Height) / image.Height;
+
+						MatrixStack = Matrix3x2.CreateTransform(relativePos - .(0, font.Ascent), scale, 0) * MatrixStack;
+
+						Image(image.texture, image.DrawCoords[0], image.DrawCoords[1], image.DrawCoords[2], image.DrawCoords[3],
+							image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], textureColor, false);
+
+						MatrixStack = was;
+
+						relativePos.X += image.Width * scale.X;
+					}
+
+					// Make i skip this section
+					i += j - i;
+				}
+		    }
+
+			return Transform(relativePos, MatrixStack);
+		}
+
+		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
+		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		[Inline]
+		public Vector2 TextMixed(SpriteFont font, StringView text, Color color, params TextureView[] inserts)
+		{
+			return TextMixed(font, text, color, color, params inserts);
+		}
+
+		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
+		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, params TextureView[] inserts)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
+		    let end = TextMixed(font, text, color, color, params inserts);
+		    PopMatrix();
+
+			return end;
+		}
+
+		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
+		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Color textColor, Color textureColor, params TextureView[] inserts)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
+		    let end = TextMixed(font, text, textColor, textureColor, params inserts);
+		    PopMatrix();
+
+			return end;
+		}
+
+		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
+		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color textColor, Color textureColor, params TextureView[] inserts)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
+		    let end = TextMixed(font, text, textColor, textureColor, params inserts);
+		    PopMatrix();
+
+			return end;
+		}
+
 		public void CheckeredPattern(Rect bounds, float cellWidth, float cellHeight, Color a, Color b)
 		{
 		    var odd = false;

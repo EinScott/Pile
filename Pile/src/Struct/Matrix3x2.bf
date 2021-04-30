@@ -331,7 +331,18 @@ namespace Pile
 		/// Creates a transform matrix.
 		public static Matrix3x2 CreateTransform(Vector2 position, Vector2 scale, float rotation)
 		{
-			return CreateTranslation(position) * CreateScale(scale) * CreateRotation(rotation);
+			var mat = Matrix3x2.Identity;
+
+			if (scale != .One)
+				mat = mat * CreateScale(scale);
+
+			if (rotation != 0)
+				mat = mat * CreateRotation(rotation);
+
+			if (position != .Zero)
+				mat = mat * CreateTranslation(position);
+
+			return mat;
 		}
 
 		/// Creates a transform matrix with origin offset.
@@ -341,8 +352,6 @@ namespace Pile
 
 			if (origin != .Zero)
 				mat = CreateTranslation(-origin);
-			else
-				mat = .Identity;
 
 			if (scale != .One)
 				mat = mat * CreateScale(scale);
