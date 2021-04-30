@@ -775,17 +775,25 @@ namespace Pile
 			return true;
 		}
 
+		public typealias ElementModifier = (Vector2 offset, float extraAdvance, Vector2 scale, float rotation, Color color);
+		public function ElementModifier GetElementModifierFunc(Vector2 currPos, int index, char32 char, bool isImage);
+		public static ElementModifier GetDefaultElementModifier(Vector2 currPos, int index, char32 char, bool isImage)
+		{
+			return (.Zero, 0, .One, 0, .White);
+		}
+
 		// Returns char advance
-		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, Color color)
+		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, int trueIndex, Color color, GetElementModifierFunc getModifier)
 		{
 			if (!font.Charset.TryGetValue(char, let ch))
 			    return 0;
 
+			var at = relativePos + ch.Offset;
+			ElementModifier modifier;
+
 			// Image offset/kerning
 			if (ch.Image != null)
 			{
-			    var at = relativePos + ch.Offset;
-
 				// Look ahead
 				do
 				{
@@ -803,17 +811,33 @@ namespace Pile
 			        }
 				}
 
-				// Render glyph
-			    Image(ch.Image, at, color, true);
-			}
+				modifier = getModifier(at, trueIndex, char, false);
+				at += modifier.offset;
 
-			return ch.Advance;
+				var col = color;
+				// The call original color will still act as a sort of mask
+				if (color != .White || modifier.color != .White)
+					col *= modifier.color;
+
+				// Render glyph
+				if (modifier.scale == .One && modifier.rotation == 0)
+			    	Image(ch.Image, at, col, true);
+				else
+				{
+					let origin = Vector2(ch.Image.Width / 2, relativePos.Y / 2);
+					Image(ch.Image, at + origin, modifier.scale, origin, modifier.rotation, col, true);
+				}
+			}
+			else modifier = getModifier(at, trueIndex, char, false);
+
+			return ch.Advance + modifier.extraAdvance;
 		}
 
 		/// Render an UTF8 string. Returns where the text ends.
-		public Vector2 Text(SpriteFont font, StringView text, Color color)
+		public Vector2 Text(SpriteFont font, StringView text, Color color, GetElementModifierFunc getModifier)
 		{
 		    var relativePos = Vector2(0, font.Ascent);
+			var trueIndex = 0;
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
@@ -828,17 +852,35 @@ namespace Pile
 		            continue;
 		        }
 
-		        relativePos.X += ProcessChar(font, text, i, relativePos, char, color);
+		        relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, color, getModifier);
+				trueIndex++;
 		    }
 
 			return Transform(relativePos, MatrixStack);
 		}
 
+		[Inline]
 		/// Render an UTF8 string. Returns where the text ends.
-		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Color color)
+		public Vector2 Text(SpriteFont font, StringView text, Color color = .White)
+		{
+			return Text(font, text, color, => GetDefaultElementModifier);
+		}
+
+		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Color color = .White)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
-		    let end = Text(font, text, color);
+		    let end = Text(font, text, color, => GetDefaultElementModifier);
+		    PopMatrix();
+
+			return end;
+		}
+
+		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Color color, GetElementModifierFunc getModifier)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
+		    let end = Text(font, text, color, getModifier);
 		    PopMatrix();
 
 			return end;
@@ -848,22 +890,33 @@ namespace Pile
 		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
-		    let end = Text(font, text, color);
+		    let end = Text(font, text, color, => GetDefaultElementModifier);
 		    PopMatrix();
 
 			return end;
 		}
 
-		struct MixedDrawCmd : this(int insertIndex, Vector2 drawPos);
+		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color, GetElementModifierFunc getModifier)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
+		    let end = Text(font, text, color, getModifier);
+		    PopMatrix();
+
+			return end;
+		}
+
+		struct MixedDrawCmd : this(int insertIndex, Vector2 drawPos, int trueIndex);
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color textureColor, params TextureView[] inserts)
+		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color textureColor, GetElementModifierFunc getModifier, params TextureView[] inserts)
 		{
 			let draws = scope List<MixedDrawCmd>((.)(inserts.Count * 1.3f));
 
 		    var relativePos = Vector2(0, font.Ascent);
 			var autoInsertIndex = 0;
+			var trueIndex = 0;
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
@@ -897,7 +950,7 @@ namespace Pile
 				}
 
 				if (!isInsert)
-		        	relativePos.X += ProcessChar(font, text, i, relativePos, char, textColor);
+		        	relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, textColor, getModifier);
 				else
 				{
 					// Check that { also has }
@@ -935,29 +988,44 @@ namespace Pile
 
 					// Render insert image
 					{
+						let pos = relativePos - .(0, font.Ascent);
+
 						// Draw the actual stuff later. Drawing these
 						// will probably mean a change of texture, thus
 						// another draw call, so do these in bulk
-						draws.Add(.(insertIndex, relativePos));
+						draws.Add(.(insertIndex, pos, trueIndex));
 
 						let image = ref inserts[insertIndex];
-						Vector2 scale = .(font.Height) / image.Height;
+						let scale = Vector2(font.Height) / image.Height;
+						let modifier = getModifier(pos, trueIndex, (char32)0, true);
 
-						relativePos.X += image.Width * scale.X;
+						relativePos.X += image.Width * scale.X + modifier.extraAdvance;
 					}
 
 					// Make i skip this section
 					i += j - i;
 				}
+
+				trueIndex++;
 		    }
 
 			for (let draw in draws)
 			{
 				let image = ref inserts[draw.insertIndex];
 				let was = MatrixStack;
-				Vector2 scale = .(font.Height) / image.Height;
 
-				MatrixStack = Matrix3x2.CreateTransform(draw.drawPos - .(0, font.Ascent), scale, 0) * MatrixStack;
+				var pos = draw.drawPos;
+				var scale = Vector2(font.Height) / image.Height;
+				let modifier = getModifier(pos, draw.trueIndex, (char32)0, true);
+
+				pos += modifier.offset;
+				scale *= modifier.scale;
+
+				var col = textureColor;
+				if (textureColor != .White || modifier.color != .White)
+					col *= modifier.color;
+
+				MatrixStack = Matrix3x2.CreateTransform(pos, scale, modifier.rotation) * MatrixStack;
 
 				Image(image.texture, image.DrawCoords[0], image.DrawCoords[1], image.DrawCoords[2], image.DrawCoords[3],
 					image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], textureColor, false);
@@ -968,12 +1036,12 @@ namespace Pile
 			return Transform(relativePos, MatrixStack);
 		}
 
+		[Inline]
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		[Inline]
 		public Vector2 TextMixed(SpriteFont font, StringView text, Color color, params TextureView[] inserts)
 		{
-			return TextMixed(font, text, color, color, params inserts);
+			return TextMixed(font, text, color, color, => GetDefaultElementModifier, params inserts);
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
@@ -981,7 +1049,7 @@ namespace Pile
 		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
-		    let end = TextMixed(font, text, color, color, params inserts);
+		    let end = TextMixed(font, text, color, color, => GetDefaultElementModifier, params inserts);
 		    PopMatrix();
 
 			return end;
@@ -989,10 +1057,10 @@ namespace Pile
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Color textColor, Color textureColor, params TextureView[] inserts)
+		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Color textColor, Color textureColor, GetElementModifierFunc getModifier, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
-		    let end = TextMixed(font, text, textColor, textureColor, params inserts);
+		    let end = TextMixed(font, text, textColor, textureColor, getModifier, params inserts);
 		    PopMatrix();
 
 			return end;
@@ -1000,10 +1068,10 @@ namespace Pile
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color textColor, Color textureColor, params TextureView[] inserts)
+		public Vector2 TextMixed(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color textColor, Color textureColor, GetElementModifierFunc getModifier, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
-		    let end = TextMixed(font, text, textColor, textureColor, params inserts);
+		    let end = TextMixed(font, text, textColor, textureColor, getModifier, params inserts);
 		    PopMatrix();
 
 			return end;

@@ -153,7 +153,12 @@ namespace Pile
 
 		public static Color operator*(Color color, float b)
 		{
-			return Color(color.R, color.G, color.B, (uint8)(color.A * b));
+			return Color(color.R, color.G, color.B, (.)(color.A * b));
+		}
+
+		public static Color operator*(Color a, Color b)
+		{
+			return Color((.)(a.R * b.Rf), (.)(a.G * b.Gf), (.)(a.B * b.Bf), (.)(a.A * b.Af));
 		}
 
 		[Commutable]
