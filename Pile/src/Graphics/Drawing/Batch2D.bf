@@ -775,11 +775,11 @@ namespace Pile
 			return true;
 		}
 
-		public typealias ElementModifier = (Vector2 offset, float extraAdvance, Vector2 scale, float rotation, Color color);
+		public struct ElementModifier : this(Vector2 offset, float extraAdvance, Vector2 scale, float rotation, Color color);
 		public function ElementModifier GetElementModifierFunc(Vector2 currPos, int index, char32 char, bool isImage);
 		public static ElementModifier GetDefaultElementModifier(Vector2 currPos, int index, char32 char, bool isImage)
 		{
-			return (.Zero, 0, .One, 0, .White);
+			return .(.Zero, 0, .One, 0, .White);
 		}
 
 		// Returns char advance
