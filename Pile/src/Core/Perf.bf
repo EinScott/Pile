@@ -9,10 +9,11 @@ namespace Pile
 {
 	static
 	{
-		[Comptime, DebugOnly]
+		[Comptime]
 		public static mixin PerfTrack(String scopeName)
 		{
-			let sNum = Perf.CrappyCompHash(scopeName);
+#if DEBUG
+			let sNum = Perf.[Friend]CrappyCompHash(scopeName);
 
 			// This needed so many workarounds to work...
 			// -> string interpolation not allowed? well make the string in another comptimed function
@@ -20,6 +21,7 @@ namespace Pile
 			// -> __pt_s.Elapsed is still 0 when instant evaluating? well feed in the Stopwatch instance since we know it's still valid when the call happens later!
 			// I'm impressed this works... finally
 			Compiler.Mixin(MakePerfTrackString(scopeName, sNum));
+#endif
 		}
 
 		[Comptime, DebugOnly]
@@ -67,7 +69,7 @@ namespace Pile
 					sectionName..Append(' ')..Append(sectionNameOverride);
 			}
 
-			let sNum = Perf.CrappyCompHash(sectionName);
+			let sNum = Perf.[Friend]CrappyCompHash(sectionName);
 
 			// Put tracking on method
 			Compiler.EmitMethodEntry(methodInfo, scope $"""
@@ -156,7 +158,7 @@ namespace Pile
 		}
 
 		[Comptime]
-		internal static uint CrappyCompHash(String string)
+		static uint CrappyCompHash(String string)
 		{
 			// Crappy 64 bit hash
 			uint sNum = 0;
@@ -221,7 +223,7 @@ namespace Pile
 				if (Time.loopTicks > 0)
 					tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
 
-				perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nDraw Calls: {:00}, TriCount: {:0000}, SoundCount: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, Graphics.DebugInfo.drawCalls, Graphics.debugInfo.triCount, Audio.SoundCount, Audio.AudibleSoundCount);
+				perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nVSync: {}, Draw Calls: {:00}, TriCount: {:0000}, SoundCount: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, System.window.VSync, Graphics.DebugInfo.drawCalls, Graphics.DebugInfo.triCount, Audio.SoundCount, Audio.AudibleSoundCount);
 			}
 
 #if DEBUG

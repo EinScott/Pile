@@ -123,9 +123,10 @@ namespace Pile
 			}
 		}
 
+		[SkipCall]
 		protected static override void AfterRenderInternal()
 		{
-			glFlush();
+			
 		}
 
 		protected static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)

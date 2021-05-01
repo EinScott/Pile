@@ -816,7 +816,7 @@ namespace Pile
 			    	Image(ch.Image, at, col, true);
 				else
 				{
-					let origin = Vector2(ch.Image.Width / 2, relativePos.Y / 2);
+					let origin = Vector2(ch.Image.Width / 2, ch.Image.Height / 2);
 					Image(ch.Image, at + origin, modifier.scale, origin, modifier.rotation, col, true);
 				}
 			}

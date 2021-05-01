@@ -147,9 +147,7 @@ namespace Pile
 				}
 				
 				{
-#if PILE_CORE_PERFTRACK
 					PerfTrack!("Pile.Core.DoCoreLoop:Update");
-#endif
 
 					// Raw time
 					Time.rawDuration += diffTime;
@@ -193,17 +191,13 @@ namespace Pile
 				if (!exiting && !System.window.Closed)
 				{
 					{
-#if PILE_CORE_PERFTRACK
 						PerfTrack!("Pile.Core.DoCoreLoop:Render");
-#endif
 
 						System.window.Render(); // Calls WindowRender()
 					}
 
 					{
-#if PILE_CORE_PERFTRACK
 						PerfTrack!("Pile.Core.DoCoreLoop:Preset");
-#endif
 
 						System.window.Present();
 					}
@@ -221,7 +215,7 @@ namespace Pile
 
 				// Record loop ticks (delta without sleep)
 				Time.loopTicks = endCurrTime - currTime;
-#if PILE_CORE_PERFTRACK
+#if DEBUG
 				// We already have a timer running here...
 				Perf.[Friend]EndSection("Pile.Core.DoCoreLoop (no sleep)", TimeSpan(Time.loopTicks));
 #endif
@@ -231,8 +225,8 @@ namespace Pile
 				{
 					let sleep = Time.targetTicks - (timer.[Friend]GetElapsedDateTimeTicks() - currTime);
 					
-					if (sleep > 0)
-						Thread.Sleep((int32)((float)sleep / TimeSpan.TicksPerMillisecond));
+					if (sleep > TimeSpan.TicksPerMillisecond)
+						Thread.Sleep((.)sleep / TimeSpan.TicksPerMillisecond);
 				}
 
 				// Force sleep

@@ -70,6 +70,8 @@ namespace Pile
 			title.Set(name);
 			Size = UPoint2(width, height);
 			Visible = true;
+			VSync = true;
+			Bordered = true;
 		}
 	}
 }

@@ -189,10 +189,13 @@ namespace Pile
 		[DebugOnly]
 		static void FlushDebugWrite()
 		{
+#if DEBUG
 			DoDebugWriteBuffer();
+#endif
 		}
-
-		[DebugOnly,Inline]
+		
+#if DEBUG
+		[Inline]
 		static void DoDebugWriteBuffer()
 		{
 			using (debugWriteMonitor.Enter())
@@ -205,7 +208,6 @@ namespace Pile
 			}
 		}
 
-#if DEBUG
 		static Monitor debugWriteMonitor = new Monitor() ~ delete _;
 		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
 		static bool debugExit;

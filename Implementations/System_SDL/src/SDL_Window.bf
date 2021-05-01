@@ -309,7 +309,7 @@ namespace Pile
 			}
 		}
 
-		internal bool visible;
+		internal bool visible = true;
 		public override bool Visible
 		{
 			get => visible;

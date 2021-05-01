@@ -11,5 +11,14 @@ namespace Pile
 		{
 			return .(.Zero, .One, 0, .White);
 		}
+
+		// We kind of abuse + as a "Combine" operator
+		public static CharModifier operator+(CharModifier a, CharModifier b)
+		{
+			return .(a.offset + b.offset,
+				a.scale * b.scale, // Apply scaling
+				a.rotation + b.rotation,
+				a.color * b.color); // Mask with each other
+		}
 	}
 }
