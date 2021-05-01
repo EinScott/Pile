@@ -776,7 +776,7 @@ namespace Pile
 		}
 
 		// Returns char advance
-		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, int trueIndex, Color color, CharModifier.GetFunc getModifier)
+		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, int trueIndex, Color color, CharModifier.GetFunc getModifier, bool washed)
 		{
 			if (!font.Charset.TryGetValue(char, let ch))
 			    return 0;
@@ -813,11 +813,11 @@ namespace Pile
 
 				// Render glyph
 				if (modifier.scale == .One && modifier.rotation == 0)
-			    	Image(ch.Image, at, col, true);
+			    	Image(ch.Image, at, col, washed);
 				else
 				{
 					let origin = Vector2(ch.Image.Width / 2, ch.Image.Height / 2);
-					Image(ch.Image, at + origin, modifier.scale, origin, modifier.rotation, col, true);
+					Image(ch.Image, at + origin, modifier.scale, origin, modifier.rotation, col, washed);
 				}
 			}
 
@@ -825,7 +825,7 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string. Returns where the text ends.
-		public Vector2 Text(SpriteFont font, StringView text, Color color, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc)
+		public Vector2 Text(SpriteFont font, StringView text, Color color, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 		    var relativePos = Vector2(0, font.Ascent);
 			var trueIndex = 0;
@@ -843,7 +843,7 @@ namespace Pile
 		            continue;
 		        }
 
-		        relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, color, getModifier) + extraAdvance.X;
+		        relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, color, getModifier, washed) + extraAdvance.X;
 				trueIndex++;
 		    }
 
@@ -861,17 +861,17 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string. Returns where the text ends.
-		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc)
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
-		    let end = Text(font, text, color, extraAdvance, getModifier);
+		    let end = Text(font, text, color, extraAdvance, getModifier, washed);
 		    PopMatrix();
 
 			return end;
 		}
 
 		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained.
-		public Vector2 TextFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc)
+		public Vector2 TextFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 			let size = font.SizeOf(text);
 			var scale = Math.Min(fitFrame.Width / size.X, fitFrame.Height / size.Y);
@@ -880,7 +880,7 @@ namespace Pile
 			let pos = (fitFrame.Size - size * scale) * 0.5f;
 
 			PushMatrix(Matrix3x2.CreateTransform(pos, .(scale), 0));
-			let end = Text(font, text, color, .Zero, getModifier);
+			let end = Text(font, text, color, .Zero, getModifier, washed);
 			PopMatrix();
 
 			return end;
@@ -890,7 +890,7 @@ namespace Pile
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color textureColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier, params TextureView[] inserts)
+		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color insertColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 			let draws = scope List<MixedDrawCmd>((.)(inserts.Count * 1.3f));
 
@@ -930,7 +930,7 @@ namespace Pile
 				}
 
 				if (!isInsert)
-		        	relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, textColor, getModifier) + extraAdvance.X;
+		        	relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, textColor, getModifier, textWashed) + extraAdvance.X;
 				else
 				{
 					// Check that { also has }
@@ -1000,14 +1000,14 @@ namespace Pile
 				pos += modifier.offset;
 				scale *= modifier.scale;
 
-				var col = textureColor;
-				if (textureColor != .White || modifier.color != .White)
+				var col = insertColor;
+				if (insertColor != .White || modifier.color != .White)
 					col *= modifier.color;
 
 				MatrixStack = Matrix3x2.CreateTransform(pos, scale, modifier.rotation) * MatrixStack;
 
 				Image(image.texture, image.DrawCoords[0], image.DrawCoords[1], image.DrawCoords[2], image.DrawCoords[3],
-					image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], textureColor, false);
+					image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], insertColor, insertsWashed);
 
 				MatrixStack = was;
 			}
@@ -1020,7 +1020,7 @@ namespace Pile
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color color, params TextureView[] inserts)
 		{
-			return TextMixed(font, text, color, color, .Zero, CharModifier.DefaultCharModifierFunc, params inserts);
+			return TextMixed(font, text, color, color, .Zero, CharModifier.DefaultCharModifierFunc, true, false, params inserts);
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
@@ -1028,7 +1028,7 @@ namespace Pile
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
-		    let end = TextMixed(font, text, color, color, .Zero, CharModifier.DefaultCharModifierFunc, params inserts);
+		    let end = TextMixed(font, text, color, color, .Zero, CharModifier.DefaultCharModifierFunc, true, false, params inserts);
 		    PopMatrix();
 
 			return end;
@@ -1036,10 +1036,10 @@ namespace Pile
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color textColor, Color textureColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
+		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
-		    let end = TextMixed(font, text, textColor, textureColor, extraAdvance, getModifier, params inserts);
+		    let end = TextMixed(font, text, color, color, extraAdvance, getModifier, true, false, params inserts);
 		    PopMatrix();
 
 			return end;
@@ -1047,17 +1047,28 @@ namespace Pile
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
-		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color textColor, Color textureColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
+		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
+		    let end = TextMixed(font, text, color, color, extraAdvance, getModifier, textWashed, insertsWashed, params inserts);
+		    PopMatrix();
+
+			return end;
+		}
+
+		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
+		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color textColor, Color insertColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
-		    let end = TextMixed(font, text, textColor, textureColor, extraAdvance, getModifier, params inserts);
+		    let end = TextMixed(font, text, textColor, insertColor, extraAdvance, getModifier, textWashed, insertsWashed, params inserts);
 		    PopMatrix();
 
 			return end;
 		}
 
 		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained.
-		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color textColor, Color textureColor, Vector2 extraAdvance, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
+		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color textColor, Color textureColor, Vector2 extraAdvance, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 			var size = Vector2(0, font.HeightOf(text));
 			// Get Width
@@ -1177,7 +1188,7 @@ namespace Pile
 			let pos = (fitFrame.Size - size * scale) * 0.5f;
 
 			PushMatrix(Matrix3x2.CreateTransform(pos, .(scale), 0));
-			let end = TextMixed(font, text, textColor, textureColor, extraAdvance, getModifier, params inserts);
+			let end = TextMixed(font, text, textColor, textureColor, extraAdvance, getModifier, textWashed, insertsWashed, params inserts);
 			PopMatrix();
 
 			return end;
@@ -1186,13 +1197,19 @@ namespace Pile
 		[Inline]
 		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, params TextureView[] inserts)
 		{
-			return TextMixedFramed(font, text, fitFrame, color, color, .Zero, 0, CharModifier.DefaultCharModifierFunc, params inserts);
+			return TextMixedFramed(font, text, fitFrame, color, color, .Zero, 0, CharModifier.DefaultCharModifierFunc, true, false, params inserts);
 		}
 
 		[Inline]
 		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
 		{
-			return TextMixedFramed(font, text, fitFrame, color, color, .Zero, maxSize, getModifier, params inserts);
+			return TextMixedFramed(font, text, fitFrame, color, color, .Zero, maxSize, getModifier, true, false, params inserts);
+		}
+
+		[Inline]
+		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, Vector2 extraAdvance, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
+		{
+			return TextMixedFramed(font, text, fitFrame, color, color, extraAdvance, maxSize, getModifier, true, false, params inserts);
 		}
 
 		public void CheckeredPattern(Rect bounds, float cellWidth, float cellHeight, Color a, Color b)

@@ -16,6 +16,8 @@ namespace Game
 		Batch2D batch = new .() ~ delete _;
 		SpriteFont sf ~ delete _;
 
+		Asset<Subtexture> button = new Asset<Subtexture>("button") ~ delete _;
+
 		bool debugRender;
 
 		protected override void Startup()
@@ -28,7 +30,14 @@ namespace Game
 
 			Assets.UnloadPackage("font");
 
+			Assets.LoadPackage("content");
+
 			Perf.Track = true;
+		}
+
+		protected override void Shutdown()
+		{
+			Assets.UnloadPackage("content");
 		}
 
 		protected override void Update()
@@ -88,9 +97,21 @@ namespace Game
 				Perf.Render(batch, sf);
 
 			{
-				PerfTrack!("DrawText");
+				PerfTrack!("DrawTextSimple");
+				// Raw rect at position
+				batch.Text(sf, "Sample text... I guess?", .(120, 200), .White);
+			}
+
+			{
+				PerfTrack!("DrawTextModified");
 				// Raw rect at position
 				batch.Text(sf, "Hello! I am a text.\nNice to see you.", .(120, 300), .White, .Zero, => SuperCharModifier);
+			}
+
+			{
+				PerfTrack!("DrawTextMixed");
+				// Raw rect at position
+				batch.TextMixed(sf, "Press {} to doubt.", Vector2(120, 450), .White, .Zero, => WiggleCharModifier, true, true, button.Asset);
 			}
 
 			// Render batch buffer

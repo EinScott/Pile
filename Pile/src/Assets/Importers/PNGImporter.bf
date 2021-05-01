@@ -11,17 +11,14 @@ namespace Pile
 
 		public virtual Result<void> Load(StringView name, Span<uint8> data)
 		{
-			let bitmap = new Bitmap(
+			let bitmap = scope Bitmap(
 				(((uint32)data[0]) << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | ((uint32)data[3]),
 				(((uint32)data[4]) << 24) | (((uint32)data[5]) << 16) | (((uint32)data[6]) << 8) | ((uint32)data[7]),
 				Span<Color>((Color*)&data[2 * sizeof(uint32)], data.Length / sizeof(uint32) - 2)); // sizeof(Color) == sizeof(uint32));
 
-			if (Importers.SubmitTextureAsset(name, bitmap) case .Err)
-			{
-				delete bitmap;
-				return .Err;
-			}
-			else return .Ok;
+			Try!(Importers.SubmitTextureAsset(name, bitmap));
+
+			return .Ok;
 		}
 
 		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath)

@@ -91,7 +91,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		/// Should only be called from Importers
+		/// Should only be called from Importers. DOES NOT CONSUME BITMAP!
 		public static Result<Subtexture> SubmitTextureAsset(StringView name, Bitmap bitmap)
 		{
 			Debug.Assert(currentPackage != null, "Importers can only submit assets while loading a Package (when called from Assets.LoadPackage(...))");
