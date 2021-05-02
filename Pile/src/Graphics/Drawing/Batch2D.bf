@@ -13,45 +13,53 @@ namespace Pile
 			VertexAttribute("a_position", .Position, .Float, .Two, false),
 			VertexAttribute("a_tex", .TexCoord0, .Float, .Two, false),
 			VertexAttribute("a_color", .Color0, .Byte, .Four, true),
-			VertexAttribute("a_type", .TexCoord1, .Byte, .Three, true)) ~ delete _;
+			VertexAttribute("a_type", .TexCoord1, .Byte, .Three, true),
+			VertexAttribute("a_texIndex", .TexCoord2, .Float, .One, true)) ~ delete _;
 
 		[Packed]
 		[CRepr]
 		public struct Vertex
 		{
 			public Vector2 position;
-			public Vector2 texcoord;
+			public Vector2 texCoord;
 			public Color color;
 
 			public uint8 mult;
 			public uint8 wash;
 			public uint8 fill;
 
-			public this(Vector2 position, Vector2 texcoord, Color color, uint8 mult, uint8 wash, uint8 fill)
+			public float texIndex;
+
+			public this(Vector2 position, Vector2 texCoord, Color color, uint8 mult, uint8 wash, uint8 fill, int texIndex)
 			{
 				this.position = position;
-				this.texcoord = texcoord;
+				this.texCoord = texCoord;
 				this.color = color;
 
 				this.mult = mult;
 				this.wash = wash;
 				this.fill = fill;
+				this.texIndex = texIndex;
 			}
 		}
 
 		struct Batch
 		{
+			public const int MaxTexCount = 32;
+
 			public int32 layer;
 			public Material material;
 			public BlendMode blendMode;
 			public Matrix3x2 matrix;
-			public Texture texture;
+			public Texture[MaxTexCount] textures;
+			public int currentTextureIndex = 0;
+			public int textureCount = 0;
 			public Rect? scissor;
 
 			public uint offset;
 			public uint elements;
 
-			public this(uint offset, uint elements, Matrix3x2 matrix, BlendMode blendMode, int32 layer = 0, Texture texture = null, Material material = null)
+			public this(uint offset, uint elements, Matrix3x2 matrix, BlendMode blendMode, int32 layer = 0, Material material = null)
 			{
 				this.offset = offset;
 				this.elements = elements;
@@ -63,7 +71,27 @@ namespace Pile
 				this.layer = layer;
 
 				this.material = material;
-				this.texture = texture;
+
+				textures = .();
+			}
+
+			public bool UseTex(Texture texture) mut
+			{
+				for (let i < textureCount)
+					if (textures[[Unchecked]i] === texture)
+					{
+						currentTextureIndex = i;
+						return true;
+					}
+
+				if (textureCount >= MaxTexCount)
+					return false;
+
+				textures[textureCount] = texture;
+				currentTextureIndex = textureCount;
+				textureCount++;
+
+				return true;
 			}
 		}
 
@@ -102,6 +130,8 @@ namespace Pile
 			lastMaterial = DefaultMaterial;
 			textureUniformIndex = DefaultMaterial.IndexOf(TextureUniformName);
 			matrixUniformIndex = DefaultMaterial.IndexOf(MatrixUniformName);
+
+			Runtime.Assert(textureUniformIndex != -1 && matrixUniformIndex != -1, "Given shader must have texture and matrix uniforms with the given names");
 
 			Clear();
 		}
@@ -179,7 +209,10 @@ namespace Pile
 				lastMaterial = pass.material;
 			}
 
-			pass.material[textureUniformIndex].SetTexture(batch.texture);
+			// Set at least one texture (if no texture was ever used
+			// they will still ask for index 0)
+			for (let i < Math.Max(1, batch.textureCount))
+				pass.material[textureUniformIndex].SetTexture(batch.textures[[Unchecked]i], i);
 			pass.material[matrixUniformIndex].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
 
 			pass.meshIndexStart = batch.offset * 3;
@@ -263,17 +296,25 @@ namespace Pile
 
 		public void SetTexture(Texture texture)
 		{
-			if (currentBatch.elements == 0)
+			if (currentBatch.textureCount > 0 && currentBatch.textures[currentBatch.currentTextureIndex] === texture)
+				return;
+			else if (currentBatch.textureCount > 0 && currentBatch.elements == 0)
 			{
-				currentBatch.texture = texture;
+				// Just one texture was set, but never used yet! Reset it.
+				currentBatch.textures[0] = texture;
+				currentBatch.currentTextureIndex = 0;
 			}
-			else if (currentBatch.texture != texture)
+			else if (!currentBatch.UseTex(texture))
 			{
 				// Insert current state to save
 				batches.Insert(currentBatchInsert, currentBatch);
 
 				// Reset state and change
-				currentBatch.texture = texture;
+				currentBatch.textures = .();
+				currentBatch.textures[0] = texture;
+				currentBatch.currentTextureIndex = 0;
+				currentBatch.textureCount = 1;
+
 				ResetCurrentBatch();
 			}
 		}
@@ -355,9 +396,9 @@ namespace Pile
 		{
 		    let tri = PushTriangle();
 
-			tri[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255);
-			tri[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255);
-			tri[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255);
+			tri[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
 
 			currentBatch.elements++;
 		}
@@ -366,9 +407,9 @@ namespace Pile
 		{
 		    let tri = PushTriangle();
 
-			tri[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255);
-			tri[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255);
-			tri[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255);
+			tri[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255, currentBatch.currentTextureIndex);
 
 			currentBatch.elements++;
 		}
@@ -377,10 +418,10 @@ namespace Pile
 		{
 		    let quad = PushQuad();
 
-			quad[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255);
-			quad[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255);
-			quad[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255);
-			quad[3] = .(Transform(v3, MatrixStack), .Zero, color, 0, 0, 255);
+			quad[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[3] = .(Transform(v3, MatrixStack), .Zero, color, 0, 0, 255, 0);
 
 			currentBatch.elements += 2;
 		}
@@ -392,13 +433,13 @@ namespace Pile
 		    var mult = (uint8)(washed ? 0 : 255);
 		    var wash = (uint8)(washed ? 255 : 0);
 
-			quad[0] = .(Transform(v0, MatrixStack), t0, color, mult, wash, 0);
-			quad[1] = .(Transform(v1, MatrixStack), t1, color, mult, wash, 0);
-			quad[2] = .(Transform(v2, MatrixStack), t2, color, mult, wash, 0);
-			quad[3] = .(Transform(v3, MatrixStack), t3, color, mult, wash, 0);
+			quad[0] = .(Transform(v0, MatrixStack), t0, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[1] = .(Transform(v1, MatrixStack), t1, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[2] = .(Transform(v2, MatrixStack), t2, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[3] = .(Transform(v3, MatrixStack), t3, color, mult, wash, 0, currentBatch.currentTextureIndex);
 
-		    if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
-		        FlipUV(ref quad[0].texcoord, ref quad[1].texcoord, ref quad[2].texcoord, ref quad[3].texcoord);
+		    if (Graphics.OriginBottomLeft && (currentBatch.textures[currentBatch.currentTextureIndex]?.IsFrameBuffer ?? false))
+		        FlipUV(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
 
 			currentBatch.elements += 2;
 		}
@@ -407,10 +448,10 @@ namespace Pile
 		{
 		    let quad = PushQuad();
 
-		    quad[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255);
-			quad[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255);
-			quad[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255);
-			quad[3] = .(Transform(v3, MatrixStack), .Zero, c3, 0, 0, 255);
+		    quad[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255, 0);
+			quad[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255, 0);
+			quad[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255, 0);
+			quad[3] = .(Transform(v3, MatrixStack), .Zero, c3, 0, 0, 255, 0);
 
 			currentBatch.elements += 2;
 		}
@@ -422,13 +463,13 @@ namespace Pile
 		    var mult = (uint8)(washed ? 0 : 255);
 		    var wash = (uint8)(washed ? 255 : 0);
 
-			quad[0] = .(Transform(v0, MatrixStack), t0, c0, mult, wash, 0);
-			quad[1] = .(Transform(v1, MatrixStack), t1, c1, mult, wash, 0);
-			quad[2] = .(Transform(v2, MatrixStack), t2, c2, mult, wash, 0);
-			quad[3] = .(Transform(v3, MatrixStack), t3, c3, mult, wash, 0);
+			quad[0] = .(Transform(v0, MatrixStack), t0, c0, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[1] = .(Transform(v1, MatrixStack), t1, c1, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[2] = .(Transform(v2, MatrixStack), t2, c2, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[3] = .(Transform(v3, MatrixStack), t3, c3, mult, wash, 0, currentBatch.currentTextureIndex);
 
-			if (Graphics.OriginBottomLeft && (currentBatch.texture?.IsFrameBuffer ?? false))
-				FlipUV(ref quad[0].texcoord, ref quad[1].texcoord, ref quad[2].texcoord, ref quad[3].texcoord);
+			if (Graphics.OriginBottomLeft && (currentBatch.textures[currentBatch.currentTextureIndex]?.IsFrameBuffer ?? false))
+				FlipUV(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
 
 			currentBatch.elements += 2;
 		}

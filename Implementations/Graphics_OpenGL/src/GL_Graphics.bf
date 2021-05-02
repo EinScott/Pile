@@ -414,10 +414,12 @@ namespace Pile
 					in vec2 a_tex;
 					in vec4 a_color;
 					in vec3 a_type;
+					in float a_texIndex;
 
 					out vec2 v_tex;
 					out vec4 v_col;
 					out vec3 v_type;
+					out float v_texIndex;
 
 					void main(void)
 					{
@@ -426,22 +428,25 @@ namespace Pile
 						v_tex = a_tex;
 						v_col = a_color;
 						v_type = a_type;
+						v_texIndex = a_texIndex;
 					}
 					""",
 					"""
 					#version 330 core
 
-					uniform sampler2D u_texture;
+					uniform sampler2D u_texture[32];
 
 					in vec2 v_tex;
 					in vec4 v_col;
 					in vec3 v_type;
+					in float v_texIndex;
 
 					out vec4 o_color;
 
 					void main(void)
 					{
-						vec4 color = texture(u_texture, v_tex);
+						int index = int(v_texIndex);
+						vec4 color = texture(u_texture[index], v_tex);
 						o_color =
 							v_type.x * color * v_col +
 							v_type.y * color.a * v_col +
