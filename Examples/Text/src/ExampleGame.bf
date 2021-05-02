@@ -87,6 +87,9 @@ namespace Game
 			return WiggleCharModifier(currPos, index, char) + WobbleCharModifier(currPos, index, char) + ColorfulCharModifier(currPos, index, char);
 		}
 
+		const Rect textBox = .(600, 200, 300, 100);
+		const Rect textBox2 = .(600, 400, 400, 200);
+
 		protected override void Render()
 		{
 			// Clear screen and bacher buffer
@@ -98,23 +101,37 @@ namespace Game
 
 			{
 				PerfTrack!("DrawTextSimple");
-				// Raw rect at position
 				batch.Text(sf, "Sample text... I guess?", .(120, 200), .White);
 			}
 
 			{
 				PerfTrack!("DrawTextModified");
-				// Raw rect at position
 				batch.Text(sf, "Hello! I am a text.\nNice to see you.", .(120, 300), .White, .Zero, => SuperCharModifier);
 			}
 
 			{
 				PerfTrack!("DrawTextMixed");
-				// Raw rect at position
-				batch.TextMixed(sf, "Press {} to doubt.", Vector2(120, 450), .White, .Zero, => WiggleCharModifier, true, true, button.Asset);
+				batch.TextMixed(sf, "Press {0} to doubt. {0}", Vector2(120, 450), .White, .Zero, => WiggleCharModifier, true, true, button.Asset);
 			}
 
-			// Render batch buffer
+			batch.HollowRect(textBox, 2, .DarkGray);
+			{
+				PerfTrack!("DrawTextFramed");
+				batch.TextFramed(sf, "Hello I am a text.\nI squeeze in here somehow.\nWeird...", textBox, .White);
+			}
+
+			batch.HollowRect(textBox2, 2, .DarkGray);
+			{
+				PerfTrack!("DrawTextMixedFramed");
+				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, button.Asset);
+			}
+
+			{
+				PerfTrack!("DrawTextMixedFramedModified");
+				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .White, 0, => SuperCharModifier, button.Asset);
+			}
+
+			// Render batch
 			batch.Render(System.Window);
 		}
 	}

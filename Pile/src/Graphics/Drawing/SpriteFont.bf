@@ -133,18 +133,8 @@ namespace Pile
 		    {
 				// Get char
 				char32 char = ?;
-
-				// Encoded unicode char
-				if (UTF8.GetDecodedLength(text[i]) > 1)
-				{
-					let ress = UTF8.Decode(&text[i], Math.Min(5, text.Length));
-
-					if (ress.c == (char32)-1)
-						continue; // Invalid
-
-					char = ress.c;
-				}
-				else char = text[i];
+				if (!UTF8.DecodeAt(text, ref i, ref char))
+					continue;
 
 		        if (char == '\n')
 		        {

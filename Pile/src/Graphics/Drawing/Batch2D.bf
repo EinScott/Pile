@@ -755,26 +755,6 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
-		// Returns decode success
-		bool DecodeAt(StringView text, ref int index, ref char32 char)
-		{
-			// Encoded unicode char
-			if (UTF8.GetDecodedLength(text[index]) > 1)
-			{
-				let res = UTF8.Decode(&text[index], Math.Min(5, text.Length - index));
-				
-				index += res.length - 1;
-
-				if (res.c == (char32)-1)
-					return false; // Invalid
-
-				char = res.c;
-			}
-			else char = text[index];
-
-			return true;
-		}
-
 		// Returns char advance
 		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, int trueIndex, Color color, CharModifier.GetFunc getModifier, bool washed)
 		{
@@ -795,7 +775,7 @@ namespace Pile
 						char32 nextChar = ?;
 
 						var nextIndex = index + 1;
-						if (!DecodeAt(text, ref nextIndex, ref nextChar))
+						if (!UTF8.DecodeAt(text, ref nextIndex, ref nextChar))
 							break;
 
 			            if (ch.Kerning.TryGetValue(nextChar, let kerning))
@@ -833,7 +813,7 @@ namespace Pile
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				char32 char = ?;
-				if (!DecodeAt(text, ref i, ref char))
+				if (!UTF8.DecodeAt(text, ref i, ref char))
 					continue;
 
 		        if (char == '\n')
@@ -877,7 +857,7 @@ namespace Pile
 			var scale = Math.Min(fitFrame.Width / size.X, fitFrame.Height / size.Y);
 			if (maxSize > 0)
 				scale = Math.Min(maxSize / font.Size, scale);
-			let pos = (fitFrame.Size - size * scale) * 0.5f;
+			let pos = fitFrame.Position + (fitFrame.Size - size * scale) * 0.5f;
 
 			PushMatrix(Matrix3x2.CreateTransform(pos, .(scale), 0));
 			let end = Text(font, text, color, .Zero, getModifier, washed);
@@ -888,11 +868,75 @@ namespace Pile
 
 		struct MixedDrawCmd : this(int insertIndex, Vector2 drawPos, int trueIndex);
 
+		static mixin ParseInsert(StringView text, int i, ref int autoInsertIndex, int insertsCount, out int skipLen)
+		{
+			skipLen = 0;
+
+			// Check that { also has }
+			var j = i + 1;
+			for (; j < text.Length; j++)
+			{
+				if (text[j] == '}')
+					break;
+				else if (!text[j].IsNumber)
+					return .Err(default); // Invalid format
+			}
+
+			if (j >= text.Length)
+				return .Err(default); // Insert not closed
+
+			// Parse in-between
+			var insertIndex = 0;
+			if (j - i - 1 == 0)
+				insertIndex = autoInsertIndex++;
+			else
+			{
+				let start = i + 1;
+				let len = j - i - 1;
+				for (let k < len)
+				{
+					let ch = text[start + k];
+					Debug.Assert(ch >= '0' && ch <= '9'); // We should have caught this before
+
+					insertIndex = insertIndex * 10 + ch - '0';
+				}
+			}
+
+			if (insertIndex >= insertsCount)
+				return .Err(default); // not enough inserts given, index out of range
+
+			skipLen = j - i;
+			insertIndex
+		}
+
+		static mixin HandleBrackets(StringView text, char32 char, ref int i)
+		{
+			if (char == '}')
+			{
+				if (i + 1 < text.Length && text[i + 1] == '}')
+					i++;
+				else return .Err(default); // Invalid formatting
+			}
+
+			bool isInsert = false;
+			if (char == '{')
+			{
+				if (i + 1 >= text.Length)
+					return .Err(default); // Invalid format
+
+				if (text[i + 1] == '{')
+					i++;
+				else isInsert = true;
+			}
+
+			isInsert
+		}
+
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
 		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color insertColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
-			let draws = scope List<MixedDrawCmd>((.)(inserts.Count * 1.3f));
+			let draws = scope List<MixedDrawCmd>((.)(inserts.Count * 1.3f) + 1);
 
 		    var relativePos = Vector2(0, font.Ascent);
 			var autoInsertIndex = 0;
@@ -901,7 +945,7 @@ namespace Pile
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				char32 char = ?;
-				if (!DecodeAt(text, ref i, ref char))
+				if (!UTF8.DecodeAt(text, ref i, ref char))
 					continue;
 
 		        if (char == '\n')
@@ -911,60 +955,13 @@ namespace Pile
 		            continue;
 		        }
 
-				if (char == '}')
-				{
-					if (i + 1 < text.Length && text[i + 1] == '}')
-						i++;
-					else return .Err; // Invalid formatting
-				}
-
-				bool isInsert = false;
-				if (char == '{')
-				{
-					if (i + 1 >= text.Length)
-						return .Err; // Invalid format
-
-					if (text[i + 1] == '{')
-						i++;
-					else isInsert = true;
-				}
+				let isInsert = HandleBrackets!(text, char, ref i);
 
 				if (!isInsert)
 		        	relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, textColor, getModifier, textWashed) + extraAdvance.X;
 				else
 				{
-					// Check that { also has }
-					var j = i + 1;
-					for (; j < text.Length; j++)
-					{
-						if (text[j] == '}')
-							break;
-						else if (!text[j].IsNumber)
-							return .Err; // Invalid format
-					}
-
-					if (j >= text.Length)
-						return .Err; // Insert not closed
-
-					// Parse in-between
-					var insertIndex = 0;
-					if (j - i - 1 == 0)
-						insertIndex = autoInsertIndex++;
-					else
-					{
-						let start = i + 1;
-						let len = j - i - 1;
-						for (let k < len)
-						{
-							let ch = text[start + k];
-							Debug.Assert(ch >= '0' && ch <= '9'); // We should have caught this before
-
-							insertIndex = insertIndex * 10 + ch - '0';
-						}
-					}
-
-					if (insertIndex >= inserts.Count)
-						return .Err; // not enough inserts given, index out of range
+					let insertIndex = ParseInsert!(text, i, ref autoInsertIndex, inserts.Count, let skipLen);
 
 					// Render insert image
 					{
@@ -982,7 +979,7 @@ namespace Pile
 					}
 
 					// Make i skip this section
-					i += j - i;
+					i += skipLen;
 				}
 
 				trueIndex++;
@@ -998,13 +995,17 @@ namespace Pile
 				let modifier = getModifier(pos, draw.trueIndex, (char32)0);
 
 				pos += modifier.offset;
-				scale *= modifier.scale;
+
+				// We need the unmodified scale to adjust our origin on pos correctly,
+				// and this later as the actual scale
+				let modScale = scale * modifier.scale;
 
 				var col = insertColor;
 				if (insertColor != .White || modifier.color != .White)
 					col *= modifier.color;
 
-				MatrixStack = Matrix3x2.CreateTransform(pos, scale, modifier.rotation) * MatrixStack;
+				let origin = Vector2(image.Width / 2, image.Height / 2);
+				MatrixStack = Matrix3x2.CreateTransform(pos + origin * scale, origin, modScale, modifier.rotation) * MatrixStack;
 
 				Image(image.texture, image.DrawCoords[0], image.DrawCoords[1], image.DrawCoords[2], image.DrawCoords[3],
 					image.TexCoords[0], image.TexCoords[1], image.TexCoords[2], image.TexCoords[3], insertColor, insertsWashed);
@@ -1081,18 +1082,8 @@ namespace Pile
 				{
 					// Get char
 					char32 char = ?;
-
-					// Encoded unicode char
-					if (UTF8.GetDecodedLength(text[i]) > 1)
-					{
-						let ress = UTF8.Decode(&text[i], Math.Min(5, text.Length));
-
-						if (ress.c == (char32)-1)
-							continue; // Invalid
-
-						char = ress.c;
-					}
-					else char = text[i];
+					if (!UTF8.DecodeAt(text, ref i, ref char))
+						continue;
 
 				    if (char == '\n')
 				    {
@@ -1106,23 +1097,7 @@ namespace Pile
 				        continue;
 				    }
 
-					if (char == '}')
-					{
-						if (i + 1 < text.Length && text[i + 1] == '}')
-							i++;
-						else return .Err; // Invalid formatting
-					}
-
-					bool isInsert = false;
-					if (char == '{')
-					{
-						if (i + 1 >= text.Length)
-							return .Err; // Invalid format
-
-						if (text[i + 1] == '{')
-							i++;
-						else isInsert = true;
-					}
+					let isInsert = HandleBrackets!(text, char, ref i);
 
 					if (!isInsert)
 					{
@@ -1133,38 +1108,7 @@ namespace Pile
 					}
 				    else
 					{
-						// Check that { also has }
-						var j = i + 1;
-						for (; j < text.Length; j++)
-						{
-							if (text[j] == '}')
-								break;
-							else if (!text[j].IsNumber)
-								return .Err; // Invalid format
-						}
-
-						if (j >= text.Length)
-							return .Err; // Insert not closed
-
-						// Parse in-between
-						var insertIndex = 0;
-						if (j - i - 1 == 0)
-							insertIndex = autoInsertIndex++;
-						else
-						{
-							let start = i + 1;
-							let len = j - i - 1;
-							for (let k < len)
-							{
-								let ch = text[start + k];
-								Debug.Assert(ch >= '0' && ch <= '9'); // We should have caught this before
-
-								insertIndex = insertIndex * 10 + ch - '0';
-							}
-						}
-
-						if (insertIndex >= inserts.Count)
-							return .Err; // not enough inserts given, index out of range
+						let insertIndex = ParseInsert!(text, i, ref autoInsertIndex, inserts.Count, let skipLen);
 
 						// Width of inserted image
 						{
@@ -1175,7 +1119,7 @@ namespace Pile
 						}
 
 						// Make i skip this section
-						i += j - i;
+						i += skipLen;
 					}
 				}
 
@@ -1185,7 +1129,7 @@ namespace Pile
 			var scale = Math.Min(fitFrame.Width / size.X, fitFrame.Height / size.Y);
 			if (maxSize > 0)
 				scale = Math.Min(maxSize / font.Size, scale);
-			let pos = (fitFrame.Size - size * scale) * 0.5f;
+			let pos = fitFrame.Position + (fitFrame.Size - size * scale) * 0.5f;
 
 			PushMatrix(Matrix3x2.CreateTransform(pos, .(scale), 0));
 			let end = TextMixed(font, text, textColor, textureColor, extraAdvance, getModifier, textWashed, insertsWashed, params inserts);
