@@ -89,7 +89,7 @@ namespace Pile
 
 #if DEBUG
 			debugInfo.drawCalls++;
-			debugInfo.triCount += pass.mesh.TriangleCount;
+			debugInfo.triCount += pass.meshIndexCount / 3;
 #endif
 		}
 
