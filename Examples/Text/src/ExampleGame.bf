@@ -99,6 +99,11 @@ namespace Game
 			if (debugRender)
 				Perf.Render(batch, sf);
 
+			// Sometimes we need to get the longer overloads here when we
+			// have to specify that we want to treat the inserted texture
+			// like the char glyphs themselves. This wouldn't matter if we
+			// weren't rendering onto a blank cleared screen
+
 			{
 				PerfTrack!("DrawTextSimple");
 				batch.Text(sf, "Sample text... I guess?", .(120, 200), .White);
@@ -123,12 +128,12 @@ namespace Game
 			batch.HollowRect(textBox2, 2, .DarkGray);
 			{
 				PerfTrack!("DrawTextMixedFramed");
-				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, button.Asset);
+				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, .Gray, .Zero, 0, => CharModifier.DefaultCharModifierFunc, true, true, button.Asset);
 			}
 
 			{
 				PerfTrack!("DrawTextMixedFramedModified");
-				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .White, 0, => SuperCharModifier, button.Asset);
+				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .White, .White, .Zero, 0, => SuperCharModifier, true, true, button.Asset);
 			}
 
 			// Render batch

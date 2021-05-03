@@ -35,15 +35,15 @@ namespace Pile
 			}
 
 			// GL create texture
-			Create(Width, Height, filter, wrapX, wrapY);
+			GLCreate(Width, Height, filter, wrapX, wrapY);
 		}
 
 		public ~this()
 		{
-			Delete();
+			GLDelete();
 		}
 
-		void Delete()
+		void GLDelete()
 		{
 			if (textureID != 0)
 			{
@@ -52,69 +52,78 @@ namespace Pile
 			}
 		}
 
-		void Create(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
+		void GLSetFilter(TextureFilter filter)
 		{
-			GL.glGenTextures(1, &textureID);
-			Prepare();
-
-			// TODO: optional mipmaps?
-			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, width, height, 0, glFormat, glType, null);
 			int glTexFilter = (int)(filter == .Nearest ? GL.GL_NEAREST : GL.GL_LINEAR);
-			int glTexWrapX = (int)(wrapX == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
-			int glTexWrapY = (int)(wrapY == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, glTexFilter);
+			int glMipFilter = (int)(filter == .Nearest ? GL.GL_NEAREST_MIPMAP_NEAREST: GL.GL_LINEAR_MIPMAP_LINEAR);
 			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, glTexFilter);
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
-
-			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
+			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, genMipmaps ? glMipFilter : glTexFilter);
 		}
 
-		void Prepare()
+		void GLSetWarp(TextureWrap x, TextureWrap y)
 		{
-			GL.glActiveTexture(GL.GL_TEXTURE0);
+			int glTexWrapX = (int)(wrapX == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
+			int glTexWrapY = (int)(wrapY == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
+			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
+			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
+		}
+
+		void GLSetData(int width, int height, void* buffer)
+		{
+			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, width, height, 0, glFormat, glType, buffer);
+			if (genMipmaps)
+				GL.glGenerateMipmap(GL.GL_TEXTURE_2D);
+		}
+
+		void GLCreate(uint32 width, uint32 height, TextureFilter filter, TextureWrap wrapX, TextureWrap wrapY)
+		{
+			GL.glGenTextures(1, &textureID);
 			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
+			
+			GLSetData(width, height, null);
+			GLSetFilter(filter);
+			GLSetWarp(wrapX, wrapY);
+
+			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		protected override void ResizeAndClearInternal(uint32 width, uint32 height)
 		{
-			Delete();
-			Create(width, height, filter, wrapX, wrapY);
+			GLDelete();
+			GLCreate(width, height, filter, wrapX, wrapY);
 		}
 
 		protected override void SetFilter(TextureFilter filter)
 		{
-			Prepare();
-			int glTexFilter = filter == .Nearest ? GL.GL_NEAREST : GL.GL_LINEAR;
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, glTexFilter);
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, glTexFilter);
+			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
+
+			GLSetFilter(filter);
 
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
-
 		}
 
 		protected override void SetWrap(TextureWrap x, TextureWrap y)
 		{
-			Prepare();
-			int glTexWrapX = (int)(x == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
-			int glTexWrapY = (int)(y == .Clamp ? GL.GL_CLAMP_TO_EDGE : GL.GL_REPEAT);
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, glTexWrapX);
-			GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, glTexWrapY);
+			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
+
+			GLSetWarp(x, y);
 
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		protected override void SetData(void* buffer)
 		{
-			Prepare();
-			GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, (int)glInternalFormat, Width, Height, 0, glFormat, glType, buffer);
+			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
+
+			GLSetData(Width, Height, buffer);
 
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		}
 
 		protected override void GetData(void* buffer)
 		{
-			Prepare();
+			GL.glBindTexture(GL.GL_TEXTURE_2D, textureID);
+
 			GL.glGetTexImage(GL.GL_TEXTURE_2D, 0, glInternalFormat, glType, buffer);
 
 			GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
