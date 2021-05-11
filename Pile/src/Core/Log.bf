@@ -213,17 +213,15 @@ namespace Pile
 		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
 		static bool debugExit;
 
-		static String[DEBUGWRITEBUFSIZE] debugWriteBuffer = {
-			var s = String[DEBUGWRITEBUFSIZE]();
+		static String[] debugWriteBuffer = {
+			var s = new String[DEBUGWRITEBUFSIZE]();
 			for (let i < DEBUGWRITEBUFSIZE)
 				s[i] = new String(128);
 			s
 		} ~ {
 			using (debugWriteMonitor.Enter())
 			{
-				for (let i < DEBUGWRITEBUFSIZE)
-					delete debugWriteBuffer[i];
-
+				DeleteContainerAndItems!(_);
 				debugNeedsWrite = 0;
 			}
 		};
