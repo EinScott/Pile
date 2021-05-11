@@ -178,9 +178,9 @@ namespace Pile
 #if DEBUG
 				using (debugWriteMonitor.Enter())
 				{
-					if (debugNeedsWrite < 8)
+					if (debugNeedsWrite < DEBUGWRITEBUFSIZE)
 						debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
-					else debugWriteBuffer[7].Set(fullMessage); // rest in peace previous message...
+					else debugWriteBuffer[DEBUGWRITEBUFSIZE - 1].Set(fullMessage); // rest in peace previous message...
 				}
 #endif
 			}
@@ -193,7 +193,8 @@ namespace Pile
 			DoDebugWriteBuffer();
 #endif
 		}
-		
+
+		const int DEBUGWRITEBUFSIZE = 8;
 #if DEBUG
 		[Inline]
 		static void DoDebugWriteBuffer()
@@ -212,14 +213,19 @@ namespace Pile
 		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
 		static bool debugExit;
 
-		static String[] debugWriteBuffer = {
-			var s = new String[8]();
-			for (let i < 8)
+		static String[DEBUGWRITEBUFSIZE] debugWriteBuffer = {
+			var s = String[DEBUGWRITEBUFSIZE]();
+			for (let i < DEBUGWRITEBUFSIZE)
 				s[i] = new String(128);
 			s
 		} ~ {
 			using (debugWriteMonitor.Enter())
-				DeleteContainerAndItems!(_);
+			{
+				for (let i < DEBUGWRITEBUFSIZE)
+					delete debugWriteBuffer[i];
+
+				debugNeedsWrite = 0;
+			}
 		};
 		static uint8 debugNeedsWrite;
 
