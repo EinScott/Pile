@@ -65,11 +65,11 @@ namespace Pile
 		protected internal override void Present() {}
 
 		[SkipCall]
-		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowState state)
+		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowState state, bool hidden)
 		{
 			title.Set(name);
 			Size = UPoint2(width, height);
-			Visible = true;
+			Visible = !hidden;
 			VSync = true;
 			Bordered = true;
 		}

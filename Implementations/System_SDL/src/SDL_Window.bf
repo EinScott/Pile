@@ -15,10 +15,15 @@ namespace Pile
 		internal SDL.SDL_GLContext context;
 		bool isGL;
 
-		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowState state)
+		protected internal override void Initialize(StringView name, uint32 width, uint32 height, WindowState state, bool hidden)
 		{
 			SDL.WindowFlags sdlFlags = .Shown | .AllowHighDPI;
 			if (Graphics.Renderer.IsOpenGL) sdlFlags |= .OpenGL;
+			if (hidden)
+			{
+				sdlFlags |= .Hidden;
+				visible = false;
+			}
 
 			switch (state)
 			{

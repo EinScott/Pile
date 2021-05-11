@@ -8,12 +8,12 @@ namespace Pile
 	{
 		public bool Closed { [Inline]get; internal set; }
 
-		internal this(StringView name, uint32 width, uint32 height, WindowState state)
+		internal this(StringView name, uint32 width, uint32 height, WindowState state, bool hidden = false)
 		{
-			Initialize(name, width, height, state);
+			Initialize(name, width, height, state, hidden);
 		}
 
-		protected internal extern void Initialize(StringView name, uint32 width, uint32 height, WindowState state);
+		protected internal extern void Initialize(StringView name, uint32 width, uint32 height, WindowState state, bool hidden);
 
 		internal ~this()
 		{

@@ -58,7 +58,7 @@ namespace Pile
 				System.DetermineDataPaths(title);
 				Directory.SetCurrentDirectory(System.DataPath);
 
-				System.window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState);
+				System.window = new Window(config.windowTitle.Ptr == null ? config.gameTitle : config.windowTitle, config.windowWidth, config.windowHeight, config.windowState, true);
 				Input.Initialize();
 
 				Log.Info(scope $"System: {System.ApiName} {System.MajorVersion}.{System.MinorVersion} ({System.Info})");
@@ -90,9 +90,9 @@ namespace Pile
 			// Prepare for running game
 			Game = config.createGame();
 			Debug.Assert(Game != null, "Game cannot be null");
-
-			// Startup game
 			Game.[Friend]Startup();
+
+			System.Window.Visible = true;
 
 			coreLoop();
 
