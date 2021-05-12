@@ -56,43 +56,25 @@ namespace Pile
 			String userDir = new .();
 
 #if BF_PLATFORM_WINDOWS
+			// We want "<documents folder>/My Games/<game name>"
+			if (Platform.GetStrHelper(userPath, scope (outPtr, outSize, outResult) =>
+				{
+					Platform.BfpFileResult res = ?;
+					Platform.BfpDirectory_GetSysDirectory(.Documents, outPtr, outSize, &res);
+					*outResult = (.)res;
+				}) case .Ok)
 			{
-				// We want "<documents folder>/My Games/<game name>"
-				bool dSuccess = false;
-
-				// Get documents folder path
-				char16* pathPtr = ?;
-				let res = Windows.SHGetKnownFolderPath(Windows.FOLDERID_Documents, 0, .NullHandle, &pathPtr);
-				if (res == .OK)
-				{
-					// Get length
-					int len = 0;
-					for (int_strsize i = 0; true; i++)
-						if (pathPtr[i] == (char16)0)
-						{
-							len = i;
-							break;
-						}
-
-					if (Encoding.UTF16.DecodeToUTF8(Span<uint8>((uint8*)pathPtr, len * sizeof(char16)), userPath) case .Ok)
-					{
-						Path.Clean(Path.InternalCombine(.. scope .(), userPath, "My Games", fsTitle), userDir);
-						dSuccess = true;
-					}
-				}
-				Windows.COM_IUnknown.CoTaskMemFree(pathPtr);
-
-				// Alternative
-				if (!dSuccess)
-				{
-					userPath.Clear();
-					Environment.GetEnvironmentVariable("APPDATA", userPath);
-					if (!userPath.IsEmpty)
-						Path.Clean(Path.InternalCombine(.. scope .(), userPath, fsTitle), userDir);
-				}
+				Path.Clean(Path.InternalCombine(.. scope .(), userPath, "My Games", fsTitle), userDir);
 			}
-#endif
-#if BF_PLATFORM_LINUX
+			else
+			{
+				// Alternative
+				userPath.Clear();
+				Environment.GetEnvironmentVariable("APPDATA", userPath);
+				if (!userPath.IsEmpty)
+					Path.Clean(Path.InternalCombine(.. scope .(), userPath, fsTitle), userDir);
+			}
+#elif BF_PLATFORM_LINUX
 			Environment.GetEnvironmentVariable("XDG_DATA_HOME", userPath);
 			if (!userPath.IsEmpty)
 			{
@@ -104,8 +86,7 @@ namespace Pile
 				if (!userPath.IsEmpty)
 					Path.Clean(Path.InternalCombine(.. scope .(), userPath, ".local", "share", fsTitle), userDir);
 			}
-#endif
-#if BF_PLATFORM_MACOS
+#elif BF_PLATFORM_MACOS
 			Environment.GetEnvironmentVariable("HOME", userPath);
 			if (!userPath.IsEmpty)
 				Path.Clean(Path.InternalCombine(.. scope .(), userPath, "Library", "Application Support", fsTitle), userDir);
