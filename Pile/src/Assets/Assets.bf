@@ -61,9 +61,12 @@ namespace Pile
 #if DEBUG
 			System.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 
+#if BF_PLATFORM_WINDOWS // TODO: when fs-watcher is implemented for other platforms beef-side, remove this restriction (and the two ones below)
 			let assetsSource = MakeScopedAssetsSourcePath!();
 			if (Directory.Exists(assetsSource))
 				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, null, null);
+#endif
+
 #endif
 		}
 
@@ -71,7 +74,11 @@ namespace Pile
 		{
 #if DEBUG
 			System.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
+
+#if BF_PLATFORM_WINDOWS
 			if (assetsWatcher != null) Platform.BfpFileWatcher_Release(assetsWatcher);
+#endif
+
 #endif
 		}
 
@@ -87,7 +94,11 @@ namespace Pile
 		static void OnWindowFocusChanged()
 		{
 			// The window was just focused again and the game is not just starting
-			if (assetsChanged && System.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
+			if (
+#if BF_PLATFORM_WINDOWS
+				assetsChanged &&
+#endif
+				System.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
 			{
 				HotReloadPackages();
 				assetsChanged = false;

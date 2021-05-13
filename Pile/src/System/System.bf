@@ -59,6 +59,7 @@ namespace Pile
 			// We want "<documents folder>/My Games/<game name>"
 			if (Platform.GetStrHelper(userPath, scope (outPtr, outSize, outResult) =>
 				{
+					// TODO: we may want to use this for other platforms too when it's implemented beef-side
 					Platform.BfpFileResult res = ?;
 					Platform.BfpDirectory_GetSysDirectory(.Documents, outPtr, outSize, &res);
 					*outResult = (.)res;
