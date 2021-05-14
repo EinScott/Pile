@@ -213,53 +213,56 @@ namespace Pile
 					.White);
 			}
 
-			let textScale = Vector2(((float)scale / font.Size) * 5);
-
-			String perfText = scope .();
-
-			// Fps, delta & freeze
+			if (font != null)
 			{
-				int64 tFPS = 0;
-				if (Time.loopTicks > 0)
-					tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
-
-				perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nVSync: {}, Draw Calls: {:00}, TriCount: {:0000}, SoundCount: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, System.window.VSync, Graphics.DebugInfo.drawCalls, Graphics.DebugInfo.triCount, Audio.SoundCount, Audio.AudibleSoundCount);
-			}
+				let textScale = Vector2(((float)scale / font.Size) * 5);
+	
+				String perfText = scope .();
+	
+				// Fps, delta & freeze
+				{
+					int64 tFPS = 0;
+					if (Time.loopTicks > 0)
+						tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
+	
+					perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nVSync: {}, Draw Calls: {:00}, TriCount: {:0000}, SoundCount: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, System.window.VSync, Graphics.DebugInfo.drawCalls, Graphics.DebugInfo.triCount, Audio.SoundCount, Audio.AudibleSoundCount);
+				}
 
 #if DEBUG
-			if (sectionDurationsRead.Count > 0)
-			{
-				List<(String key, TimeSpan value)> ranking = scope .();
-
-				for (let pair in sectionDurationsRead) // Rank sections
+				if (sectionDurationsRead.Count > 0)
 				{
-					bool inserted = false;
-					for (int i < ranking.Count)
+					List<(String key, TimeSpan value)> ranking = scope .();
+	
+					for (let pair in sectionDurationsRead) // Rank sections
 					{
-						let ranked = ref ranking[i];
-						if (ranked.value < pair.value) // The pair should be here in the table
+						bool inserted = false;
+						for (int i < ranking.Count)
 						{
-							if (ranking.Count == perfTrackDisplayCount) // Remove if we would push beyond what we need
-								ranking.PopBack();
-
-							ranking.Insert(i, pair);
-							inserted = true;
-							break;
+							let ranked = ref ranking[i];
+							if (ranked.value < pair.value) // The pair should be here in the table
+							{
+								if (ranking.Count == perfTrackDisplayCount) // Remove if we would push beyond what we need
+									ranking.PopBack();
+	
+								ranking.Insert(i, pair);
+								inserted = true;
+								break;
+							}
 						}
+	
+						if (!inserted && ranking.Count < perfTrackDisplayCount)
+							ranking.Add(pair);
 					}
-
-					if (!inserted && ranking.Count < perfTrackDisplayCount)
-						ranking.Add(pair);
+	
+					for (let pair in ranking) // Draw sections
+					{
+						perfText.AppendF("{:0.000}ms {}\n", (float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond, pair.key);
+					}
 				}
-
-				for (let pair in ranking) // Draw sections
-				{
-					perfText.AppendF("{:0.000}ms {}\n", (float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond, pair.key);
-				}
-			}
 #endif
 
-			batch.Text(font, perfText, .(scale, 4 * scale), textScale, .Zero, 0, .White);
+				batch.Text(font, perfText, .(scale, 4 * scale), textScale, .Zero, 0, .White);
+			}
 		}
 
 		[Inline]

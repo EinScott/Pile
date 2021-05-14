@@ -55,7 +55,7 @@ namespace Pile
 						}
 
 						if (!Directory.Exists(assetsPath))
-							LogErrorReturn!("Packager should only be called by the build process. Provide an absolute or relative path as a second arg for manual usage");
+							LogErrorReturn!("Assets folder couldn't be found in workspace.");
 					}
 
 					inPath.Append(assetsPath);
