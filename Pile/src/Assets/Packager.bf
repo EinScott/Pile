@@ -55,7 +55,10 @@ namespace Pile
 						}
 
 						if (!Directory.Exists(assetsPath))
-							LogErrorReturn!("Assets folder couldn't be found in workspace.");
+						{
+							Log.Warn("Assets folder couldn't be found in workspace.");
+							return .Ok;
+						}
 					}
 
 					inPath.Append(assetsPath);
