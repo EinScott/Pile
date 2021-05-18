@@ -53,17 +53,6 @@ namespace Pile
 			if (instance != null) delete instance;
 		}
 
-		/// Useful for Dictionary<Type, TOther> and alike where the key is managed elsewhere
-		public static mixin DeleteDictionaryAndValues(var container)
-		{
-			if (container != null)
-			{
-				for (var value in container)
-					delete value.value;
-				delete container;
-			}
-		}
-
 		public static mixin DeleteContainerAndDisposeItems(var container)
 		{
 			if (container != null)
