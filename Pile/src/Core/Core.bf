@@ -19,7 +19,7 @@ namespace Pile
 		static bool exiting;
 		static uint forceSleepMS;
 
-		// This is interchangable.. if you really need to
+		// This is interchangeable.. if you really need to
 		internal static function void() coreLoop = => DoCoreLoop;
 
 		internal static Event<Action> OnInit = .() ~ _.Dispose();

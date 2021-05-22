@@ -11,7 +11,7 @@ namespace Pile
 	static class Assets
 	{
 		static Packer packer = new Packer() ~ delete _;
-		static List<Texture> atlas = new List<Texture>() ~ DeleteContainerAndItems!(_);
+		static List<Texture> atlas ~ if (_ != null) DeleteContainerAndItems!(_);
 
 		static Dictionary<Type, Dictionary<String, Object>> assets = new Dictionary<Type, Dictionary<String, Object>>() ~
 			{
@@ -55,6 +55,9 @@ namespace Pile
 
 		internal static void Initialize()
 		{
+			// Create these here to give the game time to change default settings
+			atlas = new List<Texture>();
+
 			// Get packages path
 			Path.Clean(Path.InternalCombine(.. scope .(), System.DataPath, "packages"), packagesPath);
 
