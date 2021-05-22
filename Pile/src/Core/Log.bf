@@ -4,9 +4,11 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 
+using internal Pile;
+
 namespace Pile
 {
-	[Optimize]
+	[Optimize,StaticInitAfter(typeof(Console)),StaticInitPriority(PILE_SINIT_ENTRY + 10)] // Before everything else
 	static class Log
 	{
 		public enum Types

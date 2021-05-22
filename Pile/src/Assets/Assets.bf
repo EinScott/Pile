@@ -7,7 +7,7 @@ using internal Pile;
 
 namespace Pile
 {
-	[Optimize]
+	[Optimize,StaticInitPriority(PILE_SINIT_IMPL - 10)] // After impls
 	static class Assets
 	{
 		static Packer packer = new Packer() ~ delete _;
