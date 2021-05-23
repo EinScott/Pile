@@ -4,5 +4,5 @@ Dependencies = {corlib = "*", Pile = "*", Pile_OpenGL = "*", Pile_SDL2 = "*", Pi
 [Project]
 Name = "Game"
 TargetType = "BeefGUIApplication"
-StartupObject = "Pile.EntryPoint"
+StartupObject = "Pile.Core"
 Aliases = ["PileGame"]

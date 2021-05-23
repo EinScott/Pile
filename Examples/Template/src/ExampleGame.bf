@@ -8,9 +8,9 @@ namespace Game
 	{
 		static this()
 		{
-			EntryPoint.Config.createGame = () => new ExampleGame();
-			EntryPoint.Config.gameTitle = "ExamplePileGame";
-			EntryPoint.Config.windowTitle = "Example Game Window";
+			Core.Config.createGame = () => new ExampleGame();
+			Core.Config.gameTitle = "ExamplePileGame";
+			Core.Config.windowTitle = "Example Game Window";
 		}
 
 		protected override void Startup()

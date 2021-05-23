@@ -8,9 +8,9 @@ namespace Game
 	{
 		static this()
 		{
-			EntryPoint.Config.createGame = () => new ExampleGame();
-			EntryPoint.Config.gameTitle = "example";
-			EntryPoint.Config.windowTitle = "Example Game";
+			Core.Config.createGame = () => new ExampleGame();
+			Core.Config.gameTitle = "example";
+			Core.Config.windowTitle = "Example Game";
 		}
 
 		Batch2D batch = new .() ~ delete _;
