@@ -8,7 +8,7 @@ namespace Pile
 {
 	static
 	{
-		// EntryPoint is initialized first in this lib
+		// Core is initialized first in this lib
 		internal const int PILE_SINIT_ENTRY = 50;
 		// Implementations (such as Graphics, ...) are initialized after, but before Core
 		// Even in static init and destruction Core can rely on the implementation modules

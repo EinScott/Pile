@@ -36,10 +36,10 @@ namespace Pile
 		
 		Texture[] tex ~ DeleteContainerAndItems!(_);
 
-		public this(Font font, uint32 size, Span<char32> charset, TextureFilter filter = .Linear, bool genMipmaps = true)
+		public this(Font font, uint32 size, Span<char32> charset, TextureFilter filter = Core.Defaults.SpriteFontFilter, bool genMipmaps = Core.Defaults.SpriteFontsGenMipmaps)
 			: this(scope FontSize(font, size, charset), filter, genMipmaps) {}
 
-		public this(FontSize fontSize, TextureFilter filter = .Linear, bool genMipmaps = true)
+		public this(FontSize fontSize, TextureFilter filter = Core.Defaults.SpriteFontFilter, bool genMipmaps = Core.Defaults.SpriteFontsGenMipmaps)
 		{
 			FamilyName.Set(fontSize.Font.FamilyName);
 			StyleName.Set(fontSize.Font.StyleName);

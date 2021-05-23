@@ -7,9 +7,6 @@ namespace Pile
 {
 	class Texture
 	{
-		public static TextureFilter DefaultTextureFilter = TextureFilter.Linear;
-		public static bool DefaultTextureGenMipmaps = true;
-
 		public readonly TextureFormat format;
 
 		public uint32 Width { get; private set; }
@@ -41,7 +38,7 @@ namespace Pile
 
 		public extern bool IsFrameBuffer { get; }
 
-		public this(uint32 width, uint32 height, TextureFormat format = .Color, TextureFilter filter = DefaultTextureFilter, bool genMipmaps = DefaultTextureGenMipmaps)
+		public this(uint32 width, uint32 height, TextureFormat format = .Color, TextureFilter filter = Core.Defaults.TextureFilter, bool genMipmaps = Core.Defaults.TexturesGenMipmaps)
 		{
 			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
 
@@ -56,7 +53,7 @@ namespace Pile
 			Initialize();
 		}
 
-		public this(Bitmap bitmap, TextureFilter filter = DefaultTextureFilter, bool genMipmaps = DefaultTextureGenMipmaps)
+		public this(Bitmap bitmap, TextureFilter filter = Core.Defaults.TextureFilter, bool genMipmaps = Core.Defaults.TexturesGenMipmaps)
 			: this(bitmap.Width, bitmap.Height, .Color, filter, genMipmaps)
 		{
 			SetData(bitmap.Pixels.Ptr);

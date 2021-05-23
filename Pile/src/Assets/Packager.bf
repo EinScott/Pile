@@ -43,14 +43,14 @@ namespace Pile
 					// If the usual dir doesnt exist... try args
 					if (!Directory.Exists(assetsPath))
 					{
-						if (EntryPoint.CommandLine.Count > 1)
+						if (Core.CommandLine.Count > 1)
 						{
-							if (Path.IsPathRooted(EntryPoint.CommandLine[1]))
-								assetsPath.Set(EntryPoint.CommandLine[1]);
+							if (Path.IsPathRooted(Core.CommandLine[1]))
+								assetsPath.Set(Core.CommandLine[1]);
 							else
 							{
 								assetsPath.Clear();
-								Path.GetAbsolutePath(EntryPoint.CommandLine[1], dirPath, assetsPath);
+								Path.GetAbsolutePath(Core.CommandLine[1], dirPath, assetsPath);
 							}
 						}
 

@@ -7,13 +7,79 @@ using internal Pile;
 
 namespace Pile
 {
-	[Optimize]
+	struct RunConfig
+	{
+		public WindowState windowState;
+		public uint32 windowWidth = 1280;
+		public uint32 windowHeight = 720;
+		public StringView gameTitle;
+		public StringView windowTitle;
+		public function Game() createGame;
+	}
+
+	[Obsolete("EntryPoint has been moved into Core", false)]
+	typealias EntryPoint = Core;
+
+	[Optimize,StaticInitPriority(PILE_SINIT_ENTRY)]
 	static class Core
 	{
+		public static Event<delegate Result<void>()> OnStart ~ OnStart.Dispose();
+		public static RunConfig Config = .();
+
+		public static String[] CommandLine;
+
+		static int Main(String[] args)
+		{
+			// Store args
+			CommandLine = args;
+
+			// Packager mode
+			if (args.Count > 0 && args[0] == "-packager")
+			{
+				if (RunPackager() case .Err)
+					Runtime.FatalError("Error while running packager");
+				return 0;
+			}
+
+#if DEBUG
+			// In debug, run this on actual execute for debugging perks
+			RunPackager().IgnoreError();
+#endif
+			
+			// Run onStart
+			Runtime.Assert(OnStart() case .Ok, "Error in OnStart");
+			OnStart.Dispose();
+			
+			// Run with registered settings
+			Run(Config);
+
+			return 0;
+		}
+
+		public static class Defaults
+		{
+			public static bool TexturesGenMipmaps = true;
+			public static bool SpriteFontsGenMipmaps = true;
+			public static TextureFilter TextureFilter = .Linear;
+			public static TextureFilter SpriteFontFilter = .Linear;
+
+			public static void SetupPixelPerfect(bool pixelFonts = false)
+			{
+				TexturesGenMipmaps = false;
+				TextureFilter = .Nearest;
+
+				if (pixelFonts)
+				{
+					SpriteFontsGenMipmaps = false;
+					SpriteFontFilter = .Linear;
+				}
+			}
+		}
+
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
 		// '.Minor' should be incremented for changes incompatible with older versions.
 		// '.Major' is incremented at milestones or big changes.
-		static readonly Version Version = .(2, 1);
+		public static readonly Version Version = .(2, 2);
 
 		internal static bool run;
 		static bool exiting;
@@ -34,8 +100,8 @@ namespace Pile
 		internal static void Run(RunConfig config)
 		{
 			Debug.Assert(!run, "Core was already run");
-			Debug.Assert(config.gameTitle.Ptr != null, "Pile.EntryPoint.RunPreferences.gameTitle has to be set. Provide an unchanging, file system safe string literal");
-			Debug.Assert(config.createGame != null, "Pile.EntryPoint.RunPreferences.createGame has to be set. Provide a function that returns an instance of your game");
+			Debug.Assert(config.gameTitle.Ptr != null, "Core.Config.gameTitle has to be set. Provide an unchanging, file system safe string literal");
+			Debug.Assert(config.createGame != null, "Core.Config.createGame has to be set. Provide a function that returns an instance of your game");
 
 			run = true;
 
