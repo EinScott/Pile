@@ -1,5 +1,14 @@
+using System;
+
 namespace Pile
 {
+	extension Keys
+	{
+		// Account for extensions
+		[Comptime]
+		public static int Count() => typeof(Keys).MaxValue.Underlying + 1;
+	}
+
 	enum Keys
 	{
 	    Unknown = 0,

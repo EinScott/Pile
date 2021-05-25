@@ -1,5 +1,14 @@
+using System;
+
 namespace Pile
 {
+	extension Buttons
+	{
+		// Account for extensions
+		[Comptime]
+		public static int Count() => typeof(Buttons).MaxValue.Underlying + 1;
+	}
+
 	enum Buttons
 	{
 		Unknown = 0,

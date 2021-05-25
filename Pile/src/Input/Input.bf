@@ -8,7 +8,7 @@ namespace Pile
 {
 	static class Input
 	{
-		public const uint MaxControllers = 8;
+		public const uint MaxControllers = Controllers.Count();
 
 		internal static InputState state = InputState();
 		internal static InputState lastState = InputState();
@@ -16,7 +16,7 @@ namespace Pile
 
 		public static readonly Keyboard Keyboard => state.keyboard;
 		public static readonly Mouse Mouse => state.mouse;
-		public static readonly ref Controller GetController(int index) => ref state.GetController(index);
+		public static readonly ref Controller GetController(Controllers index) => ref state.GetController(index);
 
 		public static float repeatDelay = 0.4f;
 		public static float repeatInterval = 0.03f;
@@ -49,13 +49,13 @@ namespace Pile
 
 		[Inline]
 		/// left- and rightMotor should only be floats from 0.0 to 1.0, duration is in MS
-		public static void SetControllerRumble(int index, float leftMotor, float rightMotor, uint duration)
+		public static void SetControllerRumble(Controllers index, float leftMotor, float rightMotor, uint duration)
 		{
 			Debug.Assert(index >= 0 && index < (.)MaxControllers);
 			Debug.Assert(leftMotor >= 0 && leftMotor <= 1);
 			Debug.Assert(rightMotor >= 0 && rightMotor <= 1);
 
-			SetControllerRumbleInternal(index, leftMotor, rightMotor, duration);
+			SetControllerRumbleInternal(index.Underlying, leftMotor, rightMotor, duration);
 		}
 		public static extern void SetControllerRumbleInternal(int index, float leftMotor, float rightMotor, uint duration);
 

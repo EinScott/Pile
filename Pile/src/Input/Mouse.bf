@@ -4,7 +4,7 @@ namespace Pile
 {
 	struct Mouse
 	{
-		public const int MaxButtons = 6;
+		public const int MaxButtons = MouseButtons.Count();
 
 		internal bool[MaxButtons] pressed = .();
 		internal bool[MaxButtons] down = .();

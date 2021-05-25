@@ -4,7 +4,7 @@ namespace Pile
 {
 	struct Keyboard
 	{
-		public const int MaxKeys = 400;
+		public const int MaxKeys = Keys.Count();
 
 		internal bool[MaxKeys] pressed = .();
 		internal bool[MaxKeys] down = .();

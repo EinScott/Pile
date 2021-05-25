@@ -50,25 +50,25 @@ namespace Pile
 	        vertical.Add(up, down);
 	    }
 
-	    public void Add(int controller, Buttons left, Buttons right, Buttons up, Buttons down)
+	    public void Add(Controllers controller, Buttons left, Buttons right, Buttons up, Buttons down)
 	    {
 	        horizontal.Add(controller, left, right);
 	        vertical.Add(controller, up, down);
 	    }
 
-	    public void Add(int controller, Axes horizontal, Axes vertical, float deadzoneHorizontal = 0f, float deadzoneVertical = 0f)
+	    public void Add(Controllers controller, Axes horizontal, Axes vertical, float deadzoneHorizontal = 0f, float deadzoneVertical = 0f)
 	    {
 	        this.horizontal.Add(controller, horizontal, deadzoneHorizontal);
 	        this.vertical.Add(controller, vertical, deadzoneVertical);
 	    }
 
-	    public void AddLeftJoystick(int controller, float deadzoneHorizontal = 0, float deadzoneVertical = 0)
+	    public void AddLeftJoystick(Controllers controller, float deadzoneHorizontal = 0, float deadzoneVertical = 0)
 	    {
 	        horizontal.Add(controller, Axes.LeftX, deadzoneHorizontal);
 	        vertical.Add(controller, Axes.LeftY, deadzoneVertical);
 	    }
 
-	    public void AddRightJoystick(int controller, float deadzoneHorizontal = 0, float deadzoneVertical = 0)
+	    public void AddRightJoystick(Controllers controller, float deadzoneHorizontal = 0, float deadzoneVertical = 0)
 	    {
 	        horizontal.Add(controller, Axes.RightX, deadzoneHorizontal);
 	        vertical.Add(controller, Axes.RightY, deadzoneVertical);

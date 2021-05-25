@@ -110,9 +110,9 @@ namespace Pile
 			[SkipCall]
 		    protected internal override void Update() { }
 
-		    internal this(int controller, Buttons button)
+		    internal this(Controllers controller, Buttons button)
 		    {
-		        this.index = controller < (int)Input.MaxControllers ? controller : 0;
+		        this.index = controller.Underlying;
 		        this.button = button;
 		    }
 		}
@@ -187,9 +187,9 @@ namespace Pile
 		            pressedTimestamp = Input.state.controllers[index].Timestamp(axis);
 		    }
 
-		    internal this(int controller, Axes axis, float threshold)
+		    internal this(Controllers controller, Axes axis, float threshold)
 		    {
-		        this.index = controller < (int)Input.MaxControllers ? controller : 0;
+		        this.index = controller.Underlying;
 		        this.axis = axis;
 		        this.threshold = threshold;
 		    }
@@ -288,13 +288,13 @@ namespace Pile
 		        Nodes.Add(new MouseButtonNode(button));
 		}
 
-		public void AddControllerButton(int controller, params Buttons[] buttons)
+		public void AddControllerButton(Controllers controller, params Buttons[] buttons)
 		{
 		    for (var button in buttons)
 		        Nodes.Add(new ButtonNode(controller, button));
 		}
 
-		public void AddControllerAxis(int controller, Axes axis, float threshold)
+		public void AddControllerAxis(Controllers controller, Axes axis, float threshold)
 		{
 		    Nodes.Add(new AxisNode(controller, axis, threshold));
 		}

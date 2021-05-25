@@ -47,9 +47,9 @@ namespace Pile
 			[Inline]
 	        public override double Timestamp => Input.state.controllers[index].Timestamp(button);
 
-	        internal this(int controller, Buttons button, bool positive)
+	        internal this(Controllers controller, Buttons button, bool positive)
 	        {
-	            this.index = controller;
+	            this.index = controller.Underlying;
 	            this.button = button;
 	            this.positive = positive;
 	        }
@@ -79,9 +79,9 @@ namespace Pile
 	            }
 	        }
 
-	        internal this(int controller, Axes axis, float deadzone, bool positive)
+	        internal this(Controllers controller, Axes axis, float deadzone, bool positive)
 	        {
-	            this.index = controller;
+	            this.index = controller.Underlying;
 	            this.axis = axis;
 	            this.deadzone = deadzone;
 	            this.positive = positive;
@@ -159,23 +159,23 @@ namespace Pile
 	        Nodes.Add(new KeyNode(key, isPositive));
 	    }
 
-	    public void Add(int controller, Buttons negative, Buttons positive)
+	    public void Add(Controllers controller, Buttons negative, Buttons positive)
 	    {
 	        Nodes.Add(new ButtonNode(controller, negative, false));
 	        Nodes.Add(new ButtonNode(controller, positive, true));
 	    }
 
-	    public void Add(int controller, Buttons button, bool isPositive)
+	    public void Add(Controllers controller, Buttons button, bool isPositive)
 	    {
 	        Nodes.Add(new ButtonNode(controller, button, isPositive));
 	    }
 
-	    public void Add(int controller, Axes axis, float deadzone = 0f)
+	    public void Add(Controllers controller, Axes axis, float deadzone = 0f)
 	    {
 	        Nodes.Add(new AxisNode(controller, axis, deadzone, true));
 	    }
 
-	    public void Add(int controller, Axes axis, bool inverse, float deadzone = 0f)
+	    public void Add(Controllers controller, Axes axis, bool inverse, float deadzone = 0f)
 	    {
 	        Nodes.Add(new AxisNode(controller, axis, deadzone, !inverse));
 	    }

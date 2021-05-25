@@ -1,5 +1,14 @@
+using System;
+
 namespace Pile
 {
+	extension Axes
+	{
+		// Account for extensions
+		[Comptime]
+		public static int Count() => typeof(Axes).MaxValue.Underlying + 1;
+	}
+
 	enum Axes
 	{
 		Unknown = 0,
