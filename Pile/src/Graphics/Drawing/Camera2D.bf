@@ -100,6 +100,11 @@ namespace Pile
 	    public int Left => point.X - (int)(viewport.X / 2);
 	    public int Right => point.X + (int)(viewport.X / 2);
 
+		public this(UPoint2 viewport)
+		{
+			this.viewport = viewport;
+		}
+
 	    void UpdateMatrix()
 	    {
 	        // Create orthographics matrix centered on the position point
