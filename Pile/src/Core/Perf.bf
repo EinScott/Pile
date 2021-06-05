@@ -220,12 +220,19 @@ namespace Pile
 				String perfText = scope .();
 	
 				// Fps, delta & freeze
+				STATS:
 				{
 					int64 tFPS = 0;
 					if (Time.loopTicks > 0)
 						tFPS = TimeSpan.TicksPerSecond / Time.loopTicks;
-	
-					perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nVSync: {}, Draw Calls: {:00}, TriCount: {:0000}, SoundCount: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, System.window.VSync, Graphics.DebugInfo.drawCalls, Graphics.DebugInfo.triCount, Audio.SoundCount, Audio.AudibleSoundCount);
+
+					String gfxMem = String.Empty;
+					if (Graphics.debugInfo.totalGPUMemMB != 0)
+					{
+						gfxMem = scope:STATS .()..AppendF("GPU Memory: {}/{}MB, ", Graphics.debugInfo.usedGPUMemMB, Graphics.debugInfo.totalGPUMemMB);
+					}
+
+					perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nVSync: {}, Draw Calls: {:00}, Tri Count: {:0000}, {}Sound Count: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, System.window.VSync, Graphics.DebugInfo.drawCalls, Graphics.DebugInfo.triCount, gfxMem, Audio.SoundCount, Audio.AudibleSoundCount);
 				}
 
 #if DEBUG

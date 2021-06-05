@@ -1,6 +1,7 @@
 using static OpenGL43.GL;
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -36,6 +37,9 @@ namespace Pile
 		internal static List<uint32> programsToDelete = new List<uint32>() ~ delete _;
 
 		static Shader defaultBatchShader; // may be null
+#if DEBUG
+		static uint memQueryTimer;
+#endif
 
 		static this()
 		{
@@ -70,6 +74,15 @@ namespace Pile
 
 			info.AppendF("device: {}, vendor: {}", StringView(glGetString(GL_RENDERER)), StringView(glGetString(GL_VENDOR)));
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
+
+#if DEBUG
+			if (StringView(glGetString(GL_VENDOR)) == "NVIDIA Corporation")
+			{
+				int32 totalAvailMem = -1;
+				debugInfo.totalGPUMemMB = ((.)*glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, .. &totalAvailMem)) / 1000;
+				Debug.Assert(totalAvailMem >= 0);
+			}
+#endif
 		}
 
 		protected internal override static void Destroy()
@@ -123,10 +136,18 @@ namespace Pile
 			}
 		}
 
-		[SkipCall]
+		[DebugOnly]
 		protected static override void AfterRenderInternal()
 		{
-			
+#if DEBUG
+			if (memQueryTimer >= 20 && debugInfo.totalGPUMemMB != 0)
+			{
+				int32 usedMem = 0;
+				debugInfo.usedGPUMemMB = debugInfo.totalGPUMemMB - ((.)*glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, .. &usedMem)) / 1000;
+				memQueryTimer = 0;
+			}
+			memQueryTimer++;
+#endif			
 		}
 
 		protected static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)

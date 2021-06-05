@@ -6,6 +6,10 @@ namespace OpenGL43 {
     static class GL {
         public function void* GetProcAddressFunc(StringView procname);
 
+		// GL_NVX_gpu_memory_info
+		public const uint GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX = 0x9048;
+		public const uint GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX = 0x9049;
+
         public const uint GL_DEPTH_BUFFER_BIT = 0x00000100;
         public const uint GL_STENCIL_BUFFER_BIT = 0x00000400;
         public const uint GL_COLOR_BUFFER_BIT = 0x00004000;

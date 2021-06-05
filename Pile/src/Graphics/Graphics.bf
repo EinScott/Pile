@@ -28,6 +28,8 @@ namespace Pile
 		{
 			public uint drawCalls;
 			public uint triCount;
+			public uint usedGPUMemMB;
+			public uint totalGPUMemMB;
 		}
 		internal static DebugInfoContainer debugInfo; // Will be assigned to and reset on frame end
 		public static DebugInfoContainer DebugInfo { get; internal set; }
@@ -40,8 +42,11 @@ namespace Pile
 		internal static void AfterRender()
 		{
 #if DEBUG
+			// These will not always be updated, so keep them
+			let totalMem = debugInfo.totalGPUMemMB;
+			let usedMem = debugInfo.usedGPUMemMB;
 			DebugInfo = debugInfo;
-			debugInfo = .();
+			debugInfo = .() { totalGPUMemMB = totalMem, usedGPUMemMB = usedMem };
 #endif
 
 			AfterRenderInternal();
