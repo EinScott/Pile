@@ -24,7 +24,6 @@ namespace Pile
 			{
 				if (sdlCursors[i] != null)
 					SDL.FreeCursor(sdlCursors[i]);
-				delete sdlCursors[i];
 			}
 		}
 
