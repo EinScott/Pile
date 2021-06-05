@@ -14,7 +14,7 @@ namespace Game
 		}
 
 		Batch2D batch = new .() ~ delete _;
-		SpriteFont sf ~ delete _;
+		SpriteFont debugFont ~ delete _;
 
 		Asset<Subtexture> button = new Asset<Subtexture>("button") ~ delete _;
 
@@ -26,7 +26,7 @@ namespace Game
 			Assets.LoadPackage("font");
 
 			let font = Assets.Get<Font>("nunito_semibold");
-			sf = new SpriteFont(font, 46, Charsets.ASCII);
+			debugFont = new SpriteFont(font, 46, Charsets.ASCII);
 
 			Assets.UnloadPackage("font");
 
@@ -97,7 +97,7 @@ namespace Game
 			batch.Clear();
 
 			if (debugRender)
-				Perf.Render(batch, sf);
+				Perf.Render(batch, debugFont);
 
 			// Sometimes we need to get the longer overloads here when we
 			// have to specify that we want to treat the inserted texture
@@ -106,34 +106,34 @@ namespace Game
 
 			{
 				PerfTrack!("DrawTextSimple");
-				batch.Text(sf, "Sample text... I guess?", .(120, 200), .White);
+				batch.Text(debugFont, "Sample text... I guess?", .(120, 200), .White);
 			}
 
 			{
 				PerfTrack!("DrawTextModified");
-				batch.Text(sf, "Hello! I am a text.\nNice to see you.", .(120, 300), .White, .Zero, => SuperCharModifier);
+				batch.Text(debugFont, "Hello! I am a text.\nNice to see you.", .(120, 300), .White, .Zero, => SuperCharModifier);
 			}
 
 			{
 				PerfTrack!("DrawTextMixed");
-				batch.TextMixed(sf, "Press {0} to doubt. {0}", Vector2(120, 450), .White, .Zero, => WiggleCharModifier, true, true, button.Asset);
+				batch.TextMixed(debugFont, "Press {0} to doubt. {0}", Vector2(120, 450), .White, .Zero, => WiggleCharModifier, true, true, button.Asset);
 			}
 
 			batch.HollowRect(textBox, 2, .DarkGray);
 			{
 				PerfTrack!("DrawTextFramed");
-				batch.TextFramed(sf, "Hello I am a text.\nI squeeze in here somehow.\nWeird...", textBox, .White);
+				batch.TextFramed(debugFont, "Hello I am a text.\nI squeeze in here somehow.\nWeird...", textBox, .White);
 			}
 
 			batch.HollowRect(textBox2, 2, .DarkGray);
 			{
 				PerfTrack!("DrawTextMixedFramed");
-				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, .Gray, .Zero, 0, => CharModifier.DefaultCharModifierFunc, true, true, button.Asset);
+				batch.TextMixedFramed(debugFont, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, .Gray, .Zero, 0, => CharModifier.DefaultCharModifierFunc, true, true, button.Asset);
 			}
 
 			{
 				PerfTrack!("DrawTextMixedFramedModified");
-				batch.TextMixedFramed(sf, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .White, .White, .Zero, 0, => SuperCharModifier, true, true, button.Asset);
+				batch.TextMixedFramed(debugFont, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .White, .White, .Zero, 0, => SuperCharModifier, true, true, button.Asset);
 			}
 
 			// Render batch

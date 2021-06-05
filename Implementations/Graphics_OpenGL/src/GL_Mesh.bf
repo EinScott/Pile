@@ -88,7 +88,7 @@ namespace Pile
 			GL.glBindBuffer(glBufferType, 0);
 		}
 
-		public void Bind(Material material)
+		internal void Bind(Material material)
 		{
 			if (vertexArrayID == 0) GL.glGenVertexArrays(1, &vertexArrayID);
 

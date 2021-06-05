@@ -144,7 +144,7 @@ namespace Pile
 				return Vector4(val[offset], val[offset + 1], val[offset + 2], val[offset + 3]);
 			}
 
-			public Result<void> SetMat3x2(Matrix3x2 value, int index = 0)
+			public Result<void> SetMatrix3x2(Matrix3x2 value, int index = 0)
 			{
 				AssertParameters(.Matrix3x2, index);
 				
@@ -160,7 +160,7 @@ namespace Pile
 				return .Ok;
 			}
 
-			public Result<Matrix3x2> GetMat3x2(int index = 0)
+			public Result<Matrix3x2> GetMatrix3x2(int index = 0)
 			{
 				AssertParameters(.Matrix3x2, index);
 				
