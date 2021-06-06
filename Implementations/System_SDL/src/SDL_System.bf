@@ -80,13 +80,13 @@ namespace Pile
 							Window.Closed = true;
 							return;
 
-						case .SizeChanged: // Precedes .Resize, is always triggered when size changes
+						case .SizeChanged: // Precedes .Resized, is always triggered when size changes
+							Window.size.X = (.)event.window.data1;
+							Window.size.Y = (.)event.window.data2;
 							Window.OnResized();
 
 						// Size
 						case .Resized: // Only re-size through external causes
-							Window.size.X = (.)event.window.data1;
-							Window.size.Y = (.)event.window.data2;
 							Window.OnUserResized();
 		
 						// Moved
