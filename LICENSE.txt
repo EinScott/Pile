@@ -19,11 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Licenses and Copyrights for third party software distributed:
-
-Third party binaries used by Pile implementation projects, which are at
-./Implementations/(any)/dist/*, if that project uses a 3rd party library,
-will have their own LICENSE.txt file located inside that directory and
-fall under its therms. Third party code included in parts of this software
-has its own license notice at the top of that file.

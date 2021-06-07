@@ -8,8 +8,6 @@ namespace Pile
 {
 	extension Audio
 	{
-		// TODO: maybe some debug mode (SL_Bus.SetVisualizationEnable(bus, true);) like graphics
-
 		public static override String ApiName => "SoLoud";
 
 		static String info = new String() ~ delete _;

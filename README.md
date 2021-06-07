@@ -31,11 +31,13 @@ Help is appreciated, especially concerning supporting more platforms and core mo
 
 # License
 Pile is licensed under the MIT license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
-Other open source libraries used:
+
+Third party software used:
+- [fast-obj](https://github.com/thisistherk/fast_obj) - OBJ format support
 - [stb_truetype](https://github.com/nothings/stb/blob/master/stb_truetype.h) - Font handling
 - [referencesource/System.Numerics](https://github.com/microsoft/referencesource/tree/master/System.Numerics/System/Numerics) - Parts of the structs located in ./Pile/src/Struct/*
 - [SDL2](https://www.libsdl.org/) - System Implementation
 - [SoLoud](http://sol.gfxile.net/soloud/index.html) - Audio Implementation
 - [OpenGL-Beef](https://github.com/MineGame159/opengl-beef) - GL function bindings
 
-The licenses for the binaries of each library used in Implementation projects can be found in `./Implementations/(name)/dist/LICENSE.txt`.
+The licenses for the binaries of each library used in Implementation projects can be found in `./Implementations/(name)/dist/LICENSE.txt`. Source files that include third party code have a separate license notice at the top of the file.
