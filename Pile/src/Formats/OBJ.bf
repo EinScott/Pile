@@ -33,40 +33,57 @@ namespace Pile
 	{
 		public struct TextureData : IDisposable
 		{
-			public String name = new .(16);
-			public String path = new .(32);
+			public String name;
+			public String path; // Path will be the exact one from the file
+
+			public this(StringView nameView, StringView pathView)
+			{
+				name = new .(nameView);
+				path = new .(pathView);
+			}
 
 			public void Dispose()
 			{
+				if (IsEmpty)
+					return;
+
 				delete name;
 				delete path;
 			}
+
+			public bool IsEmpty => name == null;
 		}
 
 		public struct MaterialData : IDisposable
 		{
-			public String name = new .(16);
+			public String name;
 
-			public Vector3 ambient;
-			public Vector3 diffuse;
-			public Vector3 specular;
-			public Vector3 emisson;
-			public Vector3 transmittance;
-			public float shininess;
-			public float indexOfRefraction;
-			public Vector3 transmissionFilter;
-			public float dissolve; // Alpha
-			public int illuminationModel;
+			public Vector3 ambient = .Zero;
+			public Vector3 diffuse = .One;
+			public Vector3 specular = .Zero;
+			public Vector3 emisson = .Zero;
+			public Vector3 transmittance = .Zero;
+			public float shininess = 1;
+			public float indexOfRefraction = 1;
+			public Vector3 transmissionFilter = .One;
+			public float dissolve = 1; // Alpha
+			public int illuminationModel = 1;
 
-			public TextureData ambientMap;
-			public TextureData diffuseMap;
-			public TextureData specularMap;
-			public TextureData emissionMap;
-			public TextureData transmittanceMap;
-			public TextureData shininessMap;
-			public TextureData refractionMap;
-			public TextureData dissolveMap;
-			public TextureData bumpMap;
+			// Only properly initialized when used. Check IsEmpty
+			public TextureData ambientMap = default;
+			public TextureData diffuseMap = default;
+			public TextureData specularMap = default;
+			public TextureData emissionMap = default;
+			public TextureData transmittanceMap = default;
+			public TextureData shininessMap = default;
+			public TextureData refractionMap = default;
+			public TextureData dissolveMap = default;
+			public TextureData bumpMap = default;
+
+			public this(StringView nameView)
+			{
+				name = new .(nameView);
+			}
 
 			public void Dispose()
 			{
@@ -85,11 +102,30 @@ namespace Pile
 
 		public struct GroupData : IDisposable
 		{
-			public String name = new .(16);
+			public String name;
 
 			public uint32 faceCount;
 			public uint32 faceOffset;
 			public uint32 indexOffset;
+
+			public this() // This is what currGroup will call. Committing groups to the list will call CleanCopy()
+			{
+				this = default;
+				name = new .();
+			}
+
+			this(String name, uint32 faceCount, uint32 faceOffset, uint32 indexOffset)
+			{
+				this.name = name;
+				this.faceCount = faceCount;
+				this.faceOffset = faceOffset;
+				this.indexOffset = indexOffset;
+			}
+
+			public GroupData CleanCopy()
+			{
+				return .(new .(name), faceCount, faceOffset, indexOffset);
+			}
 
 			public void Dispose()
 			{
@@ -97,30 +133,23 @@ namespace Pile
 			}
 		}
 
-		/*public struct VertexData
-		{
-			public Vector3 position; // prev float
-			public Vector2 texCoord;
-			public Vector3 normal;
-		}*/
-
 		public struct FaceData
 		{
 			public uint32 vertices;
-			public uint32 materials;
+			public uint32 materialIndex;
 		}
 
 		public struct IndexData
 		{
-			public uint32 p; // @do what are these?
-			public uint32 t;
-			public uint32 n;
+			public uint32 positionIndex;
+			public uint32 texCoordIndex;
+			public uint32 normalIndex;
 		}
 
-		// @do: put back into struct? could have nextPosIndex etc for all 3 ??
-		public List<Vector3> positions = new .() ~ delete _;
-		public List<Vector2> texCoords = new .() ~ delete _;
-		public List<Vector3> normals = new .() ~ delete _;
+		// Add a dummy one in each
+		public List<Vector3> positions = new .()..Add(.()) ~ delete _;
+		public List<Vector2> texCoords = new .()..Add(.()) ~ delete _;
+		public List<Vector3> normals = new .()..Add(.()) ~ delete _;
 
 		public List<FaceData> faces = new .() ~ delete _;
 		public List<IndexData> indices = new .() ~ delete _; // One element per face vertex
@@ -129,117 +158,27 @@ namespace Pile
 		public List<GroupData> groups = new .() ~ DeleteContainerAndDisposeItems!(_);
 
 		public List<String> mtlFiles = new .() ~ DeleteContainerAndItems!(_); // Contains relative paths
-		GroupData currGroup = default;
-		uint32 nextMatIndex = 0;
+
+		GroupData currGroup;
+		uint32 currMatIndex;
 		uint currLine = 0;
 
 		public Result<void> ParseObj(Stream stream)
 		{
-			const int BUF_READ = 512;
-			String buf = scope .(BUF_READ); // This should be more than enough for at least one line
+			Runtime.Assert(currGroup.name == null, "ParseObj can only be called once");
 
+			// Only needs to be valid for the duration of this call
+			currGroup = .();
 			defer
 			{
-				if (@return == .Err && [Friend]currGroup.name != null)
-				{
-#unwarn // @do This is a bug where somehow the the Try!(ProcessLine()) doesn't work due to currGroup being "inaccessible"
-					[Friend]currGroup.Dispose();
-				}
+#unwarn // @do report bug: for some reason the Try! thinks that currGroup isn't accessible				
+				[Friend]currGroup.Dispose();
 			}
 
-			bool streamEnded = false;
-			while (true)
-			{
-				if (!streamEnded && buf.Length < BUF_READ && stream.ReadStrSized32(BUF_READ, buf) case .Err)
-					streamEnded = true;
-				if (streamEnded && buf.Length == 0) // End when we processed everyhing still in the buffer too
-					break;
+			Try!(ProcessStream(stream, scope => ProcessObjLine));
 
-				int lineEndIndex = buf.IndexOf('\n');
-
-				if (lineEndIndex == -1)
-					continue; // Read more from buffer
-
-				let line = StringView(&buf[0], lineEndIndex)..Trim();
-
-				if (line.Length > 0) // Skip empty lines
-					Try!(ProcessLine(line));
-
-				buf.Remove(0, lineEndIndex + 1);
-			}
-
-			return .Ok;
-		}
-
-		[Inline]
-		Result<void> ProcessLine(StringView line)
-		{
-			// Guaranteed to be at least length 1 and trimmed
-
-			switch (line[0])
-			{
-			case 'v':
-				if (line.Length < 2)
-					return .Err;
-
-				switch (line[1])
-				{
-				case ' ', '\t':
-					if (line.Length < 3) // v_ + something to process further
-						return .Err;
-
-					Try!(ProcessPosition(line.Substring(2)..TrimStart()));
-
-				case 't':
-					if (line.Length < 4 && line[2].IsWhiteSpace) // vt_ + something to process further
-						return .Err;
-
-					Try!(ProcessTexCoord(line.Substring(3)..TrimStart()));
-
-				case 'n':
-					if (line.Length < 4 && line[2].IsWhiteSpace) // vn_ + something to process further
-						return .Err;
-
-					Try!(ProcessNormal(line.Substring(3)..TrimStart()));
-				}
-
-			case 'f':
-				switch (line[1])
-				{
-				case ' ', '\t':
-					if (line.Length < 3) // v_ + something to process further
-						return .Err;
-
-					Try!(ProcessFace(line.Substring(2)..TrimStart()));
-				}
-
-			case 'g':
-				switch (line[1])
-				{
-				case ' ', '\t':
-					if (line.Length < 3) // v_ + something to process further
-						return .Err;
-
-					Try!(ProcessGroup(line.Substring(2)..TrimStart()));
-				}
-
-			case 'm':
-				if (line.Length < 8) // mtllib_ + something to process further
-					return .Err;
-
-				if (line.StartsWith("mtllib") && line[6].IsWhiteSpace)
-					Try!(ProcessMtlLib(line.Substring(7)..TrimStart()));
-
-			case 'u':
-				if (line.Length < 8)
-					return .Err;
-
-				if (line.StartsWith("usemtl") && line[6].IsWhiteSpace)
-					Try!(ProcessUseMtl(line.Substring(7)..TrimStart()));
-
-			/*case '#':
-				break;*/
-			}
+			// Flush final group
+			FlushGroup();
 
 			return .Ok;
 		}
@@ -249,7 +188,169 @@ namespace Pile
 		/// pass in MemoryStreams etc.
 		public Result<void> ParseMtl(Stream stream)
 		{
+			Runtime.Assert(currGroup.name != null, "Call ParseObj first");
+
+			return ProcessStream(stream, scope => ProcessMtlLine);
+		}
+
+		Result<void> ProcessStream(Stream stream, delegate Result<void>(StringView line) processFunc)
+		{
+			const int BUF_READ = 512;
+			String buf = scope .(BUF_READ); // This should be more than enough for at least one line
+
+			currLine = 0;
+			currMatIndex = 0;
+			bool streamEnded = false;
+			while (true)
+			{
+				if (!streamEnded && buf.Length < BUF_READ && stream.ReadStrSized32(BUF_READ, buf) case .Err)
+					streamEnded = true;
+				if (streamEnded && buf.Length == 0) // End when we processed everything still in the buffer too
+					break;
+
+				int lineEndIndex = buf.IndexOf('\n');
+
+				if (lineEndIndex == -1)
+					continue; // Read more from buffer
+
+				currLine++;
+				var line = StringView(&buf[0], lineEndIndex);
+
+				if (line.Length > 0 && line[0].IsWhiteSpace)
+					line.TrimStart();
+				if (line.Length > 0 && line[line.Length - 1].IsWhiteSpace)
+					line.TrimEnd();
+
+				if (line.Length > 0) // Skip empty lines
+					Try!(processFunc(line));
+
+				buf.Remove(0, lineEndIndex + 1);
+			}
+
 			return .Ok;
+		}
+
+		Result<void> ProcessMtlLine(StringView line)
+		{
+			// line is guaranteed to be at least length 1 and trimmed
+
+			switch (line[0])
+			{
+			case 'n':
+				if (line.Length < 8) // newmtl_ + something to process further
+					ErrLineEnd!();
+
+				if (line.StartsWith("newmtl") && line[6].IsWhiteSpace)
+				{
+
+				}
+			case 'K':
+
+			case 'N':
+
+			case 'T':
+
+			case 'd':
+
+			case 'i':
+
+			case 'm':
+
+			/*case '#':
+				break;*/
+			}
+
+			return .Ok;
+		}
+
+		Result<void> ProcessObjLine(StringView line)
+		{
+			// line is guaranteed to be at least length 1 and trimmed
+
+			StringView CleanedSubstr(StringView line, int subStrPos)
+			{
+				var arg = line.Substring(subStrPos);
+				if (arg[arg.Length - 1].IsWhiteSpace)
+					arg.TrimStart();
+				return arg;
+			}
+
+			switch (line[0])
+			{
+			case 'v':
+				if (line.Length < 2)
+					ErrLineEnd!();
+
+				switch (line[1])
+				{
+				case ' ', '\t':
+					if (line.Length < 3) // v_ + something to process further
+						ErrLineEnd!();
+
+					Try!(ProcessPosition(CleanedSubstr(line, 2)));
+
+				case 't':
+					if (line.Length < 4 && line[2].IsWhiteSpace) // vt_ + something to process further
+						ErrLineEnd!();
+
+					Try!(ProcessTexCoord(CleanedSubstr(line, 3)));
+
+				case 'n':
+					if (line.Length < 4 && line[2].IsWhiteSpace) // vn_ + something to process further
+						ErrLineEnd!();
+
+					Try!(ProcessNormal(CleanedSubstr(line, 3)));
+				}
+
+			case 'f':
+				switch (line[1])
+				{
+				case ' ', '\t':
+					if (line.Length < 3) // v_ + something to process further
+						ErrLineEnd!();
+
+					Try!(ProcessFace(CleanedSubstr(line, 2)));
+				}
+
+			case 'g':
+				switch (line[1])
+				{
+				case ' ', '\t':
+					if (line.Length < 3) // v_ + something to process further
+						ErrLineEnd!();
+
+					Try!(ProcessGroup(CleanedSubstr(line, 2)));
+				}
+
+			case 'm':
+				if (line.Length < 8) // mtllib_ + something to process further
+					ErrLineEnd!();
+
+				if (line.StartsWith("mtllib") && line[6].IsWhiteSpace)
+					Try!(ProcessMtlLib(CleanedSubstr(line, 7)));
+
+			case 'u':
+				if (line.Length < 8)
+					ErrLineEnd!();
+
+				if (line.StartsWith("usemtl") && line[6].IsWhiteSpace)
+					Try!(ProcessUseMtl(CleanedSubstr(line, 7)));
+
+			/*case '#':
+				break;*/
+			}
+
+			return .Ok;
+		}
+
+		void FlushGroup()
+		{
+			if (currGroup.faceCount > 0)
+				groups.Add(currGroup.CleanCopy());
+			
+			currGroup.faceCount = 0;
+			currGroup.faceOffset = (.)faces.Count;
+			currGroup.indexOffset = (.)indices.Count;
 		}
 
 		[Inline]
@@ -279,26 +380,137 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessFace(StringView line)
 		{
+			var line;
 
+			IndexData index;
+			uint32 count = 0;
 
+			while (true)
+			{
+				index = default;
+
+				int sepIndex = IndexOfSpace(line);
+				bool lastPart = sepIndex == -1;
+				if (lastPart)
+					sepIndex = line.Length;
+
+				// Parse part
+				int32 v, t = 0, n = 0;
+				do
+				{
+					var part = StringView(&line[0], sepIndex);
+					var partSepIndex = part.IndexOf('/');
+
+					Result<int32> ParseInt()
+					{
+						let parse = StringView(&part[0], partSepIndex == -1 ? part.Length : partSepIndex);
+
+						if (int32.Parse(parse) case .Ok(let val))
+							return .Ok(val);
+						else LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Invalid integer value '{parse}'");
+					}
+
+					v = Try!(ParseInt());
+
+					if (partSepIndex == -1)
+						break;
+					if (part.Length < partSepIndex + 1)
+						ErrLineEnd!();
+
+					if (part[partSepIndex + 1] != '/')
+					{
+						part = part.Substring(partSepIndex + 1);
+						partSepIndex = part.IndexOf('/');
+
+						t = Try!(ParseInt());
+
+						part = part.Substring(partSepIndex + 1);
+					}
+					else
+					{
+						partSepIndex++;
+						part = part.Substring(partSepIndex + 1);
+					}
+
+					partSepIndex = part.IndexOf('/');
+					n = Try!(ParseInt());
+				}
+
+				if (v < 0)
+					index.positionIndex = (.)(positions.Count + v);
+				else index.positionIndex = (.)v;
+
+				if (t < 0)
+					index.texCoordIndex = (.)(positions.Count + t);
+				else if (t > 0)
+					index.texCoordIndex = (.)t;
+				else index.texCoordIndex = 0;
+
+				if (n < 0)
+					index.normalIndex = (.)(normals.Count + n);
+				else if (n > 0)
+					index.normalIndex = (.)n;
+				else index.normalIndex = 0;
+
+				indices.Add(index);
+				count++;
+
+				if (lastPart)
+					break;
+
+				line = line.Substring(sepIndex + 1)..TrimStart();
+			}
+
+			faces.Add(FaceData{ vertices = count, materialIndex = currMatIndex });
+
+			currGroup.faceCount++;
 			return .Ok;
 		}
 
 		[Inline]
 		Result<void> ProcessGroup(StringView line)
 		{
+			if (IndexOfSpace(line) != -1)
+				LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' cannot include spaces");
+
+			// Begin new group
+			FlushGroup();
+			currGroup.name.Set(line);
+
+			return .Ok;
+		}
+
+		[Inline]
+		Result<void> ProcessUseMtl(StringView line)
+		{
+			// In this implementation, we actually just take not of mtl files
+			// and load them later, so we will always create a placeholder here
+			// first that may or may not get replaced
+
+			if (IndexOfSpace(line) != -1)
+				LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' cannot include spaces");
+
+			SEARCH: do
+			{
+				for (var i < materials.Count)
+					if (materials[i].name == line)
+					{
+						currMatIndex = (.)i;
+						break SEARCH;
+					}
+
+				// Create new
+				currMatIndex = (.)materials.Count;
+				materials.Add(.(line));
+			}
+
 			return .Ok;
 		}
 
 		[Inline]
 		Result<void> ProcessMtlLib(StringView line)
 		{
-			return .Ok; // Ignore for now
-		}
-
-		[Inline]
-		Result<void> ProcessUseMtl(StringView line)
-		{
+			mtlFiles.Add(new .(line));
 			return .Ok;
 		}
 
@@ -322,12 +534,16 @@ namespace Pile
 			{
 				int sepIndex = ?;
 				if (i == TComponents - 1) // Last element uses remaining string
+				{
+					if (IndexOfSpace(line) != -1)
+						LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' can only list {TComponents} elements");
 					sepIndex = line.Length;
+				}
 				else
 				{
 					sepIndex = IndexOfSpace(line);
 					if (sepIndex == -1)
-						return .Err;
+						LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' must list {TComponents} elements");
 				}
 
 				let num = Try!(float.Parse(StringView(&line[0], sepIndex)));
@@ -338,6 +554,11 @@ namespace Pile
 			}
 
 			return .Ok(pos);
+		}
+
+		mixin ErrLineEnd()
+		{
+			LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Unexpected end of line");
 		}
 	}
 }
