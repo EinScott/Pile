@@ -34,12 +34,10 @@ namespace Pile
 		public struct TextureData : IDisposable
 		{
 			public String name;
-			public String path; // Path will be the exact one from the file
 
-			public this(StringView nameView, StringView pathView)
+			public this(StringView nameView)
 			{
 				name = new .(nameView);
-				path = new .(pathView);
 			}
 
 			public void Dispose()
@@ -48,7 +46,6 @@ namespace Pile
 					return;
 
 				delete name;
-				delete path;
 			}
 
 			public bool IsEmpty => name == null;
@@ -76,7 +73,7 @@ namespace Pile
 			public TextureData emissionMap = default;
 			public TextureData transmittanceMap = default;
 			public TextureData shininessMap = default;
-			public TextureData refractionMap = default;
+			public TextureData indexOfRefractionMap = default;
 			public TextureData dissolveMap = default;
 			public TextureData bumpMap = default;
 
@@ -93,7 +90,7 @@ namespace Pile
 				emissionMap.Dispose();
 				transmittanceMap.Dispose();
 				shininessMap.Dispose();
-				refractionMap.Dispose();
+				indexOfRefractionMap.Dispose();
 				bumpMap.Dispose();
 
 				delete name;
@@ -163,9 +160,41 @@ namespace Pile
 		uint32 currMatIndex;
 		uint currLine = 0;
 
+		public Result<void> LoadFromDisk(StringView objPath)
+		{
+			if (!File.Exists(objPath))
+				LogErrorReturn!("Couldn't find OBJ file at path");
+
+			let fs = scope FileStream();
+			if (fs.Open(objPath) case .Err(let err))
+				LogErrorReturn!(scope $"Couldn't open OBJ file for reading: {err}");
+
+			Try!(ParseObj(fs));
+			fs.Close();
+
+			// Should probably never error since we know objPath is valid
+			let basePath = Path.GetDirectoryPath(objPath, .. scope .());
+			for (let mtlFile in mtlFiles)
+			{
+				let mtlPath = Path.InternalCombine(.. scope .(), basePath, mtlFile);
+
+				if (!File.Exists(mtlPath))
+					continue; // This may happen
+
+				if (fs.Open(mtlPath) case .Err(let err))
+					LogErrorReturn!(scope $"Couldn't open OBJ file at {mtlPath} for reading: {err}");
+
+				Try!(ParseMtl(fs));
+				fs.Close();
+			}
+
+			return .Ok;
+		}
+
 		public Result<void> ParseObj(Stream stream)
 		{
-			Runtime.Assert(currGroup.name == null, "ParseObj can only be called once");
+			if (currGroup.name != null)
+				LogErrorReturn!("ParseObj can only be called once");
 
 			// Only needs to be valid for the duration of this call
 			currGroup = .();
@@ -188,7 +217,8 @@ namespace Pile
 		/// pass in MemoryStreams etc.
 		public Result<void> ParseMtl(Stream stream)
 		{
-			Runtime.Assert(currGroup.name != null, "Call ParseObj first");
+			if (currGroup.name == null)
+				LogErrorReturn!("Call ParseObj first");
 
 			return ProcessStream(stream, scope => ProcessMtlLine);
 		}
@@ -199,7 +229,6 @@ namespace Pile
 			String buf = scope .(BUF_READ); // This should be more than enough for at least one line
 
 			currLine = 0;
-			currMatIndex = 0;
 			bool streamEnded = false;
 			while (true)
 			{
@@ -234,6 +263,10 @@ namespace Pile
 		{
 			// line is guaranteed to be at least length 1 and trimmed
 
+			bool firstMtlDeclared = false;
+
+			bool foundDissolve = false;
+			MaterialData* material = null;
 			switch (line[0])
 			{
 			case 'n':
@@ -242,19 +275,156 @@ namespace Pile
 
 				if (line.StartsWith("newmtl") && line[6].IsWhiteSpace)
 				{
+					if (!firstMtlDeclared)
+						firstMtlDeclared = true;
 
+					// Unless the declared material is unused, the material should always already exist
+					let name = StringView(&line[7], line.Length - 6);
+					if (IndexOfSpace(name) != -1)
+						LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{name}' cannot include spaces");
+					let index = GetOrAddMaterial(name);
+
+					foundDissolve = false;
+					material = &materials[index];
 				}
+				else ErrFormatting!();
+
 			case 'K':
+				if (line.Length < 4) // K__ + something to process further
+					ErrLineEnd!();
+				else if (!firstMtlDeclared || !line[2].IsWhiteSpace)
+					ErrFormatting!();
+
+				switch (line[1])
+				{
+				case 'a':
+					material.ambient = Try!(ParseVec3(CleanedSubstr(line, 3)));
+				case 'd':
+					material.diffuse = Try!(ParseVec3(CleanedSubstr(line, 3)));
+				case 's':
+					material.specular = Try!(ParseVec3(CleanedSubstr(line, 3)));
+				case 'e':
+					material.emisson = Try!(ParseVec3(CleanedSubstr(line, 3)));
+				case 't':
+					material.transmittance = Try!(ParseVec3(CleanedSubstr(line, 3)));
+				}
 
 			case 'N':
+				if (line.Length < 4) // N__ + something to process further
+					ErrLineEnd!();
+				else if (!firstMtlDeclared || !line[2].IsWhiteSpace)
+					ErrFormatting!();
+
+				switch (line[1])
+				{
+				case 's':
+					material.shininess = Try!(ParseFloat(CleanedSubstr(line, 3)));
+				case 'i':
+					material.indexOfRefraction = Try!(ParseFloat(CleanedSubstr(line, 3)));
+				}
 
 			case 'T':
+				if (line.Length < 4) // T__ + something to process further
+					ErrLineEnd!();
+				else if (!firstMtlDeclared || !line[2].IsWhiteSpace)
+					ErrFormatting!();
+
+				switch (line[1])
+				{
+				case 'r':
+					let tr = Try!(ParseFloat(CleanedSubstr(line, 3)));
+					if (!foundDissolve)
+						material.dissolve = 1.0f - tr;
+				case 'f':
+					material.transmissionFilter = Try!(ParseVec3(CleanedSubstr(line, 3)));
+				}
 
 			case 'd':
+				if (line.Length > 3) // d_ + something to process further
+					ErrLineEnd!();
+				else if (!firstMtlDeclared)
+					ErrFormatting!();
+
+				if (line[1].IsWhiteSpace)
+				{
+					material.dissolve = Try!(ParseFloat(CleanedSubstr(line, 2)));
+
+					foundDissolve = true;
+				}
+				else ErrFormatting!();
 
 			case 'i':
+				if (line.Length < 7) // illum_ + something to process further
+					ErrLineEnd!();
+				else if (!firstMtlDeclared)
+					ErrFormatting!();
+
+				if (line.StartsWith("illum") && line[5].IsWhiteSpace)
+					material.illuminationModel = Try!(ParseInt(CleanedSubstr(line, 6)));
+				else ErrFormatting!();
 
 			case 'm':
+				if (line.Length < 5) // map_ + something to process further
+					ErrLineEnd!();
+				else if (!firstMtlDeclared)
+					ErrFormatting!();
+
+				if (line.StartsWith("map_"))
+				{
+					switch (line[4])
+					{
+					case 'K':
+						if (line.Length < 8) // map_K__ + something to process further
+							ErrLineEnd!();
+						else if (!line[6].IsWhiteSpace)
+							ErrFormatting!();
+
+						switch (line[5])
+						{
+						case 'a':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.ambientMap));
+						case 'd':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.diffuseMap));
+						case 's':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.specularMap));
+						case 'e':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.emissionMap));
+						case 't':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.transmittanceMap));
+						}
+
+					case 'N':
+						if (line.Length < 8) // map_N__ + something to process further
+							ErrLineEnd!();
+						else if (!line[6].IsWhiteSpace)
+							ErrFormatting!();
+
+						switch (line[5])
+						{
+						case 's':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.shininessMap));
+						case 'i':
+							Try!(ProcessMap(CleanedSubstr(line, 7), ref material.indexOfRefractionMap));
+						}
+
+					case 'd':
+						if (line.Length < 7) // map_d_ + something to process further
+							ErrLineEnd!();
+
+						if (line[5].IsWhiteSpace)
+							Try!(ProcessMap(CleanedSubstr(line, 6), ref material.dissolveMap));
+						else ErrFormatting!();
+
+					case 'b', 'B':
+						if (line.Length < 10) // map_bump_ + something to process further
+							ErrLineEnd!();
+
+						if (line[8].IsWhiteSpace && line.StartsWith("map_bump", .OrdinalIgnoreCase))
+							Try!(ProcessMap(CleanedSubstr(line, 9), ref material.bumpMap));
+						else ErrFormatting!();
+					}
+				}
+				else ErrFormatting!();
 
 			/*case '#':
 				break;*/
@@ -263,17 +433,18 @@ namespace Pile
 			return .Ok;
 		}
 
+		Result<void> ProcessMap(StringView line, ref TextureData slot)
+		{
+			if (IndexOfSpace(line) != -1)
+				ErrName!(line);
+
+			slot = TextureData(line);
+			return .Ok;
+		}
+
 		Result<void> ProcessObjLine(StringView line)
 		{
 			// line is guaranteed to be at least length 1 and trimmed
-
-			StringView CleanedSubstr(StringView line, int subStrPos)
-			{
-				var arg = line.Substring(subStrPos);
-				if (arg[arg.Length - 1].IsWhiteSpace)
-					arg.TrimStart();
-				return arg;
-			}
 
 			switch (line[0])
 			{
@@ -290,14 +461,18 @@ namespace Pile
 					Try!(ProcessPosition(CleanedSubstr(line, 2)));
 
 				case 't':
-					if (line.Length < 4 && line[2].IsWhiteSpace) // vt_ + something to process further
+					if (line.Length < 4) // vt_ + something to process further
 						ErrLineEnd!();
+					else if (!line[2].IsWhiteSpace)
+						ErrFormatting!();
 
 					Try!(ProcessTexCoord(CleanedSubstr(line, 3)));
 
 				case 'n':
-					if (line.Length < 4 && line[2].IsWhiteSpace) // vn_ + something to process further
+					if (line.Length < 4) // vn_ + something to process further
 						ErrLineEnd!();
+					else if (!line[2].IsWhiteSpace)
+						ErrFormatting!();
 
 					Try!(ProcessNormal(CleanedSubstr(line, 3)));
 				}
@@ -328,6 +503,7 @@ namespace Pile
 
 				if (line.StartsWith("mtllib") && line[6].IsWhiteSpace)
 					Try!(ProcessMtlLib(CleanedSubstr(line, 7)));
+				else ErrFormatting!();
 
 			case 'u':
 				if (line.Length < 8)
@@ -335,6 +511,7 @@ namespace Pile
 
 				if (line.StartsWith("usemtl") && line[6].IsWhiteSpace)
 					Try!(ProcessUseMtl(CleanedSubstr(line, 7)));
+				else ErrFormatting!();
 
 			/*case '#':
 				break;*/
@@ -356,7 +533,7 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessPosition(StringView line)
 		{
-			let pos = Try!(ProcessVector<const 3>(line));
+			let pos = Try!(ParseVector<const 3>(line));
 			positions.Add(.(pos[0], pos[1], pos[2]));
 			return .Ok;
 		}
@@ -364,7 +541,7 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessTexCoord(StringView line)
 		{
-			let tex = Try!(ProcessVector<const 2>(line));
+			let tex = Try!(ParseVector<const 2>(line));
 			texCoords.Add(.(tex[0], tex[1]));
 			return .Ok;
 		}
@@ -372,7 +549,7 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessNormal(StringView line)
 		{
-			let norm = Try!(ProcessVector<const 3>(line));
+			let norm = Try!(ParseVector<const 3>(line));
 			normals.Add(.(norm[0], norm[1], norm[2]));
 			return .Ok;
 		}
@@ -401,16 +578,14 @@ namespace Pile
 					var part = StringView(&line[0], sepIndex);
 					var partSepIndex = part.IndexOf('/');
 
-					Result<int32> ParseInt()
+					Result<int32> ParseCurrInt()
 					{
 						let parse = StringView(&part[0], partSepIndex == -1 ? part.Length : partSepIndex);
 
-						if (int32.Parse(parse) case .Ok(let val))
-							return .Ok(val);
-						else LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Invalid integer value '{parse}'");
+						return ParseInt(parse);
 					}
 
-					v = Try!(ParseInt());
+					v = Try!(ParseCurrInt());
 
 					if (partSepIndex == -1)
 						break;
@@ -422,7 +597,7 @@ namespace Pile
 						part = part.Substring(partSepIndex + 1);
 						partSepIndex = part.IndexOf('/');
 
-						t = Try!(ParseInt());
+						t = Try!(ParseCurrInt());
 
 						part = part.Substring(partSepIndex + 1);
 					}
@@ -433,7 +608,7 @@ namespace Pile
 					}
 
 					partSepIndex = part.IndexOf('/');
-					n = Try!(ParseInt());
+					n = Try!(ParseCurrInt());
 				}
 
 				if (v < 0)
@@ -471,7 +646,7 @@ namespace Pile
 		Result<void> ProcessGroup(StringView line)
 		{
 			if (IndexOfSpace(line) != -1)
-				LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' cannot include spaces");
+				ErrName!(line);
 
 			// Begin new group
 			FlushGroup();
@@ -488,21 +663,9 @@ namespace Pile
 			// first that may or may not get replaced
 
 			if (IndexOfSpace(line) != -1)
-				LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' cannot include spaces");
+				ErrName!(line);
 
-			SEARCH: do
-			{
-				for (var i < materials.Count)
-					if (materials[i].name == line)
-					{
-						currMatIndex = (.)i;
-						break SEARCH;
-					}
-
-				// Create new
-				currMatIndex = (.)materials.Count;
-				materials.Add(.(line));
-			}
+			currMatIndex = GetOrAddMaterial(line);
 
 			return .Ok;
 		}
@@ -514,18 +677,46 @@ namespace Pile
 			return .Ok;
 		}
 
+		StringView CleanedSubstr(StringView line, int subStrPos)
+		{
+			var arg = line.Substring(subStrPos);
+			if (arg[arg.Length - 1].IsWhiteSpace)
+				arg.TrimStart();
+			return arg;
+		}
+
+		uint32 GetOrAddMaterial(StringView name)
+		{
+			int ret;
+			SEARCH: do
+			{
+				for (var i < materials.Count)
+					if (materials[i].name == name)
+					{
+						ret = i;
+						break SEARCH;
+					}
+
+				// Create new
+				ret = materials.Count;
+				materials.Add(.(name));
+			}
+
+			return (.)ret;
+		}
+
 		[Inline]
 		int IndexOfSpace(StringView view)
 		{
 			for (let i < view.Length)
-				if (view[i] == ' ' || view[i] == '\t') // A \r at the end shouldnt have made it to this point
+				if (view[i] == ' ' || view[i] == '\t') // A \r at the end shouldn't have made it to this point
 					return i;
 
 			return -1;
 		}
 
 		// @do: typing return with the last backet removed crashes!
-		Result<float[TComponents]> ProcessVector<TComponents>(StringView line) where TComponents : const int
+		Result<float[TComponents]> ParseVector<TComponents>(StringView line) where TComponents : const int
 		{
 			var line;
 
@@ -546,8 +737,7 @@ namespace Pile
 						LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: '{line}' must list {TComponents} elements");
 				}
 
-				let num = Try!(float.Parse(StringView(&line[0], sepIndex)));
-				pos[i] = num;
+				pos[i] = Try!(ParseFloat(StringView(&line[0], sepIndex)));
 
 				if (i < TComponents - 1)
 					line = line.Substring(sepIndex + 1)..TrimStart();
@@ -556,9 +746,49 @@ namespace Pile
 			return .Ok(pos);
 		}
 
+		Result<Vector3> ParseVec3(StringView line)
+		{
+			let vec = Try!(ParseVector<const 3>(line));
+			return .Ok(.(vec[0], vec[1], vec[2]));
+		}
+
+		Result<float> ParseFloat(StringView line)
+		{
+			let res = float.Parse(line);
+			switch (res)
+			{
+			case .Ok (let num):
+				return num;
+			case .Err:
+				LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Invalid float value: '{line}'");
+			}
+		}
+
+		Result<int32> ParseInt(StringView line)
+		{
+			let res = int32.Parse(line);
+			switch (res)
+			{
+			case .Ok (let num):
+				return num;
+			case .Err:
+				LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Invalid int value: '{line}'");
+			}
+		}
+
 		mixin ErrLineEnd()
 		{
 			LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Unexpected end of line");
+		}
+
+		mixin ErrFormatting()
+		{
+			LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Unexpected line formatting");
+		}
+
+		mixin ErrName(StringView line)
+		{
+			LogErrorReturn!(scope $"Error parsing OBJ at line {currLine}: Invalid name '{line}', cannot include spaces");
 		}
 	}
 }
