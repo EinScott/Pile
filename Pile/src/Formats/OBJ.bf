@@ -48,6 +48,7 @@ namespace Pile
 				delete name;
 			}
 
+			[Inline]
 			public bool IsEmpty => name == null;
 		}
 

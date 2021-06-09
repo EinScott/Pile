@@ -264,7 +264,8 @@ namespace Pile
 			if (packAndUpdateTextures)
 				PackAndUpdateTextures();
 
-			OnLoadPackage(package);
+			if (OnLoadPackage.HasListeners)
+				OnLoadPackage(package);
 			return .Ok(package);
 		}
 
@@ -282,7 +283,8 @@ namespace Pile
 			if (package == null)
 				LogErrorReturn!(scope $"Couldn't unload package {packageName}: No package with that name exists");
 
-			OnUnloadPackage(package);
+			if (OnUnloadPackage.HasListeners)
+				OnUnloadPackage(package);
 
 			for (let assetType in package.ownedAssets.Keys)
 				for (let assetName in package.ownedAssets.GetValue(assetType).Get())

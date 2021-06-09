@@ -70,7 +70,8 @@ namespace Pile
 
 		static void OnText(char16 value)
 		{
-		    OnTextTyped(value);
+			if (OnTextTyped.HasListeners)
+		    	OnTextTyped(value);
 		    nextState.keyboard.Text.Append(value);
 		}
 

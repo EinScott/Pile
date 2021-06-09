@@ -47,8 +47,11 @@ namespace Pile
 #endif
 			
 			// Run onStart
-			Runtime.Assert(OnStart() case .Ok, "Error in OnStart");
-			OnStart.Dispose();
+			if (OnStart.HasListeners)
+			{
+				Runtime.Assert(OnStart() case .Ok, "Error in OnStart");
+				OnStart.Dispose();
+			}
 			
 			// Run with registered settings
 			Run(Config);
@@ -151,7 +154,8 @@ namespace Pile
 			w.Stop();
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
 
-			OnInit();
+			if (OnInit.HasListeners)
+				OnInit();
 
 			// Prepare for running game
 			Game = config.createGame();
@@ -168,7 +172,8 @@ namespace Pile
 			// Destroy
 			delete Game;
 
-			OnDestroy();
+			if (OnDestroy.HasListeners)
+				OnDestroy();
 
 			// Destroy things that are only set when Pile was actually run.
 			// Since Pile isn't necessarily run (Tests, packager) things that

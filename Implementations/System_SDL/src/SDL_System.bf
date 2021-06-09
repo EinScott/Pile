@@ -76,42 +76,50 @@ namespace Pile
 						switch (event.window.windowEvent)
 						{
 						case .Close:
-							Window.OnClose();
+							if (Window.OnClose.HasListeners)
+								Window.OnClose();
 							Window.Closed = true;
 							return;
 
 						case .SizeChanged: // Precedes .Resized, is always triggered when size changes
 							Window.size.X = (.)event.window.data1;
 							Window.size.Y = (.)event.window.data2;
-							Window.OnResized();
+							if (Window.OnResized.HasListeners)
+								Window.OnResized();
 
 						// Size
 						case .Resized: // Only re-size through external causes
-							Window.OnUserResized();
+							if (Window.OnUserResized.HasListeners)
+								Window.OnUserResized();
 		
 						// Moved
 						case .Moved:
 							Window.position.X = event.window.data1;
 							Window.position.Y = event.window.data2;
-							Window.OnMoved();
+							if (Window.OnMoved.HasListeners)
+								Window.OnMoved();
 		
 						// Focus
 						case .TAKE_FOCUS:
 							SDL_SetWindowInputFocus(Window.window); // Take focus
 						case .FocusGained:
 							Window.focus = true;
-							Window.OnFocusChanged();
+							if (Window.OnFocusChanged.HasListeners)
+								Window.OnFocusChanged();
 						case .Focus_lost:
 							Window.focus = false;
-							Window.OnFocusChanged();
+							if (Window.OnFocusChanged.HasListeners)
+								Window.OnFocusChanged();
 		
 						// Visible
 						case .Restored, .Shown, .Maximized:
 							Window.visible = true;
-							Window.OnVisibilityChanged();
+							if (Window.OnVisibilityChanged.HasListeners)
+								Window.OnVisibilityChanged();
 						case .Hidden, .Minimized:
 							Window.visible = false;
-							Window.OnVisibilityChanged();
+							if (Window.OnVisibilityChanged.HasListeners)
+								Window.OnVisibilityChanged();
 
 						// MouseOver
 						case .Enter:
