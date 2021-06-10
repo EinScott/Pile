@@ -581,9 +581,9 @@ namespace Pile
 				// Delete on scope exit
 				defer delete packageData;
 
-				List<String> duplicateNameLookup = scope List<String>();
+				HashSet<String> duplicateNameLookup = scope HashSet<String>();
 
-				List<StringView> previousNames = scope List<StringView>(); // All names of the last package content (only used in rebuild)
+				HashSet<StringView> previousNames = scope HashSet<StringView>(); // All names of the last package content (only used in rebuild)
 				List<String> includePaths = scope List<String>(); // All of these paths exist
 				List<StringView> importPaths = scope List<StringView>(); // All of these paths exist AND need to be imported again because of changes or additions
 
@@ -709,7 +709,7 @@ namespace Pile
 						}
 
 						// Check if name already exists
-						if (duplicateNameLookup.Contains(name, .OrdinalIgnoreCase))
+						if (duplicateNameLookup.Contains(scope String(name)..ToLower()))
 							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath}: Entry with name {name} has already been imported. Consider using \"name_prefix\". Note that names are compared with OrdinalIgnoreCase");
 
 						// If some file changed AND (we do a full build OR this file is in the to import list) => we need to import this (again)
@@ -783,7 +783,7 @@ namespace Pile
 						}
 
 						// Add name data interpreted as string back to duplicate lookup in any case
-						duplicateNameLookup.Add(scope:BUILD String(name));
+						duplicateNameLookup.Add(scope:BUILD String(name)..ToLower());
 					}
 					ClearAndDeleteItems!(includePaths);
 					importPaths.Clear();
@@ -796,7 +796,7 @@ namespace Pile
 				if (patchBuild)
 				{
 					for (let prevName in previousNames)
-						if (!duplicateNameLookup.Contains(scope .(prevName), .OrdinalIgnoreCase))
+						if (!duplicateNameLookup.Contains(scope String(prevName)..ToLower()))
 						{
 							Log.Debug($"Removing {prevName}");
 

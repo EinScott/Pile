@@ -84,7 +84,7 @@ namespace Pile
 
 			// Store object key in package
 			if (!currentPackage.ownedAssets.ContainsKey(type))
-				currentPackage.ownedAssets.Add(type, new List<StringView>());
+				currentPackage.ownedAssets.Add(type, new HashSet<StringView>());
 
 			currentPackage.ownedAssets.GetValue(type).Get().Add(nameView);
 
