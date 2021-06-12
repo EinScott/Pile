@@ -229,11 +229,28 @@ namespace Pile
 			const int BUF_READ = 512;
 			String buf = scope .(BUF_READ); // This should be more than enough for at least one line
 
+			// Streams ReadStrSized32 is waaay too slow for us
+			Result<void> ReadStrSized32()
+			{
+				char8[BUF_READ] charBuf = default;
+
+				if (stream.TryRead(Span<uint8>((uint8*)&charBuf[0], BUF_READ)) case .Ok(let val))
+				{
+					if (val == 0)
+						return .Err;
+
+					buf.Append(StringView(&charBuf[0], val));
+				}
+				else return .Err;
+
+				return .Ok;
+			}
+
 			currLine = 0;
 			bool streamEnded = false;
 			while (true)
 			{
-				if (!streamEnded && buf.Length < BUF_READ && stream.ReadStrSized32(BUF_READ, buf) case .Err)
+				if (!streamEnded && buf.Length < BUF_READ && ReadStrSized32() case .Err)
 					streamEnded = true;
 				if (streamEnded && buf.Length == 0) // End when we processed everything still in the buffer too
 					break;
