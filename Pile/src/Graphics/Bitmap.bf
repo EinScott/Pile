@@ -99,7 +99,7 @@ namespace Pile
 		{
 			let rgba = (uint8*)Pixels.Ptr;
 
-			let len = Pixels.Count * 4;
+			let len = (int)Width * Height * 4;
 			for (int32 i = 0; i < len; i++)
 			{
 				rgba[i + 0] = rgba[i + 0] * rgba[i + 3] / 255;
@@ -109,7 +109,7 @@ namespace Pile
 		}
 
 		/// Buffered will only reallocate if pixel buffer isnt long enough
-		public void Reset(uint32 width, uint32 height, Span<Color> pixels, bool buffered = false)
+		public void Reset(uint32 width, uint32 height, Span<Color> pixels, bool buffered = true)
 		{
 			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
@@ -126,7 +126,7 @@ namespace Pile
 		}
 
 		/// Buffered will only reallocate if pixel buffer isnt long enough
-		public void ResizeAndClear(uint32 width, uint32 height, bool buffered = false)
+		public void ResizeAndClear(uint32 width, uint32 height, bool buffered = true)
 		{
 			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 

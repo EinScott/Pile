@@ -42,6 +42,9 @@ namespace Pile
 		[SkipCall]
 		protected static override void RenderInternal(RenderPass pass) {}
 
+		[SkipCall]
+		protected override static void GetWindowPixels(Bitmap bitmap, UPoint2 windowSize) {}
+
 		protected internal override static Shader GetDefaultBatch2dShader()
 		{
 			return new Shader(scope .("", ""));

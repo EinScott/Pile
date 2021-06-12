@@ -421,6 +421,11 @@ namespace Pile
 			}
 		}
 
+		protected override static void GetWindowPixels(Bitmap bitmap, UPoint2 windowSize)
+		{
+			glReadPixels(0, 0, (.)windowSize.X, (.)windowSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.Pixels.Ptr);
+		}
+
 		protected internal override static Shader GetDefaultBatch2dShader()
 		{
 			if (defaultBatchShader == null)
