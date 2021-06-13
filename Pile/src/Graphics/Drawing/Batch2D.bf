@@ -209,10 +209,9 @@ namespace Pile
 				lastMaterial = pass.material;
 			}
 
-			// Set at least one texture (if no texture was ever used
-			// they will still ask for index 0)
-			for (let i < Math.Max(1, batch.textureCount))
-				pass.material[textureUniformIndex].SetTexture(batch.textures[[Unchecked]i], i);
+			let texUniform = ref pass.material[textureUniformIndex];
+			for (let i < Batch.MaxTexCount)
+				texUniform.SetTexture(batch.textures[[Unchecked]i], i);
 			pass.material[matrixUniformIndex].SetMatrix4x4((Matrix4x4)batch.matrix * matrix);
 
 			pass.meshIndexStart = batch.offset * 3;

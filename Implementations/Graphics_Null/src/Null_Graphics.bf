@@ -43,7 +43,7 @@ namespace Pile
 		protected static override void RenderInternal(RenderPass pass) {}
 
 		[SkipCall]
-		protected override static void GetWindowPixels(Bitmap bitmap, UPoint2 windowSize) {}
+		protected override static Result<void> GetWindowPixels(Bitmap bitmap, UPoint2 drawableSize) => .Ok;
 
 		protected internal override static Shader GetDefaultBatch2dShader()
 		{

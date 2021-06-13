@@ -29,6 +29,7 @@ using System.Collections;
 
 namespace Pile
 {
+	[Optimize]
 	class OBJ
 	{
 		public struct TextureData : IDisposable
@@ -145,17 +146,17 @@ namespace Pile
 		}
 
 		// Add a dummy one in each
-		public List<Vector3> positions = new .()..Add(.()) ~ delete _;
-		public List<Vector2> texCoords = new .()..Add(.()) ~ delete _;
-		public List<Vector3> normals = new .()..Add(.()) ~ delete _;
+		public readonly List<Vector3> positions = new .()..Add(.()) ~ delete _;
+		public readonly List<Vector2> texCoords = new .()..Add(.()) ~ delete _;
+		public readonly List<Vector3> normals = new .()..Add(.()) ~ delete _;
 
-		public List<FaceData> faces = new .() ~ delete _;
-		public List<IndexData> indices = new .() ~ delete _; // One element per face vertex
+		public readonly List<FaceData> faces = new .() ~ delete _;
+		public readonly List<IndexData> indices = new .() ~ delete _; // One element per face vertex
 
-		public List<MaterialData> materials = new .() ~ DeleteContainerAndDisposeItems!(_);
-		public List<GroupData> groups = new .() ~ DeleteContainerAndDisposeItems!(_);
+		public readonly List<MaterialData> materials = new .() ~ DeleteContainerAndDisposeItems!(_);
+		public readonly List<GroupData> groups = new .() ~ DeleteContainerAndDisposeItems!(_);
 
-		public List<String> mtlFiles = new .() ~ DeleteContainerAndItems!(_); // Contains relative paths
+		public readonly List<String> mtlFiles = new .() ~ DeleteContainerAndItems!(_); // Contains relative paths
 
 		GroupData currGroup;
 		uint32 currMatIndex;

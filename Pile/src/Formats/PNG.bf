@@ -28,8 +28,8 @@ namespace Pile
 
 		static this()
 		{
-		    // create the CRC table [FOSTERCOMMENT]
-		    // taken from libpng format specification: http://www.libpng.org/pub/png/spec/1.2/PNG-CRCAppendix.html
+		    // Create the CRC table
+		    // Taken from libpng format specification: http://www.libpng.org/pub/png/spec/1.2/PNG-CRCAppendix.html
 
 		    for (int32 n = 0; n < 256; n++)
 		    {
@@ -407,15 +407,12 @@ namespace Pile
 		    return .Ok;
 		}
 
-		[Obsolete("Unfinished implementation", true)]
 		public static Result<void> Write(Stream stream, Bitmap bitmap)
-			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Ok;
+			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Ok; // TODO: fix png writing
 
 		[Obsolete("Unfinished implementation", true)]
 		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
 		{
-			// TODO: finish deflation
-
 		    const int32 MaxIDATChunkLength = 8192;
 
 		    Result<void> Chunk(Stream stream, String title, Span<uint8> buffer)
@@ -434,8 +431,10 @@ namespace Pile
 		            for (int n = 0; n < buffer.Length; n++)
 		                crc = crcTable[((int32)crc ^ buffer[n]) & 0xFF] ^ (crc >> 8);
 
-		            stream.Write(SwapEndian((uint8)(crc ^ 0xFFFFFFFFU)));
+		            HandleWrite!(stream.Write(SwapEndian((uint8)(crc ^ 0xFFFFFFFFU))));
 		        }
+
+				return .Ok;
 		    }
 
 		    Result<void> WriteIDAT(Stream stream, MemoryStream memory, bool writeAll)
@@ -462,10 +461,12 @@ namespace Pile
 		            memory.Position = remainder;
 		            memory.[Friend]mMemory.Count = remainder;
 		        }
+
+				return .Ok;
 		    }
 
 		    // PNG header
-		    stream.Write(header);
+		    HandleWrite!(stream.Write(header));
 
 		    // IHDR Chunk
 		    {
@@ -492,19 +493,54 @@ namespace Pile
 		        buf[11] = 0; // filter
 		        buf[12] = 0; // interlace
 
-		        Chunk(stream, "IHDR", buf);
+		        Try!(Chunk(stream, "IHDR", buf));
 		    }
 
 		    // IDAT Chunk(s)
 		    {
-		        MemoryStream zlibMemory = scope MemoryStream();
+				uint32 adler = 1;
+				MemoryStream toCompress = scope .();
+				
+				uint8 filter = 0;
+				uint8* ptr = (.)pixels.Ptr;
+				for (let y < height)
+				{
+					HandleWrite!(toCompress.Write(filter));
+					adler = Adler32.Add(adler, Span<uint8>(&filter, 1));
 
-		        // zlib Header
-		        zlibMemory.Write<uint8>(0x78);
-		        zlibMemory.Write<uint8>(0x9C);
+					// Append the row of pixels (in steps, potentially)
+					const int MaxHorizontalStep = 1024;
+					for (var x  = 0; x < width; x += MaxHorizontalStep)
+					{
+						var segment = Span<uint8>(ptr + x * sizeof(Color), Math.Min(width - x, MaxHorizontalStep) * sizeof(Color));
 
-		        uint adler = 1U;
-				adler = adler; // (just to get rid of warning)
+						HandleWrite!(toCompress.Write(segment));
+						adler = Adler32.Add(adler, segment);
+					}
+
+					ptr += width * sizeof(Color);
+				}
+
+				MemoryStream zlibMemory = scope .();
+
+				// zlib Header
+				HandleWrite!(zlibMemory.Write<uint8>(0x78));
+				HandleWrite!(zlibMemory.Write<uint8>(0x9C));
+
+				let zPtr = &zlibMemory.[Friend]mMemory.Back + 1;
+				zlibMemory.[Friend]mMemory.Count += toCompress.Length;
+				switch (Compression.Compress(toCompress.[Friend]mMemory, .(zPtr, zlibMemory.Length), .BEST_SPEED))
+				{
+				case .Ok(let val):
+					zlibMemory.[Friend]mMemory.Count = val + 2; // 2 -> header
+				case .Err:
+					LogErrorReturn!("Error writing PNG: Compression error");
+				}
+
+				HandleWrite!(zlibMemory.Write(SwapEndian((.)adler)));
+
+				// Write all
+				HandleWrite!(WriteIDAT(stream, zlibMemory, true));
 
 		        // filter & deflate data line by line
 		        /*using (DeflateStream deflate = new DeflateStream(zlibMemory, CompressionLevel.Fastest, true))
@@ -548,8 +584,8 @@ namespace Pile
 		        using (BinaryWriter bytes = new BinaryWriter(zlibMemory, Encoding.UTF8, true))
 		            bytes.Write(SwapEndian((int)adler));*/
 
-		        // write out remaining chunks
-		        WriteIDAT(stream, zlibMemory, true);
+		        // Write out remaining chunks
+		        //WriteIDAT(stream, zlibMemory, true);
 		    }
 
 		    // IEND Chunk

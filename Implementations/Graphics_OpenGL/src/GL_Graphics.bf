@@ -67,7 +67,9 @@ namespace Pile
 			if (glDebugMessageCallback != null)
 			{
 				glEnable(GL_DEBUG_OUTPUT);
+#if DEBUG
 				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
 				glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, null, GL_FALSE);
 				glDebugMessageCallback(=> DebugCallback, null);
 			}
@@ -421,9 +423,12 @@ namespace Pile
 			}
 		}
 
-		protected override static void GetWindowPixels(Bitmap bitmap, UPoint2 windowSize)
+		protected override static Result<void> GetWindowPixels(Bitmap bitmap, UPoint2 drawableSize)
 		{
-			glReadPixels(0, 0, (.)windowSize.X, (.)windowSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.Pixels.Ptr);
+			glReadPixels(0, 0, (.)drawableSize.X, (.)drawableSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.Pixels.Ptr);
+
+			bitmap.VerticalFlip();
+			return .Ok;
 		}
 
 		protected internal override static Shader GetDefaultBatch2dShader()

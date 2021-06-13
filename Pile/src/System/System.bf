@@ -30,6 +30,8 @@ namespace Pile
 
 		[Inline]
 		public static Window Window => window;
+		
+		static Bitmap screenData ~ DeleteNotNull!(_);
 
 		static ~this()
 		{
@@ -111,5 +113,31 @@ namespace Pile
 		protected internal static extern void Destroy();
 
 		protected internal static extern void Step();
+
+		/// Takes a screenshot and saves it into UserPath/Screenshots/
+		/// outPath can be used to yield the path of the screenshot file
+		public static Result<void> TakeScreenshot(String outSavePath = null)
+		{
+			if (screenData == null)
+			{
+				let size = Window.RenderSize;
+				screenData = new Bitmap((.)size.X, (.)size.Y);
+			}
+
+			Try!(Graphics.WindowToBitmap(screenData));
+
+			// Save to disk
+			let path = Path.InternalCombine(.. scope .(UserPath), "Screenshots");
+			if (!Directory.Exists(path))
+				Try!(Directory.CreateDirectory(path));
+
+			Path.InternalCombine(path, scope $"{DateTime.Now.ToString(.. scope .(), "yyyMMddHHmmssff")}.png");
+			if (outSavePath != null)
+				outSavePath.Append(path);
+
+			let fs = scope FileStream();
+			Try!(fs.Create(path));
+			return PNG.Write(fs, screenData);
+		}
 	}
 }

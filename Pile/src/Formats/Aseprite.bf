@@ -11,6 +11,7 @@ namespace Pile
 	///
 	/// Aseprite File Spec: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
 	/// This is not a complete implementation and focuses on usage in loading aseprite files for games
+	[Optimize]
 	class Aseprite
 	{
 	    public enum Modes
@@ -44,12 +45,6 @@ namespace Pile
 	    public readonly List<Frame> Frames = new List<Frame>() ~ DeleteContainerAndItems!(_);
 	    public readonly List<Tag> Tags = new List<Tag>() ~ DeleteContainerAndItems!(_);
 	    public readonly List<Slice> Slices = new List<Slice>() ~ DeleteContainerAndItems!(_);
-
-	    public this(Stream stream)
-	    {
-	        if (Parse(stream) case .Err)
-				Log.Warn("Reading .ase from stream failed. See error above");
-	    }
 
 	    #region Data Structures
 
@@ -187,8 +182,11 @@ namespace Pile
 
 	    #region .ase Parser
 
-	    Result<void> Parse(Stream stream)
+	    public Result<void> Parse(Stream stream)
 	    {
+			if (frameCount != 0)
+				LogErrorReturn!("Parse can only be called once");
+
 	        // wrote these to match the documentation names so it's easier (for me, anyway) to parse
 	        uint8 BYTE() => stream.Read<uint8>();
 	        uint16 WORD() => stream.Read<uint16>();
@@ -217,7 +215,7 @@ namespace Pile
 	            var magic = WORD();
 	            if (magic != 0xA5E0)
 				{
-					LogErrorReturn!("Couldn't load Asprite: Invalid format");
+					LogErrorReturn!("Couldn't load Aseprite: Invalid format");
 				}
 
 	            // Frames / Width / Height / Color Mode
@@ -330,20 +328,20 @@ namespace Pile
 		                        // RAW
 		                        if (celType == 0)
 		                        {
-		                            let length = LogErrorTry!(stream.TryRead(compressedBuffer), "Error reading ASE RAW Cell: Error reading");
+		                            let length = LogErrorTry!(stream.TryRead(compressedBuffer), "Error reading ASE RAW Cel: Error reading");
 									if (length != compressedBuffer.Count - 1)
-										LogErrorReturn!("Error reading ASE RAW Cell: Unexpected size");
+										LogErrorReturn!("Error reading ASE RAW Cel: Unexpected size");
 		                        }
 		                        // DEFLATE
 		                        else
 		                        {
 									let source = scope uint8[chunkEnd - stream.Position]; // Read to end of chunk
-									let length = LogErrorTry!(stream.TryRead(source), "Error reading ASE COMPRESSED Cell: Error reading");
+									let length = LogErrorTry!(stream.TryRead(source), "Error reading ASE COMPRESSED Cel: Error reading");
 									if (length != source.Count)
-										LogErrorReturn!("Error reading ASE COMPRESSED Cell: Unexpected size");
+										LogErrorReturn!("Error reading ASE COMPRESSED Cel: Unexpected size");
 
 									if (Compression.Decompress(source, compressedBuffer) case .Err(let err))
-										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cell: {err}");
+										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cel: {err}");
 								}
 
 		                        // get pixel data
@@ -365,7 +363,7 @@ namespace Pile
 		                    }
 		                    else
 		                    {
-								LogErrorReturn!("Error reading ASE Cell: Cell format not implemented");
+								LogErrorReturn!("Error reading ASE Cel: Cel format not implemented");
 		                    }
 
 		                    var cel = new Cel(layer, celType == 1 ? Span<Color>(linkPixels) : colorBuffer)
@@ -477,7 +475,7 @@ namespace Pile
 		                }
 						
 						stream.Position = chunkEnd;
-					} // End of Cell scope
+					} // End of Cel scope
 	            }
 
 	            stream.Position = frameEnd;
@@ -497,7 +495,7 @@ namespace Pile
 
 	    function void Blend(ref Color dest, Color src, uint8 opacity);
 
-	    static readonly Blend[] BlendModes = new Blend[](
+	    static readonly Blend[1] BlendModes = .(
 	        // 0 - NORMAL
 	        (dest, src, opacity) =>
 	        {
@@ -519,7 +517,7 @@ namespace Pile
 	                }
 
 	            }
-	        }) ~ delete _;
+	        });
 
 	    [Inline]
 	    static int MUL_UN8(int a, int b)

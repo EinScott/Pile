@@ -100,14 +100,14 @@ namespace Pile
 
 		protected static extern void RenderInternal(RenderPass pass);
 
-		public static void WindowToBitmap(Bitmap bitmap)
+		public static Result<void> WindowToBitmap(Bitmap bitmap)
 		{
 			let size = System.window.RenderSize;
 			bitmap.ResizeAndClear((.)size.X, (.)size.Y);
 
-			GetWindowPixels(bitmap, size);
+			return GetWindowPixels(bitmap, size);
 		}
-		protected static extern void GetWindowPixels(Bitmap bitmap, UPoint2 windowSize);
+		protected static extern Result<void> GetWindowPixels(Bitmap bitmap, UPoint2 drawableSize);
 
 		protected internal static extern Shader GetDefaultBatch2dShader();
 	}

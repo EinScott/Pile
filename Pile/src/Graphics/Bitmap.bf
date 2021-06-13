@@ -6,9 +6,9 @@ namespace Pile
 {
 	class Bitmap
 	{
-		public Color[] Pixels { get; private set; }
-		public uint32 Width { get; private set; }
-		public uint32 Height { get; private set; }
+		public Color[] Pixels { [Inline] get; [Inline] private set; }
+		public uint32 Width { [Inline] get; [Inline] private set; }
+		public uint32 Height { [Inline] get; [Inline] private set; }
 
 		public this(uint32 width, uint32 height, Span<Color> pixels)
 		{
@@ -205,6 +205,27 @@ namespace Pile
 		public void CopyTo(Bitmap bitmap, bool buffered = false)
 		{
 			bitmap.Reset(Width, Height, Pixels, buffered);
+		}
+
+		public void VerticalFlip()
+		{
+			for (let row < Height / 2)
+			{
+				const int BUF_SIZE = 8192;
+				for (int rowSize = Width; rowSize > 0; rowSize -= BUF_SIZE / sizeof(Color))
+				{
+					uint8[BUF_SIZE] buf = ?;
+					let top = Pixels.Ptr + row * Width + Width - rowSize;
+					let bottom = Pixels.Ptr + (Height - 1 - row) * Width + Width - rowSize; // == bitmap.Pixels.Ptr + bitmap.Pixels.Count - bitmap.Width * (1 + row)
+
+					let rowByteSize = rowSize * sizeof(Color);
+					let length = (rowByteSize >= BUF_SIZE ? BUF_SIZE : rowByteSize);
+
+					Internal.MemCpy(&buf[0], top, length);
+					Internal.MemCpy(top, bottom, length);
+					Internal.MemCpy(bottom, &buf[0], length);
+				}
+			}
 		}
 	}
 }

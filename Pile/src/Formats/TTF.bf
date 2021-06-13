@@ -8,6 +8,7 @@ using System;
 
 namespace stbtt
 {
+	[Optimize]
 	static class stbtt
 	{
 		public static uint32 stbtt__find_table(uint8* data, uint32 fontstart, String tag)
