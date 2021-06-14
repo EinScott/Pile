@@ -73,8 +73,7 @@ namespace Pile
 			{
 				// Alternative
 				userPath.Clear();
-				Environment.GetEnvironmentVariable("APPDATA", userPath);
-				if (!userPath.IsEmpty)
+				if (Environment.GetEnvironmentVariable("APPDATA", userPath) && !userPath.IsEmpty)
 					Path.Clean(Path.InternalCombine(.. scope .(), userPath, fsTitle), userDir);
 			}
 #elif BF_PLATFORM_LINUX
@@ -85,20 +84,18 @@ namespace Pile
 			}
 			else
 			{
-				Environment.GetEnvironmentVariable("HOME", userPath);
-				if (!userPath.IsEmpty)
+				if (Environment.GetEnvironmentVariable("HOME", userPath) && !userPath.IsEmpty)
 					Path.Clean(Path.InternalCombine(.. scope .(), userPath, ".local", "share", fsTitle), userDir);
 			}
 #elif BF_PLATFORM_MACOS
-			Environment.GetEnvironmentVariable("HOME", userPath);
-			if (!userPath.IsEmpty)
+			if (Environment.GetEnvironmentVariable("HOME", userPath) && !userPath.IsEmpty)
 				Path.Clean(Path.InternalCombine(.. scope .(), userPath, "Library", "Application Support", fsTitle), userDir);
 #endif
 
 			if (userDir.IsEmpty)
 			{
-				Log.Error("Couldn't determine UserPath");
-				userDir.Set(DataPath);
+				Log.Warn("Couldn't determine distinct UserPath");
+				Path.InternalCombine(userPath, DataPath, "Save");
 			}
 			UserPath = userDir;
 

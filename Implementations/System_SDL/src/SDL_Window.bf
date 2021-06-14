@@ -48,9 +48,12 @@ namespace Pile
 			size = .(width, height);
 
 			// Scale to dpi
-			float hidpiRes = 72f;
-			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-			    hidpiRes = 96;
+			float hidpiRes
+#if BF_PLATFORM_WINDOWS
+				= 96f;
+#else
+				= 72f;
+#endif
 
 			int32 index = (int32)SDL.SDL_GetWindowDisplayIndex(window);
 			SDL.GetDisplayDPI(index, let ddpi, ?, ?);
@@ -122,8 +125,7 @@ namespace Pile
 				if (info.info.winrt.window != null)
 					return info.info.winrt.window;
 				return (void*)(int)info.info.win.window;
-#endif
-#if BF_PLATFORM_LINUX
+#elif BF_PLATFORM_LINUX
 				if (info.info.x11.window != null)
 					return info.info.x11.window;
 				if (info.info.wl.shell_surface != null)
@@ -132,9 +134,11 @@ namespace Pile
 					return info.info.android.window;
 				Log.Error("Native window handle couldn't be retrieved");
 				return null;
-#endif
-#if BF_PLATFORM_MACOS
+#elif BF_PLATFORM_MACOS
 				return info.info.cocoa.window;
+#else
+				Log.Error("Native window handle couldn't be retrieved. What platform even is this?");
+				return null;
 #endif
 			}
 		}
@@ -256,11 +260,15 @@ namespace Pile
 		{
 			get
 			{
-				float hidpiRes = 72f;
-				if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-				    hidpiRes = 96;
+				float hidpiRes
+#if BF_PLATFORM_WINDOWS
+					= 96f;
+#else
+					= 72f;
+#endif
 
 				int32 index = (int32)SDL.SDL_GetWindowDisplayIndex(window);
+
 				SDL.GetDisplayDPI(index, let ddpi, ?, ?);
 				return Vector2.One * (ddpi / hidpiRes);
 			}

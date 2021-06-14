@@ -20,9 +20,13 @@ namespace Pile
 			SDL.GetDisplayBounds(index, let rect);
 			bounds = Rect(rect.x, rect.y, rect.w, rect.h);
 
-			float hidpiRes = 72f;
-			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-			    hidpiRes = 96;
+			float hidpiRes
+#if BF_PLATFORM_WINDOWS
+				= 96f;
+#else
+				= 72f;
+#endif
+
 			SDL.GetDisplayDPI(index, let ddpi, ?, ?);
 			contentScale = .One * (ddpi / hidpiRes);
 		}

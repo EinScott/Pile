@@ -30,8 +30,7 @@ namespace Pile
 		protected internal static override void Initialize()
 		{
 #if BF_PLATFORM_WINDOWS 
-			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-				SetProcessDPIAware();
+			SetProcessDPIAware();
 #endif
 
 			Init(.Video | .Joystick | .GameController | .Events);
