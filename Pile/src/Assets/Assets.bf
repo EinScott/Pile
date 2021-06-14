@@ -111,6 +111,8 @@ namespace Pile
 
 		public static bool Has<T>(String name) where T : class, delete
 		{
+			Debug.Assert(name != null);
+
 			let type = typeof(T);
 
 			if (!assets.ContainsKey(type))
@@ -134,6 +136,8 @@ namespace Pile
 
 		public static bool Has(Type type, String name)
 		{
+			Debug.Assert(name != null);
+
 			if (!type.IsObject || !type.HasDestructor || type.IsBoxed)
 				return false;
 
@@ -159,6 +163,8 @@ namespace Pile
 
 		public static T Get<T>(String name) where T : class, delete
  		{
+			 Debug.Assert(name != null);
+
 			 if (!Has<T>(name))
 				 return null;
 
@@ -194,6 +200,7 @@ namespace Pile
 		public static Result<Package> LoadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
 			Debug.Assert(packagesPath != null, "Initialize Core first!");
+			Debug.Assert(packageName.Ptr != null);
 
 			if (!Directory.Exists(packagesPath))
 				LogErrorReturn!(scope $"Couldn't load package {packageName}. Path directory doesn't exist: {packagesPath}");
@@ -272,6 +279,8 @@ namespace Pile
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive LoadPackage() calls.
 		public static Result<void> UnloadPackage(StringView packageName, bool packAndUpdateTextures = true)
 		{
+			Debug.Assert(packageName.Ptr != null);
+
 			Package package = null;
 			for (int i < loadedPackages.Count)
 				if (loadedPackages[[Unchecked]i].Name == packageName)
@@ -355,6 +364,10 @@ namespace Pile
 		/// Use Packages for static assets, use this for ones you don't know at build time.
 		public static Result<void> AddDynamicAsset(StringView name, Object asset)
 		{
+			Debug.Assert(Core.run);
+			Debug.Assert(name.Ptr != null);
+			Debug.AssertNotStack(asset);
+
 			let type = asset.GetType();
 
 			// Add object in assets
@@ -373,6 +386,10 @@ namespace Pile
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
 		public static Result<Subtexture> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
 		{
+			Debug.Assert(Core.run);
+			Debug.Assert(name.Ptr != null);
+			Debug.AssertNotStack(bitmap);
+
 			// Add object in assets
 			let nameView = Try!(AddTextureAsset(name, bitmap, let asset));
 
@@ -419,6 +436,8 @@ namespace Pile
 		internal static Result<StringView> AddAsset(Type type, StringView name, Object object)
 		{
 			Debug.Assert(Core.run);
+			Debug.AssertNotStack(object);
+			Debug.Assert(name.Ptr != null);
 
 			let nameString = new String(name);
 
@@ -449,6 +468,8 @@ namespace Pile
 		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset)
 		{
 			Debug.Assert(Core.run);
+			Debug.AssertNotStack(bitmap);
+			Debug.Assert(name.Ptr != null);
 			asset = null;
 
 			let nameString = new String(name);
@@ -570,7 +591,7 @@ namespace Pile
 				delete entry.value; // Will also delete the key, because that is the same string as the name property
 			}
 
-			output.Entries.Clear(); // We deleted these in our loops, no need to loop again
+			output.Entries.Clear();
 			output.Pages.Clear();
 
 			// Get rid of output
