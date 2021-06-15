@@ -4,8 +4,9 @@ namespace Pile
 {
 	class Camera2D
 	{
-	    Matrix4x4 matrix;
-	    bool dirty = true;
+		Matrix4x4 matrix;
+	    Matrix4x4 inverse;
+		bool dirty = true;
 
 	    public Matrix4x4 Matrix
 	    {
@@ -16,10 +17,19 @@ namespace Pile
 	        }
 	    }
 
+		public Matrix4x4 Inverse
+		{
+		    get
+		    {
+		        if (dirty) UpdateMatrix();
+		        return inverse;
+		    }
+		}
+
 	    UPoint2 viewport;
 	    public UPoint2 Viewport
 	    {
-	        get => viewport;
+	        [Inline]get => viewport;
 	        set
 	        {
 	            viewport = value;
@@ -31,7 +41,7 @@ namespace Pile
 	    Point2 point;
 	    public Vector2 Position
 	    {
-	        get => point + remainder;
+	        [Inline]get => point + remainder;
 	        set
 	        {
 	            point = Point2((int)Math.Round(value.X), (int)Math.Round(value.Y));
@@ -42,7 +52,7 @@ namespace Pile
 
 	    public float Xf
 	    {
-	        get => point.X + remainder.X;
+	        [Inline]get => point.X + remainder.X;
 	        set
 	        {
 	            point.X = (int)Math.Round(value);
@@ -53,7 +63,7 @@ namespace Pile
 
 	    public float Yf
 	    {
-	        get => point.Y + remainder.Y;
+	        [Inline]get => point.Y + remainder.Y;
 	        set
 	        {
 	            point.Y = (int)Math.Round(value);
@@ -64,7 +74,7 @@ namespace Pile
 
 	    public Point2 Point
 	    {
-	        get => point;
+	        [Inline]get => point;
 	        set
 	        {
 	            point = value;
@@ -75,7 +85,7 @@ namespace Pile
 
 	    public int X
 	    {
-	        get => point.X;
+	        [Inline]get => point.X;
 	        set
 	        {
 	            point.X = value;
@@ -86,7 +96,7 @@ namespace Pile
 
 	    public int Y
 	    {
-	        get => point.Y;
+	        [Inline]get => point.Y;
 	        set
 	        {
 	            point.Y = value;
@@ -114,13 +124,15 @@ namespace Pile
 	            Bottom,
 	            Top,
 	            0, float.MaxValue);
+
+			inverse = TrySilent!(Matrix.Invert());
 	    }
 
 		public static explicit operator Matrix4x4(Camera2D cam) => cam.Matrix;
 
 		public Vector2 ScreenToCamera(Vector2 position)
 		{
-		    return Vector2.Transform(position, Matrix.Invert().Get()); // Not very... performant.. probably
+		    return Vector2.Transform(position, Inverse);
 		}
 
 		public Vector2 CameraToScreen(Vector2 position)
