@@ -10,6 +10,7 @@ namespace Pile
 		public Keyboard keyboard;
 		public Mouse mouse;
 		internal Controller[Input.MaxControllers] controllers = .();
+		[Inline]
 		public ref Controller GetController(Controllers index) mut => ref controllers[index.Underlying];
 
 		internal this()

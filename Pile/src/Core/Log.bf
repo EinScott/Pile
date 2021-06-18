@@ -38,7 +38,7 @@ namespace Pile
 			}
 		}
 
-		public static Event<delegate void(Types type, String message)> OnLine;
+		public static Event<delegate void(Types type, StringView message)> OnLine ~ _.Dispose();
 
 #if DEBUG // Different defaults
 		public static bool PrintToConsole = true;
@@ -46,8 +46,10 @@ namespace Pile
 		public static bool PrintToConsole = false;
 #endif
 
-		static int32 recordLength = 64;
-		public static int32 RecordLength
+		public static Types Verbosity = .Info;
+
+		static uint32 recordLength = 64;
+		public static uint32 RecordLength
 		{
 			[Inline]
 			get => recordLength;
@@ -163,7 +165,12 @@ namespace Pile
 		static void Log(Types type, String message)
 		{
 			let fullMessage = scope String(type.GetLogString())..Append(message);
-			AppendRecord(fullMessage);
+
+			if (Verbosity <= type)
+				AppendRecord(fullMessage);
+
+			if (OnLine.HasListeners)
+				OnLine(type, message);
 
 			if (PrintToConsole)
 			{

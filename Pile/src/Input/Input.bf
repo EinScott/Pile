@@ -14,8 +14,11 @@ namespace Pile
 		internal static InputState lastState = InputState();
 		internal static InputState nextState = InputState();
 
+		[Inline]
 		public static readonly Keyboard Keyboard => state.keyboard;
+		[Inline]
 		public static readonly Mouse Mouse => state.mouse;
+		[Inline]
 		public static readonly ref Controller GetController(Controllers index) => ref state.GetController(index);
 
 		public static float repeatDelay = 0.4f;

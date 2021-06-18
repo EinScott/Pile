@@ -785,7 +785,7 @@ namespace Pile
 
 		Result<int32> ParseInt(StringView line)
 		{
-			let res = int32.Parse(line);
+			let res = int32.Parse(line, .Integer);
 			switch (res)
 			{
 			case .Ok (let num):
