@@ -388,7 +388,6 @@ namespace Pile
 		{
 			Debug.Assert(Core.run);
 			Debug.Assert(name.Ptr != null);
-			Debug.AssertNotStack(bitmap);
 
 			// Add object in assets
 			let nameView = Try!(AddTextureAsset(name, bitmap, let asset));
@@ -468,7 +467,6 @@ namespace Pile
 		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset)
 		{
 			Debug.Assert(Core.run);
-			Debug.AssertNotStack(bitmap);
 			Debug.Assert(name.Ptr != null);
 			asset = null;
 
