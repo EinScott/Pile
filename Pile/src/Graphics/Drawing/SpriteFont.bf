@@ -6,13 +6,13 @@ namespace Pile
 {
 	class SpriteFont
 	{
-		public class Character
+		public struct Character : IDisposable
 		{
-			public readonly Subtexture Image ~ delete _;
+			public readonly Subtexture Image;
 			public readonly Vector2 Offset;
 			public readonly float Advance;
 
-			public readonly Dictionary<char32, float> Kerning = new Dictionary<char32, float>() ~ delete _;
+			public readonly Dictionary<char32, float> Kerning = new Dictionary<char32, float>();
 
 			public this(Subtexture image, Vector2 offset, float advance)
 			{
@@ -20,9 +20,21 @@ namespace Pile
 				Offset = offset;
 				Advance = advance;
 			}
+
+			public void Dispose()
+			{
+				delete Image;
+				delete Kerning;
+			}
 		}
 
-		public readonly Dictionary<char32, Character> Charset = new Dictionary<char32, Character>() ~ DeleteDictionaryAndValues!(_);
+		public readonly Dictionary<char32, Character> Charset ~
+			{
+				for (let pair in _)
+					pair.value.Dispose();
+
+				delete _;
+			};
 
 		public String FamilyName = new .() ~ delete _;
 		public String StyleName = new .() ~ delete _;
@@ -55,6 +67,7 @@ namespace Pile
 			let name = scope String(2);
 
 			// Process all chars
+			Charset = new Dictionary<char32, Character>((.)fontSize.Charset.Count);
 			for (let ch in fontSize.Charset.Values)
 			{
 				name.Append(ch.Unicode);
@@ -65,7 +78,7 @@ namespace Pile
 					packer.AddBitmap(name, buffer);
 
 				// Create character
-				let sprChar = new Character(hasImage ? new Subtexture() : null, Vector2(ch.OffsetX, ch.OffsetY), ch.Advance);
+				let sprChar = Character(hasImage ? new Subtexture() : null, Vector2(ch.OffsetX, ch.OffsetY), ch.Advance);
 				Charset.Add(ch.Unicode, sprChar);
 
 				// Get kerning
@@ -176,6 +189,43 @@ namespace Pile
 		public Vector2 SizeOf(StringView text)
 		{
 		    return Vector2(WidthOf(text), HeightOf(text));
+		}
+
+		/// Returns the height of the text when rendered, text will be modified
+		public float WrapText(String text, float wrapWidth)
+		{
+		    if (text.Length <= 0)
+		        return 0;
+
+			float width = 0;
+		    var height = Height;
+
+		    for (int i = 0; i < text.Length; i++)
+		    {
+				// Get char
+				char32 char = ?;
+				if (!UTF8.DecodeAt(text, ref i, ref char))
+					continue;
+
+				if (char == '\n')
+				{
+					width = 0;
+		            height += LineHeight;
+				}
+
+				if (!Charset.TryGetValue(char, let ch))
+					continue;
+
+				if (width + ch.Advance > wrapWidth)
+				{
+					text.Insert(i, "\n");
+					width = 0;
+					height += LineHeight;
+				}
+				else  width += ch.Advance;
+		    }
+
+		    return height;
 		}
 	}
 }

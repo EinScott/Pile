@@ -43,7 +43,7 @@ namespace Pile
 	    public readonly float LineHeight; // This is the Font.LineHeight * our Scale
 	    public readonly float Scale;
 
-	    public readonly Dictionary<char32, Character> Charset = new Dictionary<char32, Character>() ~ delete _;
+	    public readonly Dictionary<char32, Character> Charset ~ delete _;
 
 	    public this(Font font, uint32 size, Span<char32> charset)
 	    {
@@ -56,6 +56,7 @@ namespace Pile
 	        Height = Ascent - Descent;
 	        LineHeight = Height + LineGap;
 
+			Charset = new Dictionary<char32, Character>((.)charset.Length);
 	        for (int i = 0; i < charset.Length; i++)
 	        {
 	            // Get font info
