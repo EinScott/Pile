@@ -29,11 +29,58 @@ namespace Pile
 		public static void Help()
 		{
 			// Just a list of all methods
+			String output = scope .("All commands:");
+			for (let m in typeof(Commands).GetMethods(.Public|.Static))
+			{
+				output.Append(' ');
+				output.Append(m.Name);
+			}
+			Log.Info(output);
 		}
 
-		public static void Help(String command)
+		public static void Help(StringView name)
 		{
 			// Description and def of every method matching the string
+			String outMatches = scope .();
+			String outSemiMatches = scope .();
+
+			bool anyFullMatches = false;
+			for (let m in typeof(Commands).GetMethods(.Public|.Static))
+			{
+				bool wasPrinted = false;
+				if (name.Equals(m.Name, true))
+				{
+					Interpreter.PrintMethod(m, outMatches);
+					outMatches.Append('\n');
+
+					anyFullMatches = true;
+					wasPrinted = true;
+				}
+				else if (!anyFullMatches)
+				{
+					let fn = m.Name;
+					NAMECHECK:do
+					{
+						for (let n < name.Length)
+							if (fn[n].ToLower != name[n].ToLower)
+								break NAMECHECK;
+
+						Interpreter.PrintMethod(m, outSemiMatches);
+						outSemiMatches.Append('\n');
+
+						wasPrinted = true;
+					}
+				}
+
+				if (wasPrinted)
+				{
+					// TODO: check for desc
+				}
+			}
+
+			if (outMatches.Length > 0 || outSemiMatches.Length > 0)
+				Log.Info(outMatches.Length == 0 ? outSemiMatches..RemoveFromEnd(1) : outMatches..RemoveFromEnd(1));
+			else Log.Warn("No matching commands found");
 		}
 
 		public static void Clear()
@@ -72,6 +119,22 @@ namespace Pile
 				let typeStr = t.ToString(.. scope:mixin .());
 				var dot = typeStr.LastIndexOf('.');
 				(dot == -1 ? typeStr : typeStr.Substring(dot + 1))
+			}
+
+			internal static void PrintMethod(MethodInfo info, String into)
+			{
+				into.Append(info.Name);
+				into.Append('(');
+				for (let i < info.ParamCount)
+				{
+					into.Append(PrintType!(info.GetParamType(i)));
+					into.Append(' ');
+					into.Append(info.GetParamName(i));
+
+					if (i < info.ParamCount - 1)
+						into.Append(", ");
+				}
+				into.Append(')');
 			}
 
 			[DebugOnly]
@@ -231,18 +294,7 @@ namespace Pile
 					if (matchCount > 1)
 						diagnostic.Append(scope $"({matchCount}) ");
 
-					diagnostic.Append(m.Name);
-					diagnostic.Append('(');
-					for (let i < m.ParamCount)
-					{
-						diagnostic.Append(PrintType!(m.GetParamType(i)));
-						diagnostic.Append(' ');
-						diagnostic.Append(m.GetParamName(i));
-
-						if (i < m.ParamCount - 1)
-							diagnostic.Append(", ");
-					}
-					diagnostic.Append(')');
+					PrintMethod(m, diagnostic);
 				}
 
 				// Check and handle param compatibility issues
