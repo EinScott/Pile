@@ -200,10 +200,13 @@ namespace Pile
 			float width = 0;
 		    var height = Height;
 
+			var lastSplitChar = -1;
+			var lastSplitCharLen = 0;
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				// Get char
 				char32 char = ?;
+				let iStart = i;
 				if (!UTF8.DecodeAt(text, ref i, ref char))
 					continue;
 
@@ -212,13 +215,32 @@ namespace Pile
 					width = 0;
 		            height += LineHeight;
 				}
+				else if (char.IsWhiteSpace)
+				{
+					lastSplitChar = iStart;
+					lastSplitCharLen = i - iStart + 1;
+				}
 
 				if (!Charset.TryGetValue(char, let ch))
 					continue;
 
 				if (width + ch.Advance > wrapWidth)
 				{
-					text.Insert(i, "\n");
+					if (lastSplitChar >= 0)
+					{
+						if (text[lastSplitChar] != '\t')
+						{
+							// Replace space
+							if (lastSplitCharLen > 0)
+								text.Remove(lastSplitChar + 1, lastSplitCharLen - 1);
+
+							text[lastSplitChar] = '\n';
+							lastSplitChar = -1;
+						}
+						else text.Insert(lastSplitChar, "\n"); // Keep tabs
+					}
+					else text.Insert(i, "\n"); // Hard wrap
+
 					width = 0;
 					height += LineHeight;
 				}
