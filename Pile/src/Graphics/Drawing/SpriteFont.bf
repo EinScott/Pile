@@ -192,7 +192,7 @@ namespace Pile
 		}
 
 		/// Returns the height of the text when rendered, text will be modified
-		public float WrapText(String text, float wrapWidth)
+		public float WrapText(String text, float wrapWidth, String splitStr = "\n")
 		{
 		    if (text.Length <= 0)
 		        return 0;
@@ -226,20 +226,35 @@ namespace Pile
 
 				if (width + ch.Advance > wrapWidth)
 				{
-					if (lastSplitChar >= 0)
+					if (splitStr.Length > 0)
 					{
-						if (text[lastSplitChar] != '\t')
+						if (lastSplitChar >= 0)
 						{
-							// Replace space
-							if (lastSplitCharLen > 0)
-								text.Remove(lastSplitChar + 1, lastSplitCharLen - 1);
-
-							text[lastSplitChar] = '\n';
+							if (text[lastSplitChar] != '\t')
+							{
+								// Replace space with split string
+								if (lastSplitCharLen > splitStr.Length)
+									text.Remove(lastSplitChar + splitStr.Length, lastSplitCharLen - splitStr.Length);
+								else if (lastSplitCharLen < splitStr.Length)
+									text.Insert((.)lastSplitChar, '?', splitStr.Length - lastSplitCharLen);
+								
+								for (let j < splitStr.Length)
+									text[lastSplitChar + j] = splitStr[j];
+								i += splitStr.Length;
+							}
+							else
+							{
+								text.Insert(lastSplitChar, splitStr); // Keep tabs
+								i += splitStr.Length;
+							}
 							lastSplitChar = -1;
 						}
-						else text.Insert(lastSplitChar, "\n"); // Keep tabs
+						else
+						{
+							text.Insert(i, splitStr); // Hard wrap
+							i += splitStr.Length;
+						}
 					}
-					else text.Insert(i, "\n"); // Hard wrap
 
 					width = 0;
 					height += LineHeight;

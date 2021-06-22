@@ -26,18 +26,42 @@ namespace Pile
 		// Extend this class with your own commands!
 		// Non-Public methods will not be callable.
 
+		[Description("Lists all available commands. Commands that have overloads will display their number in brackets")]
 		public static void Help()
 		{
-			// Just a list of all methods
 			String output = scope .("All commands:");
+			StringView last = .();
+			var currentOverload = 0;
+
+			void FlushOverload()
+			{
+				if (currentOverload > 0)
+				{
+					output.Append(scope $"({currentOverload + 1})");
+					currentOverload = 0;
+				}
+			}
+
 			for (let m in typeof(Commands).GetMethods(.Public|.Static))
 			{
-				output.Append(' ');
-				output.Append(m.Name);
+				if (last.Ptr != null && last == m.Name)
+					currentOverload++;
+				else
+				{
+					FlushOverload();
+
+					output.Append(' ');
+					output.Append(m.Name);
+
+					last = m.Name;
+				}
 			}
+			FlushOverload();
+
 			Log.Info(output);
 		}
 
+		[Description("Shows names, arguments, overloads and descriptions of commands that match the name query")]
 		public static void Help(StringView name)
 		{
 			// Description and def of every method matching the string
@@ -47,14 +71,13 @@ namespace Pile
 			bool anyFullMatches = false;
 			for (let m in typeof(Commands).GetMethods(.Public|.Static))
 			{
-				bool wasPrinted = false;
+				bool print = false;
+				String strUsed = null;
 				if (name.Equals(m.Name, true))
 				{
-					Interpreter.PrintMethod(m, outMatches);
-					outMatches.Append('\n');
-
+					strUsed = outMatches;
 					anyFullMatches = true;
-					wasPrinted = true;
+					print = true;
 				}
 				else if (!anyFullMatches)
 				{
@@ -65,16 +88,17 @@ namespace Pile
 							if (fn[n].ToLower != name[n].ToLower)
 								break NAMECHECK;
 
-						Interpreter.PrintMethod(m, outSemiMatches);
-						outSemiMatches.Append('\n');
-
-						wasPrinted = true;
+						strUsed = outSemiMatches;
+						print = true;
 					}
 				}
 
-				if (wasPrinted)
+				if (print)
 				{
-					// TODO: check for desc
+					Interpreter.PrintMethod(m, strUsed);
+					if (m.GetCustomAttribute<DescriptionAttribute>() case .Ok(let attrib))
+						strUsed..Append(" - ")..Append(attrib.description??String.Empty);
+					strUsed.Append('\n');
 				}
 			}
 
@@ -83,11 +107,89 @@ namespace Pile
 			else Log.Warn("No matching commands found");
 		}
 
-		public static void Clear()
+		[Description("Clears the DevConsole")]
+		public static void Clear() => DevConsole.Clear();
+
+		[Description("Closes the application")]
+		public static void Exit() => Core.Exit();
+
+		[Description("Sets the frame rate to the given value. Defaults are 60 and 20")]
+		public static void Framerate(uint target, uint min)
 		{
-			// Clears the console
+			Time.TargetFPS = target;
+			Time.MinFPS = min;
 		}
 
+		[Description("Fixes the frame rate to the given value")]
+		public static void Framerate(uint rate) => Time.FixFPS(rate);
+
+		[Description("Sets the time scale. Default is 1f")]
+		public static void TimeScale(float scale) => Time.Scale = scale;
+
+		[Description("Toggles window VSync")]
+		public static void WindowVSync()
+		{
+			if (System.window.VSync = !System.window.VSync)
+				Log.Info("VSync enabled");
+			else Log.Info("VSync disabled");
+		}
+
+		[Description("Restores the initial window")]
+		public static void WindowRestore()
+		{
+			let size = UPoint2.Min(.(Core.Config.windowWidth, Core.Config.windowHeight), (.)System.window.Display.Bounds.Size);
+			System.window.Size = size;
+
+			let pos = Point2.Max((System.window.Display.Bounds.Size / 2) - (size / 2), .Zero);
+			System.window.Position = pos;
+			
+			System.window.Visible = true;
+			switch (Core.Config.windowState)
+			{
+			case .Fullscreen:
+				System.window.Fullscreen = true;
+			case .WindowedBorderless:
+				System.window.Bordered = false;
+				System.window.Fullscreen = false;
+			case .Maximized, .Windowed: // No way to maximize atm
+				System.window.Bordered = true;
+				System.window.Fullscreen = false;
+			}
+		}
+
+		[Description("Toggles window fullscreen")]
+		public static void WindowFullscreen() => System.window.Fullscreen = !System.window.Fullscreen;
+
+		[Description("Resizes the window and disables fullscreen")]
+		public static void WindowResize(uint width, uint height)
+		{
+			if (System.window.Fullscreen)
+				System.window.Fullscreen = false;
+
+			System.window.Size = .(width, height);
+		}
+
+		[Description("Crashes the application")]
+		public static void ForceCrash() => Runtime.FatalError("Forced crash");
+
+#if DEBUG
+		[Description("Manually triggers an asset reload")]
+		public static void AssetsReload() => TrySilent!(Assets.HotReloadPackages());
+#endif
+		[Description("Lists the currently loaded packages")]
+		public static void AssetsLoaded()
+		{
+			String packages = scope .("Loaded packages:");
+			for (let package in Assets.[Friend]loadedPackages)
+			{
+				packages.Append(" \"");
+				packages.Append(package.name);
+				packages.Append("\"");
+			}
+			Log.Info(packages);
+		}
+
+		[Optimize]
 		internal static class Interpreter
 		{
 			enum ParamsType
