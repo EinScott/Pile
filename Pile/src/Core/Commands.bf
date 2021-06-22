@@ -50,7 +50,7 @@ namespace Pile
 				{
 					FlushOverload();
 
-					output.Append(' ');
+					output.Append(", ");
 					output.Append(m.Name);
 
 					last = m.Name;
@@ -107,8 +107,10 @@ namespace Pile
 			else Log.Warn("No matching commands found");
 		}
 
+#if DEBUG
 		[Description("Clears the DevConsole")]
 		public static void Clear() => DevConsole.Clear();
+#endif
 
 		[Description("Closes the application")]
 		public static void Exit() => Core.Exit();
@@ -251,6 +253,12 @@ namespace Pile
 				// Enum: has to start with '.' and follow up with a valid entry. NEED TO HAVE [Reflect] (or forced reflection info) TO WORK
 
 				var line;
+
+				// Already suggest functions with more args when we have a trailing space
+				bool wantsMoreParams = false;
+				if (diagnostic != null && line.EndsWith(' '))
+					wantsMoreParams = true;
+
 				line.Trim();
 
 				// Find function candidates
@@ -279,7 +287,10 @@ namespace Pile
 							diagnostic.Append(error);
 							// This may be because we're still in the process of typing the last one, so still display matches
 							if (invCount == 1 && passedParams[passedParams.Count - 1].type == .Invalid)
+							{
 								passedParams.RemoveAt(passedParams.Count - 1);
+								wantsMoreParams = true; // Still select methods based on the originally passed param count
+							}
 							else return;
 						}
 						else
@@ -295,6 +306,9 @@ namespace Pile
 				{
 					// Get all qualifying methods
 					let name = paramStart == -1 ? line : line.Substring(0, paramStart)..TrimEnd();
+					var wantParams = passedParams.Count;
+					if (wantsMoreParams)
+						wantParams++;
 					int bestMatchedParams = 0;
 					int bestMatchParamCount = int.MaxValue;
 					bool bestIsParamCountMatch = false;
@@ -303,10 +317,10 @@ namespace Pile
 					{
 						if (name.Equals(m.Name, true))
 						{
-							if (m.ParamCount < passedParams.Count)
+							if (m.ParamCount < wantParams)
 								continue;
 
-							bool isParamCountMatch = m.ParamCount == passedParams.Count;
+							bool isParamCountMatch = m.ParamCount == wantParams;
 							int matchedParams = 0;
 							for (var i < passedParams.Count)
 							{
@@ -666,7 +680,32 @@ namespace Pile
 						NotFoundDiag();
 
 						if (autoComplete != null)
-							autoComplete.Append(bestMatch.Value.Name);
+						{
+							if (bestIsFullMatch)
+								autoComplete..Append('.').Append(bestMatch.Value.Name);
+							else
+							{
+								for (let f in ((TypeInstance)paramType).GetFields())
+								{
+									let str = f.[Friend]mFieldData.mName;
+
+									if (passedParam.string.Length > str.Length)
+										continue;
+
+									var matchedChars = 0;
+									for (; matchedChars < passedParam.string.Length; matchedChars++)
+										if (str[matchedChars].ToLower != passedParam.string[matchedChars].ToLower)
+											break;
+
+									if (matchedChars >= bestMatchedChars)
+									{
+										if (autoComplete.Length > 0)
+											autoComplete.Append(", ");
+										autoComplete..Append('.').Append(f.Name);
+									}
+								}
+							}
+						}
 
 						return false;
 					}
@@ -775,13 +814,12 @@ namespace Pile
 						data.type = .Default;
 					}
 				}
-				else if (arg[0] == '.' && arg.Length > 1 && !arg[1].IsNumber)
+				else if (arg[0] == '.')
 				{
+					data.type = .Enum;
 					if (arg.Length > 1)
-					{
-						data.type = .Enum;
 						data.string = arg.Substring(1);
-					}
+					else data.string = .(&arg[0], 0);
 				}
 				else // Some number
 				{

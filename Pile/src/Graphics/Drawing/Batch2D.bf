@@ -807,21 +807,18 @@ namespace Pile
 				var at = relativePos + ch.Offset;
 
 				// Look ahead
-				do
-				{
-			        if (index < text.Length - 1 && text[index + 1] != '\n')
-			        {
-						// Look up next char
-						char32 nextChar = ?;
+				do if (index < text.Length - 1 && text[index + 1] != '\n')
+		        {
+					// Look up next char
+					char32 nextChar = ?;
 
-						var nextIndex = index + 1;
-						if (!UTF8.DecodeAt(text, ref nextIndex, ref nextChar))
-							break;
+					var nextIndex = index + 1;
+					if (!UTF8.DecodeAt(text, ref nextIndex, ref nextChar))
+						break;
 
-			            if (ch.Kerning.TryGetValue(nextChar, let kerning))
-			                at.X += kerning;
-			        }
-				}
+		            if (ch.Kerning.TryGetValue(nextChar, let kerning))
+		                at.X += kerning;
+		        }
 
 				CharModifier modifier = getModifier(at, trueIndex, char);
 				at += modifier.offset;
