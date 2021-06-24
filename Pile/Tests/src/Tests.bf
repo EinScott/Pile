@@ -66,9 +66,8 @@ namespace Test
 		static void TestCircularBufferFail()
 		{
 			CircularBuffer<int> ints = scope .(5) { 1, 2, 3 };
+#unwarn
 			let s = ints[5];
 		}
-
-		// TODO: make more tests for all the structs, Bitmap, etc
 	}
 }
