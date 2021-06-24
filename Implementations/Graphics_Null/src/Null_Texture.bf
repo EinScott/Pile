@@ -7,6 +7,9 @@ namespace Pile
 	extension Texture
 	{
 		[SkipCall]
+		protected override void Initialize() {}
+
+		[SkipCall]
 		protected override void ResizeAndClearInternal(uint32 width, uint32 height) {}
 
 		[SkipCall]
