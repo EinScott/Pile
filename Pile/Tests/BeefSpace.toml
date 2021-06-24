@@ -1,0 +1,5 @@
+FileVersion = 1
+Projects = {Test = {Path = "."}, Pile = {Path = ".."}, Pile_Audio_Null = {Path = "../../Implementations/Audio_Null"}, Pile_Graphics_Null = {Path = "../../Implementations/Graphics_Null"}, Pile_System_Null = {Path = "../../Implementations/System_Null"}}
+
+[Workspace]
+StartupProject = "Pile"

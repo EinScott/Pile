@@ -1,0 +1,7 @@
+FileVersion = 1
+Dependencies = {corlib = "*", Pile = "*", Pile_Audio_Null = "*", Pile_Graphics_Null = "*", Pile_System_Null = "*"}
+
+[Project]
+Name = "Test"
+TargetType = "BeefTest"
+StartupObject = "Test.Program"

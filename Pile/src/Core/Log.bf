@@ -48,56 +48,16 @@ namespace Pile
 
 		public static Types Verbosity = .Info;
 
-		static uint32 recordLength = 64;
-		public static uint32 RecordLength
-		{
-			[Inline]
-			get => recordLength;
-			set
-			{
-				if (value != recordLength)
-				{
-					// Create new
-					let newRec = new String[value];
-					for (int i < value)
-						newRec[i] = new String(64);
-
-					// Copy over all common content
-					let common = Math.Min(value, recordLength);
-					for (var i < common)
-					{
-						newRec[i].Set(record[i]);
-					}
-
-					// Delete old
-					for (int i < recordLength)
-						delete record[i];
-					delete record;
-
-					record = newRec;
-					recordLength = value;
-				}
-			}
-		}
-
 		internal static bool discontinued;
-		static int writeIndex = 0;
 
-		static String[] record = new String[RecordLength];
+		static CircularBuffer<String> record = new .(64) ~ DeleteContainerAndItems!(_);
 
 		static String logPath = new String() ~ delete _;
 
 		static this()
 		{
-			for (int i < RecordLength)
-				record[i] = new String(64);
-		}
-
-		static ~this()
-		{
-			for (int i < RecordLength)
-				delete record[i];
-			delete record;
+			for (int i < record.Capacity) // Fill buffer
+				record.Add(new String(64));
 		}
 
 		internal static void CreateDefaultPath()
@@ -257,15 +217,7 @@ namespace Pile
 		[Inline]
 		static void AppendRecord(String logBuf)
 		{
-			let thisIndex = writeIndex;
-
-			// Move writeIndex
-			if (writeIndex + 1 < RecordLength)
-				writeIndex++;
-			else writeIndex = 0;
-
-			// Take logBuf and put its contents into record array
-			record[thisIndex].Set(logBuf);
+			record.AddByRef().Set(logBuf);
 		}
 
 		static void ClearRecord()
@@ -276,27 +228,24 @@ namespace Pile
 			// Clear
 			for (var string in record)
 				string.Clear();
-			writeIndex = 0;
 		}
 		
 		// Save log record (and clear record)
 
 		public static new void ToString(String buffer)
 		{
-			DateTime.UtcNow.ToString(buffer, "yyyy-MM-dd\"T\"HH:mm:ss\" UTC (Local offset: \"");
+			DateTime.UtcNow.ToString(buffer, "yyyy-MM-dd\" \"HH:mm:ss\" UTC (Local offset: \"");
 			TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).Hours.ToString(buffer);
 			buffer..Append(")").Append(Environment.NewLine);
 
-			// writeIndex is where we *would* write next, and since the newest output (index before this)
-			// is printed last, we start here at the (if existent) oldest and go around once
-			for (int x = 0, int i = writeIndex; x < RecordLength; x++, i = (i + 1) < RecordLength ? i + 1 : 0) // Since we start anywhere in the array, we will need to wrap i
+			for (let rec in record.GetBackwardsEnumerator())
 			{
 				// Skip empty/cleared lines
-				if (record[i].Length == 0)
+				if (rec.Length == 0)
 					continue;
 
 				// Append string
-				buffer.Append(record[i]);
+				buffer.Append(rec);
 				buffer.Append(Environment.NewLine);
 			}
 		}
