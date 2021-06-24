@@ -38,10 +38,6 @@ namespace Pile
 			}
 		}
 
-		public this()
-		{
-		}
-
 		public this(IEnumerator<T> enumerator)
 		{
 			for (var item in enumerator)

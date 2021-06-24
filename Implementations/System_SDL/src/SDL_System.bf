@@ -45,7 +45,7 @@ namespace Pile
 
 				if (Graphics.Renderer == .OpenGLCore)
 					RendererSupport = .OpenGLCore(=> GetGLProcAddress, => SetGLAttributes);
-				else Runtime.NotImplemented(); // TODO
+				else Runtime.NotImplemented();
 			}
 
 			// Displays

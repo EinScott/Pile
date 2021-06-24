@@ -20,41 +20,7 @@ namespace Pile
 			}
 		}
 
-		static uint32 recordLength = 64;
-		public static uint32 RecordLength
-		{
-			[Inline]
-			get => recordLength;
-			set
-			{
-				if (value != recordLength)
-				{
-					// Create new
-					let newRec = new Message[value];
-					for (int i < value)
-						newRec[i] = Message();
-
-					// Copy over all common content
-					let common = Math.Min(value, recordLength);
-					for (var i < common)
-					{
-						newRec[i].message.Set(record[i].message);
-					}
-
-					// Delete old
-					for (int i < recordLength)
-						record[i].Dispose();
-					delete record;
-
-					record = newRec;
-					recordLength = value;
-				}
-			}
-		}
-
-		static int writeIndex = 0;
-
-		static Message[] record;
+		static CircularBuffer<Message> record;
 		static int prevScale = -1;
 		static int prevEdgeMargin;
 		static Point2 prevLogPos;
@@ -63,6 +29,8 @@ namespace Pile
 		static bool logDirty = true;
 		static int logHeight;
 		static String logs;
+		static CircularBuffer<String> history;
+		static int currHistLook;
 
 		static String inputLine;
 		static String diagnosticLine;
@@ -74,9 +42,13 @@ namespace Pile
 #if DEBUG
 			Log.OnLine.Add(new => Write);
 
-			record = new Message[RecordLength];
-			for (int i < recordLength)
-				record[i] = .();
+			record = new .(64);
+			for (int i < record.Capacity)
+				record.Add(.());
+
+			history = new .(8);
+			for (let i < history.Capacity)
+				history.Add(new String());
 
 			logs = new .();
 			inputLine = new .();
@@ -88,9 +60,8 @@ namespace Pile
 		static ~this()
 		{
 #if DEBUG
-			for (int i < recordLength)
-				record[i].Dispose();
-			delete record;
+			DeleteContainerAndDisposeItems!(record);
+			DeleteContainerAndItems!(history);
 
 			delete logs;
 			delete inputLine;
@@ -100,7 +71,6 @@ namespace Pile
 		}
 
 		// TODO: input history via up and down
-		// cursor movement via left and right, also drawing of it obviously
 
 		[DebugOnly]
 		public static void Update()
@@ -138,6 +108,9 @@ namespace Pile
 			// Enter
 			if (Input.Keyboard.Pressed(.Enter) && inputLine.Length > 0)
 			{
+				// Commit to history
+				history.AddByRef().Set(inputLine);
+
 				Write(.Info, inputLine);
 				Commands.Interpreter.Interpret(inputLine, => Write);
 
@@ -208,7 +181,7 @@ namespace Pile
 
 				if (wAuto.Length > 2) // "> "
 				{
-					logPos.Y -= (.)(font.WrapText(wAuto, logWidth) * textScale); // TODO: something is still wrong with wrapping. We either give  it a rubbish value or the function is wrong
+					logPos.Y -= (.)(font.WrapText(wAuto, logWidth) * textScale); // TODO: something is still wrong with wrapping. We either give it a rubbish value/scale or the function is wrong
 
 					if (logPos.Y < rect.Y)
 						break;
@@ -247,20 +220,21 @@ namespace Pile
 
 		static void PrepareLogString(SpriteFont font, float textScale, float logWidth, float maxHeight)
 		{
-			bool hasWrap = false;
-			int iEnd;
-			int i;
+			int last = record.Count - 1;
+			int current;
 			float height = 0;
 			// Look how many lines we can fit backwards
-			for (int x = 0, iEnd = i = ((writeIndex - 1) < 0 ? RecordLength - 1 : writeIndex - 1); x < RecordLength; x++, i = (i - 1) >= 0 ? i - 1 : { hasWrap = true; RecordLength - 1 })
+			for (int x = 0, current = last; x < record.Count; x++, current--)
 			{
+				let rec = record[[Unchecked]current];
+
 				// Skip empty/cleared lines
-				if (record[i].message.Length == 0)
+				if (rec.message.Length == 0)
 					break;
 
-				let line = scope String(record[i].type.ToString(.. scope .()));
+				let line = scope String(rec.type.ToString(.. scope .()));
 				line.Append(": ");
-				line.Append(record[i].message);
+				line.Append(rec.message);
 
 				let lineHeight = font.WrapText(line, logWidth) * textScale;
 
@@ -277,16 +251,16 @@ namespace Pile
 			if (logHeight == 0)
 				return;
 
-			i = (i + 1) % RecordLength;
-			if ((iEnd + 1) % RecordLength != i)
-				iEnd = (iEnd + 1) % RecordLength;
+			current++;
 
 			// Fill the lines we can fit into the log string
-			for (var j = i; j != iEnd; j = (j + 1) % RecordLength)
+			for (var j = current; j <= last; j++)
 			{
-				let line = scope String(record[j].type.ToString(.. scope .()));
+				let rec = record[j];
+
+				let line = scope String(rec.type.ToString(.. scope .()));
 				line.Append(": ");
-				line.Append(record[j].message);
+				line.Append(rec.message);
 
 				font.WrapText(line, logWidth);
 
@@ -301,21 +275,14 @@ namespace Pile
 		{
 			for (var rec in record)
 				rec.message.Clear();
-			writeIndex = 0;
+			
 			logDirty = true;
 		}
 
 		static void Write(Log.Types type, StringView message)
 		{
 #if DEBUG
-			let thisIndex = writeIndex;
-
-			// Move writeIndex
-			if (writeIndex + 1 < RecordLength)
-				writeIndex++;
-			else writeIndex = 0;
-
-			var msg = ref record[thisIndex];
+			var msg = ref record.AddByRef();
 			msg.message..Set(message)..Trim();
 			msg.type = type;
 

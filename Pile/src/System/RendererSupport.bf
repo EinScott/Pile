@@ -4,7 +4,7 @@ namespace Pile
 {
 	enum RendererSupport
 	{
-		// TODO: no info on most APIs
+		// TODO: no info on most APIs, also update impls to handle other cases
 		case None;
 		case OpenGLCore(GetProcAddressFunc getProcAddr, SetGLAttributes setAttributes);
 		case OpenGLES;
