@@ -248,7 +248,10 @@ namespace Pile
 			let curr = mNext;
 			mNext = (mNext + 1) % (.)AllocSize;
 			if (mSize < AllocSize)
+			{
 				mSize++;
+				mItems[curr] = default;
+			}
 
 			return ref mItems[curr];
 		}

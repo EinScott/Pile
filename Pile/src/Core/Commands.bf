@@ -29,7 +29,7 @@ namespace Pile
 		[Description("Lists all available commands. Commands that have overloads will display their number in brackets")]
 		public static void Help()
 		{
-			String output = scope .("All commands:");
+			String output = scope .("All commands: ");
 			StringView last = .();
 			var currentOverload = 0;
 
@@ -37,7 +37,7 @@ namespace Pile
 			{
 				if (currentOverload > 0)
 				{
-					output.Append(scope $"({currentOverload + 1})");
+					output.Append(scope $" ({currentOverload + 1})");
 					currentOverload = 0;
 				}
 			}
@@ -50,7 +50,8 @@ namespace Pile
 				{
 					FlushOverload();
 
-					output.Append(", ");
+					if (last.Ptr != null)
+						output.Append(", ");
 					output.Append(m.Name);
 
 					last = m.Name;
@@ -128,14 +129,6 @@ namespace Pile
 		[Description("Sets the time scale. Default is 1f")]
 		public static void TimeScale(float scale) => Time.Scale = scale;
 
-		[Description("Toggles window VSync")]
-		public static void WindowVSync()
-		{
-			if (System.window.VSync = !System.window.VSync)
-				Log.Info("VSync enabled");
-			else Log.Info("VSync disabled");
-		}
-
 		[Description("Restores the initial window")]
 		public static void WindowRestore()
 		{
@@ -153,14 +146,50 @@ namespace Pile
 			case .WindowedBorderless:
 				System.window.Bordered = false;
 				System.window.Fullscreen = false;
-			case .Maximized, .Windowed: // No way to maximize atm
+			case .Maximized, .Windowed:
 				System.window.Bordered = true;
 				System.window.Fullscreen = false;
 			}
 		}
 
-		[Description("Toggles window fullscreen")]
-		public static void WindowFullscreen() => System.window.Fullscreen = !System.window.Fullscreen;
+		[Reflect]
+		enum WindowState
+		{
+			Fullscreen,
+			Bordered,
+			Resizable,
+			Transparent,
+			VSync
+		}
+
+		[Description("Toggles a window state")]
+		public static void WindowToggle(WindowState state)
+		{
+			let toggle = scope String();
+			bool enabled;
+			switch (state)
+			{
+			case .Fullscreen:
+				enabled = System.window.Fullscreen = !System.window.Fullscreen;
+				toggle.Set("Fullscreen");
+			case .Bordered:
+				enabled = System.window.Bordered = !System.window.Bordered;
+				toggle.Set("Window border");
+			case .Resizable:
+				enabled = System.window.Resizable = !System.window.Resizable;
+				toggle.Set("Window resizing");
+			case .Transparent:
+				enabled = System.window.Transparent = !System.window.Transparent;
+				toggle.Set("Window transparency");
+			case .VSync:
+				enabled = System.window.VSync = !System.window.VSync;
+				toggle.Set("VSync");
+			}
+
+			if (enabled)
+				Log.Info(scope $"{toggle} is now enabled");
+			else Log.Info(scope $"{toggle} is now disabled");
+		}
 
 		[Description("Resizes the window and disables fullscreen")]
 		public static void WindowResize(uint width, uint height)
@@ -242,7 +271,7 @@ namespace Pile
 			}
 
 			[DebugOnly]
-			internal static void Interpret(StringView line, function void(Log.Types, StringView message) logOut, String diagnostic = null, String onAutoComplete = null)
+			internal static void Interpret(StringView line, function void(Log.Types, StringView message) logOut, String diagnostic = null, String autoComplete = null)
 			{
 				// Syntax:
 				// function call 'name params'
@@ -250,7 +279,7 @@ namespace Pile
 				// SignedInt: decimal or hex notation (' ignored), no '.', has to fit integer size
 				// UnsignedInt: same as SignedInt, but also no '-'
 				// Floating: decimal notation, can contain or start with '.', 'f' or 'd' suffix is allowed but ignored
-				// Enum: has to start with '.' and follow up with a valid entry. NEED TO HAVE [Reflect] (or forced reflection info) TO WORK
+				// Enum: has to start with '.' and follow up with a valid entry. NEEDS TO HAVE [Reflect] (or forced reflection info) TO WORK
 
 				var line;
 
@@ -309,6 +338,7 @@ namespace Pile
 					var wantParams = passedParams.Count;
 					if (wantsMoreParams)
 						wantParams++;
+
 					int bestMatchedParams = 0;
 					int bestMatchParamCount = int.MaxValue;
 					bool bestIsParamCountMatch = false;
@@ -392,9 +422,49 @@ namespace Pile
 
 						return;
 					}
-					else if (suggestionMatched && onAutoComplete != null)
+					else if (suggestionMatched && autoComplete != null)
 					{
-						onAutoComplete.Append(bestMatch.Value.Name);
+						// List all name matches
+						StringView last = .();
+						int overload = 0;
+						for (let m in typeof(Commands).GetMethods(.Public|.Static))
+						{
+							let str = m.Name;
+
+							if (str.Length < wantParams)
+								continue;
+
+							if ((StringView)str == last)
+							{
+								overload++;
+								continue;
+							}
+
+							NAMECHECK:do
+							{
+								var matchedChars = 0;
+								for (; matchedChars < name.Length; matchedChars++)
+									if (str[matchedChars].ToLower != name[matchedChars].ToLower)
+										break NAMECHECK;
+
+								if (matchedChars >= name.Length)
+								{
+									if (overload > 0)
+									{
+										autoComplete.Append(scope $" ({overload + 1})");
+										overload = 0;
+									}
+
+									if (autoComplete.Length > 0)
+										autoComplete.Append(' ');
+									autoComplete.Append(str);
+									last = str;
+								}
+							}
+						}
+
+						if (overload > 0)
+							autoComplete.Append(scope $" ({overload + 1})");
 					}
 				}
 
@@ -420,7 +490,7 @@ namespace Pile
 					for (let i < passedParams.Count) // We know that these are equal or less in count to the selectedMethods params
 					{
 						let pType = m.GetParamType(i);
-						if (!ParamsCompatible(pType, passedParams[i], i == passedParams.Count - 1 ? diagnostic : null, i == passedParams.Count - 1 ? onAutoComplete : null))
+						if (!ParamsCompatible(pType, passedParams[i], i == passedParams.Count - 1 ? diagnostic : null, i == passedParams.Count - 1 ? autoComplete : null))
 						{
 							let param = passedParams[i];
 							error.Append(scope $" {param.type} '{(param.type == .String ? param.string : param.source)}' doesn't fit {PrintType!(pType)},");
@@ -640,7 +710,7 @@ namespace Pile
 
 					for (let f in ((TypeInstance)paramType).GetFields())
 					{
-						let str = f.[Friend]mFieldData.mName;
+						let str = f.Name;
 
 						if (passedParam.string.Length > str.Length)
 							continue;
@@ -669,40 +739,29 @@ namespace Pile
 						}
 					}
 
-					if (bestMatch == null)
-					{
-						NotFoundDiag();
-						return false;
-					}
-
-					if (!bestIsFullMatch)
+					if (bestMatch == null || !bestIsFullMatch)
 					{
 						NotFoundDiag();
 
 						if (autoComplete != null)
 						{
-							if (bestIsFullMatch)
-								autoComplete..Append('.').Append(bestMatch.Value.Name);
-							else
+							for (let f in ((TypeInstance)paramType).GetFields())
 							{
-								for (let f in ((TypeInstance)paramType).GetFields())
+								let str = f.Name;
+
+								if (passedParam.string.Length > str.Length)
+									continue;
+
+								var matchedChars = 0;
+								for (; matchedChars < passedParam.string.Length; matchedChars++)
+									if (str[matchedChars].ToLower != passedParam.string[matchedChars].ToLower)
+										break;
+
+								if (matchedChars >= bestMatchedChars)
 								{
-									let str = f.[Friend]mFieldData.mName;
-
-									if (passedParam.string.Length > str.Length)
-										continue;
-
-									var matchedChars = 0;
-									for (; matchedChars < passedParam.string.Length; matchedChars++)
-										if (str[matchedChars].ToLower != passedParam.string[matchedChars].ToLower)
-											break;
-
-									if (matchedChars >= bestMatchedChars)
-									{
-										if (autoComplete.Length > 0)
-											autoComplete.Append(", ");
-										autoComplete..Append('.').Append(f.Name);
-									}
+									if (autoComplete.Length > 0)
+										autoComplete.Append(' ');
+									autoComplete..Append('.').Append(str);
 								}
 							}
 						}

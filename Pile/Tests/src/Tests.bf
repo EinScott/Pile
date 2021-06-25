@@ -23,6 +23,7 @@ namespace Test
 			}
 
 			var num = ref ints.AddByRef();
+			Test.Assert(num == default);
 			num = 4;
 			Test.Assert(ints[3] == 4);
 			Test.Assert(ints.Front == 1);

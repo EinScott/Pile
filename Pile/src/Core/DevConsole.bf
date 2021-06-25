@@ -30,7 +30,8 @@ namespace Pile
 		static int logHeight;
 		static String logs;
 		static CircularBuffer<String> history;
-		static int currHistLook;
+		static String histOrigInput;
+		static int currHistLook = -1;
 
 		static String inputLine;
 		static String diagnosticLine;
@@ -47,9 +48,8 @@ namespace Pile
 				record.Add(.());
 
 			history = new .(8);
-			for (let i < history.Capacity)
-				history.Add(new String());
 
+			histOrigInput = new .();
 			logs = new .();
 			inputLine = new .();
 			diagnosticLine = new .();
@@ -63,14 +63,13 @@ namespace Pile
 			DeleteContainerAndDisposeItems!(record);
 			DeleteContainerAndItems!(history);
 
+			delete histOrigInput;
 			delete logs;
 			delete inputLine;
 			delete diagnosticLine;
 			delete autoComplete;
 #endif
 		}
-
-		// TODO: input history via up and down
 
 		[DebugOnly]
 		public static void Update()
@@ -103,49 +102,117 @@ namespace Pile
 			}
 
 			if (Input.Keyboard.Pressed(.Delete))
+			{
 				inputLine.Clear();
+				histOrigInput.Clear();
+			}
 
 			// Enter
 			if (Input.Keyboard.Pressed(.Enter) && inputLine.Length > 0)
 			{
 				// Commit to history
-				history.AddByRef().Set(inputLine);
+				currHistLook = -1;
+				var hist = ref history.AddByRef();
+				if (hist == null)
+					hist = new String(inputLine);
+				else hist.Set(inputLine);
 
 				Write(.Info, inputLine);
 				Commands.Interpreter.Interpret(inputLine, => Write);
 
 				inputLine.Clear();
+				histOrigInput.Clear();
 				diagnosticLine.Clear();
 				autoComplete.Clear();
+			}
+
+			// History
+			if (Input.Keyboard.Pressed(.Up))
+			{
+				let prevLook = currHistLook;
+				currHistLook = Math.Min(currHistLook + 1, history.Count - 1);
+				if (prevLook == -1 && currHistLook >= 0)
+					histOrigInput.Set(inputLine);
+				inputLine.Set(history[(history.Count - 1) - currHistLook]);
+			}
+			else if (Input.Keyboard.Pressed(.Down))
+			{
+				let prevLook = currHistLook;
+				currHistLook = Math.Max(currHistLook - 1, -1);
+				if (prevLook != currHistLook)
+				{
+					if (currHistLook < 0)
+						inputLine.Set(histOrigInput);
+					else inputLine.Set(history[(history.Count - 1) - currHistLook]);
+				}
 			}
 
 			// Diagnostics
 			diagnosticLine.Clear();
 			autoComplete..Clear();
 			if (inputLine.Length > 0)
-			{
-				autoComplete.Append("> ");
 				Commands.Interpreter.Interpret(inputLine, => Write, diagnosticLine, autoComplete);
-			}
 
-			if (inputLine.Length > 0 && Input.Keyboard.Pressed(.Tab) && autoComplete.Length > 2) // "> "
+			if (inputLine.Length > 0 && Input.Keyboard.Pressed(.Tab) && autoComplete.Length > 0)
 			{
 				var replaceStart = inputLine.LastIndexOf(' ');
 				if (replaceStart == -1)
 					replaceStart = 0;
+				else replaceStart++; // Keep space
 
-				inputLine.RemoveFromEnd(inputLine.Length - replaceStart);
-
-				var replace = StringView(&autoComplete[2], autoComplete.Length - 2);
+				var replace = StringView(autoComplete);
 				let replaceEnd = replace.IndexOf(' ');
 				if (replaceEnd != -1)
 					replace.Length = replaceEnd;
 
-				inputLine.Append(replace);
+				// If there are multiple options, first complete until they derive
+				// If we're already on the point of derivation, pick first one as per default
+				var check = StringView(autoComplete);
+				var lastSpace = replaceEnd;
+				var nextSpace = replaceEnd;
+				String common = scope String(replace); // This HAS to include exactly or more than the common chars
+				while (nextSpace + 1 < check.Length)
+				{
+					nextSpace = check.IndexOf(' ', nextSpace + 1);
+					bool last = false;
+					if (nextSpace == -1)
+					{
+						nextSpace = check.Length;
+						last = true;
+					}
+
+					let part = StringView(&check[lastSpace + 1], nextSpace - lastSpace - 1); // Only include between spaces
+
+					if (part.StartsWith('('))
+						continue; // Ignore overload indicators
+
+					if (common.Length > part.Length)
+						common.RemoveToEnd(part.Length);
+
+					for (let i < part.Length)
+					{
+						if (i >= common.Length)
+							break;
+
+						if (common[i].ToLower != part[i].ToLower)
+						{
+							common.RemoveToEnd(i);
+							break;
+						}
+					}
+
+					if (last)
+						break;
+					lastSpace = nextSpace;
+				}
+				
+				bool completeFull = common.Length == inputLine.Length - replaceStart;
+				inputLine.RemoveToEnd(replaceStart);
+				inputLine.Append(completeFull ? replace : common);
 			}
 		}
 
-		[DebugOnly]
+		[DebugOnly,PerfTrack]
 		public static void Render(Batch2D batch, SpriteFont font, Rect screenRect, int scale = 4, int edgeMargin = 4)
 		{
 			Debug.Assert(scale > 0);
@@ -169,15 +236,13 @@ namespace Pile
 				batch.Text(font, scope $"> {inputLine}", linePos, Vector2(textScale), .One, 0); // TODO: limit input text, or render only last part?
 			}
 
-			// TODO: cursor?
-
 			var logPos = inputBox.Position + .(textMargin, -(edgeMargin));
 			let logWidth = inputBox.Size.X - (textMargin * 2);
 
 			do if (diagnosticLine.Length > 0 || autoComplete.Length > 0)
 			{
 				let wDiag = scope String(diagnosticLine);
-				let wAuto = scope String(autoComplete); // TODO: since we're wrapping this, make . show suggestions for enums already! TEST THIS, also do the same for matching methods!
+				let wAuto = scope String(scope $"> {autoComplete}");
 
 				if (wAuto.Length > 2) // "> "
 				{

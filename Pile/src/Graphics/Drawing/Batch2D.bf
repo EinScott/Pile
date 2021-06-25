@@ -798,8 +798,14 @@ namespace Pile
 		// Returns char advance
 		float ProcessChar(SpriteFont font, StringView text, int index, Vector2 relativePos, char32 char, int trueIndex, Color color, CharModifier.GetFunc getModifier, bool washed)
 		{
-			if (!font.Charset.TryGetValue(char, let ch))
-			    return 0;
+			SpriteFont.Character ch;
+			var char;
+			if (!font.Charset.TryGetValue(char, out ch))
+			{
+				if (!font.Charset.TryGetValue('?', out ch)) // Char in set
+					return 0;
+				else char = '?';
+			}
 
 			// Image offset/kerning
 			if (ch.Image != null)
