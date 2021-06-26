@@ -408,9 +408,9 @@ namespace Pile
 		}
 
 		public static Result<void> Write(Stream stream, Bitmap bitmap)
-			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Ok; // TODO: fix png writing
+			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels); // TODO: fix png writing
 
-		[Obsolete("Unfinished implementation", true)]
+		//[Obsolete("Unfinished implementation", true)]
 		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
 		{
 		    const int32 MaxIDATChunkLength = 8192;

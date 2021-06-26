@@ -1,16 +1,23 @@
-using MiniZ;
+//using MiniZ;
+using static MiniZ.MiniZ;
 using System;
+using System.IO;
 
 namespace Pile
 {
 	static class Compression
 	{
-		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
+		public static Result<void /*?*/> Compress(Stream source, Stream destination, CompressionLevel level = .DEFAULT_COMPRESSION, bool writeZlibHeader = true)
+		{
+			return .Ok;
+		}
+
+		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			int destL = (int32)destination.Length;
-			let s = MiniZ.Compress(destination.Ptr, ref destL, source.Ptr, (int)(int32)source.Length, level);
+			//let s = MiniZ.MiniZ.Compress(destination.Ptr, ref destL, source.Ptr, (int)(int32)source.Length, level);
 
-			switch (s)
+			/*switch (s)
 			{
 			case .OK: return .Ok(destL);
 				// The errors that could realistically happen
@@ -19,17 +26,26 @@ namespace Pile
 			case .BUF_ERROR: LogErrorReturn!("[MINIZ::BUF_ERR] Invalid buffer");
 				// Default case
 			default: LogErrorReturn!(scope $"MiniZ error: {s}");
-			}
+			}*/
+
+			/*ZipStream stream = .();
+
+			while (true)
+			{
+				[Friend]deflate(&stream)
+			}*/
+
+			return .Ok;
 		}
 
-		public static Result<void> Compress(Span<uint8> source, ref Span<uint8> destination,  MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
+		public static Result<void> Compress(Span<uint8> source, ref Span<uint8> destination,  CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			let length = Try!(Compress(source, destination, level));
 			destination.Length = length;
 			return .Ok;
 		}
 
-		public static Result<void> Compress(Span<uint8> source, uint8[] destination,  MiniZ.CompressionLevel level = .DEFAULT_COMPRESSION)
+		public static Result<void> Compress(Span<uint8> source, uint8[] destination,  CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			if (destination == null)
 				LogErrorReturn!("Destination array cannot be null");
@@ -42,7 +58,7 @@ namespace Pile
 		public static Result<int> Decompress(Span<uint8> source, Span<uint8> destination)
 		{
 			int destL = (int32)destination.Length;
-			let s = MiniZ.Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
+			let s = Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
 
 			switch (s)
 			{

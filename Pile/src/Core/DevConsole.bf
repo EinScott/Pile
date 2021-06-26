@@ -21,14 +21,7 @@ namespace Pile
 		}
 
 		static CircularBuffer<Message> record;
-		static int prevScale = -1;
-		static int prevEdgeMargin;
-		static Point2 prevLogPos;
-		static Rect prevScreenRect;
 
-		static bool logDirty = true;
-		static int logHeight;
-		static String logs;
 		static CircularBuffer<String> history;
 		static String histOrigInput;
 		static int currHistLook = -1;
@@ -50,7 +43,6 @@ namespace Pile
 			history = new .(8);
 
 			histOrigInput = new .();
-			logs = new .();
 			inputLine = new .();
 			diagnosticLine = new .();
 			autoComplete = new .();
@@ -64,7 +56,6 @@ namespace Pile
 			DeleteContainerAndItems!(history);
 
 			delete histOrigInput;
-			delete logs;
 			delete inputLine;
 			delete diagnosticLine;
 			delete autoComplete;
@@ -246,7 +237,7 @@ namespace Pile
 
 				if (wAuto.Length > 2) // "> "
 				{
-					logPos.Y -= (.)(font.WrapText(wAuto, logWidth) * textScale); // TODO: something is still wrong with wrapping. We either give it a rubbish value/scale or the function is wrong
+					logPos.Y -= (.)(font.WrapText(wAuto, logWidth) * textScale); // TODO: this wraps wrong. * textScale is larger than text
 
 					if (logPos.Y < rect.Y)
 						break;
@@ -263,76 +254,50 @@ namespace Pile
 				
 				logPos.Y -= lineHeight;
 			}
-			
-			if (prevScale != scale || prevEdgeMargin != edgeMargin || prevScreenRect != screenRect || prevLogPos != logPos) // Force update based on different environment
-			{
-				prevScale = scale;
-				prevEdgeMargin = edgeMargin;
-				prevScreenRect = screenRect;
-				prevLogPos = logPos;
-				logDirty = true;
-			}
-			
-			if (logDirty)
-			{
-				PrepareLogString(font, textScale, logWidth, logPos.Y - rect.Y - textMargin);
-				logDirty = false;
-			}
 
-			logPos.Y -= logHeight;
-			batch.Text(font, logs, logPos, Vector2(textScale), .One, 0);
-		}
-
-		static void PrepareLogString(SpriteFont font, float textScale, float logWidth, float maxHeight)
-		{
-			int last = record.Count - 1;
-			int current;
+			// Render logs
+			float y = logPos.Y;
+			float maxHeight = logPos.Y - rect.Y - textMargin;
 			float height = 0;
-			// Look how many lines we can fit backwards
-			for (int x = 0, current = last; x < record.Count; x++, current--)
+			for (var j = record.Count - 1; j >= 0; j--)
 			{
-				let rec = record[[Unchecked]current];
+				let rec = record[[Unchecked]j];
 
 				// Skip empty/cleared lines
 				if (rec.message.Length == 0)
 					break;
 
-				let line = scope String(rec.type.ToString(.. scope .()));
-				line.Append(": ");
+				let line = scope String(rec.type.GetLogString());
+				let typeEnd = line.Length;
 				line.Append(rec.message);
 
-				let lineHeight = font.WrapText(line, logWidth) * textScale;
+				let textHeight = font.WrapText(line, logWidth) * textScale;
 
 				// TODO: Decide to include or not include it based on the height here. Later we'll have a scroll start and end
 				// or maybe just some lines from this! (for first or last line on screen)
-				if (height + lineHeight > maxHeight)
+				if (height + textHeight > maxHeight)
 					break;
 
-				height += lineHeight;
-			}
-			logHeight = (.)height;
-			logs.Clear();
+				height += textHeight;
+				y -= (.)textHeight;
+				logPos.Y = (.)Math.Round(y);
 
-			if (logHeight == 0)
-				return;
+				let typeStr = line.Substring(0, typeEnd);
+				let logStr = line.Substring(typeEnd);
 
-			current++;
+				Color color;
+				switch (rec.type)
+				{
+				case .Info:
+					color = .White;
+				case .Warn:
+					color = .Yellow;
+				case .Error:
+					color = .Red;
+				}
 
-			// Fill the lines we can fit into the log string
-			for (var j = current; j <= last; j++)
-			{
-				let rec = record[j];
-
-				let line = scope String(rec.type.ToString(.. scope .()));
-				line.Append(": ");
-				line.Append(rec.message);
-
-				font.WrapText(line, logWidth);
-
-				if (logs.Length > 0)
-					logs.Append('\n');
-
-				logs.Append(line);
+				let typeDrawEnd = batch.Text(font, typeStr, logPos, Vector2(textScale), .One, 0, color);
+				batch.Text(font, logStr, logPos + .((.)typeDrawEnd.X, 0), Vector2(textScale), .One, 0);
 			}
 		}
 
@@ -340,8 +305,6 @@ namespace Pile
 		{
 			for (var rec in record)
 				rec.message.Clear();
-			
-			logDirty = true;
 		}
 
 		static void Write(Log.Types type, StringView message)
@@ -350,8 +313,6 @@ namespace Pile
 			var msg = ref record.AddByRef();
 			msg.message..Set(message)..Trim();
 			msg.type = type;
-
-			logDirty = true;
 #endif
 		}
 	}

@@ -395,9 +395,9 @@ namespace Pile
 		{
 		    let tri = PushTriangle();
 
-			tri[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
-			tri[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
-			tri[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[0] = .(Vector2.Transform(v0, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[1] = .(Vector2.Transform(v1, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[2] = .(Vector2.Transform(v2, MatrixStack), .Zero, color, 0, 0, 255, currentBatch.currentTextureIndex);
 
 			currentBatch.elements++;
 		}
@@ -406,9 +406,9 @@ namespace Pile
 		{
 		    let tri = PushTriangle();
 
-			tri[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255, currentBatch.currentTextureIndex);
-			tri[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255, currentBatch.currentTextureIndex);
-			tri[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[0] = .(Vector2.Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[1] = .(Vector2.Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255, currentBatch.currentTextureIndex);
+			tri[2] = .(Vector2.Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255, currentBatch.currentTextureIndex);
 
 			currentBatch.elements++;
 		}
@@ -417,10 +417,10 @@ namespace Pile
 		{
 		    let quad = PushQuad();
 
-			quad[0] = .(Transform(v0, MatrixStack), .Zero, color, 0, 0, 255, 0);
-			quad[1] = .(Transform(v1, MatrixStack), .Zero, color, 0, 0, 255, 0);
-			quad[2] = .(Transform(v2, MatrixStack), .Zero, color, 0, 0, 255, 0);
-			quad[3] = .(Transform(v3, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[0] = .(Vector2.Transform(v0, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[1] = .(Vector2.Transform(v1, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[2] = .(Vector2.Transform(v2, MatrixStack), .Zero, color, 0, 0, 255, 0);
+			quad[3] = .(Vector2.Transform(v3, MatrixStack), .Zero, color, 0, 0, 255, 0);
 
 			currentBatch.elements += 2;
 		}
@@ -432,10 +432,10 @@ namespace Pile
 		    var mult = (uint8)(washed ? 0 : 255);
 		    var wash = (uint8)(washed ? 255 : 0);
 
-			quad[0] = .(Transform(v0, MatrixStack), t0, color, mult, wash, 0, currentBatch.currentTextureIndex);
-			quad[1] = .(Transform(v1, MatrixStack), t1, color, mult, wash, 0, currentBatch.currentTextureIndex);
-			quad[2] = .(Transform(v2, MatrixStack), t2, color, mult, wash, 0, currentBatch.currentTextureIndex);
-			quad[3] = .(Transform(v3, MatrixStack), t3, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[0] = .(Vector2.Transform(v0, MatrixStack), t0, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[1] = .(Vector2.Transform(v1, MatrixStack), t1, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[2] = .(Vector2.Transform(v2, MatrixStack), t2, color, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[3] = .(Vector2.Transform(v3, MatrixStack), t3, color, mult, wash, 0, currentBatch.currentTextureIndex);
 
 		    if (Graphics.OriginBottomLeft && (currentBatch.textures[currentBatch.currentTextureIndex]?.IsFrameBuffer ?? false))
 		        FlipUV(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
@@ -447,10 +447,10 @@ namespace Pile
 		{
 		    let quad = PushQuad();
 
-		    quad[0] = .(Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255, 0);
-			quad[1] = .(Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255, 0);
-			quad[2] = .(Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255, 0);
-			quad[3] = .(Transform(v3, MatrixStack), .Zero, c3, 0, 0, 255, 0);
+		    quad[0] = .(Vector2.Transform(v0, MatrixStack), .Zero, c0, 0, 0, 255, 0);
+			quad[1] = .(Vector2.Transform(v1, MatrixStack), .Zero, c1, 0, 0, 255, 0);
+			quad[2] = .(Vector2.Transform(v2, MatrixStack), .Zero, c2, 0, 0, 255, 0);
+			quad[3] = .(Vector2.Transform(v3, MatrixStack), .Zero, c3, 0, 0, 255, 0);
 
 			currentBatch.elements += 2;
 		}
@@ -462,10 +462,10 @@ namespace Pile
 		    var mult = (uint8)(washed ? 0 : 255);
 		    var wash = (uint8)(washed ? 255 : 0);
 
-			quad[0] = .(Transform(v0, MatrixStack), t0, c0, mult, wash, 0, currentBatch.currentTextureIndex);
-			quad[1] = .(Transform(v1, MatrixStack), t1, c1, mult, wash, 0, currentBatch.currentTextureIndex);
-			quad[2] = .(Transform(v2, MatrixStack), t2, c2, mult, wash, 0, currentBatch.currentTextureIndex);
-			quad[3] = .(Transform(v3, MatrixStack), t3, c3, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[0] = .(Vector2.Transform(v0, MatrixStack), t0, c0, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[1] = .(Vector2.Transform(v1, MatrixStack), t1, c1, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[2] = .(Vector2.Transform(v2, MatrixStack), t2, c2, mult, wash, 0, currentBatch.currentTextureIndex);
+			quad[3] = .(Vector2.Transform(v3, MatrixStack), t3, c3, mult, wash, 0, currentBatch.currentTextureIndex);
 
 			if (Graphics.OriginBottomLeft && (currentBatch.textures[currentBatch.currentTextureIndex]?.IsFrameBuffer ?? false))
 				FlipUV(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
@@ -870,7 +870,7 @@ namespace Pile
 				trueIndex++;
 		    }
 
-			return Transform(relativePos - .(0, font.Ascent), MatrixStack);
+			return Vector2.Transform(relativePos - .(0, font.Ascent), MatrixStack);
 		}
 
 		/// Render an UTF8 string. Returns where the text ends.
@@ -1056,7 +1056,7 @@ namespace Pile
 				MatrixStack = was;
 			}
 
-			return Transform(relativePos - .(0, font.Ascent), MatrixStack);
+			return Vector2.Transform(relativePos - .(0, font.Ascent), MatrixStack);
 		}
 
 		[Inline]
@@ -1222,14 +1222,6 @@ namespace Pile
 		}
 
 		// UTIL
-
-		[Inline]
-		Vector2 Transform(Vector2 position, Matrix3x2 matrix)
-		{
-			return .(
-		    	(position.X * matrix.M11) + (position.Y * matrix.M21) + matrix.M31,
-		    	(position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M32);
-		}
 
 		[Inline]
 		void FlipUV(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)

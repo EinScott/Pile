@@ -250,7 +250,7 @@ namespace Pile
 
 		protected virtual void UpdateLook()
 		{
-			// Update look
+			// Update look - probably at least slightly wrong?
 			look.Y = Math.Min(89.9f, Math.Max(-89.9f, look.Y));
 
 			Vector3 newDir = .(
@@ -322,5 +322,8 @@ namespace Pile
 
 			lookDirty = viewDirty = true;
 		}
+
+		// TODO: look at other cams and correct
+		// maybe also additions to 2d one
 	}
 }
