@@ -847,7 +847,7 @@ namespace Pile
 			return ch.Advance;
 		}
 
-		/// Render an UTF8 string. Returns where the text ends.
+		/// Render an UTF8 string. Returns the absolute position where the text ends.
 		public Vector2 Text(SpriteFont font, StringView text, Color color, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 		    var relativePos = Vector2(0, font.Ascent);
@@ -873,7 +873,7 @@ namespace Pile
 			return Vector2.Transform(relativePos - .(0, font.Ascent), MatrixStack);
 		}
 
-		/// Render an UTF8 string. Returns where the text ends.
+		/// Render an UTF8 string. Returns the absolute position where the text ends.
 		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
@@ -883,7 +883,7 @@ namespace Pile
 			return end;
 		}
 
-		/// Render an UTF8 string. Returns where the text ends.
+		/// Render an UTF8 string. Returns the absolute position where the text ends.
 		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, float rotation = 0, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, scale, rotation));
@@ -893,7 +893,7 @@ namespace Pile
 			return end;
 		}
 
-		/// Render an UTF8 string. Returns where the text ends.
+		/// Render an UTF8 string. Returns the absolute position where the text ends.
 		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
@@ -903,7 +903,7 @@ namespace Pile
 			return end;
 		}
 
-		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained.
+		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained. Returns the absolute position where the text ends.
 		public Vector2 TextFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 			let size = font.SizeOf(text);
@@ -986,7 +986,7 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
-		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		/// Textures will be rendered to fit the scale of the text. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color textColor, Color insertColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 			let draws = scope List<MixedDrawCmd>((.)(inserts.Count * 1.3f) + 1);
@@ -1071,14 +1071,14 @@ namespace Pile
 
 		[Inline]
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
-		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		/// Textures will be rendered to fit the scale of the text. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Color color, params TextureView[] inserts)
 		{
 			return TextMixed(font, text, color, color, .Zero, CharModifier.DefaultCharModifierFunc, true, false, params inserts);
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
-		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		/// Textures will be rendered to fit the scale of the text. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
@@ -1089,7 +1089,7 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
-		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		/// Textures will be rendered to fit the scale of the text. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
@@ -1100,7 +1100,7 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
-		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		/// Textures will be rendered to fit the scale of the text. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Color color, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, .One, 0));
@@ -1111,7 +1111,7 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string with textures mixed in at {}. Behaves similar to AppendF, {{ and }} prints the actual char instead of insertion.
-		/// Textures will be rendered to fit the scale of the text. Returns where the text ends.
+		/// Textures will be rendered to fit the scale of the text. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixed(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color textColor, Color insertColor, Vector2 extraAdvance, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));
@@ -1121,7 +1121,7 @@ namespace Pile
 			return end;
 		}
 
-		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained.
+		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color textColor, Color textureColor, Vector2 extraAdvance, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool textWashed = true, bool insertsWashed = false, params TextureView[] inserts)
 		{
 			var size = Vector2(0, font.HeightOf(text));
@@ -1192,18 +1192,21 @@ namespace Pile
 		}
 
 		[Inline]
+		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, params TextureView[] inserts)
 		{
 			return TextMixedFramed(font, text, fitFrame, color, color, .Zero, 0, CharModifier.DefaultCharModifierFunc, true, false, params inserts);
 		}
 
 		[Inline]
+		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
 		{
 			return TextMixedFramed(font, text, fitFrame, color, color, .Zero, maxSize, getModifier, true, false, params inserts);
 		}
 
 		[Inline]
+		/// Render an UTF8 string. Positions the text into a box. A max size of 0 or lower means unrestrained. Returns the absolute position where the text ends.
 		public Result<Vector2> TextMixedFramed(SpriteFont font, StringView text, Rect fitFrame, Color color, Vector2 extraAdvance, float maxSize = 0, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, params TextureView[] inserts)
 		{
 			return TextMixedFramed(font, text, fitFrame, color, color, extraAdvance, maxSize, getModifier, true, false, params inserts);
