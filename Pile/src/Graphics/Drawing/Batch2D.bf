@@ -884,6 +884,16 @@ namespace Pile
 		}
 
 		/// Render an UTF8 string. Returns where the text ends.
+		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, float rotation = 0, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc)
+		{
+		    PushMatrix(Matrix3x2.CreateTransform(position, scale, rotation));
+		    let end = Text(font, text, color, extraAdvance, getModifier);
+		    PopMatrix();
+
+			return end;
+		}
+
+		/// Render an UTF8 string. Returns where the text ends.
 		public Vector2 Text(SpriteFont font, StringView text, Vector2 position, Vector2 scale, Vector2 origin, float rotation, Color color = .White, Vector2 extraAdvance = .Zero, CharModifier.GetFunc getModifier = CharModifier.DefaultCharModifierFunc, bool washed = true)
 		{
 		    PushMatrix(Matrix3x2.CreateTransform(position, origin, scale, rotation));

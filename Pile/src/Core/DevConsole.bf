@@ -237,20 +237,20 @@ namespace Pile
 
 				if (wAuto.Length > 2) // "> "
 				{
-					logPos.Y -= (.)(font.WrapText(wAuto, logWidth) * textScale); // TODO: this wraps wrong. * textScale is larger than text
+					logPos.Y -= (.)(font.WrapText(wAuto, logWidth / textScale) * textScale);
 
 					if (logPos.Y < rect.Y)
 						break;
 
-					batch.Text(font, wAuto, logPos, Vector2(textScale), .One, 0);
+					batch.Text(font, wAuto, logPos, Vector2(textScale), .Zero, 0);
 				}
 
-				logPos.Y -= (.)(font.WrapText(wDiag, logWidth) * textScale);
+				logPos.Y -= (.)(font.WrapText(wDiag, logWidth / textScale) * textScale);
 
 				if (logPos.Y < rect.Y)
 					break;
 
-				batch.Text(font, wDiag, logPos, Vector2(textScale), .One, 0);
+				batch.Text(font, wDiag, logPos, Vector2(textScale), .Zero, 0);
 				
 				logPos.Y -= lineHeight;
 			}
@@ -271,7 +271,7 @@ namespace Pile
 				let typeEnd = line.Length;
 				line.Append(rec.message);
 
-				let textHeight = font.WrapText(line, logWidth) * textScale;
+				let textHeight = font.WrapText(line, logWidth / textScale) * textScale;
 
 				// TODO: Decide to include or not include it based on the height here. Later we'll have a scroll start and end
 				// or maybe just some lines from this! (for first or last line on screen)
@@ -296,8 +296,8 @@ namespace Pile
 					color = .Red;
 				}
 
-				let typeDrawEnd = batch.Text(font, typeStr, logPos, Vector2(textScale), .One, 0, color);
-				batch.Text(font, logStr, logPos + .((.)typeDrawEnd.X, 0), Vector2(textScale), .One, 0);
+				let typeDrawEnd = batch.Text(font, typeStr, logPos, Vector2(textScale), 0, color);
+				batch.Text(font, logStr, .((.)typeDrawEnd.X, logPos.Y), Vector2(textScale), .Zero, 0);
 			}
 		}
 
