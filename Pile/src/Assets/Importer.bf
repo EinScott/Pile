@@ -22,7 +22,7 @@ namespace Pile
 		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath);
 	}
 
-	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.Methods)] // todo .DefaultConstructor should work too, change later
+	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.DefaultConstructor)]
 	struct RegisterImporterAttribute : Attribute {}
 
 	[AlwaysInclude, StaticInitPriority(-1)]
