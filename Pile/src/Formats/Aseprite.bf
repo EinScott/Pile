@@ -340,8 +340,8 @@ namespace Pile
 									if (length != source.Count)
 										LogErrorReturn!("Error reading ASE COMPRESSED Cel: Unexpected size");
 
-									if (Compression.Decompress(source, compressedBuffer) case .Err(let err))
-										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cel: {err}");
+									if (Compression.Decompress(source, compressedBuffer) case .Err)
+										LogErrorReturn!(scope $"Error decompressing ASE COMPRESSED Cel");
 								}
 
 		                        // get pixel data
