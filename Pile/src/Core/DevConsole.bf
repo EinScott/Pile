@@ -67,6 +67,7 @@ namespace Pile
 #endif
 		public static void Update()
 		{
+#if DEBUG
 			// Typed text
 			inputLine.Append(Input.Keyboard.Text);
 
@@ -203,6 +204,7 @@ namespace Pile
 				inputLine.RemoveToEnd(replaceStart);
 				inputLine.Append(completeFull ? replace : common);
 			}
+#endif
 		}
 
 #if !DEBUG
@@ -311,14 +313,14 @@ namespace Pile
 			for (var rec in record)
 				rec.message.Clear();
 		}
-
+		
+#if DEBUG
 		static void Write(Log.Types type, StringView message)
 		{
-#if DEBUG
 			var msg = ref record.AddByRef();
 			msg.message..Set(message)..Trim();
 			msg.type = type;
-#endif
 		}
+#endif
 	}
 }
