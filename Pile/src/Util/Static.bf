@@ -14,15 +14,15 @@ namespace Pile
 		// Even in static init and destruction Core can rely on the implementation modules
 		internal const int PILE_SINIT_IMPL = 40;
 
-		[AttributeUsage(.Method)]
+		// TODO: restore this, when beef issue #1027 is resolved. Doesn't work currently
+		/*[AttributeUsage(.Method)]
 		struct DebugCallAttribute : Attribute {} // Useless, basically
 
-		// This is somehow hacky and genius at the same time
-#if DEBUG
+#if DEBUG || TEST
 		typealias DebugOnlyAttribute = DebugCallAttribute;
 #else
 		typealias DebugOnlyAttribute = SkipCallAttribute;
-#endif
+#endif*/
 
 		public static mixin LogErrorReturn(String errMsg)
 		{

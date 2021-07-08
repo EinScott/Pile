@@ -66,11 +66,17 @@ namespace Pile
 		}
 
 		// Logging functions
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		public static void Debug(String message) => Log(.Info, message);
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		public static void Debug(Object message) => Log(.Info, message);
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		public static void Debug(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
@@ -155,7 +161,9 @@ namespace Pile
 			}
 		}
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		static void FlushDebugWrite()
 		{
 #if DEBUG

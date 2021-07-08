@@ -138,7 +138,9 @@ namespace Pile
 			}
 		}
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		protected static override void AfterRenderInternal()
 		{
 #if DEBUG

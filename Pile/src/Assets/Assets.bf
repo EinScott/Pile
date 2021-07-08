@@ -322,7 +322,9 @@ namespace Pile
 			return false;
 		}
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		/// Will try to rebuild and reload all packages. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
 		internal static Result<void> HotReloadPackages(bool force = false)
 #if DEBUG

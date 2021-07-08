@@ -270,7 +270,9 @@ namespace Pile
 				into.Append(')');
 			}
 
-			[DebugOnly]
+#if !DEBUG
+			[SkipCall]
+#endif
 			internal static void Interpret(StringView line, function void(Log.Types, StringView message) logOut, String diagnostic = null, String autoComplete = null)
 			{
 				// Syntax:

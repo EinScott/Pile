@@ -24,7 +24,10 @@ namespace Pile
 #endif
 		}
 
-		[Comptime, DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
+		[Comptime]
 		internal static String MakePerfTrackString(String scopeName, uint sNum)
 		{
 			return scope $"""
@@ -97,14 +100,18 @@ namespace Pile
 		public static int TrackCollectInterval = 30; // in steps/frames/loops
 		static int collectCounter;
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		internal static void Initialize()
 		{
 			sectionDurationsFill = new .();
 			sectionDurationsRead = new .();
 		}
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		internal static void Step()
 		{
 			if (!Track) return;
@@ -136,7 +143,9 @@ namespace Pile
 			}
 		}
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		static void EndSection(String sectionName, TimeSpan time)
 		{
 			if (!Track) return;
@@ -151,7 +160,10 @@ namespace Pile
 			trackOverhead += __pt.Elapsed;
 		}
 
-		[DebugOnly, Inline]
+#if !DEBUG
+		[SkipCall]
+#endif
+		[Inline]
 		static void EndSection(String sectionName, Stopwatch watch)
 		{
 			EndSection(sectionName, watch.Elapsed);

@@ -62,7 +62,9 @@ namespace Pile
 #endif
 		}
 
-		[DebugOnly]
+#if !DEBUG
+		[SkipCall]
+#endif
 		public static void Update()
 		{
 			// Typed text
@@ -203,7 +205,10 @@ namespace Pile
 			}
 		}
 
-		[DebugOnly,PerfTrack]
+#if !DEBUG
+		[SkipCall]
+#endif
+		[PerfTrack]
 		public static void Render(Batch2D batch, SpriteFont font, Rect screenRect, int scale = 4, int edgeMargin = 4)
 		{
 			Debug.Assert(scale > 0);
