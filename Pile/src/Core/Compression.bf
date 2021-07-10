@@ -1,5 +1,6 @@
 //using MiniZ;
-using static MiniZ.MiniZ;
+//using static MiniZ.MiniZ;
+using static Pile.MiniZ;
 using System;
 using System.IO;
 
@@ -16,7 +17,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, CompressionLevel level = .DEFAULT_COMPRESSION)
+		public static Result<uint> Compress(Span<uint8> source, Span<uint8> destination, CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			/*mz_stream s = default;
 			s.next_in = source.Ptr;
@@ -67,8 +68,9 @@ namespace Pile
 
 			return .Ok;*/
 
-			int destL = destination.Length;
-			let s = MiniZ.MiniZ.Compress(destination.Ptr, ref destL, source.Ptr, (int)(int32)source.Length, level);
+			uint destL = (.)destination.Length;
+			uint srcL = (.)source.Length;
+			let s = mz_compress(destination.Ptr, &destL, source.Ptr, srcL, level);
 
 			switch (s)
 			{
@@ -85,7 +87,7 @@ namespace Pile
 		public static Result<void> Compress(Span<uint8> source, ref Span<uint8> destination,  CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			let length = Try!(Compress(source, destination, level));
-			destination.Length = length;
+			destination.Length = (.)length;
 			return .Ok;
 		}
 
@@ -95,11 +97,11 @@ namespace Pile
 				LogErrorReturn!("Destination array cannot be null");
 
 			let length = Try!(Compress(source, Span<uint8>(destination), level));
-			destination.Count = length;
+			destination.Count = (.)length;
 			return .Ok;
 		}
 
-		public static Result<int> Decompress(Span<uint8> source, Span<uint8> destination)
+		public static Result<uint> Decompress(Span<uint8> source, Span<uint8> destination)
 		{
 			/*mz_stream s = default;
 			s.next_in = source.Ptr;
@@ -108,6 +110,8 @@ namespace Pile
 			s.avail_out = (.)Math.Min(CHUNK_SIZE, destination.Length);
 
 			// We write directly from span to span, maybe we need some other tracking vars?
+			// ACTUALLY THIS COULD STILL JUST BE ONE CALL?
+			// I mean, we have the whole thing in mem anyways!
 
 			if (mz_inflateInit(&s) != .OK)
 				LogErrorReturn!("Failed to init inflate");
@@ -148,15 +152,17 @@ namespace Pile
 			if (mz_inflateEnd(&s) != .OK)
 				LogErrorReturn!("Failed to end inflate");
 
-			return .Ok;*/
+			return .Ok(0); // TODO return what we actually read?? maybe do this differently -> comments above*/
 
 			int destL = (.)destination.Length;
-			//int srcL = (.)source.Length;
-			let s = Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
+			//let s = Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
+			uint srcL = (.)source.Length;
+			uint destL2 = (.)destL;
+			let s = MiniZ.mz_uncompress(destination.Ptr, &destL2, source.Ptr, &srcL);
 
 			switch (s)
 			{
-			case .OK: return .Ok(destL);
+			case .OK: return .Ok((.)destL);
 				// The errors that could realistically happen
 			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
 			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");

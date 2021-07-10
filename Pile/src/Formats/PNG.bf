@@ -525,15 +525,15 @@ namespace Pile
 				MemoryStream zlibMemory = scope .();
 
 				// zlib Header
-				HandleWrite!(zlibMemory.Write<uint8>(0x78));
-				HandleWrite!(zlibMemory.Write<uint8>(0x9C));
+				/*HandleWrite!(zlibMemory.Write<uint8>(0x78)); // miniz does that
+				HandleWrite!(zlibMemory.Write<uint8>(0x9C));*/
 
-				let zPtr = &zlibMemory.[Friend]mMemory.Back + 1;
 				zlibMemory.[Friend]mMemory.Count += toCompress.Length;
-				switch (Compression.Compress(toCompress.[Friend]mMemory, .(zPtr, zlibMemory.Length - 2), .BEST_SPEED))
+				let zPtr = &zlibMemory.[Friend]mMemory[0];
+				switch (Compression.Compress(toCompress.[Friend]mMemory, .(zPtr, zlibMemory.Length), .BEST_SPEED))
 				{
 				case .Ok(let val):
-					zlibMemory.[Friend]mMemory.Count = val + 2; // 2 -> header
+					zlibMemory.[Friend]mMemory.Count = (.)val;
 				case .Err:
 					LogErrorReturn!("Error writing PNG: Compression error");
 				}
