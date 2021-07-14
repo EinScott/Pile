@@ -62,26 +62,26 @@ namespace Pile
 			}
 			else Runtime.FatalError("System must support OpenGLCore");
 
-			glDepthMask(GL_TRUE);
+			glDepthMask(.GL_TRUE);
 			
 			if (glDebugMessageCallback != null)
 			{
-				glEnable(GL_DEBUG_OUTPUT);
+				glEnable(.GL_DEBUG_OUTPUT);
 #if DEBUG
-				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+				glEnable(.GL_DEBUG_OUTPUT_SYNCHRONOUS);
 #endif
-				glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, null, GL_FALSE);
+				glDebugMessageControl(.GL_DONT_CARE, .GL_DONT_CARE, .GL_DEBUG_SEVERITY_NOTIFICATION, 0, null, .GL_FALSE);
 				glDebugMessageCallback(=> DebugCallback, null);
 			}
 
-			info.AppendF("device: {}, vendor: {}", StringView(glGetString(GL_RENDERER)), StringView(glGetString(GL_VENDOR)));
-			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
+			info.AppendF("device: {}, vendor: {}", StringView(glGetString(.GL_RENDERER)), StringView(glGetString(.GL_VENDOR)));
+			glGetIntegerv(.GL_MAX_TEXTURE_SIZE, &MaxTextureSize);
 
 #if DEBUG
-			if (StringView(glGetString(GL_VENDOR)) == "NVIDIA Corporation")
+			if (StringView(glGetString(.GL_VENDOR)) == "NVIDIA Corporation")
 			{
 				int32 totalAvailMem = -1;
-				debugInfo.totalGPUMemMB = ((.)*glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, .. &totalAvailMem)) / 1000;
+				debugInfo.totalGPUMemMB = ((.)*glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, .. &totalAvailMem)) / 1000;
 				Debug.Assert(totalAvailMem >= 0);
 			}
 #endif
@@ -106,9 +106,9 @@ namespace Pile
 				switch (mode)
 				{
 				case .WireFrame:
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					glPolygonMode(.GL_FRONT_AND_BACK, .GL_LINE);
 				case .Disabled:
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+					glPolygonMode(.GL_FRONT_AND_BACK, .GL_FILL);
 				}
 			}
 		}
@@ -147,7 +147,7 @@ namespace Pile
 			if (memQueryTimer >= 20 && debugInfo.totalGPUMemMB != 0)
 			{
 				int32 usedMem = 0;
-				debugInfo.usedGPUMemMB = debugInfo.totalGPUMemMB - ((.)*glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, .. &usedMem)) / 1000;
+				debugInfo.usedGPUMemMB = debugInfo.totalGPUMemMB - ((.)*glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, .. &usedMem)) / 1000;
 				memQueryTimer = 0;
 			}
 			memQueryTimer++;
@@ -159,7 +159,7 @@ namespace Pile
 			// Bind target
 			if (lastRenderTarget != target)
 			{
-				if (target is Window) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				if (target is Window) glBindFramebuffer(.GL_FRAMEBUFFER, 0);
 				else if (let fb = target as FrameBuffer) fb.Bind();
 
 				lastRenderTarget = target;
@@ -172,34 +172,34 @@ namespace Pile
 
 			    if (viewport != viewport)
 			    {
-			        glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+			        glViewport((.)viewport.X, (.)viewport.Y, (.)viewport.Width, (.)viewport.Height);
 			        viewport = viewport;
 			    }
 			}
 
 			// we disable the scissor for clearing
 			forceScissorUpdate = true;
-			glDisable(GL_SCISSOR_TEST);
+			glDisable(.GL_SCISSOR_TEST);
 
 			// clear
-			var mask = GL_ZERO;
+			ClearBufferMask mask = default;
 
 			if (flags.HasFlag(.Color))
 			{
 			    glClearColor(color.Rf, color.Gf, color.Bf, color.Af);
-			    mask |= GL_COLOR_BUFFER_BIT;
+			    mask |= .GL_COLOR_BUFFER_BIT;
 			}
 
 			if (flags.HasFlag(.Depth))
 			{
 			    glClearDepth(depth);
-			    mask |= GL_DEPTH_BUFFER_BIT;
+			    mask |= .GL_DEPTH_BUFFER_BIT;
 			}
 
 			if (flags.HasFlag(.Stencil))
 			{
-			    glClearStencil(stencil);
-			    mask |= GL_STENCIL_BUFFER_BIT;
+			    glClearStencil((int32)stencil);
+			    mask |= .GL_STENCIL_BUFFER_BIT;
 			}
 
 			glClear(mask);
@@ -222,7 +222,7 @@ namespace Pile
 			// Bind target
 			if (updateAll || lastRenderTarget != pass.target)
 			{
-				if (pass.target is Window) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				if (pass.target is Window) glBindFramebuffer(.GL_FRAMEBUFFER, 0);
 				else if (let fb = pass.target as FrameBuffer) fb.Bind();
 
 				lastRenderTarget = pass.target;
@@ -236,14 +236,14 @@ namespace Pile
 
 			// Blend mode
 			{
-				glEnable(GL_BLEND);
+				glEnable(.GL_BLEND);
 
 				if (updateAll ||
 				    lastPass.blendMode.colorOperation != pass.blendMode.colorOperation ||
 				    lastPass.blendMode.alphaOperation != pass.blendMode.alphaOperation)
 				{
-				    uint colorOp = GetBlendFunc(pass.blendMode.colorOperation);
-				    uint alphaOp = GetBlendFunc(pass.blendMode.alphaOperation);
+				    BlendEquationModeEXT colorOp = GetBlendFunc(pass.blendMode.colorOperation);
+				    BlendEquationModeEXT alphaOp = GetBlendFunc(pass.blendMode.alphaOperation);
 
 				    glBlendEquationSeparate(colorOp, alphaOp);
 				}
@@ -254,10 +254,10 @@ namespace Pile
 				    lastPass.blendMode.alphaSource != pass.blendMode.alphaSource ||
 				    lastPass.blendMode.alphaDestination != pass.blendMode.alphaDestination)
 				{
-				    uint colorSrc = GetBlendFactor(pass.blendMode.colorSource);
-				    uint colorDst = GetBlendFactor(pass.blendMode.colorDestination);
-				    uint alphaSrc = GetBlendFactor(pass.blendMode.alphaSource);
-				    uint alphaDst = GetBlendFactor(pass.blendMode.alphaDestination);
+				    BlendingFactor colorSrc = GetBlendFactor(pass.blendMode.colorSource);
+				    BlendingFactor colorDst = GetBlendFactor(pass.blendMode.colorDestination);
+				    BlendingFactor alphaSrc = GetBlendFactor(pass.blendMode.alphaSource);
+				    BlendingFactor alphaDst = GetBlendFactor(pass.blendMode.alphaDestination);
 
 				    glBlendFuncSeparate(colorSrc, colorDst, alphaSrc, alphaDst);
 				}
@@ -285,21 +285,21 @@ namespace Pile
 			if (updateAll || lastPass.depthFunction != pass.depthFunction)
 			{
 				if (pass.depthFunction == .None)
-					glDisable(GL_DEPTH_TEST);
+					glDisable(.GL_DEPTH_TEST);
 				else
 				{
-				    glEnable(GL_DEPTH_TEST);
+				    glEnable(.GL_DEPTH_TEST);
 
 				    switch (pass.depthFunction)
 				    {
-			        case .Always: glDepthFunc(GL_ALWAYS);
-			        case .Equal: glDepthFunc(GL_EQUAL);
-			        case .Greater: glDepthFunc(GL_GREATER);
-			        case .GreaterOrEqual: glDepthFunc(GL_GEQUAL);
-			        case .Less: glDepthFunc(GL_LESS);
-			        case .LessOrEqual: glDepthFunc(GL_LEQUAL);
-				    case .Never: glDepthFunc(GL_NEVER);
-				    case .NotEqual: glDepthFunc(GL_NOTEQUAL);
+			        case .Always: glDepthFunc(.GL_ALWAYS);
+			        case .Equal: glDepthFunc(.GL_EQUAL);
+			        case .Greater: glDepthFunc(.GL_GREATER);
+			        case .GreaterOrEqual: glDepthFunc(.GL_GEQUAL);
+			        case .Less: glDepthFunc(.GL_LESS);
+			        case .LessOrEqual: glDepthFunc(.GL_LEQUAL);
+				    case .Never: glDepthFunc(.GL_NEVER);
+				    case .NotEqual: glDepthFunc(.GL_NOTEQUAL);
 					case .None:
 				    }
 				}
@@ -309,16 +309,16 @@ namespace Pile
 			if (updateAll || lastPass.cullMode != pass.cullMode)
 			{
 				if (pass.cullMode == .None)
-					glDisable(GL_CULL_FACE);
+					glDisable(.GL_CULL_FACE);
 				else
 				{
-					glEnable(GL_CULL_FACE);
+					glEnable(.GL_CULL_FACE);
 
 					switch (pass.cullMode)
 					{
-					case .Back: glCullFace(GL_BACK);
-					case .Front: glCullFace(GL_FRONT);
-					default: glCullFace(GL_FRONT_AND_BACK);
+					case .Back: glCullFace(.GL_BACK);
+					case .Front: glCullFace(.GL_FRONT);
+					default: glCullFace(.GL_FRONT_AND_BACK);
 					}
 				}
 			}
@@ -332,7 +332,7 @@ namespace Pile
 
 				if (updateAll || Graphics.viewport != viewport)
 				{
-					glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+					glViewport((.)viewport.X, (.)viewport.Y, (.)viewport.Width, (.)viewport.Height);
 					Graphics.viewport = viewport;
 				}
 			}
@@ -348,12 +348,12 @@ namespace Pile
 				{
 				    if (pass.scissor == null)
 				    {
-				        glDisable(GL_SCISSOR_TEST);
+				        glDisable(.GL_SCISSOR_TEST);
 				    }
 				    else
 				    {
-				        glEnable(GL_SCISSOR_TEST);
-				        glScissor(scissor.X, scissor.Y, scissor.Width, scissor.Height);
+				        glEnable(.GL_SCISSOR_TEST);
+				        glScissor((.)scissor.X, (.)scissor.Y, (.)scissor.Width, (.)scissor.Height);
 				    }
 
 				    forceScissorUpdate = false;
@@ -363,71 +363,71 @@ namespace Pile
 
 			// Draw mesh
 			{
-				uint glIndexType;
+				DrawElementsType glIndexType;
 				switch (pass.mesh.IndexType)
 				{
 				case .UnsignedByte:
-					glIndexType = GL_UNSIGNED_BYTE;
+					glIndexType = .GL_UNSIGNED_BYTE;
 				case .UnsignedShort:
-					glIndexType = GL_UNSIGNED_SHORT;
+					glIndexType = .GL_UNSIGNED_SHORT;
 				case .UnsignedInt:
-					glIndexType = GL_UNSIGNED_INT;
+					glIndexType = .GL_UNSIGNED_INT;
 				}
 
 				if (pass.meshInstanceCount == 0)
 				{
-					glDrawElements(GL_TRIANGLES, (int)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart));
+					glDrawElements(.GL_TRIANGLES, (.)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart));
 				}
 				else
 				{
-					glDrawElementsInstanced(GL_TRIANGLES, (int)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart), (int)pass.meshInstanceCount);
+					glDrawElementsInstanced(.GL_TRIANGLES, (.)pass.meshIndexCount, glIndexType, (void*)(pass.mesh.IndexType.GetSize() * pass.meshIndexStart), (.)pass.meshInstanceCount);
 				}
 
 				glBindVertexArray(0);
 			}
 
-			uint GetBlendFunc(BlendOperations operation)
+			BlendEquationModeEXT GetBlendFunc(BlendOperations operation)
 			{
 				switch (operation)
 				{
-				case .Add: 				return GL_FUNC_ADD;
-				case .Subtract: 		return GL_FUNC_SUBTRACT;
-				case .ReverseSubtract: 	return GL_FUNC_REVERSE_SUBTRACT;
-				case .Min: 				return GL_MIN;
-				case .Max: 				return GL_MAX;
+				case .Add: 				return .GL_FUNC_ADD;
+				case .Subtract: 		return .GL_FUNC_SUBTRACT;
+				case .ReverseSubtract: 	return .GL_FUNC_REVERSE_SUBTRACT;
+				case .Min: 				return .GL_MIN;
+				case .Max: 				return .GL_MAX;
 				}
 			}
 
-			uint GetBlendFactor(BlendFactors factor)
+			BlendingFactor GetBlendFactor(BlendFactors factor)
 			{
 				switch (factor)
 				{
-				case .Zero: 					return GL_ZERO;
-				case .One: 						return GL_ONE;
-				case .SrcColor: 				return GL_SRC_COLOR;
-				case .OneMinusSrcColor:			return GL_ONE_MINUS_SRC_COLOR;
-				case .DstColor: 				return GL_DST_COLOR;
-				case .OneMinusDstColor: 		return GL_ONE_MINUS_DST_COLOR;
-				case .SrcAlpha: 				return GL_SRC_ALPHA;
-				case .OneMinusSrcAlpha: 		return GL_ONE_MINUS_SRC_ALPHA;
-				case .DstAlpha: 				return GL_DST_ALPHA;
-				case .OneMinusDstAlpha: 		return GL_ONE_MINUS_DST_ALPHA;
-				case .ConstantColor: 			return GL_CONSTANT_COLOR;
-				case .OneMinusConstantColor: 	return GL_ONE_MINUS_CONSTANT_COLOR;
-				case .ConstantAlpha: 			return GL_CONSTANT_ALPHA;
-				case .OneMinusConstantAlpha: 	return GL_ONE_MINUS_CONSTANT_ALPHA;
-				case .SrcAlphaSaturate: 		return GL_SRC_ALPHA_SATURATE;
-				case .Src1Color: 				return GL_SRC1_COLOR;
-				case .OneMinusSrc1Color: 		return GL_ONE_MINUS_SRC1_COLOR;
-				case .Src1Alpha: 				return GL_SRC1_ALPHA;
-				case .OneMinusSrc1Alpha: 		return GL_ONE_MINUS_SRC1_ALPHA;
+				case .Zero: 					return .GL_ZERO;
+				case .One: 						return .GL_ONE;
+				case .SrcColor: 				return .GL_SRC_COLOR;
+				case .OneMinusSrcColor:			return .GL_ONE_MINUS_SRC_COLOR;
+				case .DstColor: 				return .GL_DST_COLOR;
+				case .OneMinusDstColor: 		return .GL_ONE_MINUS_DST_COLOR;
+				case .SrcAlpha: 				return .GL_SRC_ALPHA;
+				case .OneMinusSrcAlpha: 		return .GL_ONE_MINUS_SRC_ALPHA;
+				case .DstAlpha: 				return .GL_DST_ALPHA;
+				case .OneMinusDstAlpha: 		return .GL_ONE_MINUS_DST_ALPHA;
+				case .ConstantColor: 			return .GL_CONSTANT_COLOR;
+				case .OneMinusConstantColor: 	return .GL_ONE_MINUS_CONSTANT_COLOR;
+				case .ConstantAlpha: 			return .GL_CONSTANT_ALPHA;
+				case .OneMinusConstantAlpha: 	return .GL_ONE_MINUS_CONSTANT_ALPHA;
+				case .SrcAlphaSaturate: 		return .GL_SRC_ALPHA_SATURATE;
+				case .Src1Color: 				return .GL_SRC1_COLOR;
+				case .OneMinusSrc1Color: 		return .GL_ONE_MINUS_SRC1_COLOR;
+				case .Src1Alpha: 				return .GL_SRC1_ALPHA;
+				case .OneMinusSrc1Alpha: 		return .GL_ONE_MINUS_SRC1_ALPHA;
 				}
 			}
 		}
 
 		protected override static Result<void> GetWindowPixels(Bitmap bitmap, UPoint2 drawableSize)
 		{
-			glReadPixels(0, 0, (.)drawableSize.X, (.)drawableSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.Pixels.Ptr);
+			glReadPixels(0, 0, (.)drawableSize.X, (.)drawableSize.Y, .GL_RGBA, .GL_UNSIGNED_BYTE, bitmap.Pixels.Ptr);
 
 			bitmap.VerticalFlip();
 			return .Ok;
@@ -493,21 +493,21 @@ namespace Pile
 			return defaultBatchShader;
 		}
 
-		static void DebugCallback(uint source, uint type, uint id, uint severity, int length, char8* message, void* userParam)
+		static void DebugCallback(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, char8* message, void* userParam)
 		{
 			var s = scope String("OpenGL ");
 
 			switch (type)
 			{
-			case GL_DEBUG_TYPE_ERROR: s.Append("ERROR");
-			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: s.Append("DEPRECATED BEHAVIOR");
-			case GL_DEBUG_TYPE_MARKER: s.Append("MARKER");
-			case GL_DEBUG_TYPE_OTHER: s.Append("OTHER");
-			case GL_DEBUG_TYPE_PERFORMANCE: s.Append("PEROFRMANCE");
-			case GL_DEBUG_TYPE_POP_GROUP: s.Append("POP GROUP");
-			case GL_DEBUG_TYPE_PORTABILITY: s.Append("PORTABILITY");
-			case GL_DEBUG_TYPE_PUSH_GROUP: s.Append("PUSH GROUP");
-			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: s.Append("UNDEFINED BEHAVIOR");
+			case .GL_DEBUG_TYPE_ERROR: s.Append("ERROR");
+			case .GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: s.Append("DEPRECATED BEHAVIOR");
+			case .GL_DEBUG_TYPE_MARKER: s.Append("MARKER");
+			case .GL_DEBUG_TYPE_OTHER: s.Append("OTHER");
+			case .GL_DEBUG_TYPE_PERFORMANCE: s.Append("PERFORMANCE");
+			case .GL_DEBUG_TYPE_POP_GROUP: s.Append("POP GROUP");
+			case .GL_DEBUG_TYPE_PORTABILITY: s.Append("PORTABILITY");
+			case .GL_DEBUG_TYPE_PUSH_GROUP: s.Append("PUSH GROUP");
+			case .GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: s.Append("UNDEFINED BEHAVIOR");
 			default: s.Append("UNKNOWN");
 			}
 
@@ -515,9 +515,11 @@ namespace Pile
 
 			switch (severity)
 			{
-			case GL_DEBUG_SEVERITY_HIGH: s.Append("HIGH");
-			case GL_DEBUG_SEVERITY_MEDIUM: s.Append("MEDIUM");
-			case GL_DEBUG_SEVERITY_LOW: s.Append("LOW");
+			case .GL_DEBUG_SEVERITY_HIGH: s.Append("HIGH");
+			case .GL_DEBUG_SEVERITY_MEDIUM: s.Append("MEDIUM");
+			case .GL_DEBUG_SEVERITY_LOW: s.Append("LOW");
+			default: // Shouldn't be accessed -> filter
+				Debug.FatalError();
 			}
 
 			s.Append(": ");
@@ -525,7 +527,7 @@ namespace Pile
 			// Add message
 			s.Append(message, length);
 
-			if (severity == GL_DEBUG_SEVERITY_HIGH || type == GL_DEBUG_TYPE_ERROR) Log.Error(s);
+			if (severity == .GL_DEBUG_SEVERITY_HIGH || type == .GL_DEBUG_TYPE_ERROR) Log.Error(s);
 			else Log.Warn(s);
 		}
 	}

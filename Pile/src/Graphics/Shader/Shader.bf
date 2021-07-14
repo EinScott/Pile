@@ -112,8 +112,8 @@ namespace Pile
 		/// On .Err, the Shader should still function like before ideally
 		protected extern Result<void> Set(ShaderData data);
 
-		protected extern void ReflectCounts(out uint attributeCount, out uint uniformCount);
-		protected extern Result<void> ReflectAttrib(uint index, String nameBuffer, out uint32 location, out uint32 length);
-		protected extern Result<void> ReflectUniform(uint index, String nameBuffer, out uint32 location, out uint32 length, out UniformType type);
+		protected extern void ReflectCounts(out uint32 attributeCount, out uint32 uniformCount);
+		protected extern Result<void> ReflectAttrib(uint32 index, String nameBuffer, out uint32 location, out uint32 length);
+		protected extern Result<void> ReflectUniform(uint32 index, String nameBuffer, out uint32 location, out uint32 length, out UniformType type);
 	}
 }

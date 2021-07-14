@@ -38,22 +38,22 @@ namespace Pile
 			if (frameBufferID == 0)
 			{
 				GL.glGenFramebuffers(1, &frameBufferID);
-				GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, frameBufferID);
+				GL.glBindFramebuffer(.GL_FRAMEBUFFER, frameBufferID);
 
 				uint color = 0;
 				for (let texture in Attachments)
 				{
 					if (texture.format.IsColorFormat())
 					{
-						GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0 + color, GL.GL_TEXTURE_2D, texture.textureID, 0);
+						GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_COLOR_ATTACHMENT0 + color, .GL_TEXTURE_2D, texture.textureID, 0);
 						color++;
 					}
 					else
-						GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_STENCIL_ATTACHMENT, GL.GL_TEXTURE_2D, texture.textureID, 0);
+						GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_STENCIL_ATTACHMENT | .GL_STENCIL_ATTACHMENT, .GL_TEXTURE_2D, texture.textureID, 0);
 				}
 			}
 			else
-				GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, frameBufferID);
+				GL.glBindFramebuffer(.GL_FRAMEBUFFER, frameBufferID);
 		}
 
 		void Delete()

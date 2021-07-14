@@ -53,7 +53,7 @@ namespace Pile
 				lastVertexFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length, ref vertexBufferSize);
+			SetBuffer(ref vertexBufferID, .GL_ARRAY_BUFFER, rawVertexData.Ptr, (.)rawVertexData.Length, ref vertexBufferSize);
 		}
 
 		protected override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
@@ -64,15 +64,15 @@ namespace Pile
 				lastInstanceFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, GL.GL_ARRAY_BUFFER, rawVertexData.Ptr, rawVertexData.Length, ref instanceBufferSize);
+			SetBuffer(ref vertexBufferID, .GL_ARRAY_BUFFER, rawVertexData.Ptr, (.)rawVertexData.Length, ref instanceBufferSize);
 		}
 
 		protected override void SetIndices(Span<uint8> rawIndexData)
 		{
-			SetBuffer(ref indexBufferID, GL.GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, rawIndexData.Length, ref indexBufferSize);
+			SetBuffer(ref indexBufferID, .GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, (.)rawIndexData.Length, ref indexBufferSize);
 		}
 
-		void SetBuffer(ref uint32 bufferID, uint glBufferType, void* data, int size, ref int currentSize)
+		void SetBuffer(ref uint32 bufferID, GL.BufferTargetARB glBufferType, void* data, int32 size, ref int currentSize)
 		{
 			if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
 
@@ -80,7 +80,7 @@ namespace Pile
 
 			if (size > currentSize)
 			{
-				GL.glBufferData(glBufferType, size, data, GL.GL_DYNAMIC_DRAW);
+				GL.glBufferData(glBufferType, size, data, .GL_DYNAMIC_DRAW);
 				currentSize = size;
 			}
 			else GL.glBufferSubData(glBufferType, 0, size, data);
@@ -105,7 +105,7 @@ namespace Pile
 					if (lastVertexFormat != null)
 					{
 						// Bind vertex buffer
-						GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBufferID);
+						GL.glBindBuffer(.GL_ARRAY_BUFFER, vertexBufferID);
 
 						// Determine active attributes
 						if (TrySetupAttributePointer(attribute, lastVertexFormat, 0))
@@ -115,7 +115,7 @@ namespace Pile
 					if (lastInstanceFormat != null)
 					{
 						// Bind vertex buffer
-						GL.glBindBuffer(GL.GL_ARRAY_BUFFER, instanceBufferID);
+						GL.glBindBuffer(.GL_ARRAY_BUFFER, instanceBufferID);
 
 						// Determine active attributes
 						if (TrySetupAttributePointer(attribute, lastInstanceFormat, 1))
@@ -127,7 +127,7 @@ namespace Pile
 				}
 
 				// Bind index buffer
-				GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
+				GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 			}
 
 			bool TrySetupAttributePointer(ShaderAttrib attribute, VertexFormat format, uint32 divisor)
@@ -136,10 +136,10 @@ namespace Pile
 				{
 					// this is kind of messy because some attributes can take up multiple slots [FOSTERCOMMENT]
 					// ex. a marix4x4 actually takes up 4 (size 16)
-					for (int i = 0, uint64 loc = 0; i < (int)vertexAttr.Components; i += 4, loc++)
+					for (int i = 0, uint32 loc = 0; i < (int32)vertexAttr.Components; i += 4, loc++)
 					{
-						let componentsInLoc = Math.Min((int)vertexAttr.Components - i, 4);
-						let location = (uint)(attribute.Location + loc);
+						let componentsInLoc = (int32)Math.Min((int)vertexAttr.Components - i, 4);
+						let location = attribute.Location + loc;
 
 						GL.glEnableVertexAttribArray(location);
 						GL.glVertexAttribPointer(location, componentsInLoc, ToVertexType(vertexAttr.Type), vertexAttr.Normalized, format.Stride, (void*)offset);
@@ -155,14 +155,14 @@ namespace Pile
 			}
 		}
 
-		static uint ToVertexType(VertexType type)
+		static GL.VertexAttribPointerType ToVertexType(VertexType type)
 		{
 			switch (type)
 			{
-			case .Byte: return GL.GL_UNSIGNED_BYTE;
-			case .Short: return GL.GL_SHORT;
-			case .Int: return GL.GL_INT;
-			case .Float: return GL.GL_FLOAT;
+			case .Byte: return .GL_UNSIGNED_BYTE;
+			case .Short: return .GL_SHORT;
+			case .Int: return .GL_INT;
+			case .Float: return .GL_FLOAT;
 			}
 		}
 	}

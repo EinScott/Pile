@@ -24,25 +24,25 @@ namespace Pile
 		{
 			Debug.Assert(source.vertexSource.Length > 0 &&  source.fragmentSource.Length > 0, "At least vertex and fragment shader must be given to initialize gl shader");
 
-			let newProg = (uint32)GL.glCreateProgram();
+			let newProg = GL.glCreateProgram();
 
 			// Prepare shaders
-			let shaders = scope uint[3];
-			shaders[0] = PrepareShader!(source.vertexSource, GL.GL_VERTEX_SHADER);
-			shaders[1] = PrepareShader!(source.fragmentSource, GL.GL_FRAGMENT_SHADER);
-			shaders[2] = source.geometrySource == String.Empty ? 0 : PrepareShader!(source.geometrySource, GL.GL_GEOMETRY_SHADER);
+			let shaders = scope uint32[3];
+			shaders[0] = PrepareShader!(source.vertexSource, GL.ShaderType.GL_VERTEX_SHADER);
+			shaders[1] = PrepareShader!(source.fragmentSource, GL.ShaderType.GL_FRAGMENT_SHADER);
+			shaders[2] = source.geometrySource == String.Empty ? 0 : PrepareShader!(source.geometrySource, GL.ShaderType.GL_GEOMETRY_SHADER);
 
 			GL.glLinkProgram(newProg);
 
 			// Error
 			{
-				int32 linked = GL.GL_FALSE;
-				GL.glGetProgramiv(newProg, GL.GL_LINK_STATUS, &linked);
+				int32 linked = 0; // GL_FALSE
+				GL.glGetProgramiv(newProg, .GL_LINK_STATUS, &linked);
 
-				if (linked == GL.GL_FALSE)
+				if (linked == 0)
 				{
 					int32 len = 0;
-					GL.glGetProgramiv(newProg, GL.GL_INFO_LOG_LENGTH, &len);
+					GL.glGetProgramiv(newProg, .GL_INFO_LOG_LENGTH, &len);
 
 					if (len > 0)
 					{
@@ -71,9 +71,9 @@ namespace Pile
 
 			return .Ok;
 
-			mixin PrepareShader(String source, uint glShaderType)
+			mixin PrepareShader(String source, GL.ShaderType glShaderType)
 			{
-				uint id = GL.glCreateShader(glShaderType);
+				uint32 id = GL.glCreateShader(glShaderType);
 
 				var cs = source.CStr();
 				int32 l = (int32)source.Length;
@@ -83,13 +83,13 @@ namespace Pile
 
 				// Error
 				{
-					int32 compiled = GL.GL_FALSE;
-					GL.glGetShaderiv(id, GL.GL_COMPILE_STATUS, &compiled);
+					int32 compiled = 0; // GL_FALSE
+					GL.glGetShaderiv(id, .GL_COMPILE_STATUS, &compiled);
 					
-					if (compiled == GL.GL_FALSE)
+					if (compiled == 0)
 					{
 						int32 len = 0;
-						GL.glGetShaderiv(id, GL.GL_INFO_LOG_LENGTH, &len);
+						GL.glGetShaderiv(id, .GL_INFO_LOG_LENGTH, &len);
 						var s = scope char8[len];
 
 						GL.glGetShaderInfoLog(id, len, &len, s.Ptr);
@@ -103,26 +103,26 @@ namespace Pile
 				id
 			}
 
-			StringView GetShaderTypeName(uint glShaderType)
+			StringView GetShaderTypeName(GL.ShaderType glShaderType)
 			{
 				switch (glShaderType)
 				{
-				case GL.GL_VERTEX_SHADER: return "vertex";
-				case GL.GL_FRAGMENT_SHADER: return "fragment";
-				case GL.GL_GEOMETRY_SHADER: return "geometry";
+				case .GL_VERTEX_SHADER: return "vertex";
+				case .GL_FRAGMENT_SHADER: return "fragment";
+				case .GL_GEOMETRY_SHADER: return "geometry";
 				default: return "<unknown type>";
 				}
 			}
 		}
 
-		protected override void ReflectCounts(out uint attributeCount, out uint uniformCount)
+		protected override void ReflectCounts(out uint32 attributeCount, out uint32 uniformCount)
 		{
 			Debug.Assert(programID != 0, "No shader program");
 
-			attributeCount = Probe(GL.GL_ACTIVE_ATTRIBUTES);
-			uniformCount = Probe(GL.GL_ACTIVE_UNIFORMS);
+			attributeCount = Probe(.GL_ACTIVE_ATTRIBUTES);
+			uniformCount = Probe(.GL_ACTIVE_UNIFORMS);
 
-			uint Probe(uint glParam)
+			uint32 Probe(GL.ProgramPropertyARB glParam)
 			{
 				int32 count = 0;
 				GL.glGetProgramiv(programID, glParam, &count);
@@ -130,11 +130,11 @@ namespace Pile
 			}
 		}
 
-		protected override Result<void> ReflectAttrib(uint index, String nameBuffer, out uint32 location, out uint32 length)
+		protected override Result<void> ReflectAttrib(uint32 index, String nameBuffer, out uint32 location, out uint32 length)
 		{
 			// Get attribute
 			var cBuf = scope char8[256];
-			uint32 outType = ?;
+			GL.AttributeType outType = ?;
 			int32 outLen = ?;
 			int32 outNameLen = ?;
 			GL.glGetActiveAttrib(programID, index, 256, &outNameLen, &outLen, &outType, cBuf.Ptr);
@@ -153,11 +153,11 @@ namespace Pile
 			return .Err;
 		}
 
-		protected override Result<void> ReflectUniform(uint index, String nameBuffer, out uint32 location, out uint32 length, out UniformType type)
+		protected override Result<void> ReflectUniform(uint32 index, String nameBuffer, out uint32 location, out uint32 length, out UniformType type)
 		{
 			// Get uniform
 			var cBuf = scope char8[256];
-			uint32 outType = ?;
+			GL.UniformType outType = ?;
 			int32 outLen = ?;
 			int32 outNameLen = ?;
 			GL.glGetActiveUniform(programID, index, 256, &outNameLen, &outLen, &outType, cBuf.Ptr);
@@ -182,18 +182,18 @@ namespace Pile
 		}
 
 		[Inline]
-		UniformType GlTypeToEnum(uint type)
+		UniformType GlTypeToEnum(GL.UniformType type)
 		{
 			switch (type)
 			{
-			case GL.GL_INT: return .Int;
-			case GL.GL_FLOAT: return .Float;
-			case GL.GL_FLOAT_VEC2: return .Float2;
-			case GL.GL_FLOAT_VEC3: return .Float3;
-			case GL.GL_FLOAT_VEC4: return .Float4;
-			case GL.GL_FLOAT_MAT3x2: return .Matrix3x2;
-			case GL.GL_FLOAT_MAT4: return .Matrix4x4;
-			case GL.GL_SAMPLER_2D: return .Sampler;
+			case .GL_INT: return .Int;
+			case .GL_FLOAT: return .Float;
+			case .GL_FLOAT_VEC2: return .Float2;
+			case .GL_FLOAT_VEC3: return .Float3;
+			case .GL_FLOAT_VEC4: return .Float4;
+			case .GL_FLOAT_MAT3x2: return .Matrix3x2;
+			case .GL_FLOAT_MAT4: return .Matrix4x4;
+			case .GL_SAMPLER_2D: return .Sampler;
 			default: return .Unknown;
 			}
 		}
@@ -223,29 +223,29 @@ namespace Pile
 						{
 						    let id = textures[j]?.textureID ?? 0;
 
-						    GL.glActiveTexture(GL.GL_TEXTURE0 + (uint)textureSlot);
-						    GL.glBindTexture(GL.GL_TEXTURE_2D, id);
+						    GL.glActiveTexture(.GL_TEXTURE0 + textureSlot);
+						    GL.glBindTexture(.GL_TEXTURE_2D, id);
 
 						    n[j] = textureSlot;
 						    textureSlot++;
 						}
 
-						GL.glUniform1iv(uniform.Location, uniform.Length, n.Ptr);
+						GL.glUniform1iv((.)uniform.Location, (.)uniform.Length, n.Ptr);
 					}
 				case .Int:
-					GL.glUniform1iv(uniform.Location, uniform.Length, (int32*)parameter.memory.Ptr);
+					GL.glUniform1iv((.)uniform.Location, (.)uniform.Length, (int32*)parameter.memory.Ptr);
 				case .Float:
-					GL.glUniform1fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
+					GL.glUniform1fv((.)uniform.Location, (.)uniform.Length, (float*)parameter.memory.Ptr);
 				case .Float2:
-					GL.glUniform2fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
+					GL.glUniform2fv((.)uniform.Location, (.)uniform.Length, (float*)parameter.memory.Ptr);
 				case .Float3:
-					GL.glUniform3fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
+					GL.glUniform3fv((.)uniform.Location, (.)uniform.Length, (float*)parameter.memory.Ptr);
 				case .Float4:
-					GL.glUniform4fv(uniform.Location, uniform.Length, (float*)parameter.memory.Ptr);
+					GL.glUniform4fv((.)uniform.Location, (.)uniform.Length, (float*)parameter.memory.Ptr);
 				case .Matrix3x2:
-					GL.glUniformMatrix3x2fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)parameter.memory.Ptr);
+					GL.glUniformMatrix3x2fv((.)uniform.Location, (.)uniform.Length, .GL_FALSE, (float*)parameter.memory.Ptr);
 				case .Matrix4x4:
-					GL.glUniformMatrix4fv(uniform.Location, uniform.Length, GL.GL_FALSE, (float*)parameter.memory.Ptr);
+					GL.glUniformMatrix4fv((.)uniform.Location, (.)uniform.Length, .GL_FALSE, (float*)parameter.memory.Ptr);
 				case .Unknown:
 				}
 			}
