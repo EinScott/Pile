@@ -1,5 +1,5 @@
 using System;
-using OpenGL43;
+using OpenGL45;
 
 using internal Pile;
 
@@ -39,7 +39,7 @@ namespace Pile
 			switch (format)
 			{
 			case .R, .RG, .RGB, .Color: glType = .GL_UNSIGNED_BYTE;
-			case .DepthStencil: glType = (.)GL.GL_UNSIGNED_INT_24_8;
+			case .DepthStencil: glType = .GL_UNSIGNED_INT_24_8;
 			}
 
 			// GL create texture

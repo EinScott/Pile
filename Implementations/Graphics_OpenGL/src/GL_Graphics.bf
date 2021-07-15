@@ -1,4 +1,4 @@
-using static OpenGL43.GL;
+using static OpenGL45.GL;
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -242,8 +242,8 @@ namespace Pile
 				    lastPass.blendMode.colorOperation != pass.blendMode.colorOperation ||
 				    lastPass.blendMode.alphaOperation != pass.blendMode.alphaOperation)
 				{
-				    BlendEquationModeEXT colorOp = GetBlendFunc(pass.blendMode.colorOperation);
-				    BlendEquationModeEXT alphaOp = GetBlendFunc(pass.blendMode.alphaOperation);
+				    let colorOp = GetBlendFunc(pass.blendMode.colorOperation);
+				    let alphaOp = GetBlendFunc(pass.blendMode.alphaOperation);
 
 				    glBlendEquationSeparate(colorOp, alphaOp);
 				}
@@ -254,10 +254,10 @@ namespace Pile
 				    lastPass.blendMode.alphaSource != pass.blendMode.alphaSource ||
 				    lastPass.blendMode.alphaDestination != pass.blendMode.alphaDestination)
 				{
-				    BlendingFactor colorSrc = GetBlendFactor(pass.blendMode.colorSource);
-				    BlendingFactor colorDst = GetBlendFactor(pass.blendMode.colorDestination);
-				    BlendingFactor alphaSrc = GetBlendFactor(pass.blendMode.alphaSource);
-				    BlendingFactor alphaDst = GetBlendFactor(pass.blendMode.alphaDestination);
+				    let colorSrc = GetBlendFactor(pass.blendMode.colorSource);
+				    let colorDst = GetBlendFactor(pass.blendMode.colorDestination);
+				    let alphaSrc = GetBlendFactor(pass.blendMode.alphaSource);
+				    let alphaDst = GetBlendFactor(pass.blendMode.alphaDestination);
 
 				    glBlendFuncSeparate(colorSrc, colorDst, alphaSrc, alphaDst);
 				}

@@ -41,8 +41,7 @@ namespace Pile
 		public this(uint32 width, uint32 height, TextureFormat format = .Color, TextureFilter filter = Core.Defaults.TextureFilter, bool genMipmaps = Core.Defaults.TexturesGenMipmaps)
 		{
 			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
-
-			Debug.Assert(width > 0 && height > 0, "Texture size must be larger than 0");
+			Runtime.Assert(width > 0 && height > 0, "Texture size must be larger than 0");
 
 			Width = width;
 			Height = height;
@@ -77,7 +76,7 @@ namespace Pile
 
 		public void ResizeAndClear(uint32 width, uint32 height)
 		{
-			Debug.Assert(width > 0 && height > 0, "FrameBuffer size must be larger than 0");
+			Runtime.Assert(width > 0 && height > 0, "FrameBuffer size must be larger than 0");
 
 			if (Width != width || Height != height)
 			{
@@ -88,6 +87,7 @@ namespace Pile
 			}
 		}
 
+		[Inline]
 		public void SetColor(ref Span<Color> buffer) => SetData<Color>(ref buffer);
 		public void SetData<T>(ref Span<T> buffer)
 		{
@@ -96,6 +96,7 @@ namespace Pile
 			SetData(buffer.Ptr);
 		}
 
+		[Inline]
 		public void GetColor(ref Span<Color> buffer) => GetData<Color>(ref buffer);
 		public void GetData<T>(ref Span<T> buffer)
 		{

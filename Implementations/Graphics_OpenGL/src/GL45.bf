@@ -1,22 +1,18 @@
 using System;
 
-namespace OpenGL43
+namespace OpenGL45
 {
     static class GL
-	{
-		// GL_NVX_gpu_memory_info
-		public const uint32 GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX = 0x9048;
-		public const uint32 GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX = 0x9049;
+    {
+        // GL_NVX_gpu_memory_info
+        public const uint32 GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX = 0x9048;
+        public const uint32 GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX = 0x9049;
 
-        public const uint32 GL_BLEND_EQUATION = 0x8009;
-        public const uint32 GL_TEXTURE_DEPTH = 0x8071;
         public const uint32 GL_FRAMEBUFFER_DEFAULT = 0x8218;
-        public const uint32 GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = 0x8243;
+        public const uint32 GL_PRIMITIVE_RESTART_FOR_PATCHES_SUPPORTED = 0x8221;
+        public const uint32 GL_LOSE_CONTEXT_ON_RESET = 0x8252;
         public const uint32 GL_UNDEFINED_VERTEX = 0x8260;
-        public const uint32 GL_MAX_COMPUTE_SHARED_MEMORY_SIZE = 0x8262;
-        public const uint32 GL_MAX_COMBINED_DIMENSIONS = 0x8282;
-        public const uint32 GL_DEPTH_COMPONENTS = 0x8284;
-        public const uint32 GL_STENCIL_COMPONENTS = 0x8285;
+        public const uint32 GL_NO_RESET_NOTIFICATION = 0x8261;
         public const uint32 GL_MANUAL_GENERATE_MIPMAP = 0x8294;
         public const uint32 GL_FULL_SUPPORT = 0x82B7;
         public const uint32 GL_CAVEAT_SUPPORT = 0x82B8;
@@ -47,22 +43,10 @@ namespace OpenGL43
         public const uint32 GL_VIEW_CLASS_RGTC2_RG = 0x82D1;
         public const uint32 GL_VIEW_CLASS_BPTC_UNORM = 0x82D2;
         public const uint32 GL_VIEW_CLASS_BPTC_FLOAT = 0x82D3;
-        public const uint32 GL_TEXTURE_VIEW_MIN_LEVEL = 0x82DB;
-        public const uint32 GL_TEXTURE_VIEW_NUM_LEVELS = 0x82DC;
-        public const uint32 GL_TEXTURE_VIEW_MIN_LAYER = 0x82DD;
-        public const uint32 GL_TEXTURE_VIEW_NUM_LAYERS = 0x82DE;
-        public const uint32 GL_TEXTURE_IMMUTABLE_LEVELS = 0x82DF;
         public const uint32 GL_DISPLAY_LIST = 0x82E7;
         public const uint32 GL_NUM_SHADING_LANGUAGE_VERSIONS = 0x82E9;
-        public const uint32 GL_UNSIGNED_BYTE_2_3_3_REV = 0x8362;
-        public const uint32 GL_UNSIGNED_SHORT_5_6_5 = 0x8363;
-        public const uint32 GL_UNSIGNED_SHORT_5_6_5_REV = 0x8364;
-        public const uint32 GL_UNSIGNED_SHORT_4_4_4_4_REV = 0x8365;
-        public const uint32 GL_UNSIGNED_SHORT_1_5_5_5_REV = 0x8366;
-        public const uint32 GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367;
-        public const uint32 GL_UNSIGNED_INT_24_8 = 0x84FA;
-        public const uint32 GL_VERTEX_PROGRAM_POINT_SIZE = 0x8642;
-        public const uint32 GL_TEXTURE_COMPRESSED_IMAGE_SIZE = 0x86A0;
+        public const uint32 GL_CONTEXT_RELEASE_BEHAVIOR = 0x82FB;
+        public const uint32 GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH = 0x82FC;
         public const uint32 GL_DRAW_BUFFER0 = 0x8825;
         public const uint32 GL_DRAW_BUFFER1 = 0x8826;
         public const uint32 GL_DRAW_BUFFER2 = 0x8827;
@@ -79,94 +63,17 @@ namespace OpenGL43
         public const uint32 GL_DRAW_BUFFER13 = 0x8832;
         public const uint32 GL_DRAW_BUFFER14 = 0x8833;
         public const uint32 GL_DRAW_BUFFER15 = 0x8834;
-        public const uint32 GL_TEXTURE_DEPTH_SIZE = 0x884A;
-        public const uint32 GL_MAX_TESS_CONTROL_INPUT_COMPONENTS = 0x886C;
-        public const uint32 GL_MAX_TESS_EVALUATION_INPUT_COMPONENTS = 0x886D;
-        public const uint32 GL_GEOMETRY_SHADER_INVOCATIONS = 0x887F;
-        public const uint32 GL_TEXTURE_STENCIL_SIZE = 0x88F1;
-        public const uint32 GL_TEXTURE_RED_TYPE = 0x8C10;
-        public const uint32 GL_TEXTURE_GREEN_TYPE = 0x8C11;
-        public const uint32 GL_TEXTURE_BLUE_TYPE = 0x8C12;
-        public const uint32 GL_TEXTURE_ALPHA_TYPE = 0x8C13;
-        public const uint32 GL_TEXTURE_DEPTH_TYPE = 0x8C16;
         public const uint32 GL_UNSIGNED_NORMALIZED = 0x8C17;
-        public const uint32 GL_TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D;
-        public const uint32 GL_MIN_SAMPLE_SHADING_VALUE = 0x8C37;
-        public const uint32 GL_UNSIGNED_INT_5_9_9_9_REV = 0x8C3E;
-        public const uint32 GL_TEXTURE_SHARED_SIZE = 0x8C3F;
-        public const uint32 GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = 0x8C80;
-        public const uint32 GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 0x8C8A;
-        public const uint32 GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = 0x8C8B;
-        public const uint32 GL_POINT_SPRITE_COORD_ORIGIN = 0x8CA0;
-        public const uint32 GL_FRAMEBUFFER_BINDING = 0x8CA6;
-        public const uint32 GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
-        public const uint32 GL_MAX_SAMPLES = 0x8D57;
         public const uint32 GL_RGB565 = 0x8D62;
-        public const uint32 GL_FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8DAD;
-        public const uint32 GL_MAX_GEOMETRY_OUTPUT_VERTICES = 0x8DE0;
-        public const uint32 GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS = 0x8DE1;
-        public const uint32 GL_MAX_SUBROUTINES = 0x8DE7;
-        public const uint32 GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS = 0x8DE8;
-        public const uint32 GL_MAX_COMBINED_TESS_CONTROL_UNIFORM_COMPONENTS = 0x8E1E;
-        public const uint32 GL_MAX_COMBINED_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E1F;
         public const uint32 GL_TRANSFORM_FEEDBACK_BUFFER_PAUSED = 0x8E23;
         public const uint32 GL_TRANSFORM_FEEDBACK_BUFFER_ACTIVE = 0x8E24;
-        public const uint32 GL_TRANSFORM_FEEDBACK_BINDING = 0x8E25;
         public const uint32 GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION = 0x8E4C;
-        public const uint32 GL_SAMPLE_MASK_VALUE = 0x8E52;
-        public const uint32 GL_MAX_GEOMETRY_SHADER_INVOCATIONS = 0x8E5A;
-        public const uint32 GL_MIN_FRAGMENT_INTERPOLATION_OFFSET = 0x8E5B;
-        public const uint32 GL_MAX_FRAGMENT_INTERPOLATION_OFFSET = 0x8E5C;
-        public const uint32 GL_FRAGMENT_INTERPOLATION_OFFSET_BITS = 0x8E5D;
-        public const uint32 GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET = 0x8E5E;
-        public const uint32 GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET = 0x8E5F;
-        public const uint32 GL_MAX_TRANSFORM_FEEDBACK_BUFFERS = 0x8E70;
-        public const uint32 GL_MAX_VERTEX_STREAMS = 0x8E71;
-        public const uint32 GL_TESS_CONTROL_OUTPUT_VERTICES = 0x8E75;
-        public const uint32 GL_TESS_GEN_MODE = 0x8E76;
-        public const uint32 GL_TESS_GEN_SPACING = 0x8E77;
-        public const uint32 GL_TESS_GEN_VERTEX_ORDER = 0x8E78;
-        public const uint32 GL_TESS_GEN_POINT_MODE = 0x8E79;
         public const uint32 GL_ISOLINES = 0x8E7A;
         public const uint32 GL_FRACTIONAL_ODD = 0x8E7B;
         public const uint32 GL_FRACTIONAL_EVEN = 0x8E7C;
-        public const uint32 GL_MAX_PATCH_VERTICES = 0x8E7D;
-        public const uint32 GL_MAX_TESS_GEN_LEVEL = 0x8E7E;
-        public const uint32 GL_MAX_TESS_CONTROL_UNIFORM_COMPONENTS = 0x8E7F;
-        public const uint32 GL_MAX_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E80;
-        public const uint32 GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS = 0x8E81;
-        public const uint32 GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS = 0x8E82;
-        public const uint32 GL_MAX_TESS_CONTROL_OUTPUT_COMPONENTS = 0x8E83;
-        public const uint32 GL_MAX_TESS_PATCH_COMPONENTS = 0x8E84;
-        public const uint32 GL_MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS = 0x8E85;
-        public const uint32 GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS = 0x8E86;
-        public const uint32 GL_COPY_READ_BUFFER_BINDING = 0x8F36;
-        public const uint32 GL_COPY_WRITE_BUFFER_BINDING = 0x8F37;
-        public const uint32 GL_MAX_IMAGE_UNITS = 0x8F38;
-        public const uint32 GL_MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS = 0x8F39;
-        public const uint32 GL_MAX_COMBINED_SHADER_OUTPUT_RESOURCES = 0x8F39;
-        public const uint32 GL_IMAGE_BINDING_NAME = 0x8F3A;
-        public const uint32 GL_IMAGE_BINDING_LEVEL = 0x8F3B;
-        public const uint32 GL_IMAGE_BINDING_LAYERED = 0x8F3C;
-        public const uint32 GL_IMAGE_BINDING_LAYER = 0x8F3D;
-        public const uint32 GL_IMAGE_BINDING_ACCESS = 0x8F3E;
-        public const uint32 GL_DRAW_INDIRECT_BUFFER_BINDING = 0x8F43;
-        public const uint32 GL_VERTEX_BINDING_BUFFER = 0x8F4F;
         public const uint32 GL_SIGNED_NORMALIZED = 0x8F9C;
-        public const uint32 GL_TEXTURE_BINDING_CUBE_MAP_ARRAY = 0x900A;
-        public const uint32 GL_MAX_IMAGE_SAMPLES = 0x906D;
-        public const uint32 GL_IMAGE_BINDING_FORMAT = 0x906E;
         public const uint32 GL_IMAGE_FORMAT_COMPATIBILITY_BY_SIZE = 0x90C8;
         public const uint32 GL_IMAGE_FORMAT_COMPATIBILITY_BY_CLASS = 0x90C9;
-        public const uint32 GL_MAX_VERTEX_IMAGE_UNIFORMS = 0x90CA;
-        public const uint32 GL_MAX_TESS_CONTROL_IMAGE_UNIFORMS = 0x90CB;
-        public const uint32 GL_MAX_TESS_EVALUATION_IMAGE_UNIFORMS = 0x90CC;
-        public const uint32 GL_MAX_GEOMETRY_IMAGE_UNIFORMS = 0x90CD;
-        public const uint32 GL_MAX_FRAGMENT_IMAGE_UNIFORMS = 0x90CE;
-        public const uint32 GL_MAX_COMBINED_IMAGE_UNIFORMS = 0x90CF;
-        public const uint32 GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 0x90DE;
-        public const uint32 GL_TEXTURE_SAMPLES = 0x9106;
-        public const uint32 GL_TEXTURE_FIXED_SAMPLE_LOCATIONS = 0x9107;
         public const uint32 GL_SYNC_FENCE = 0x9116;
         public const uint32 GL_UNSIGNALED = 0x9118;
         public const uint32 GL_SIGNALED = 0x9119;
@@ -178,23 +85,9 @@ namespace OpenGL43
         public const uint32 GL_PACK_COMPRESSED_BLOCK_HEIGHT = 0x912C;
         public const uint32 GL_PACK_COMPRESSED_BLOCK_DEPTH = 0x912D;
         public const uint32 GL_PACK_COMPRESSED_BLOCK_SIZE = 0x912E;
-        public const uint32 GL_TEXTURE_IMMUTABLE_FORMAT = 0x912F;
-        public const uint32 GL_MAX_DEBUG_MESSAGE_LENGTH = 0x9143;
-        public const uint32 GL_MAX_DEBUG_LOGGED_MESSAGES = 0x9144;
-        public const uint32 GL_DEBUG_LOGGED_MESSAGES = 0x9145;
-        public const uint32 GL_TEXTURE_BUFFER_OFFSET = 0x919D;
-        public const uint32 GL_TEXTURE_BUFFER_SIZE = 0x919E;
-        public const uint32 GL_MAX_COMPUTE_IMAGE_UNIFORMS = 0x91BD;
+        public const uint32 GL_QUERY_BUFFER_BINDING = 0x9193;
         public const uint32 GL_ATOMIC_COUNTER_BUFFER_START = 0x92C2;
         public const uint32 GL_ATOMIC_COUNTER_BUFFER_SIZE = 0x92C3;
-        public const uint32 GL_MAX_VERTEX_ATOMIC_COUNTER_BUFFERS = 0x92CC;
-        public const uint32 GL_MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS = 0x92CD;
-        public const uint32 GL_MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS = 0x92CE;
-        public const uint32 GL_MAX_GEOMETRY_ATOMIC_COUNTER_BUFFERS = 0x92CF;
-        public const uint32 GL_MAX_FRAGMENT_ATOMIC_COUNTER_BUFFERS = 0x92D0;
-        public const uint32 GL_MAX_COMBINED_ATOMIC_COUNTER_BUFFERS = 0x92D1;
-        public const uint32 GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE = 0x92D8;
-        public const uint32 GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS = 0x92DC;
 
         [AllowDuplicates]
         public enum CullFaceMode : uint32 {
@@ -294,14 +187,32 @@ namespace OpenGL43
         }
 
         [AllowDuplicates]
+        public enum ColorTableTargetSGI : uint32 {
+            case GL_POST_COLOR_MATRIX_COLOR_TABLE = 0x80D2;
+            case GL_PROXY_COLOR_TABLE = 0x80D3;
+            case GL_COLOR_TABLE = 0x80D0;
+            case GL_PROXY_POST_CONVOLUTION_COLOR_TABLE = 0x80D4;
+            case GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE = 0x80D5;
+            case GL_POST_CONVOLUTION_COLOR_TABLE = 0x80D1;
+        }
+
+        [AllowDuplicates]
         public enum BufferPNameARB : uint32 {
             case GL_BUFFER_MAPPED = 0x88BC;
+            case GL_BUFFER_STORAGE_FLAGS = 0x8220;
             case GL_BUFFER_SIZE = 0x8764;
             case GL_BUFFER_USAGE = 0x8765;
             case GL_BUFFER_MAP_OFFSET = 0x9121;
+            case GL_BUFFER_IMMUTABLE_STORAGE = 0x821F;
             case GL_BUFFER_MAP_LENGTH = 0x9120;
             case GL_BUFFER_ACCESS = 0x88BB;
             case GL_BUFFER_ACCESS_FLAGS = 0x911F;
+        }
+
+        [AllowDuplicates]
+        public enum ConvolutionTargetEXT : uint32 {
+            case GL_CONVOLUTION_2D = 0x8011;
+            case GL_CONVOLUTION_1D = 0x8010;
         }
 
         [AllowDuplicates]
@@ -313,6 +224,7 @@ namespace OpenGL43
 
         [AllowDuplicates]
         public enum TextureParameterName : uint32 {
+            case GL_TEXTURE_SAMPLES = 0x9106;
             case GL_TEXTURE_HEIGHT = 0x1001;
             case GL_TEXTURE_MAX_LOD = 0x813B;
             case GL_TEXTURE_COMPARE_FUNC = 0x884D;
@@ -344,9 +256,11 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum VertexBufferObjectParameter : uint32 {
             case GL_BUFFER_MAPPED = 0x88BC;
+            case GL_BUFFER_STORAGE_FLAGS = 0x8220;
             case GL_BUFFER_SIZE = 0x8764;
             case GL_BUFFER_USAGE = 0x8765;
             case GL_BUFFER_MAP_OFFSET = 0x9121;
+            case GL_BUFFER_IMMUTABLE_STORAGE = 0x821F;
             case GL_BUFFER_MAP_LENGTH = 0x9120;
             case GL_BUFFER_ACCESS = 0x88BB;
             case GL_BUFFER_ACCESS_FLAGS = 0x911F;
@@ -391,24 +305,30 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum ProgramPropertyARB : uint32 {
             case GL_GEOMETRY_INPUT_TYPE = 0x8917;
-            case GL_ACTIVE_UNIFORM_MAX_LENGTH = 0x8B87;
-            case GL_INFO_LOG_LENGTH = 0x8B84;
+            case GL_TESS_CONTROL_OUTPUT_VERTICES = 0x8E75;
             case GL_TRANSFORM_FEEDBACK_VARYINGS = 0x8C83;
             case GL_GEOMETRY_VERTICES_OUT = 0x8916;
             case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH = 0x8B8A;
+            case GL_DELETE_STATUS = 0x8B80;
+            case GL_PROGRAM_BINARY_LENGTH = 0x8741;
+            case GL_ACTIVE_UNIFORMS = 0x8B86;
+            case GL_GEOMETRY_SHADER_INVOCATIONS = 0x887F;
+            case GL_VALIDATE_STATUS = 0x8B83;
+            case GL_ACTIVE_ATTRIBUTES = 0x8B89;
+            case GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = 0x8A35;
+            case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH = 0x8C76;
+            case GL_TESS_GEN_POINT_MODE = 0x8E79;
+            case GL_ACTIVE_UNIFORM_MAX_LENGTH = 0x8B87;
+            case GL_TESS_GEN_VERTEX_ORDER = 0x8E78;
+            case GL_INFO_LOG_LENGTH = 0x8B84;
+            case GL_TESS_GEN_SPACING = 0x8E77;
             case GL_ACTIVE_UNIFORM_BLOCKS = 0x8A36;
             case GL_COMPUTE_WORK_GROUP_SIZE = 0x8267;
             case GL_GEOMETRY_OUTPUT_TYPE = 0x8918;
             case GL_TRANSFORM_FEEDBACK_BUFFER_MODE = 0x8C7F;
-            case GL_DELETE_STATUS = 0x8B80;
-            case GL_PROGRAM_BINARY_LENGTH = 0x8741;
             case GL_LINK_STATUS = 0x8B82;
-            case GL_ACTIVE_UNIFORMS = 0x8B86;
-            case GL_VALIDATE_STATUS = 0x8B83;
             case GL_ATTACHED_SHADERS = 0x8B85;
-            case GL_ACTIVE_ATTRIBUTES = 0x8B89;
-            case GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = 0x8A35;
-            case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH = 0x8C76;
+            case GL_TESS_GEN_MODE = 0x8E76;
             case GL_ACTIVE_ATOMIC_COUNTER_BUFFERS = 0x92D9;
         }
 
@@ -476,7 +396,9 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum QueryObjectParameterName : uint32 {
             case GL_QUERY_RESULT_AVAILABLE = 0x8867;
+            case GL_QUERY_TARGET = 0x82EA;
             case GL_QUERY_RESULT = 0x8866;
+            case GL_QUERY_RESULT_NO_WAIT = 0x9194;
         }
 
         [AllowDuplicates]
@@ -570,6 +492,7 @@ namespace OpenGL43
 
         [AllowDuplicates]
         public enum MemoryBarrierMask : uint32 {
+            case GL_QUERY_BUFFER_BARRIER_BIT = 0x00008000;
             case GL_TEXTURE_FETCH_BARRIER_BIT = 0x00000008;
             case GL_TRANSFORM_FEEDBACK_BARRIER_BIT = 0x00000800;
             case GL_TEXTURE_UPDATE_BARRIER_BIT = 0x00000100;
@@ -580,6 +503,7 @@ namespace OpenGL43
             case GL_COMMAND_BARRIER_BIT = 0x00000040;
             case GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT = 0x00000001;
             case GL_UNIFORM_BARRIER_BIT = 0x00000004;
+            case GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT = 0x00004000;
             case GL_BUFFER_UPDATE_BARRIER_BIT = 0x00000200;
             case GL_ELEMENT_ARRAY_BARRIER_BIT = 0x00000002;
             case GL_SHADER_IMAGE_ACCESS_BARRIER_BIT = 0x00000020;
@@ -606,6 +530,21 @@ namespace OpenGL43
             case GL_VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
             case GL_VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
             case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+        }
+
+        [AllowDuplicates]
+        public enum ColorTableTarget : uint32 {
+            case GL_POST_COLOR_MATRIX_COLOR_TABLE = 0x80D2;
+            case GL_PROXY_COLOR_TABLE = 0x80D3;
+            case GL_COLOR_TABLE = 0x80D0;
+            case GL_PROXY_POST_CONVOLUTION_COLOR_TABLE = 0x80D4;
+            case GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE = 0x80D5;
+            case GL_POST_CONVOLUTION_COLOR_TABLE = 0x80D1;
+        }
+
+        [AllowDuplicates]
+        public enum MinmaxTarget : uint32 {
+            case GL_MINMAX = 0x802E;
         }
 
         [AllowDuplicates]
@@ -684,6 +623,7 @@ namespace OpenGL43
         public enum BufferTargetARB : uint32 {
             case GL_UNIFORM_BUFFER = 0x8A11;
             case GL_COPY_WRITE_BUFFER = 0x8F37;
+            case GL_QUERY_BUFFER = 0x9192;
             case GL_DISPATCH_INDIRECT_BUFFER = 0x90EE;
             case GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
             case GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
@@ -695,6 +635,11 @@ namespace OpenGL43
             case GL_ATOMIC_COUNTER_BUFFER = 0x92C0;
             case GL_ARRAY_BUFFER = 0x8892;
             case GL_SHADER_STORAGE_BUFFER = 0x90D2;
+        }
+
+        [AllowDuplicates]
+        public enum MinmaxTargetEXT : uint32 {
+            case GL_MINMAX = 0x802E;
         }
 
         [AllowDuplicates]
@@ -721,6 +666,7 @@ namespace OpenGL43
         public enum ContextFlagMask : uint32 {
             case GL_CONTEXT_FLAG_DEBUG_BIT = 0x00000002;
             case GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT = 0x00000001;
+            case GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT = 0x00000004;
         }
 
         [AllowDuplicates]
@@ -760,14 +706,21 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum ConditionalRenderMode : uint32 {
             case GL_QUERY_NO_WAIT = 0x8E14;
+            case GL_QUERY_BY_REGION_WAIT_INVERTED = 0x8E19;
             case GL_QUERY_BY_REGION_WAIT = 0x8E15;
             case GL_QUERY_BY_REGION_NO_WAIT = 0x8E16;
+            case GL_QUERY_WAIT_INVERTED = 0x8E17;
+            case GL_QUERY_BY_REGION_NO_WAIT_INVERTED = 0x8E1A;
             case GL_QUERY_WAIT = 0x8E13;
+            case GL_QUERY_NO_WAIT_INVERTED = 0x8E18;
         }
 
         [AllowDuplicates]
         public enum GraphicsResetStatus : uint32 {
+            case GL_GUILTY_CONTEXT_RESET = 0x8253;
             case GL_NO_ERROR = 0;
+            case GL_INNOCENT_CONTEXT_RESET = 0x8254;
+            case GL_UNKNOWN_CONTEXT_RESET = 0x8255;
         }
 
         [AllowDuplicates]
@@ -801,20 +754,29 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum GetPName : uint32 {
             case GL_PIXEL_PACK_BUFFER_BINDING = 0x88ED;
+            case GL_TRANSFORM_FEEDBACK_BINDING = 0x8E25;
             case GL_VERTEX_BINDING_STRIDE = 0x82D8;
             case GL_MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
             case GL_VERTEX_BINDING_DIVISOR = 0x82D6;
+            case GL_MIN_FRAGMENT_INTERPOLATION_OFFSET = 0x8E5B;
+            case GL_MAX_VERTEX_ATOMIC_COUNTER_BUFFERS = 0x92CC;
             case GL_SCISSOR_TEST = 0x0C11;
             case GL_ARRAY_BUFFER_BINDING = 0x8894;
+            case GL_MAX_FRAGMENT_INTERPOLATION_OFFSET = 0x8E5C;
             case GL_LINE_WIDTH_RANGE = 0x0B22;
             case GL_PACK_LSB_FIRST = 0x0D01;
+            case GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS = 0x8E86;
+            case GL_MAX_TESS_CONTROL_IMAGE_UNIFORMS = 0x90CB;
             case GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105;
+            case GL_MAX_GEOMETRY_IMAGE_UNIFORMS = 0x90CD;
             case GL_PACK_SWAP_BYTES = 0x0D00;
             case GL_ALIASED_LINE_WIDTH_RANGE = 0x846E;
             case GL_MAX_COMPUTE_WORK_GROUP_COUNT = 0x91BE;
             case GL_RENDERBUFFER_BINDING = 0x8CA7;
             case GL_DOUBLEBUFFER = 0x0C32;
+            case GL_MAX_FRAGMENT_ATOMIC_COUNTER_BUFFERS = 0x92D0;
             case GL_POLYGON_OFFSET_LINE = 0x2A02;
+            case GL_MAX_IMAGE_UNITS = 0x8F38;
             case GL_LINE_SMOOTH_HINT = 0x0C52;
             case GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS = 0x90DA;
             case GL_STENCIL_REF = 0x0B97;
@@ -824,6 +786,8 @@ namespace OpenGL43
             case GL_UNIFORM_BUFFER_BINDING = 0x8A28;
             case GL_NUM_SHADER_BINARY_FORMATS = 0x8DF9;
             case GL_MAX_COMBINED_ATOMIC_COUNTERS = 0x92D7;
+            case GL_MAX_DEBUG_LOGGED_MESSAGES = 0x9144;
+            case GL_MAX_TESS_CONTROL_UNIFORM_COMPONENTS = 0x8E7F;
             case GL_FRAGMENT_SHADER_DERIVATIVE_HINT = 0x8B8B;
             case GL_SAMPLE_COVERAGE_VALUE = 0x80AA;
             case GL_MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
@@ -837,7 +801,9 @@ namespace OpenGL43
             case GL_STENCIL_BACK_WRITEMASK = 0x8CA5;
             case GL_MAX_SERVER_WAIT_TIMEOUT = 0x9111;
             case GL_DEPTH_TEST = 0x0B71;
+            case GL_MAX_TESS_EVALUATION_INPUT_COMPONENTS = 0x886D;
             case GL_SMOOTH_POINT_SIZE_GRANULARITY = 0x0B13;
+            case GL_IMAGE_BINDING_ACCESS = 0x8F3E;
             case GL_SHADER_STORAGE_BUFFER_SIZE = 0x90D5;
             case GL_MIN_MAP_BUFFER_ALIGNMENT = 0x90BC;
             case GL_CULL_FACE = 0x0B44;
@@ -845,22 +811,31 @@ namespace OpenGL43
             case GL_MAX_COMPUTE_WORK_GROUP_SIZE = 0x91BF;
             case GL_BLEND_SRC_RGB = 0x80C9;
             case GL_BLEND_EQUATION_ALPHA = 0x883D;
+            case GL_MAX_DEBUG_MESSAGE_LENGTH = 0x9143;
             case GL_MAJOR_VERSION = 0x821B;
             case GL_SHADER_STORAGE_BUFFER_BINDING = 0x90D3;
+            case GL_MAX_COMBINED_IMAGE_UNIFORMS = 0x90CF;
+            case GL_CLIP_ORIGIN = 0x935C;
+            case GL_MAX_SAMPLES = 0x8D57;
             case GL_VIEWPORT = 0x0BA2;
             case GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS = 0x91BC;
             case GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS = 0x8E8A;
             case GL_POLYGON_OFFSET_FACTOR = 0x8038;
+            case GL_RESET_NOTIFICATION_STRATEGY = 0x8256;
+            case GL_IMAGE_BINDING_NAME = 0x8F3A;
             case GL_SHADER_BINARY_FORMATS = 0x8DF8;
             case GL_BLEND_COLOR = 0x8005;
             case GL_MAX_DEPTH_TEXTURE_SAMPLES = 0x910F;
+            case GL_VERTEX_BINDING_BUFFER = 0x8F4F;
             case GL_STENCIL_VALUE_MASK = 0x0B93;
+            case GL_IMAGE_BINDING_LAYER = 0x8F3D;
             case GL_DEPTH_CLEAR_VALUE = 0x0B73;
             case GL_DEPTH_FUNC = 0x0B74;
             case GL_MAX_FRAMEBUFFER_LAYERS = 0x9317;
             case GL_STENCIL_BACK_FAIL = 0x8801;
             case GL_MAX_RENDERBUFFER_SIZE = 0x84E8;
             case GL_MAX_VERTEX_UNIFORM_BLOCKS = 0x8A2B;
+            case GL_MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS = 0x8F39;
             case GL_STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
             case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
             case GL_PACK_IMAGE_HEIGHT = 0x806C;
@@ -872,28 +847,40 @@ namespace OpenGL43
             case GL_MAX_FRAMEBUFFER_SAMPLES = 0x9318;
             case GL_TEXTURE_2D = 0x0DE1;
             case GL_CONTEXT_FLAGS = 0x821E;
+            case GL_CLIP_DEPTH_MODE = 0x935D;
+            case GL_MAX_COMBINED_TESS_CONTROL_UNIFORM_COMPONENTS = 0x8E1E;
             case GL_UNPACK_ROW_LENGTH = 0x0CF2;
             case GL_STENCIL_BACK_FUNC = 0x8800;
             case GL_MAX_3D_TEXTURE_SIZE = 0x8073;
             case GL_VIEWPORT_SUBPIXEL_BITS = 0x825C;
             case GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS = 0x8A32;
+            case GL_MAX_TESS_CONTROL_OUTPUT_COMPONENTS = 0x8E83;
             case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS = 0x8A33;
             case GL_SMOOTH_LINE_WIDTH_GRANULARITY = 0x0B23;
+            case GL_MAX_TESS_EVALUATION_IMAGE_UNIFORMS = 0x90CC;
             case GL_MAX_VERTEX_ATOMIC_COUNTERS = 0x92D2;
             case GL_MAX_TEXTURE_SIZE = 0x0D33;
             case GL_READ_FRAMEBUFFER_BINDING = 0x8CAA;
             case GL_TEXTURE_1D = 0x0DE0;
             case GL_MAX_VARYING_FLOATS = 0x8B4B;
+            case GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS = 0x8DE1;
+            case GL_MAX_COMBINED_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E1F;
             case GL_MAX_ELEMENTS_VERTICES = 0x80E8;
             case GL_ACTIVE_TEXTURE = 0x84E0;
             case GL_COLOR_WRITEMASK = 0x0C23;
             case GL_SHADER_STORAGE_BUFFER_START = 0x90D4;
+            case GL_TEXTURE_VIEW_MIN_LAYER = 0x82DD;
             case GL_UNPACK_ALIGNMENT = 0x0CF5;
             case GL_PROGRAM_BINARY_FORMATS = 0x87FF;
+            case GL_IMAGE_BINDING_LEVEL = 0x8F3B;
+            case GL_MAX_FRAGMENT_IMAGE_UNIFORMS = 0x90CE;
             case GL_MAX_LABEL_LENGTH = 0x82E8;
             case GL_PACK_ROW_LENGTH = 0x0D02;
             case GL_LINE_WIDTH_GRANULARITY = 0x0B23;
+            case GL_MAX_TESS_GEN_LEVEL = 0x8E7E;
+            case GL_MAX_VERTEX_ATTRIB_STRIDE = 0x82E5;
             case GL_TEXTURE_BINDING_2D_ARRAY = 0x8C1D;
+            case GL_MAX_GEOMETRY_ATOMIC_COUNTER_BUFFERS = 0x92CF;
             case GL_MAX_VERTEX_ATTRIB_RELATIVE_OFFSET = 0x82D9;
             case GL_MAX_TEXTURE_BUFFER_SIZE = 0x8C2B;
             case GL_MIN_PROGRAM_TEXEL_OFFSET = 0x8904;
@@ -902,62 +889,93 @@ namespace OpenGL43
             case GL_MAX_UNIFORM_BUFFER_BINDINGS = 0x8A2F;
             case GL_TIMESTAMP = 0x8E28;
             case GL_LINE_SMOOTH = 0x0B20;
+            case GL_MAX_TESS_CONTROL_INPUT_COMPONENTS = 0x886C;
+            case GL_MAX_VERTEX_IMAGE_UNIFORMS = 0x90CA;
             case GL_MAX_TEXTURE_LOD_BIAS = 0x84FD;
             case GL_STENCIL_BACK_REF = 0x8CA3;
+            case GL_FRAGMENT_INTERPOLATION_OFFSET_BITS = 0x8E5D;
             case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS = 0x8B49;
             case GL_UNIFORM_BUFFER_SIZE = 0x8A2A;
+            case GL_MAX_GEOMETRY_OUTPUT_VERTICES = 0x8DE0;
+            case GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET = 0x8E5E;
             case GL_CONTEXT_PROFILE_MASK = 0x9126;
             case GL_TEXTURE_BINDING_CUBE_MAP = 0x8514;
             case GL_MAX_RECTANGLE_TEXTURE_SIZE = 0x84F8;
+            case GL_TEXTURE_VIEW_NUM_LAYERS = 0x82DE;
+            case GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = 0x8243;
             case GL_IMPLEMENTATION_COLOR_READ_TYPE = 0x8B9A;
             case GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS = 0x90DC;
+            case GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS = 0x8E81;
             case GL_MAX_COMPUTE_UNIFORM_BLOCKS = 0x91BB;
             case GL_ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+            case GL_FRAMEBUFFER_BINDING = 0x8CA6;
+            case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 0x8C8A;
             case GL_TEXTURE_BINDING_2D_MULTISAMPLE = 0x9104;
+            case GL_DEBUG_LOGGED_MESSAGES = 0x9145;
             case GL_NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
             case GL_MAX_UNIFORM_LOCATIONS = 0x826E;
+            case GL_MIN_SAMPLE_SHADING_VALUE = 0x8C37;
+            case GL_MAX_TESS_PATCH_COMPONENTS = 0x8E84;
             case GL_DEPTH_WRITEMASK = 0x0B72;
             case GL_MAX_VARYING_VECTORS = 0x8DFC;
             case GL_LOGIC_OP_MODE = 0x0BF0;
             case GL_PRIMITIVE_RESTART_INDEX = 0x8F9E;
+            case GL_VERTEX_PROGRAM_POINT_SIZE = 0x8642;
             case GL_SAMPLE_BUFFERS = 0x80A8;
             case GL_PACK_SKIP_IMAGES = 0x806B;
             case GL_TEXTURE_BINDING_RECTANGLE = 0x84F6;
             case GL_MAX_VARYING_COMPONENTS = 0x8B4B;
+            case GL_MAX_SUBROUTINES = 0x8DE7;
+            case GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS = 0x92DC;
             case GL_UNPACK_SKIP_ROWS = 0x0CF3;
             case GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT = 0x919F;
             case GL_MAX_FRAGMENT_UNIFORM_BLOCKS = 0x8A2D;
             case GL_POINT_SIZE = 0x0B11;
             case GL_SCISSOR_BOX = 0x0C10;
+            case GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS = 0x8E82;
             case GL_SMOOTH_LINE_WIDTH_RANGE = 0x0B22;
             case GL_PACK_ALIGNMENT = 0x0D05;
             case GL_MAX_GEOMETRY_OUTPUT_COMPONENTS = 0x9124;
+            case GL_TEXTURE_IMMUTABLE_LEVELS = 0x82DF;
             case GL_MAX_DRAW_BUFFERS = 0x8824;
             case GL_STENCIL_CLEAR_VALUE = 0x0B91;
             case GL_DRAW_BUFFER = 0x0C01;
             case GL_MAX_COMPUTE_ATOMIC_COUNTER_BUFFERS = 0x8264;
             case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 0x8A34;
             case GL_SMOOTH_POINT_SIZE_RANGE = 0x0B12;
+            case GL_IMAGE_BINDING_FORMAT = 0x906E;
             case GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS = 0x90DB;
+            case GL_MAX_COMPUTE_IMAGE_UNIFORMS = 0x91BD;
             case GL_FRONT_FACE = 0x0B46;
             case GL_POLYGON_OFFSET_UNITS = 0x2A00;
             case GL_LAYER_PROVOKING_VERTEX = 0x825E;
             case GL_BLEND_SRC = 0x0BE1;
             case GL_COLOR_LOGIC_OP = 0x0BF2;
             case GL_TRANSFORM_FEEDBACK_BUFFER_START = 0x8C84;
+            case GL_MAX_TRANSFORM_FEEDBACK_BUFFERS = 0x8E70;
             case GL_STENCIL_TEST = 0x0B90;
+            case GL_TEXTURE_BUFFER_BINDING = 0x8C2A;
             case GL_MAX_TESS_CONTROL_ATOMIC_COUNTERS = 0x92D3;
             case GL_POINT_FADE_THRESHOLD_SIZE = 0x8128;
+            case GL_MAX_COMPUTE_SHARED_MEMORY_SIZE = 0x8262;
             case GL_MAX_VERTEX_OUTPUT_COMPONENTS = 0x9122;
             case GL_STEREO = 0x0C33;
             case GL_MAX_FRAMEBUFFER_HEIGHT = 0x9316;
             case GL_UNPACK_SKIP_IMAGES = 0x806D;
             case GL_MAX_GEOMETRY_UNIFORM_COMPONENTS = 0x8DDF;
+            case GL_COPY_WRITE_BUFFER_BINDING = 0x8F37;
+            case GL_TEXTURE_BINDING_CUBE_MAP_ARRAY = 0x900A;
+            case GL_MAX_COMBINED_CLIP_AND_CULL_DISTANCES = 0x82FA;
+            case GL_COPY_READ_BUFFER_BINDING = 0x8F36;
             case GL_UNIFORM_BUFFER_START = 0x8A29;
             case GL_MAX_VIEWPORT_DIMS = 0x0D3A;
             case GL_BLEND_DST = 0x0BE0;
+            case GL_MAX_PATCH_VERTICES = 0x8E7D;
             case GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS = 0x8E89;
+            case GL_MAX_COMBINED_ATOMIC_COUNTER_BUFFERS = 0x92D1;
+            case GL_DRAW_INDIRECT_BUFFER_BINDING = 0x8F43;
             case GL_UNPACK_SKIP_PIXELS = 0x0CF4;
+            case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = 0x8C8B;
             case GL_BLEND_DST_ALPHA = 0x80CA;
             case GL_UNPACK_SWAP_BYTES = 0x0CF0;
             case GL_PACK_SKIP_ROWS = 0x0D03;
@@ -971,6 +989,8 @@ namespace OpenGL43
             case GL_MAX_VERTEX_ATTRIBS = 0x8869;
             case GL_COLOR_CLEAR_VALUE = 0x0C22;
             case GL_BLEND_EQUATION_RGB = 0x8009;
+            case GL_MAX_GEOMETRY_SHADER_INVOCATIONS = 0x8E5A;
+            case GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE = 0x92D8;
             case GL_MAX_CLIP_DISTANCES = 0x0D32;
             case GL_MAX_VERTEX_UNIFORM_COMPONENTS = 0x8B4A;
             case GL_MAX_FRAGMENT_INPUT_COMPONENTS = 0x9125;
@@ -984,25 +1004,36 @@ namespace OpenGL43
             case GL_MAX_DEBUG_GROUP_STACK_DEPTH = 0x826C;
             case GL_MAX_INTEGER_SAMPLES = 0x9110;
             case GL_CURRENT_PROGRAM = 0x8B8D;
+            case GL_MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS = 0x92CD;
             case GL_POLYGON_OFFSET_POINT = 0x2A01;
             case GL_MAX_COMBINED_COMPUTE_UNIFORM_COMPONENTS = 0x8266;
             case GL_PROVOKING_VERTEX = 0x8E4F;
             case GL_MAX_FRAGMENT_ATOMIC_COUNTERS = 0x92D6;
             case GL_DEPTH_RANGE = 0x0B70;
+            case GL_MAX_COMBINED_SHADER_OUTPUT_RESOURCES = 0x8F39;
+            case GL_BLEND_EQUATION = 0x8009;
             case GL_POLYGON_OFFSET_FILL = 0x8037;
             case GL_DRAW_FRAMEBUFFER_BINDING = 0x8CA6;
             case GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS = 0x90D7;
+            case GL_SAMPLE_MASK_VALUE = 0x8E52;
             case GL_PROGRAM_POINT_SIZE = 0x8642;
             case GL_MAX_UNIFORM_BLOCK_SIZE = 0x8A30;
             case GL_STENCIL_FUNC = 0x0B92;
             case GL_MAX_COMPUTE_UNIFORM_COMPONENTS = 0x8263;
+            case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = 0x8C80;
             case GL_TEXTURE_BINDING_1D = 0x8068;
+            case GL_MAX_VERTEX_STREAMS = 0x8E71;
             case GL_IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B;
+            case GL_MAX_CULL_DISTANCES = 0x82F9;
+            case GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET = 0x8E5F;
             case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = 0x8C8F;
+            case GL_MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS = 0x8E85;
+            case GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
             case GL_STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
             case GL_COMPRESSED_TEXTURE_FORMATS = 0x86A3;
             case GL_VERTEX_BINDING_OFFSET = 0x82D7;
             case GL_DITHER = 0x0BD0;
+            case GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 0x90DE;
             case GL_SAMPLES = 0x80A9;
             case GL_TEXTURE_BINDING_BUFFER = 0x8C2C;
             case GL_MINOR_VERSION = 0x821C;
@@ -1025,17 +1056,22 @@ namespace OpenGL43
             case GL_MAX_VIEWPORTS = 0x825B;
             case GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS = 0x90EB;
             case GL_VERTEX_ARRAY_BINDING = 0x85B5;
+            case GL_IMAGE_BINDING_LAYERED = 0x8F3C;
             case GL_CULL_FACE_MODE = 0x0B45;
             case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS = 0x8A31;
+            case GL_MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS = 0x92CE;
             case GL_READ_BUFFER = 0x0C02;
             case GL_MAX_FRAMEBUFFER_WIDTH = 0x9315;
             case GL_DISPATCH_INDIRECT_BUFFER_BINDING = 0x90EF;
             case GL_PIXEL_UNPACK_BUFFER_BINDING = 0x88EF;
             case GL_TEXTURE_BINDING_3D = 0x806A;
             case GL_MAX_ELEMENT_INDEX = 0x8D6B;
+            case GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS = 0x8DE8;
             case GL_BLEND_DST_RGB = 0x80C8;
             case GL_MAX_COMBINED_UNIFORM_BLOCKS = 0x8A2E;
             case GL_MAX_ELEMENTS_INDICES = 0x80E9;
+            case GL_MAX_IMAGE_SAMPLES = 0x906D;
+            case GL_MAX_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E80;
             case GL_BLEND = 0x0BE2;
             case GL_MAX_COLOR_TEXTURE_SAMPLES = 0x910E;
 			public static implicit operator Self(uint32 num)
@@ -1126,11 +1162,14 @@ namespace OpenGL43
             case GL_LOCATION = 0x930E;
             case GL_OFFSET = 0x92FC;
             case GL_IS_ROW_MAJOR = 0x9300;
+            case GL_TRANSFORM_FEEDBACK_BUFFER_INDEX = 0x934B;
             case GL_TOP_LEVEL_ARRAY_SIZE = 0x930C;
+            case GL_TRANSFORM_FEEDBACK_BUFFER_STRIDE = 0x934C;
             case GL_NUM_ACTIVE_VARIABLES = 0x9304;
             case GL_REFERENCED_BY_TESS_EVALUATION_SHADER = 0x9308;
             case GL_COMPATIBLE_SUBROUTINES = 0x8E4B;
             case GL_LOCATION_INDEX = 0x930F;
+            case GL_LOCATION_COMPONENT = 0x934A;
             case GL_TYPE = 0x92FA;
             case GL_ARRAY_SIZE = 0x92FB;
             case GL_IS_PER_PATCH = 0x92E7;
@@ -1223,18 +1262,39 @@ namespace OpenGL43
 
         [AllowDuplicates]
         public enum GetTextureParameter : uint32 {
-            case GL_TEXTURE_INTERNAL_FORMAT = 0x1003;
-            case GL_TEXTURE_RED_SIZE = 0x805C;
-            case GL_TEXTURE_WIDTH = 0x1000;
+            case GL_TEXTURE_DEPTH_TYPE = 0x8C16;
+            case GL_TEXTURE_ALPHA_TYPE = 0x8C13;
             case GL_TEXTURE_HEIGHT = 0x1001;
-            case GL_TEXTURE_GREEN_SIZE = 0x805D;
+            case GL_TEXTURE_STENCIL_SIZE = 0x88F1;
+            case GL_TEXTURE_VIEW_MIN_LEVEL = 0x82DB;
+            case GL_TEXTURE_IMMUTABLE_FORMAT = 0x912F;
+            case GL_TEXTURE_DEPTH_SIZE = 0x884A;
+            case GL_TEXTURE_SHARED_SIZE = 0x8C3F;
+            case GL_TEXTURE_COMPRESSED_IMAGE_SIZE = 0x86A0;
+            case GL_TEXTURE_BUFFER_OFFSET = 0x919D;
             case GL_TEXTURE_MIN_FILTER = 0x2801;
-            case GL_TEXTURE_ALPHA_SIZE = 0x805F;
+            case GL_TEXTURE_BLUE_TYPE = 0x8C12;
+            case GL_TEXTURE_DEPTH = 0x8071;
+            case GL_TEXTURE_IMMUTABLE_LEVELS = 0x82DF;
+            case GL_TEXTURE_BLUE_SIZE = 0x805E;
+            case GL_TEXTURE_WIDTH = 0x1000;
+            case GL_TEXTURE_FIXED_SAMPLE_LOCATIONS = 0x9107;
+            case GL_TEXTURE_TARGET = 0x1006;
+            case GL_TEXTURE_GREEN_SIZE = 0x805D;
+            case GL_TEXTURE_GREEN_TYPE = 0x8C11;
+            case GL_TEXTURE_VIEW_NUM_LAYERS = 0x82DE;
+            case GL_TEXTURE_BUFFER_SIZE = 0x919E;
             case GL_TEXTURE_MAG_FILTER = 0x2800;
             case GL_TEXTURE_WRAP_S = 0x2802;
-            case GL_TEXTURE_BORDER_COLOR = 0x1004;
             case GL_TEXTURE_WRAP_T = 0x2803;
-            case GL_TEXTURE_BLUE_SIZE = 0x805E;
+            case GL_TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D;
+            case GL_TEXTURE_INTERNAL_FORMAT = 0x1003;
+            case GL_TEXTURE_RED_SIZE = 0x805C;
+            case GL_TEXTURE_VIEW_NUM_LEVELS = 0x82DC;
+            case GL_TEXTURE_ALPHA_SIZE = 0x805F;
+            case GL_TEXTURE_RED_TYPE = 0x8C10;
+            case GL_TEXTURE_VIEW_MIN_LAYER = 0x82DD;
+            case GL_TEXTURE_BORDER_COLOR = 0x1004;
         }
 
         [AllowDuplicates]
@@ -1274,6 +1334,12 @@ namespace OpenGL43
         }
 
         [AllowDuplicates]
+        public enum ClipControlDepth : uint32 {
+            case GL_ZERO_TO_ONE = 0x935F;
+            case GL_NEGATIVE_ONE_TO_ONE = 0x935E;
+        }
+
+        [AllowDuplicates]
         public enum SubroutineParameterName : uint32 {
             case GL_UNIFORM_SIZE = 0x8A38;
             case GL_UNIFORM_NAME_LENGTH = 0x8A39;
@@ -1282,8 +1348,19 @@ namespace OpenGL43
         }
 
         [AllowDuplicates]
+        public enum ConvolutionTarget : uint32 {
+            case GL_CONVOLUTION_2D = 0x8011;
+            case GL_CONVOLUTION_1D = 0x8010;
+        }
+
+        [AllowDuplicates]
         public enum PathFontStyle : uint32 {
             case GL_NONE = 0;
+        }
+
+        [AllowDuplicates]
+        public enum SeparableTarget : uint32 {
+            case GL_SEPARABLE_2D = 0x8012;
         }
 
         [AllowDuplicates]
@@ -1378,6 +1455,12 @@ namespace OpenGL43
         }
 
         [AllowDuplicates]
+        public enum HistogramTarget : uint32 {
+            case GL_PROXY_HISTOGRAM = 0x8025;
+            case GL_HISTOGRAM = 0x8024;
+        }
+
+        [AllowDuplicates]
         public enum TexCoordPointerType : uint32 {
             case GL_FLOAT = 0x1406;
             case GL_DOUBLE = 0x140A;
@@ -1424,11 +1507,18 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum PointParameterNameARB : uint32 {
             case GL_POINT_FADE_THRESHOLD_SIZE = 0x8128;
+            case GL_POINT_SPRITE_COORD_ORIGIN = 0x8CA0;
         }
 
         [AllowDuplicates]
         public enum PathFillMode : uint32 {
             case GL_INVERT = 0x150A;
+        }
+
+        [AllowDuplicates]
+        public enum HistogramTargetEXT : uint32 {
+            case GL_PROXY_HISTOGRAM = 0x8025;
+            case GL_HISTOGRAM = 0x8024;
         }
 
         [AllowDuplicates]
@@ -1708,9 +1798,11 @@ namespace OpenGL43
             case GL_SHADER_IMAGE_ATOMIC = 0x82A6;
             case GL_TESS_CONTROL_TEXTURE = 0x829C;
             case GL_MAX_HEIGHT = 0x827F;
+            case GL_DEPTH_COMPONENTS = 0x8284;
             case GL_TEXTURE_VIEW = 0x82B5;
             case GL_MAX_LAYERS = 0x8281;
             case GL_TEXTURE_IMAGE_TYPE = 0x8290;
+            case GL_STENCIL_COMPONENTS = 0x8285;
             case GL_DEPTH_RENDERABLE = 0x8287;
             case GL_SIMULTANEOUS_TEXTURE_AND_DEPTH_WRITE = 0x82AE;
             case GL_COLOR_RENDERABLE = 0x8286;
@@ -1738,6 +1830,7 @@ namespace OpenGL43
             case GL_GET_TEXTURE_IMAGE_FORMAT = 0x8291;
             case GL_FILTER = 0x829A;
             case GL_INTERNALFORMAT_ALPHA_SIZE = 0x8274;
+            case GL_MAX_COMBINED_DIMENSIONS = 0x8282;
             case GL_TEXTURE_COMPRESSED_BLOCK_SIZE = 0x82B3;
             case GL_TEXTURE_SHADOW = 0x82A1;
             case GL_AUTO_GENERATE_MIPMAP = 0x8295;
@@ -1758,6 +1851,7 @@ namespace OpenGL43
             case GL_IMAGE_COMPATIBILITY_CLASS = 0x82A8;
             case GL_INTERNALFORMAT_DEPTH_SIZE = 0x8275;
             case GL_CLEAR_BUFFER = 0x82B4;
+            case GL_CLEAR_TEXTURE = 0x9365;
             case GL_READ_PIXELS_FORMAT = 0x828D;
             case GL_SRGB_READ = 0x8297;
             case GL_SIMULTANEOUS_TEXTURE_AND_STENCIL_WRITE = 0x82AF;
@@ -1795,6 +1889,10 @@ namespace OpenGL43
 
         [AllowDuplicates]
         public enum BufferStorageMask : uint32 {
+            case GL_MAP_COHERENT_BIT = 0x0080;
+            case GL_CLIENT_STORAGE_BIT = 0x0200;
+            case GL_DYNAMIC_STORAGE_BIT = 0x0100;
+            case GL_MAP_PERSISTENT_BIT = 0x0040;
             case GL_MAP_WRITE_BIT = 0x0002;
             case GL_MAP_READ_BIT = 0x0001;
         }
@@ -1977,6 +2075,7 @@ namespace OpenGL43
             case GL_LINEAR_MIPMAP_LINEAR = 0x2703;
             case GL_CLAMP_TO_BORDER = 0x812D;
             case GL_REPEAT = 0x2901;
+            case GL_MIRROR_CLAMP_TO_EDGE = 0x8743;
             case GL_MIRRORED_REPEAT = 0x8370;
             case GL_CLAMP_TO_EDGE = 0x812F;
         }
@@ -2335,6 +2434,7 @@ namespace OpenGL43
         public enum BufferStorageTarget : uint32 {
             case GL_UNIFORM_BUFFER = 0x8A11;
             case GL_COPY_WRITE_BUFFER = 0x8F37;
+            case GL_QUERY_BUFFER = 0x9192;
             case GL_DISPATCH_INDIRECT_BUFFER = 0x90EE;
             case GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
             case GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
@@ -2564,8 +2664,10 @@ namespace OpenGL43
 
         [AllowDuplicates]
         public enum MapBufferAccessMask : uint32 {
+            case GL_MAP_COHERENT_BIT = 0x0080;
             case GL_MAP_FLUSH_EXPLICIT_BIT = 0x0010;
             case GL_MAP_UNSYNCHRONIZED_BIT = 0x0020;
+            case GL_MAP_PERSISTENT_BIT = 0x0040;
             case GL_MAP_WRITE_BIT = 0x0002;
             case GL_MAP_INVALIDATE_RANGE_BIT = 0x0004;
             case GL_MAP_READ_BIT = 0x0001;
@@ -2575,15 +2677,24 @@ namespace OpenGL43
         [AllowDuplicates]
         public enum PixelType : uint32 {
             case GL_UNSIGNED_INT_8_8_8_8 = 0x8035;
+            case GL_UNSIGNED_SHORT_4_4_4_4_REV = 0x8365;
             case GL_FLOAT = 0x1406;
             case GL_BYTE = 0x1400;
-            case GL_INT = 0x1404;
+            case GL_UNSIGNED_INT_8_8_8_8_REV = 0x8367;
+            case GL_UNSIGNED_INT_24_8 = 0x84FA;
             case GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033;
-            case GL_UNSIGNED_SHORT = 0x1403;
             case GL_UNSIGNED_INT_10_10_10_2 = 0x8036;
+            case GL_UNSIGNED_BYTE_2_3_3_REV = 0x8362;
+            case GL_UNSIGNED_INT_5_9_9_9_REV = 0x8C3E;
+            case GL_UNSIGNED_INT = 0x1405;
+            case GL_UNSIGNED_SHORT_1_5_5_5_REV = 0x8366;
+            case GL_FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8DAD;
+            case GL_INT = 0x1404;
+            case GL_UNSIGNED_SHORT_5_6_5 = 0x8363;
+            case GL_UNSIGNED_SHORT_5_6_5_REV = 0x8364;
+            case GL_UNSIGNED_SHORT = 0x1403;
             case GL_UNSIGNED_BYTE = 0x1401;
             case GL_SHORT = 0x1402;
-            case GL_UNSIGNED_INT = 0x1405;
             case GL_UNSIGNED_BYTE_3_3_2 = 0x8032;
             case GL_UNSIGNED_SHORT_5_5_5_1 = 0x8034;
         }
@@ -2618,6 +2729,7 @@ namespace OpenGL43
 
         [AllowDuplicates]
         public enum EnableCap : uint32 {
+            case GL_VERTEX_PROGRAM_POINT_SIZE = 0x8642;
             case GL_DEPTH_TEST = 0x0B71;
             case GL_CLIP_DISTANCE1 = 0x3001;
             case GL_CLIP_DISTANCE0 = 0x3000;
@@ -2634,8 +2746,10 @@ namespace OpenGL43
             case GL_CULL_FACE = 0x0B44;
             case GL_CLIP_DISTANCE6 = 0x3006;
             case GL_TEXTURE_2D = 0x0DE1;
+            case GL_POST_COLOR_MATRIX_COLOR_TABLE = 0x80D2;
             case GL_LINE_SMOOTH = 0x0B20;
             case GL_PROGRAM_POINT_SIZE = 0x8642;
+            case GL_COLOR_TABLE = 0x80D0;
             case GL_FRAMEBUFFER_SRGB = 0x8DB9;
             case GL_POLYGON_OFFSET_LINE = 0x2A02;
             case GL_MULTISAMPLE = 0x809D;
@@ -2655,6 +2769,7 @@ namespace OpenGL43
             case GL_BLEND = 0x0BE2;
             case GL_DITHER = 0x0BD0;
             case GL_POLYGON_OFFSET_POINT = 0x2A01;
+            case GL_POST_CONVOLUTION_COLOR_TABLE = 0x80D1;
         }
 
         [AllowDuplicates]
@@ -2683,6 +2798,7 @@ namespace OpenGL43
         public enum CopyBufferSubDataTarget : uint32 {
             case GL_UNIFORM_BUFFER = 0x8A11;
             case GL_COPY_WRITE_BUFFER = 0x8F37;
+            case GL_QUERY_BUFFER = 0x9192;
             case GL_DISPATCH_INDIRECT_BUFFER = 0x90EE;
             case GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
             case GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
@@ -2773,11 +2889,17 @@ namespace OpenGL43
             case GL_INVALID_ENUM = 0x0500;
             case GL_OUT_OF_MEMORY = 0x0505;
             case GL_INVALID_VALUE = 0x0501;
+            case GL_CONTEXT_LOST = 0x0507;
         }
 
         [AllowDuplicates]
         public enum CombinerScaleNV : uint32 {
             case GL_NONE = 0;
+        }
+
+        [AllowDuplicates]
+        public enum SeparableTargetEXT : uint32 {
+            case GL_SEPARABLE_2D = 0x8012;
         }
 
         public static function void(uint32 pipeline, uint32 program) glActiveShaderProgram;
@@ -2791,17 +2913,24 @@ namespace OpenGL43
         public static function void(BufferTargetARB target, uint32 buffer) glBindBuffer;
         public static function void(BufferTargetARB target, uint32 index, uint32 buffer) glBindBufferBase;
         public static function void(BufferTargetARB target, uint32 index, uint32 buffer, int32 offset, int32 size) glBindBufferRange;
+        public static function void(BufferTargetARB target, uint32 first, int32 count, uint32* buffers) glBindBuffersBase;
+        public static function void(BufferTargetARB target, uint32 first, int32 count, uint32* buffers, int32* offsets, int32* sizes) glBindBuffersRange;
         public static function void(uint32 program, uint32 color, char8* name) glBindFragDataLocation;
         public static function void(uint32 program, uint32 colorNumber, uint32 index, char8* name) glBindFragDataLocationIndexed;
         public static function void(FramebufferTarget target, uint32 framebuffer) glBindFramebuffer;
         public static function void(uint32 unit, uint32 texture, int32 level, Boolean layered, int32 layer, BufferAccessARB access, InternalFormat format) glBindImageTexture;
+        public static function void(uint32 first, int32 count, uint32* textures) glBindImageTextures;
         public static function void(uint32 pipeline) glBindProgramPipeline;
         public static function void(RenderbufferTarget target, uint32 renderbuffer) glBindRenderbuffer;
         public static function void(uint32 unit, uint32 sampler) glBindSampler;
+        public static function void(uint32 first, int32 count, uint32* samplers) glBindSamplers;
         public static function void(TextureTarget target, uint32 texture) glBindTexture;
+        public static function void(uint32 unit, uint32 texture) glBindTextureUnit;
+        public static function void(uint32 first, int32 count, uint32* textures) glBindTextures;
         public static function void(BindTransformFeedbackTarget target, uint32 id) glBindTransformFeedback;
         public static function void(uint32 array) glBindVertexArray;
         public static function void(uint32 bindingindex, uint32 buffer, int32 offset, int32 stride) glBindVertexBuffer;
+        public static function void(uint32 first, int32 count, uint32* buffers, int32* offsets, int32* strides) glBindVertexBuffers;
         public static function void(float red, float green, float blue, float alpha) glBlendColor;
         public static function void(BlendEquationModeEXT mode) glBlendEquation;
         public static function void(BlendEquationModeEXT modeRGB, BlendEquationModeEXT modeAlpha) glBlendEquationSeparate;
@@ -2812,9 +2941,12 @@ namespace OpenGL43
         public static function void(uint32 buf, BlendingFactor srcRGB, BlendingFactor dstRGB, BlendingFactor srcAlpha, BlendingFactor dstAlpha) glBlendFuncSeparatei;
         public static function void(uint32 buf, BlendingFactor src, BlendingFactor dst) glBlendFunci;
         public static function void(int32 srcX0, int32 srcY0, int32 srcX1, int32 srcY1, int32 dstX0, int32 dstY0, int32 dstX1, int32 dstY1, ClearBufferMask mask, BlitFramebufferFilter filter) glBlitFramebuffer;
+        public static function void(uint32 readFramebuffer, uint32 drawFramebuffer, int32 srcX0, int32 srcY0, int32 srcX1, int32 srcY1, int32 dstX0, int32 dstY0, int32 dstX1, int32 dstY1, ClearBufferMask mask, BlitFramebufferFilter filter) glBlitNamedFramebuffer;
         public static function void(BufferTargetARB target, int32 size, void* data, BufferUsageARB usage) glBufferData;
+        public static function void(BufferStorageTarget target, int32 size, void* data, BufferStorageMask flags) glBufferStorage;
         public static function void(BufferTargetARB target, int32 offset, int32 size, void* data) glBufferSubData;
-        public static function uint32(FramebufferTarget target) glCheckFramebufferStatus;
+        public static function FramebufferStatus(FramebufferTarget target) glCheckFramebufferStatus;
+        public static function FramebufferStatus(uint32 framebuffer, FramebufferTarget target) glCheckNamedFramebufferStatus;
         public static function void(ClampColorTargetARB target, ClampColorModeARB clamp) glClampColor;
         public static function void(ClearBufferMask mask) glClear;
         public static function void(BufferStorageTarget target, SizedInternalFormat internalformat, PixelFormat format, PixelType type, void* data) glClearBufferData;
@@ -2826,8 +2958,17 @@ namespace OpenGL43
         public static function void(float red, float green, float blue, float alpha) glClearColor;
         public static function void(double depth) glClearDepth;
         public static function void(float d) glClearDepthf;
+        public static function void(uint32 buffer, SizedInternalFormat internalformat, PixelFormat format, PixelType type, void* data) glClearNamedBufferData;
+        public static function void(uint32 buffer, SizedInternalFormat internalformat, int32 offset, int32 size, PixelFormat format, PixelType type, void* data) glClearNamedBufferSubData;
+        public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, float depth, int32 stencil) glClearNamedFramebufferfi;
+        public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, float* value) glClearNamedFramebufferfv;
+        public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, int32* value) glClearNamedFramebufferiv;
+        public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, uint32* value) glClearNamedFramebufferuiv;
         public static function void(int32 s) glClearStencil;
-        public static function uint32(void* sync, SyncObjectMask flags, uint64 timeout) glClientWaitSync;
+        public static function void(uint32 texture, int32 level, PixelFormat format, PixelType type, void* data) glClearTexImage;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, PixelType type, void* data) glClearTexSubImage;
+        public static function SyncStatus(void* sync, SyncObjectMask flags, uint64 timeout) glClientWaitSync;
+        public static function void(ClipControlOrigin origin, ClipControlDepth depth) glClipControl;
         public static function void(Boolean red, Boolean green, Boolean blue, Boolean alpha) glColorMask;
         public static function void(uint32 index, Boolean r, Boolean g, Boolean b, Boolean a) glColorMaski;
         public static function void(ColorPointerType type, uint32 color) glColorP3ui;
@@ -2841,16 +2982,32 @@ namespace OpenGL43
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 width, PixelFormat format, int32 imageSize, void* data) glCompressedTexSubImage1D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, PixelFormat format, int32 imageSize, void* data) glCompressedTexSubImage2D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, int32 imageSize, void* data) glCompressedTexSubImage3D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 width, PixelFormat format, int32 imageSize, void* data) glCompressedTextureSubImage1D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, PixelFormat format, int32 imageSize, void* data) glCompressedTextureSubImage2D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, int32 imageSize, void* data) glCompressedTextureSubImage3D;
         public static function void(CopyBufferSubDataTarget readTarget, CopyBufferSubDataTarget writeTarget, int32 readOffset, int32 writeOffset, int32 size) glCopyBufferSubData;
         public static function void(uint32 srcName, CopyImageSubDataTarget srcTarget, int32 srcLevel, int32 srcX, int32 srcY, int32 srcZ, uint32 dstName, CopyImageSubDataTarget dstTarget, int32 dstLevel, int32 dstX, int32 dstY, int32 dstZ, int32 srcWidth, int32 srcHeight, int32 srcDepth) glCopyImageSubData;
+        public static function void(uint32 readBuffer, uint32 writeBuffer, int32 readOffset, int32 writeOffset, int32 size) glCopyNamedBufferSubData;
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 x, int32 y, int32 width, int32 border) glCopyTexImage1D;
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 x, int32 y, int32 width, int32 height, int32 border) glCopyTexImage2D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 x, int32 y, int32 width) glCopyTexSubImage1D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 x, int32 y, int32 width, int32 height) glCopyTexSubImage2D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 x, int32 y, int32 width, int32 height) glCopyTexSubImage3D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 x, int32 y, int32 width) glCopyTextureSubImage1D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 x, int32 y, int32 width, int32 height) glCopyTextureSubImage2D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 x, int32 y, int32 width, int32 height) glCopyTextureSubImage3D;
+        public static function void(int32 n, uint32* buffers) glCreateBuffers;
+        public static function void(int32 n, uint32* framebuffers) glCreateFramebuffers;
         public static function uint32() glCreateProgram;
+        public static function void(int32 n, uint32* pipelines) glCreateProgramPipelines;
+        public static function void(QueryTarget target, int32 n, uint32* ids) glCreateQueries;
+        public static function void(int32 n, uint32* renderbuffers) glCreateRenderbuffers;
+        public static function void(int32 n, uint32* samplers) glCreateSamplers;
         public static function uint32(ShaderType type) glCreateShader;
         public static function uint32(ShaderType type, int32 count, char8** strings) glCreateShaderProgramv;
+        public static function void(TextureTarget target, int32 n, uint32* textures) glCreateTextures;
+        public static function void(int32 n, uint32* ids) glCreateTransformFeedbacks;
+        public static function void(int32 n, uint32* arrays) glCreateVertexArrays;
         public static function void(CullFaceMode mode) glCullFace;
         public static function void(function void(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, char8* message, void* userParam) callback, void* userParam) glDebugMessageCallback;
         public static function void(DebugSource source, DebugType type, DebugSeverity severity, int32 count, uint32* ids, Boolean enabled) glDebugMessageControl;
@@ -2875,6 +3032,7 @@ namespace OpenGL43
         public static function void(float n, float f) glDepthRangef;
         public static function void(uint32 program, uint32 shader) glDetachShader;
         public static function void(EnableCap cap) glDisable;
+        public static function void(uint32 vaobj, uint32 index) glDisableVertexArrayAttrib;
         public static function void(uint32 index) glDisableVertexAttribArray;
         public static function void(EnableCap target, uint32 index) glDisablei;
         public static function void(uint32 num_groups_x, uint32 num_groups_y, uint32 num_groups_z) glDispatchCompute;
@@ -2899,6 +3057,7 @@ namespace OpenGL43
         public static function void(PrimitiveType mode, uint32 id, uint32 stream) glDrawTransformFeedbackStream;
         public static function void(PrimitiveType mode, uint32 id, uint32 stream, int32 instancecount) glDrawTransformFeedbackStreamInstanced;
         public static function void(EnableCap cap) glEnable;
+        public static function void(uint32 vaobj, uint32 index) glEnableVertexArrayAttrib;
         public static function void(uint32 index) glEnableVertexAttribArray;
         public static function void(EnableCap target, uint32 index) glEnablei;
         public static function void() glEndConditionalRender;
@@ -2909,6 +3068,7 @@ namespace OpenGL43
         public static function void() glFinish;
         public static function void() glFlush;
         public static function void(BufferTargetARB target, int32 offset, int32 length) glFlushMappedBufferRange;
+        public static function void(uint32 buffer, int32 offset, int32 length) glFlushMappedNamedBufferRange;
         public static function void(FramebufferTarget target, FramebufferParameterName pname, int32 param) glFramebufferParameteri;
         public static function void(FramebufferTarget target, FramebufferAttachment attachment, RenderbufferTarget renderbuffertarget, uint32 renderbuffer) glFramebufferRenderbuffer;
         public static function void(FramebufferTarget target, FramebufferAttachment attachment, uint32 texture, int32 level) glFramebufferTexture;
@@ -2927,6 +3087,7 @@ namespace OpenGL43
         public static function void(int32 n, uint32* ids) glGenTransformFeedbacks;
         public static function void(int32 n, uint32* arrays) glGenVertexArrays;
         public static function void(TextureTarget target) glGenerateMipmap;
+        public static function void(uint32 texture) glGenerateTextureMipmap;
         public static function void(uint32 program, uint32 bufferIndex, AtomicCounterBufferPName pname, int32* parameters) glGetActiveAtomicCounterBufferiv;
         public static function void(uint32 program, uint32 index, int32 bufSize, int32* length, int32* size, AttributeType* type, char8* name) glGetActiveAttrib;
         public static function void(uint32 program, ShaderType shadertype, uint32 index, int32 bufSize, int32* length, char8* name) glGetActiveSubroutineName;
@@ -2946,16 +3107,19 @@ namespace OpenGL43
         public static function void(BufferTargetARB target, BufferPointerNameARB pname, void** parameters) glGetBufferPointerv;
         public static function void(BufferTargetARB target, int32 offset, int32 size, void* data) glGetBufferSubData;
         public static function void(TextureTarget target, int32 level, void* img) glGetCompressedTexImage;
+        public static function void(uint32 texture, int32 level, int32 bufSize, void* pixels) glGetCompressedTextureImage;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, int32 bufSize, void* pixels) glGetCompressedTextureSubImage;
         public static function uint32(uint32 count, int32 bufSize, DebugSource* sources, DebugType* types, uint32* ids, DebugSeverity* severities, int32* lengths, char8* messageLog) glGetDebugMessageLog;
         public static function void(GetPName target, uint32 index, double* data) glGetDoublei_v;
         public static function void(GetPName pname, double* data) glGetDoublev;
-        public static function uint32() glGetError;
+        public static function ErrorCode() glGetError;
         public static function void(GetPName target, uint32 index, float* data) glGetFloati_v;
         public static function void(GetPName pname, float* data) glGetFloatv;
         public static function int32(uint32 program, char8* name) glGetFragDataIndex;
         public static function int32(uint32 program, char8* name) glGetFragDataLocation;
         public static function void(FramebufferTarget target, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, int32* parameters) glGetFramebufferAttachmentParameteriv;
         public static function void(FramebufferTarget target, FramebufferAttachmentParameterName pname, int32* parameters) glGetFramebufferParameteriv;
+        public static function GraphicsResetStatus() glGetGraphicsResetStatus;
         public static function void(GetPName target, uint32 index, int64* data) glGetInteger64i_v;
         public static function void(GetPName pname, int64* data) glGetInteger64v;
         public static function void(GetPName target, uint32 index, int32* data) glGetIntegeri_v;
@@ -2963,6 +3127,13 @@ namespace OpenGL43
         public static function void(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname, int32 count, int64* parameters) glGetInternalformati64v;
         public static function void(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname, int32 count, int32* parameters) glGetInternalformativ;
         public static function void(GetMultisamplePNameNV pname, uint32 index, float* val) glGetMultisamplefv;
+        public static function void(uint32 buffer, BufferPNameARB pname, int64* parameters) glGetNamedBufferParameteri64v;
+        public static function void(uint32 buffer, BufferPNameARB pname, int32* parameters) glGetNamedBufferParameteriv;
+        public static function void(uint32 buffer, BufferPointerNameARB pname, void** parameters) glGetNamedBufferPointerv;
+        public static function void(uint32 buffer, int32 offset, int32 size, void* data) glGetNamedBufferSubData;
+        public static function void(uint32 framebuffer, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, int32* parameters) glGetNamedFramebufferAttachmentParameteriv;
+        public static function void(uint32 framebuffer, GetFramebufferParameter pname, int32* param) glGetNamedFramebufferParameteriv;
+        public static function void(uint32 renderbuffer, RenderbufferParameterName pname, int32* parameters) glGetNamedRenderbufferParameteriv;
         public static function void(ObjectIdentifier identifier, uint32 name, int32 bufSize, int32* length, char8* label) glGetObjectLabel;
         public static function void(void* ptr, int32 bufSize, int32* length, char8* label) glGetObjectPtrLabel;
         public static function void(GetPointervPName pname, void** parameters) glGetPointerv;
@@ -2978,6 +3149,10 @@ namespace OpenGL43
         public static function void(uint32 program, ProgramInterface programInterface, uint32 index, int32 propCount, ProgramResourceProperty* props, int32 count, int32* length, int32* parameters) glGetProgramResourceiv;
         public static function void(uint32 program, ShaderType shadertype, ProgramStagePName pname, int32* values) glGetProgramStageiv;
         public static function void(uint32 program, ProgramPropertyARB pname, int32* parameters) glGetProgramiv;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjecti64v;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjectiv;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjectui64v;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjectuiv;
         public static function void(QueryTarget target, uint32 index, QueryParameterName pname, int32* parameters) glGetQueryIndexediv;
         public static function void(uint32 id, QueryObjectParameterName pname, int64* parameters) glGetQueryObjecti64v;
         public static function void(uint32 id, QueryObjectParameterName pname, int32* parameters) glGetQueryObjectiv;
@@ -3005,7 +3180,18 @@ namespace OpenGL43
         public static function void(TextureTarget target, GetTextureParameter pname, uint32* parameters) glGetTexParameterIuiv;
         public static function void(TextureTarget target, GetTextureParameter pname, float* parameters) glGetTexParameterfv;
         public static function void(TextureTarget target, GetTextureParameter pname, int32* parameters) glGetTexParameteriv;
+        public static function void(uint32 texture, int32 level, PixelFormat format, PixelType type, int32 bufSize, void* pixels) glGetTextureImage;
+        public static function void(uint32 texture, int32 level, GetTextureParameter pname, float* parameters) glGetTextureLevelParameterfv;
+        public static function void(uint32 texture, int32 level, GetTextureParameter pname, int32* parameters) glGetTextureLevelParameteriv;
+        public static function void(uint32 texture, GetTextureParameter pname, int32* parameters) glGetTextureParameterIiv;
+        public static function void(uint32 texture, GetTextureParameter pname, uint32* parameters) glGetTextureParameterIuiv;
+        public static function void(uint32 texture, GetTextureParameter pname, float* parameters) glGetTextureParameterfv;
+        public static function void(uint32 texture, GetTextureParameter pname, int32* parameters) glGetTextureParameteriv;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, PixelType type, int32 bufSize, void* pixels) glGetTextureSubImage;
         public static function void(uint32 program, uint32 index, int32 bufSize, int32* length, int32* size, AttributeType* type, char8* name) glGetTransformFeedbackVarying;
+        public static function void(uint32 xfb, TransformFeedbackPName pname, uint32 index, int64* param) glGetTransformFeedbacki64_v;
+        public static function void(uint32 xfb, TransformFeedbackPName pname, uint32 index, int32* param) glGetTransformFeedbacki_v;
+        public static function void(uint32 xfb, TransformFeedbackPName pname, int32* param) glGetTransformFeedbackiv;
         public static function uint32(uint32 program, char8* uniformBlockName) glGetUniformBlockIndex;
         public static function void(uint32 program, int32 uniformCount, char8** uniformNames, uint32* uniformIndices) glGetUniformIndices;
         public static function int32(uint32 program, char8* name) glGetUniformLocation;
@@ -3014,6 +3200,9 @@ namespace OpenGL43
         public static function void(uint32 program, int32 location, float* parameters) glGetUniformfv;
         public static function void(uint32 program, int32 location, int32* parameters) glGetUniformiv;
         public static function void(uint32 program, int32 location, uint32* parameters) glGetUniformuiv;
+        public static function void(uint32 vaobj, uint32 index, VertexArrayPName pname, int64* param) glGetVertexArrayIndexed64iv;
+        public static function void(uint32 vaobj, uint32 index, VertexArrayPName pname, int32* param) glGetVertexArrayIndexediv;
+        public static function void(uint32 vaobj, VertexArrayPName pname, int32* param) glGetVertexArrayiv;
         public static function void(uint32 index, VertexAttribEnum pname, int32* parameters) glGetVertexAttribIiv;
         public static function void(uint32 index, VertexAttribEnum pname, uint32* parameters) glGetVertexAttribIuiv;
         public static function void(uint32 index, VertexAttribEnum pname, double* parameters) glGetVertexAttribLdv;
@@ -3021,10 +3210,30 @@ namespace OpenGL43
         public static function void(uint32 index, VertexAttribPropertyARB pname, double* parameters) glGetVertexAttribdv;
         public static function void(uint32 index, VertexAttribPropertyARB pname, float* parameters) glGetVertexAttribfv;
         public static function void(uint32 index, VertexAttribPropertyARB pname, int32* parameters) glGetVertexAttribiv;
+        public static function void(ColorTableTarget target, PixelFormat format, PixelType type, int32 bufSize, void* table) glGetnColorTable;
+        public static function void(TextureTarget target, int32 lod, int32 bufSize, void* pixels) glGetnCompressedTexImage;
+        public static function void(ConvolutionTarget target, PixelFormat format, PixelType type, int32 bufSize, void* image) glGetnConvolutionFilter;
+        public static function void(HistogramTarget target, Boolean reset, PixelFormat format, PixelType type, int32 bufSize, void* values) glGetnHistogram;
+        public static function void(uint32 target, uint32 query, int32 bufSize, double* v) glGetnMapdv;
+        public static function void(uint32 target, uint32 query, int32 bufSize, float* v) glGetnMapfv;
+        public static function void(uint32 target, uint32 query, int32 bufSize, int32* v) glGetnMapiv;
+        public static function void(MinmaxTarget target, Boolean reset, PixelFormat format, PixelType type, int32 bufSize, void* values) glGetnMinmax;
+        public static function void(uint32 map, int32 bufSize, float* values) glGetnPixelMapfv;
+        public static function void(uint32 map, int32 bufSize, uint32* values) glGetnPixelMapuiv;
+        public static function void(uint32 map, int32 bufSize, uint16* values) glGetnPixelMapusv;
+        public static function void(int32 bufSize, uint8* pattern) glGetnPolygonStipple;
+        public static function void(SeparableTarget target, PixelFormat format, PixelType type, int32 rowBufSize, void* row, int32 columnBufSize, void* column, void* span) glGetnSeparableFilter;
+        public static function void(TextureTarget target, int32 level, PixelFormat format, PixelType type, int32 bufSize, void* pixels) glGetnTexImage;
+        public static function void(uint32 program, int32 location, int32 bufSize, double* parameters) glGetnUniformdv;
+        public static function void(uint32 program, int32 location, int32 bufSize, float* parameters) glGetnUniformfv;
+        public static function void(uint32 program, int32 location, int32 bufSize, int32* parameters) glGetnUniformiv;
+        public static function void(uint32 program, int32 location, int32 bufSize, uint32* parameters) glGetnUniformuiv;
         public static function void(HintTarget target, HintMode mode) glHint;
         public static function void(uint32 buffer) glInvalidateBufferData;
         public static function void(uint32 buffer, int32 offset, int32 length) glInvalidateBufferSubData;
         public static function void(FramebufferTarget target, int32 numAttachments, InvalidateFramebufferAttachment* attachments) glInvalidateFramebuffer;
+        public static function void(uint32 framebuffer, int32 numAttachments, FramebufferAttachment* attachments) glInvalidateNamedFramebufferData;
+        public static function void(uint32 framebuffer, int32 numAttachments, FramebufferAttachment* attachments, int32 x, int32 y, int32 width, int32 height) glInvalidateNamedFramebufferSubData;
         public static function void(FramebufferTarget target, int32 numAttachments, InvalidateFramebufferAttachment* attachments, int32 x, int32 y, int32 width, int32 height) glInvalidateSubFramebuffer;
         public static function void(uint32 texture, int32 level) glInvalidateTexImage;
         public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth) glInvalidateTexSubImage;
@@ -3047,7 +3256,10 @@ namespace OpenGL43
         public static function void(LogicOp opcode) glLogicOp;
         public static function void*(BufferTargetARB target, BufferAccessARB access) glMapBuffer;
         public static function void*(BufferTargetARB target, int32 offset, int32 length, MapBufferAccessMask access) glMapBufferRange;
+        public static function void*(uint32 buffer, BufferAccessARB access) glMapNamedBuffer;
+        public static function void*(uint32 buffer, int32 offset, int32 length, MapBufferAccessMask access) glMapNamedBufferRange;
         public static function void(MemoryBarrierMask barriers) glMemoryBarrier;
+        public static function void(MemoryBarrierMask barriers) glMemoryBarrierByRegion;
         public static function void(float value) glMinSampleShading;
         public static function void(PrimitiveType mode, int32* first, int32* count, int32 drawcount) glMultiDrawArrays;
         public static function void(PrimitiveType mode, void* indirect, int32 drawcount, int32 stride) glMultiDrawArraysIndirect;
@@ -3062,6 +3274,18 @@ namespace OpenGL43
         public static function void(TextureUnit texture, TexCoordPointerType type, uint32* coords) glMultiTexCoordP3uiv;
         public static function void(TextureUnit texture, TexCoordPointerType type, uint32 coords) glMultiTexCoordP4ui;
         public static function void(TextureUnit texture, TexCoordPointerType type, uint32* coords) glMultiTexCoordP4uiv;
+        public static function void(uint32 buffer, int32 size, void* data, VertexBufferObjectUsage usage) glNamedBufferData;
+        public static function void(uint32 buffer, int32 size, void* data, BufferStorageMask flags) glNamedBufferStorage;
+        public static function void(uint32 buffer, int32 offset, int32 size, void* data) glNamedBufferSubData;
+        public static function void(uint32 framebuffer, ColorBuffer buf) glNamedFramebufferDrawBuffer;
+        public static function void(uint32 framebuffer, int32 n, ColorBuffer* bufs) glNamedFramebufferDrawBuffers;
+        public static function void(uint32 framebuffer, FramebufferParameterName pname, int32 param) glNamedFramebufferParameteri;
+        public static function void(uint32 framebuffer, ColorBuffer src) glNamedFramebufferReadBuffer;
+        public static function void(uint32 framebuffer, FramebufferAttachment attachment, RenderbufferTarget renderbuffertarget, uint32 renderbuffer) glNamedFramebufferRenderbuffer;
+        public static function void(uint32 framebuffer, FramebufferAttachment attachment, uint32 texture, int32 level) glNamedFramebufferTexture;
+        public static function void(uint32 framebuffer, FramebufferAttachment attachment, uint32 texture, int32 level, int32 layer) glNamedFramebufferTextureLayer;
+        public static function void(uint32 renderbuffer, InternalFormat internalformat, int32 width, int32 height) glNamedRenderbufferStorage;
+        public static function void(uint32 renderbuffer, int32 samples, InternalFormat internalformat, int32 width, int32 height) glNamedRenderbufferStorageMultisample;
         public static function void(NormalPointerType type, uint32 coords) glNormalP3ui;
         public static function void(NormalPointerType type, uint32* coords) glNormalP3uiv;
         public static function void(ObjectIdentifier identifier, uint32 name, int32 length, char8* label) glObjectLabel;
@@ -3137,6 +3361,7 @@ namespace OpenGL43
         public static function void(uint32 id, QueryCounterTarget target) glQueryCounter;
         public static function void(ReadBufferMode src) glReadBuffer;
         public static function void(int32 x, int32 y, int32 width, int32 height, PixelFormat format, PixelType type, void* pixels) glReadPixels;
+        public static function void(int32 x, int32 y, int32 width, int32 height, PixelFormat format, PixelType type, int32 bufSize, void* data) glReadnPixels;
         public static function void() glReleaseShaderCompiler;
         public static function void(RenderbufferTarget target, InternalFormat internalformat, int32 width, int32 height) glRenderbufferStorage;
         public static function void(RenderbufferTarget target, int32 samples, InternalFormat internalformat, int32 width, int32 height) glRenderbufferStorageMultisample;
@@ -3193,7 +3418,26 @@ namespace OpenGL43
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 width, PixelFormat format, PixelType type, void* pixels) glTexSubImage1D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, PixelFormat format, PixelType type, void* pixels) glTexSubImage2D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, PixelType type, void* pixels) glTexSubImage3D;
+        public static function void() glTextureBarrier;
+        public static function void(uint32 texture, SizedInternalFormat internalformat, uint32 buffer) glTextureBuffer;
+        public static function void(uint32 texture, SizedInternalFormat internalformat, uint32 buffer, int32 offset, int32 size) glTextureBufferRange;
+        public static function void(uint32 texture, TextureParameterName pname, int32* parameters) glTextureParameterIiv;
+        public static function void(uint32 texture, TextureParameterName pname, uint32* parameters) glTextureParameterIuiv;
+        public static function void(uint32 texture, TextureParameterName pname, float param) glTextureParameterf;
+        public static function void(uint32 texture, TextureParameterName pname, float* param) glTextureParameterfv;
+        public static function void(uint32 texture, TextureParameterName pname, int32 param) glTextureParameteri;
+        public static function void(uint32 texture, TextureParameterName pname, int32* param) glTextureParameteriv;
+        public static function void(uint32 texture, int32 levels, SizedInternalFormat internalformat, int32 width) glTextureStorage1D;
+        public static function void(uint32 texture, int32 levels, SizedInternalFormat internalformat, int32 width, int32 height) glTextureStorage2D;
+        public static function void(uint32 texture, int32 samples, SizedInternalFormat internalformat, int32 width, int32 height, Boolean fixedsamplelocations) glTextureStorage2DMultisample;
+        public static function void(uint32 texture, int32 levels, SizedInternalFormat internalformat, int32 width, int32 height, int32 depth) glTextureStorage3D;
+        public static function void(uint32 texture, int32 samples, SizedInternalFormat internalformat, int32 width, int32 height, int32 depth, Boolean fixedsamplelocations) glTextureStorage3DMultisample;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 width, PixelFormat format, PixelType type, void* pixels) glTextureSubImage1D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, PixelFormat format, PixelType type, void* pixels) glTextureSubImage2D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, PixelType type, void* pixels) glTextureSubImage3D;
         public static function void(uint32 texture, TextureTarget target, uint32 origtexture, SizedInternalFormat internalformat, uint32 minlevel, uint32 numlevels, uint32 minlayer, uint32 numlayers) glTextureView;
+        public static function void(uint32 xfb, uint32 index, uint32 buffer) glTransformFeedbackBufferBase;
+        public static function void(uint32 xfb, uint32 index, uint32 buffer, int32 offset, int32 size) glTransformFeedbackBufferRange;
         public static function void(uint32 program, int32 count, char8** varyings, TransformFeedbackBufferMode bufferMode) glTransformFeedbackVaryings;
         public static function void(int32 location, double x) glUniform1d;
         public static function void(int32 location, int32 count, double* value) glUniform1dv;
@@ -3248,10 +3492,19 @@ namespace OpenGL43
         public static function void(int32 location, int32 count, Boolean transpose, float* value) glUniformMatrix4x3fv;
         public static function void(ShaderType shadertype, int32 count, uint32* indices) glUniformSubroutinesuiv;
         public static function bool(BufferTargetARB target) glUnmapBuffer;
+        public static function bool(uint32 buffer) glUnmapNamedBuffer;
         public static function void(uint32 program) glUseProgram;
         public static function void(uint32 pipeline, UseProgramStageMask stages, uint32 program) glUseProgramStages;
         public static function void(uint32 program) glValidateProgram;
         public static function void(uint32 pipeline) glValidateProgramPipeline;
+        public static function void(uint32 vaobj, uint32 attribindex, uint32 bindingindex) glVertexArrayAttribBinding;
+        public static function void(uint32 vaobj, uint32 attribindex, int32 size, VertexAttribType type, Boolean normalized, uint32 relativeoffset) glVertexArrayAttribFormat;
+        public static function void(uint32 vaobj, uint32 attribindex, int32 size, VertexAttribIType type, uint32 relativeoffset) glVertexArrayAttribIFormat;
+        public static function void(uint32 vaobj, uint32 attribindex, int32 size, VertexAttribLType type, uint32 relativeoffset) glVertexArrayAttribLFormat;
+        public static function void(uint32 vaobj, uint32 bindingindex, uint32 divisor) glVertexArrayBindingDivisor;
+        public static function void(uint32 vaobj, uint32 buffer) glVertexArrayElementBuffer;
+        public static function void(uint32 vaobj, uint32 bindingindex, uint32 buffer, int32 offset, int32 stride) glVertexArrayVertexBuffer;
+        public static function void(uint32 vaobj, uint32 first, int32 count, uint32* buffers, int32* offsets, int32* strides) glVertexArrayVertexBuffers;
         public static function void(uint32 index, double x) glVertexAttrib1d;
         public static function void(uint32 index, double* v) glVertexAttrib1dv;
         public static function void(uint32 index, float x) glVertexAttrib1f;
@@ -3345,18 +3598,22 @@ namespace OpenGL43
         public static function void(uint32 index, float* v) glViewportIndexedfv;
         public static function void(void* sync, SyncBehaviorFlags flags, uint64 timeout) glWaitSync;
 
-        public function void* GetProcAddressFunc(StringView procname);
-
-        public static void Init(GetProcAddressFunc func) {
+        public static void Init(function void*(StringView procname) func) {
             glVertexAttrib4Nub = (.)func("glVertexAttrib4Nub");
             glPointParameteriv = (.)func("glPointParameteriv");
             glVertexP2ui = (.)func("glVertexP2ui");
             glVertexAttribI4uiv = (.)func("glVertexAttribI4uiv");
             glIsQuery = (.)func("glIsQuery");
             glIsVertexArray = (.)func("glIsVertexArray");
+            glNamedFramebufferParameteri = (.)func("glNamedFramebufferParameteri");
             glUniform1iv = (.)func("glUniform1iv");
+            glGetnUniformfv = (.)func("glGetnUniformfv");
+            glNamedBufferData = (.)func("glNamedBufferData");
             glPushDebugGroup = (.)func("glPushDebugGroup");
+            glGetNamedFramebufferAttachmentParameteriv = (.)func("glGetNamedFramebufferAttachmentParameteriv");
             glLineWidth = (.)func("glLineWidth");
+            glGetTextureSubImage = (.)func("glGetTextureSubImage");
+            glGetnMinmax = (.)func("glGetnMinmax");
             glClearBufferfv = (.)func("glClearBufferfv");
             glFenceSync = (.)func("glFenceSync");
             glGetSamplerParameterfv = (.)func("glGetSamplerParameterfv");
@@ -3364,14 +3621,20 @@ namespace OpenGL43
             glVertexAttrib4Nsv = (.)func("glVertexAttrib4Nsv");
             glBindRenderbuffer = (.)func("glBindRenderbuffer");
             glProgramUniform3uiv = (.)func("glProgramUniform3uiv");
+            glInvalidateNamedFramebufferSubData = (.)func("glInvalidateNamedFramebufferSubData");
+            glInvalidateNamedFramebufferData = (.)func("glInvalidateNamedFramebufferData");
             glVertexAttrib3sv = (.)func("glVertexAttrib3sv");
             glUseProgramStages = (.)func("glUseProgramStages");
             glClearBufferfi = (.)func("glClearBufferfi");
             glVertexAttribPointer = (.)func("glVertexAttribPointer");
+            glGetQueryBufferObjectiv = (.)func("glGetQueryBufferObjectiv");
             glGetTexLevelParameterfv = (.)func("glGetTexLevelParameterfv");
             glClampColor = (.)func("glClampColor");
+            glGetTransformFeedbacki_v = (.)func("glGetTransformFeedbacki_v");
+            glGetVertexArrayiv = (.)func("glGetVertexArrayiv");
             glClearBufferiv = (.)func("glClearBufferiv");
             glScissorArrayv = (.)func("glScissorArrayv");
+            glCopyNamedBufferSubData = (.)func("glCopyNamedBufferSubData");
             glVertexAttrib4Nubv = (.)func("glVertexAttrib4Nubv");
             glDeleteTransformFeedbacks = (.)func("glDeleteTransformFeedbacks");
             glVertexAttrib4ubv = (.)func("glVertexAttrib4ubv");
@@ -3385,27 +3648,37 @@ namespace OpenGL43
             glProgramUniform1iv = (.)func("glProgramUniform1iv");
             glDrawElements = (.)func("glDrawElements");
             glGetStringi = (.)func("glGetStringi");
+            glGetTextureParameterIuiv = (.)func("glGetTextureParameterIuiv");
+            glClearNamedBufferData = (.)func("glClearNamedBufferData");
             glPointParameterfv = (.)func("glPointParameterfv");
             glGetUniformLocation = (.)func("glGetUniformLocation");
+            glGetTextureParameterfv = (.)func("glGetTextureParameterfv");
             glInvalidateSubFramebuffer = (.)func("glInvalidateSubFramebuffer");
             glVertexP3ui = (.)func("glVertexP3ui");
             glVertexAttrib4sv = (.)func("glVertexAttrib4sv");
             glGetTexParameteriv = (.)func("glGetTexParameteriv");
+            glBindVertexBuffers = (.)func("glBindVertexBuffers");
+            glTextureParameterIiv = (.)func("glTextureParameterIiv");
             glVertexAttribI4bv = (.)func("glVertexAttribI4bv");
             glGetSamplerParameteriv = (.)func("glGetSamplerParameteriv");
             glCompressedTexSubImage1D = (.)func("glCompressedTexSubImage1D");
+            glBindImageTextures = (.)func("glBindImageTextures");
             glBlendFunc = (.)func("glBlendFunc");
             glBindProgramPipeline = (.)func("glBindProgramPipeline");
+            glCreateFramebuffers = (.)func("glCreateFramebuffers");
             glVertexAttribIFormat = (.)func("glVertexAttribIFormat");
             glUniform3iv = (.)func("glUniform3iv");
             glUniform2d = (.)func("glUniform2d");
             glUniform2f = (.)func("glUniform2f");
             glDrawElementsInstancedBaseVertex = (.)func("glDrawElementsInstancedBaseVertex");
             glGetMultisamplefv = (.)func("glGetMultisamplefv");
+            glGetnMapfv = (.)func("glGetnMapfv");
             glGetInternalformativ = (.)func("glGetInternalformativ");
             glUniform2i = (.)func("glUniform2i");
             glBufferSubData = (.)func("glBufferSubData");
+            glCreateQueries = (.)func("glCreateQueries");
             glProgramUniform4i = (.)func("glProgramUniform4i");
+            glCreateTransformFeedbacks = (.)func("glCreateTransformFeedbacks");
             glGenVertexArrays = (.)func("glGenVertexArrays");
             glClearBufferSubData = (.)func("glClearBufferSubData");
             glProgramUniform4d = (.)func("glProgramUniform4d");
@@ -3413,14 +3686,17 @@ namespace OpenGL43
             glProgramUniform4ui = (.)func("glProgramUniform4ui");
             glProgramUniform4f = (.)func("glProgramUniform4f");
             glIsEnabled = (.)func("glIsEnabled");
+            glGetCompressedTextureSubImage = (.)func("glGetCompressedTextureSubImage");
             glEnableVertexAttribArray = (.)func("glEnableVertexAttribArray");
             glProvokingVertex = (.)func("glProvokingVertex");
+            glEnableVertexArrayAttrib = (.)func("glEnableVertexArrayAttrib");
             glDeleteProgram = (.)func("glDeleteProgram");
             glVertexAttribP2uiv = (.)func("glVertexAttribP2uiv");
             glGenFramebuffers = (.)func("glGenFramebuffers");
             glUniform3d = (.)func("glUniform3d");
             glUniform3f = (.)func("glUniform3f");
             glUniform2fv = (.)func("glUniform2fv");
+            glBindTextureUnit = (.)func("glBindTextureUnit");
             glUniform1dv = (.)func("glUniform1dv");
             glUniform3i = (.)func("glUniform3i");
             glGetIntegerv = (.)func("glGetIntegerv");
@@ -3430,10 +3706,12 @@ namespace OpenGL43
             glGetProgramResourceiv = (.)func("glGetProgramResourceiv");
             glUniform4d = (.)func("glUniform4d");
             glClear = (.)func("glClear");
+            glTextureBarrier = (.)func("glTextureBarrier");
             glCompressedTexSubImage3D = (.)func("glCompressedTexSubImage3D");
             glGetQueryIndexediv = (.)func("glGetQueryIndexediv");
             glVertexAttribP3uiv = (.)func("glVertexAttribP3uiv");
             glGetActiveSubroutineUniformName = (.)func("glGetActiveSubroutineUniformName");
+            glGetTextureParameterIiv = (.)func("glGetTextureParameterIiv");
             glCopyBufferSubData = (.)func("glCopyBufferSubData");
             glReadBuffer = (.)func("glReadBuffer");
             glGetFramebufferAttachmentParameteriv = (.)func("glGetFramebufferAttachmentParameteriv");
@@ -3443,12 +3721,17 @@ namespace OpenGL43
             glBindFragDataLocationIndexed = (.)func("glBindFragDataLocationIndexed");
             glDispatchComputeIndirect = (.)func("glDispatchComputeIndirect");
             glProgramUniform2f = (.)func("glProgramUniform2f");
+            glGetQueryBufferObjecti64v = (.)func("glGetQueryBufferObjecti64v");
             glMultiTexCoordP4ui = (.)func("glMultiTexCoordP4ui");
+            glGetTextureParameteriv = (.)func("glGetTextureParameteriv");
+            glGetnMapdv = (.)func("glGetnMapdv");
             glReleaseShaderCompiler = (.)func("glReleaseShaderCompiler");
             glDrawTransformFeedbackInstanced = (.)func("glDrawTransformFeedbackInstanced");
+            glGetnUniformdv = (.)func("glGetnUniformdv");
             glProgramUniform2i = (.)func("glProgramUniform2i");
             glGetTexParameterfv = (.)func("glGetTexParameterfv");
             glDrawArraysInstanced = (.)func("glDrawArraysInstanced");
+            glGetTextureLevelParameterfv = (.)func("glGetTextureLevelParameterfv");
             glDeleteVertexArrays = (.)func("glDeleteVertexArrays");
             glGetUniformSubroutineuiv = (.)func("glGetUniformSubroutineuiv");
             glInvalidateTexImage = (.)func("glInvalidateTexImage");
@@ -3461,20 +3744,24 @@ namespace OpenGL43
             glDrawBuffer = (.)func("glDrawBuffer");
             glGetQueryObjectuiv = (.)func("glGetQueryObjectuiv");
             glGetTexLevelParameteriv = (.)func("glGetTexLevelParameteriv");
+            glBindTextures = (.)func("glBindTextures");
             glEndQuery = (.)func("glEndQuery");
             glDeleteFramebuffers = (.)func("glDeleteFramebuffers");
             glUniform1fv = (.)func("glUniform1fv");
             glUniform1d = (.)func("glUniform1d");
+            glTextureParameteri = (.)func("glTextureParameteri");
             glUniform1f = (.)func("glUniform1f");
             glCheckFramebufferStatus = (.)func("glCheckFramebufferStatus");
             glDisablei = (.)func("glDisablei");
             glBlitFramebuffer = (.)func("glBlitFramebuffer");
             glSamplerParameterIiv = (.)func("glSamplerParameterIiv");
+            glTextureParameterf = (.)func("glTextureParameterf");
             glUniform1i = (.)func("glUniform1i");
             glGetShaderiv = (.)func("glGetShaderiv");
             glProgramUniform3f = (.)func("glProgramUniform3f");
             glUniformSubroutinesuiv = (.)func("glUniformSubroutinesuiv");
             glProgramUniform3i = (.)func("glProgramUniform3i");
+            glBindBuffersBase = (.)func("glBindBuffersBase");
             glGetActiveUniformName = (.)func("glGetActiveUniformName");
             glBindFragDataLocation = (.)func("glBindFragDataLocation");
             glDrawElementsInstanced = (.)func("glDrawElementsInstanced");
@@ -3488,6 +3775,7 @@ namespace OpenGL43
             glVertexAttribP3ui = (.)func("glVertexAttribP3ui");
             glVertexAttribI3iv = (.)func("glVertexAttribI3iv");
             glScissorIndexedv = (.)func("glScissorIndexedv");
+            glGetnConvolutionFilter = (.)func("glGetnConvolutionFilter");
             glMultiTexCoordP3ui = (.)func("glMultiTexCoordP3ui");
             glUniformMatrix4x3dv = (.)func("glUniformMatrix4x3dv");
             glBindFramebuffer = (.)func("glBindFramebuffer");
@@ -3498,9 +3786,12 @@ namespace OpenGL43
             glUniform2uiv = (.)func("glUniform2uiv");
             glIsRenderbuffer = (.)func("glIsRenderbuffer");
             glVertexAttribI4i = (.)func("glVertexAttribI4i");
+            glTextureStorage3DMultisample = (.)func("glTextureStorage3DMultisample");
             glVertexAttrib1fv = (.)func("glVertexAttrib1fv");
             glProgramUniform2ui = (.)func("glProgramUniform2ui");
+            glTextureStorage2DMultisample = (.)func("glTextureStorage2DMultisample");
             glGetUniformiv = (.)func("glGetUniformiv");
+            glMapNamedBuffer = (.)func("glMapNamedBuffer");
             glIsShader = (.)func("glIsShader");
             glBindVertexArray = (.)func("glBindVertexArray");
             glBlendFunci = (.)func("glBlendFunci");
@@ -3517,9 +3808,11 @@ namespace OpenGL43
             glVertexAttribI4usv = (.)func("glVertexAttribI4usv");
             glUniformMatrix4dv = (.)func("glUniformMatrix4dv");
             glIsEnabledi = (.)func("glIsEnabledi");
+            glBindBuffersRange = (.)func("glBindBuffersRange");
             glGetDebugMessageLog = (.)func("glGetDebugMessageLog");
             glTexCoordP3uiv = (.)func("glTexCoordP3uiv");
             glGetInternalformati64v = (.)func("glGetInternalformati64v");
+            glGetNamedBufferParameteriv = (.)func("glGetNamedBufferParameteriv");
             glVertexAttrib1dv = (.)func("glVertexAttrib1dv");
             glBindImageTexture = (.)func("glBindImageTexture");
             glShaderStorageBlockBinding = (.)func("glShaderStorageBlockBinding");
@@ -3529,12 +3822,16 @@ namespace OpenGL43
             glUniform1uiv = (.)func("glUniform1uiv");
             glGenerateMipmap = (.)func("glGenerateMipmap");
             glMemoryBarrier = (.)func("glMemoryBarrier");
+            glCreateBuffers = (.)func("glCreateBuffers");
             glVertexAttribDivisor = (.)func("glVertexAttribDivisor");
             glBeginQueryIndexed = (.)func("glBeginQueryIndexed");
             glDepthFunc = (.)func("glDepthFunc");
             glTexStorage2DMultisample = (.)func("glTexStorage2DMultisample");
             glUniform4iv = (.)func("glUniform4iv");
+            glGetVertexArrayIndexediv = (.)func("glGetVertexArrayIndexediv");
+            glGetnPolygonStipple = (.)func("glGetnPolygonStipple");
             glVertexAttribP4ui = (.)func("glVertexAttribP4ui");
+            glCompressedTextureSubImage3D = (.)func("glCompressedTextureSubImage3D");
             glUniformMatrix4x3fv = (.)func("glUniformMatrix4x3fv");
             glVertexAttribI4iv = (.)func("glVertexAttribI4iv");
             glWaitSync = (.)func("glWaitSync");
@@ -3542,19 +3839,26 @@ namespace OpenGL43
             glUniformMatrix4x2dv = (.)func("glUniformMatrix4x2dv");
             glClearColor = (.)func("glClearColor");
             glSamplerParameterIuiv = (.)func("glSamplerParameterIuiv");
+            glCheckNamedFramebufferStatus = (.)func("glCheckNamedFramebufferStatus");
             glStencilFunc = (.)func("glStencilFunc");
             glProgramUniform3ui = (.)func("glProgramUniform3ui");
+            glTextureBuffer = (.)func("glTextureBuffer");
             glVertexAttribI2i = (.)func("glVertexAttribI2i");
             glTexCoordP2uiv = (.)func("glTexCoordP2uiv");
             glVertexAttrib2fv = (.)func("glVertexAttrib2fv");
             glDeleteSync = (.)func("glDeleteSync");
             glVertexBindingDivisor = (.)func("glVertexBindingDivisor");
+            glClearNamedFramebufferuiv = (.)func("glClearNamedFramebufferuiv");
+            glVertexArrayAttribFormat = (.)func("glVertexArrayAttribFormat");
             glDepthMask = (.)func("glDepthMask");
+            glVertexArrayAttribIFormat = (.)func("glVertexArrayAttribIFormat");
             glUniform3fv = (.)func("glUniform3fv");
             glUniform2dv = (.)func("glUniform2dv");
             glProgramUniform1uiv = (.)func("glProgramUniform1uiv");
+            glGetnMapiv = (.)func("glGetnMapiv");
             glUseProgram = (.)func("glUseProgram");
             glGetProgramInterfaceiv = (.)func("glGetProgramInterfaceiv");
+            glVertexArrayVertexBuffers = (.)func("glVertexArrayVertexBuffers");
             glGenTransformFeedbacks = (.)func("glGenTransformFeedbacks");
             glMultiTexCoordP1uiv = (.)func("glMultiTexCoordP1uiv");
             glUniformMatrix3dv = (.)func("glUniformMatrix3dv");
@@ -3572,12 +3876,17 @@ namespace OpenGL43
             glBlendEquationSeparate = (.)func("glBlendEquationSeparate");
             glGetVertexAttribPointerv = (.)func("glGetVertexAttribPointerv");
             glVertexAttribL3dv = (.)func("glVertexAttribL3dv");
+            glTransformFeedbackBufferRange = (.)func("glTransformFeedbackBufferRange");
+            glCreateSamplers = (.)func("glCreateSamplers");
             glViewportIndexedf = (.)func("glViewportIndexedf");
             glVertexAttribI1iv = (.)func("glVertexAttribI1iv");
+            glCompressedTextureSubImage1D = (.)func("glCompressedTextureSubImage1D");
             glUniformMatrix4x2fv = (.)func("glUniformMatrix4x2fv");
             glVertexAttribP1ui = (.)func("glVertexAttribP1ui");
             glDeleteSamplers = (.)func("glDeleteSamplers");
             glPauseTransformFeedback = (.)func("glPauseTransformFeedback");
+            glNamedFramebufferRenderbuffer = (.)func("glNamedFramebufferRenderbuffer");
+            glDisableVertexArrayAttrib = (.)func("glDisableVertexArrayAttrib");
             glGetUniformuiv = (.)func("glGetUniformuiv");
             glMultiDrawArrays = (.)func("glMultiDrawArrays");
             glTexCoordP4uiv = (.)func("glTexCoordP4uiv");
@@ -3590,6 +3899,7 @@ namespace OpenGL43
             glGetPointerv = (.)func("glGetPointerv");
             glCopyTexImage2D = (.)func("glCopyTexImage2D");
             glCreateShader = (.)func("glCreateShader");
+            glCreateVertexArrays = (.)func("glCreateVertexArrays");
             glEndTransformFeedback = (.)func("glEndTransformFeedback");
             glSampleCoverage = (.)func("glSampleCoverage");
             glUniformMatrix2x3fv = (.)func("glUniformMatrix2x3fv");
@@ -3597,6 +3907,7 @@ namespace OpenGL43
             glProgramUniformMatrix4x3fv = (.)func("glProgramUniformMatrix4x3fv");
             glGetBufferSubData = (.)func("glGetBufferSubData");
             glMultiDrawArraysIndirect = (.)func("glMultiDrawArraysIndirect");
+            glCompressedTextureSubImage2D = (.)func("glCompressedTextureSubImage2D");
             glClearDepth = (.)func("glClearDepth");
             glDeleteTextures = (.)func("glDeleteTextures");
             glActiveShaderProgram = (.)func("glActiveShaderProgram");
@@ -3604,6 +3915,7 @@ namespace OpenGL43
             glUniformMatrix3fv = (.)func("glUniformMatrix3fv");
             glTexSubImage2D = (.)func("glTexSubImage2D");
             glUniformMatrix2dv = (.)func("glUniformMatrix2dv");
+            glNamedFramebufferDrawBuffers = (.)func("glNamedFramebufferDrawBuffers");
             glDeleteShader = (.)func("glDeleteShader");
             glUniform3uiv = (.)func("glUniform3uiv");
             glTexStorage2D = (.)func("glTexStorage2D");
@@ -3611,9 +3923,12 @@ namespace OpenGL43
             glVertexAttribI1i = (.)func("glVertexAttribI1i");
             glGetUniformIndices = (.)func("glGetUniformIndices");
             glVertexAttrib4fv = (.)func("glVertexAttrib4fv");
+            glGetnPixelMapusv = (.)func("glGetnPixelMapusv");
             glGetUniformfv = (.)func("glGetUniformfv");
             glVertexAttrib3dv = (.)func("glVertexAttrib3dv");
+            glTextureParameteriv = (.)func("glTextureParameteriv");
             glIsTransformFeedback = (.)func("glIsTransformFeedback");
+            glGetNamedBufferPointerv = (.)func("glGetNamedBufferPointerv");
             glDrawElementsBaseVertex = (.)func("glDrawElementsBaseVertex");
             glVertexAttribL4dv = (.)func("glVertexAttribL4dv");
             glProgramBinary = (.)func("glProgramBinary");
@@ -3622,8 +3937,11 @@ namespace OpenGL43
             glVertexAttribP2ui = (.)func("glVertexAttribP2ui");
             glGetSubroutineIndex = (.)func("glGetSubroutineIndex");
             glScissorIndexed = (.)func("glScissorIndexed");
+            glGetNamedFramebufferParameteriv = (.)func("glGetNamedFramebufferParameteriv");
+            glGetnPixelMapfv = (.)func("glGetnPixelMapfv");
             glTexSubImage3D = (.)func("glTexSubImage3D");
             glDrawRangeElements = (.)func("glDrawRangeElements");
+            glCreateTextures = (.)func("glCreateTextures");
             glVertexAttribL4d = (.)func("glVertexAttribL4d");
             glDrawTransformFeedbackStreamInstanced = (.)func("glDrawTransformFeedbackStreamInstanced");
             glTexStorage3D = (.)func("glTexStorage3D");
@@ -3645,16 +3963,22 @@ namespace OpenGL43
             glQueryCounter = (.)func("glQueryCounter");
             glEndQueryIndexed = (.)func("glEndQueryIndexed");
             glGetVertexAttribIiv = (.)func("glGetVertexAttribIiv");
+            glGetQueryBufferObjectui64v = (.)func("glGetQueryBufferObjectui64v");
             glGetString = (.)func("glGetString");
+            glGetTransformFeedbacki64_v = (.)func("glGetTransformFeedbacki64_v");
             glPointSize = (.)func("glPointSize");
             glUniformMatrix3x2fv = (.)func("glUniformMatrix3x2fv");
             glMultiDrawElementsBaseVertex = (.)func("glMultiDrawElementsBaseVertex");
             glShaderSource = (.)func("glShaderSource");
             glVertexAttrib4dv = (.)func("glVertexAttrib4dv");
+            glFlushMappedNamedBufferRange = (.)func("glFlushMappedNamedBufferRange");
             glVertexAttribI4sv = (.)func("glVertexAttribI4sv");
+            glClearNamedFramebufferfv = (.)func("glClearNamedFramebufferfv");
+            glGetNamedRenderbufferParameteriv = (.)func("glGetNamedRenderbufferParameteriv");
             glInvalidateFramebuffer = (.)func("glInvalidateFramebuffer");
             glRenderbufferStorage = (.)func("glRenderbufferStorage");
             glTexCoordP4ui = (.)func("glTexCoordP4ui");
+            glTextureStorage2D = (.)func("glTextureStorage2D");
             glGetTexImage = (.)func("glGetTexImage");
             glGetSubroutineUniformLocation = (.)func("glGetSubroutineUniformLocation");
             glProgramUniformMatrix2x4dv = (.)func("glProgramUniformMatrix2x4dv");
@@ -3662,16 +3986,21 @@ namespace OpenGL43
             glBlendFuncSeparatei = (.)func("glBlendFuncSeparatei");
             glFramebufferTexture1D = (.)func("glFramebufferTexture1D");
             glGetActiveUniformBlockiv = (.)func("glGetActiveUniformBlockiv");
+            glCreateProgramPipelines = (.)func("glCreateProgramPipelines");
             glTexImage2DMultisample = (.)func("glTexImage2DMultisample");
             glProgramUniformMatrix2fv = (.)func("glProgramUniformMatrix2fv");
             glTexImage3DMultisample = (.)func("glTexImage3DMultisample");
+            glBlitNamedFramebuffer = (.)func("glBlitNamedFramebuffer");
             glVertexAttribL2d = (.)func("glVertexAttribL2d");
             glProgramUniformMatrix3x2dv = (.)func("glProgramUniformMatrix3x2dv");
             glGetBooleani_v = (.)func("glGetBooleani_v");
             glVertexAttrib4f = (.)func("glVertexAttrib4f");
             glGetQueryiv = (.)func("glGetQueryiv");
             glVertexAttrib4d = (.)func("glVertexAttrib4d");
+            glTextureStorage1D = (.)func("glTextureStorage1D");
             glGetVertexAttribdv = (.)func("glGetVertexAttribdv");
+            glTextureParameterIuiv = (.)func("glTextureParameterIuiv");
+            glGetnColorTable = (.)func("glGetnColorTable");
             glGetInteger64v = (.)func("glGetInteger64v");
             glUniformMatrix2x4dv = (.)func("glUniformMatrix2x4dv");
             glTexParameterf = (.)func("glTexParameterf");
@@ -3680,6 +4009,7 @@ namespace OpenGL43
             glVertexAttrib4Nbv = (.)func("glVertexAttrib4Nbv");
             glVertexAttribL3d = (.)func("glVertexAttribL3d");
             glGetSynciv = (.)func("glGetSynciv");
+            glGetnHistogram = (.)func("glGetnHistogram");
             glFlushMappedBufferRange = (.)func("glFlushMappedBufferRange");
             glUniformMatrix3x2dv = (.)func("glUniformMatrix3x2dv");
             glStencilOp = (.)func("glStencilOp");
@@ -3695,20 +4025,32 @@ namespace OpenGL43
             glVertexAttribL2dv = (.)func("glVertexAttribL2dv");
             glFramebufferTexture3D = (.)func("glFramebufferTexture3D");
             glMultiTexCoordP4uiv = (.)func("glMultiTexCoordP4uiv");
+            glBufferStorage = (.)func("glBufferStorage");
             glBlendColor = (.)func("glBlendColor");
             glMinSampleShading = (.)func("glMinSampleShading");
             glProgramUniformMatrix3fv = (.)func("glProgramUniformMatrix3fv");
             glProgramUniformMatrix2dv = (.)func("glProgramUniformMatrix2dv");
             glProgramUniformMatrix3x4fv = (.)func("glProgramUniformMatrix3x4fv");
+            glTextureParameterfv = (.)func("glTextureParameterfv");
+            glVertexArrayElementBuffer = (.)func("glVertexArrayElementBuffer");
             glValidateProgram = (.)func("glValidateProgram");
             glGetUniformBlockIndex = (.)func("glGetUniformBlockIndex");
             glInvalidateBufferData = (.)func("glInvalidateBufferData");
+            glTextureStorage3D = (.)func("glTextureStorage3D");
             glGenBuffers = (.)func("glGenBuffers");
             glProgramUniformMatrix4x2fv = (.)func("glProgramUniformMatrix4x2fv");
+            glTransformFeedbackBufferBase = (.)func("glTransformFeedbackBufferBase");
+            glGetNamedBufferParameteri64v = (.)func("glGetNamedBufferParameteri64v");
+            glMapNamedBufferRange = (.)func("glMapNamedBufferRange");
+            glNamedFramebufferDrawBuffer = (.)func("glNamedFramebufferDrawBuffer");
+            glVertexArrayAttribBinding = (.)func("glVertexArrayAttribBinding");
             glFramebufferParameteri = (.)func("glFramebufferParameteri");
+            glClearNamedFramebufferfi = (.)func("glClearNamedFramebufferfi");
+            glNamedRenderbufferStorageMultisample = (.)func("glNamedRenderbufferStorageMultisample");
             glFramebufferTexture2D = (.)func("glFramebufferTexture2D");
             glGetVertexAttribfv = (.)func("glGetVertexAttribfv");
             glViewportArrayv = (.)func("glViewportArrayv");
+            glNamedFramebufferTextureLayer = (.)func("glNamedFramebufferTextureLayer");
             glEnable = (.)func("glEnable");
             glTexParameterIuiv = (.)func("glTexParameterIuiv");
             glVertexAttribL1d = (.)func("glVertexAttribL1d");
@@ -3718,13 +4060,17 @@ namespace OpenGL43
             glDepthRange = (.)func("glDepthRange");
             glUnmapBuffer = (.)func("glUnmapBuffer");
             glTexCoordP2ui = (.)func("glTexCoordP2ui");
+            glGetnPixelMapuiv = (.)func("glGetnPixelMapuiv");
+            glTextureBufferRange = (.)func("glTextureBufferRange");
             glPointParameteri = (.)func("glPointParameteri");
             glPointParameterf = (.)func("glPointParameterf");
             glDepthRangeArrayv = (.)func("glDepthRangeArrayv");
             glGetFloatv = (.)func("glGetFloatv");
             glReadPixels = (.)func("glReadPixels");
             glCreateShaderProgramv = (.)func("glCreateShaderProgramv");
+            glGetnTexImage = (.)func("glGetnTexImage");
             glProgramUniformMatrix3dv = (.)func("glProgramUniformMatrix3dv");
+            glClearTexSubImage = (.)func("glClearTexSubImage");
             glProgramUniformMatrix4fv = (.)func("glProgramUniformMatrix4fv");
             glFramebufferTextureLayer = (.)func("glFramebufferTextureLayer");
             glGetTransformFeedbackVarying = (.)func("glGetTransformFeedbackVarying");
@@ -3736,6 +4082,7 @@ namespace OpenGL43
             glProgramParameteri = (.)func("glProgramParameteri");
             glVertexAttribLFormat = (.)func("glVertexAttribLFormat");
             glUniform1ui = (.)func("glUniform1ui");
+            glGetnCompressedTexImage = (.)func("glGetnCompressedTexImage");
             glVertexAttribI2ui = (.)func("glVertexAttribI2ui");
             glColorP3ui = (.)func("glColorP3ui");
             glPrimitiveRestartIndex = (.)func("glPrimitiveRestartIndex");
@@ -3744,13 +4091,16 @@ namespace OpenGL43
             glDrawElementsInstancedBaseInstance = (.)func("glDrawElementsInstancedBaseInstance");
             glClearBufferuiv = (.)func("glClearBufferuiv");
             glGetSamplerParameterIiv = (.)func("glGetSamplerParameterIiv");
+            glGenerateTextureMipmap = (.)func("glGenerateTextureMipmap");
             glGetActiveSubroutineName = (.)func("glGetActiveSubroutineName");
             glMapBufferRange = (.)func("glMapBufferRange");
             glIsFramebuffer = (.)func("glIsFramebuffer");
             glProgramUniformMatrix4dv = (.)func("glProgramUniformMatrix4dv");
             glTexParameteri = (.)func("glTexParameteri");
             glFrontFace = (.)func("glFrontFace");
+            glNamedFramebufferReadBuffer = (.)func("glNamedFramebufferReadBuffer");
             glTexCoordP1ui = (.)func("glTexCoordP1ui");
+            glClipControl = (.)func("glClipControl");
             glCompressedTexImage1D = (.)func("glCompressedTexImage1D");
             glProgramUniformMatrix2x3dv = (.)func("glProgramUniformMatrix2x3dv");
             glDispatchCompute = (.)func("glDispatchCompute");
@@ -3761,7 +4111,11 @@ namespace OpenGL43
             glGetDoublev = (.)func("glGetDoublev");
             glGetVertexAttribiv = (.)func("glGetVertexAttribiv");
             glStencilOpSeparate = (.)func("glStencilOpSeparate");
+            glVertexArrayAttribLFormat = (.)func("glVertexArrayAttribLFormat");
             glVertexAttrib4Niv = (.)func("glVertexAttrib4Niv");
+            glClearNamedBufferSubData = (.)func("glClearNamedBufferSubData");
+            glVertexArrayVertexBuffer = (.)func("glVertexArrayVertexBuffer");
+            glClearNamedFramebufferiv = (.)func("glClearNamedFramebufferiv");
             glGetProgramBinary = (.)func("glGetProgramBinary");
             glCreateProgram = (.)func("glCreateProgram");
             glCompressedTexImage2D = (.)func("glCompressedTexImage2D");
@@ -3771,9 +4125,11 @@ namespace OpenGL43
             glBindVertexBuffer = (.)func("glBindVertexBuffer");
             glVertexAttribI3ui = (.)func("glVertexAttribI3ui");
             glColorP4uiv = (.)func("glColorP4uiv");
+            glVertexArrayBindingDivisor = (.)func("glVertexArrayBindingDivisor");
             glGetTexParameterIuiv = (.)func("glGetTexParameterIuiv");
             glVertexAttribBinding = (.)func("glVertexAttribBinding");
             glBindTransformFeedback = (.)func("glBindTransformFeedback");
+            glGetCompressedTextureImage = (.)func("glGetCompressedTextureImage");
             glDeleteBuffers = (.)func("glDeleteBuffers");
             glSamplerParameterfv = (.)func("glSamplerParameterfv");
             glTexCoordP1uiv = (.)func("glTexCoordP1uiv");
@@ -3785,8 +4141,10 @@ namespace OpenGL43
             glPatchParameteri = (.)func("glPatchParameteri");
             glCullFace = (.)func("glCullFace");
             glVertexAttribP1uiv = (.)func("glVertexAttribP1uiv");
+            glGetGraphicsResetStatus = (.)func("glGetGraphicsResetStatus");
             glCopyTexSubImage3D = (.)func("glCopyTexSubImage3D");
             glNormalP3ui = (.)func("glNormalP3ui");
+            glGetnSeparableFilter = (.)func("glGetnSeparableFilter");
             glTexParameterIiv = (.)func("glTexParameterIiv");
             glRenderbufferStorageMultisample = (.)func("glRenderbufferStorageMultisample");
             glObjectLabel = (.)func("glObjectLabel");
@@ -3798,10 +4156,12 @@ namespace OpenGL43
             glDepthRangef = (.)func("glDepthRangef");
             glDisable = (.)func("glDisable");
             glLogicOp = (.)func("glLogicOp");
+            glGetTransformFeedbackiv = (.)func("glGetTransformFeedbackiv");
             glUniform3ui = (.)func("glUniform3ui");
             glVertexAttribI4ubv = (.)func("glVertexAttribI4ubv");
             glProgramUniform4iv = (.)func("glProgramUniform4iv");
             glPixelStoref = (.)func("glPixelStoref");
+            glCopyTextureSubImage3D = (.)func("glCopyTextureSubImage3D");
             glStencilFuncSeparate = (.)func("glStencilFuncSeparate");
             glPixelStorei = (.)func("glPixelStorei");
             glScissor = (.)func("glScissor");
@@ -3810,16 +4170,23 @@ namespace OpenGL43
             glGetProgramResourceLocationIndex = (.)func("glGetProgramResourceLocationIndex");
             glClearStencil = (.)func("glClearStencil");
             glProgramUniform1d = (.)func("glProgramUniform1d");
+            glUnmapNamedBuffer = (.)func("glUnmapNamedBuffer");
             glProgramUniform1f = (.)func("glProgramUniform1f");
             glProgramUniform1i = (.)func("glProgramUniform1i");
+            glGetTextureLevelParameteriv = (.)func("glGetTextureLevelParameteriv");
             glGetActiveUniformsiv = (.)func("glGetActiveUniformsiv");
+            glNamedFramebufferTexture = (.)func("glNamedFramebufferTexture");
+            glNamedBufferSubData = (.)func("glNamedBufferSubData");
             glTexParameteriv = (.)func("glTexParameteriv");
             glShaderBinary = (.)func("glShaderBinary");
+            glGetTextureImage = (.)func("glGetTextureImage");
             glProgramUniform4fv = (.)func("glProgramUniform4fv");
             glTexImage2D = (.)func("glTexImage2D");
             glCopyTexSubImage1D = (.)func("glCopyTexSubImage1D");
             glUniform4f = (.)func("glUniform4f");
+            glCopyTextureSubImage2D = (.)func("glCopyTextureSubImage2D");
             glUniform4i = (.)func("glUniform4i");
+            glBindSamplers = (.)func("glBindSamplers");
             glTexStorage3DMultisample = (.)func("glTexStorage3DMultisample");
             glGetBufferParameteri64v = (.)func("glGetBufferParameteri64v");
             glGetFragDataIndex = (.)func("glGetFragDataIndex");
@@ -3834,19 +4201,24 @@ namespace OpenGL43
             glGetProgramPipelineiv = (.)func("glGetProgramPipelineiv");
             glCopyTexSubImage2D = (.)func("glCopyTexSubImage2D");
             glBlendEquationSeparatei = (.)func("glBlendEquationSeparatei");
+            glGetNamedBufferSubData = (.)func("glGetNamedBufferSubData");
             glDeleteRenderbuffers = (.)func("glDeleteRenderbuffers");
+            glCreateRenderbuffers = (.)func("glCreateRenderbuffers");
             glVertexAttribI1ui = (.)func("glVertexAttribI1ui");
+            glCopyTextureSubImage1D = (.)func("glCopyTextureSubImage1D");
             glEnablei = (.)func("glEnablei");
             glVertexAttribI1uiv = (.)func("glVertexAttribI1uiv");
             glUniform2ui = (.)func("glUniform2ui");
             glGetSamplerParameterIuiv = (.)func("glGetSamplerParameterIuiv");
             glVertexAttrib4Nuiv = (.)func("glVertexAttrib4Nuiv");
+            glReadnPixels = (.)func("glReadnPixels");
             glBlendEquationi = (.)func("glBlendEquationi");
             glGetProgramiv = (.)func("glGetProgramiv");
             glIsProgramPipeline = (.)func("glIsProgramPipeline");
             glColorMaski = (.)func("glColorMaski");
             glGetRenderbufferParameteriv = (.)func("glGetRenderbufferParameteriv");
             glVertexAttrib1d = (.)func("glVertexAttrib1d");
+            glNamedBufferStorage = (.)func("glNamedBufferStorage");
             glProgramUniform1fv = (.)func("glProgramUniform1fv");
             glBlendFuncSeparate = (.)func("glBlendFuncSeparate");
             glProgramUniform4uiv = (.)func("glProgramUniform4uiv");
@@ -3858,6 +4230,7 @@ namespace OpenGL43
             glEndConditionalRender = (.)func("glEndConditionalRender");
             glDetachShader = (.)func("glDetachShader");
             glTexBuffer = (.)func("glTexBuffer");
+            glGetnUniformuiv = (.)func("glGetnUniformuiv");
             glAttachShader = (.)func("glAttachShader");
             glGetIntegeri_v = (.)func("glGetIntegeri_v");
             glPopDebugGroup = (.)func("glPopDebugGroup");
@@ -3866,21 +4239,28 @@ namespace OpenGL43
             glProgramUniform2iv = (.)func("glProgramUniform2iv");
             glTexImage1D = (.)func("glTexImage1D");
             glGenSamplers = (.)func("glGenSamplers");
+            glMemoryBarrierByRegion = (.)func("glMemoryBarrierByRegion");
             glGetBufferParameteriv = (.)func("glGetBufferParameteriv");
+            glTextureSubImage3D = (.)func("glTextureSubImage3D");
             glDrawBuffers = (.)func("glDrawBuffers");
             glVertexAttribI3uiv = (.)func("glVertexAttribI3uiv");
+            glClearTexImage = (.)func("glClearTexImage");
             glInvalidateBufferSubData = (.)func("glInvalidateBufferSubData");
             glVertexAttrib1sv = (.)func("glVertexAttrib1sv");
             glVertexP4ui = (.)func("glVertexP4ui");
             glGetProgramInfoLog = (.)func("glGetProgramInfoLog");
             glGetProgramResourceLocation = (.)func("glGetProgramResourceLocation");
             glDebugMessageCallback = (.)func("glDebugMessageCallback");
+            glGetnUniformiv = (.)func("glGetnUniformiv");
             glGetQueryObjectui64v = (.)func("glGetQueryObjectui64v");
+            glNamedRenderbufferStorage = (.)func("glNamedRenderbufferStorage");
             glProgramUniform1dv = (.)func("glProgramUniform1dv");
             glVertexAttrib3f = (.)func("glVertexAttrib3f");
+            glGetVertexArrayIndexed64iv = (.)func("glGetVertexArrayIndexed64iv");
             glStencilMaskSeparate = (.)func("glStencilMaskSeparate");
             glVertexAttrib3d = (.)func("glVertexAttrib3d");
             glProgramUniform2fv = (.)func("glProgramUniform2fv");
+            glTextureSubImage2D = (.)func("glTextureSubImage2D");
             glDebugMessageControl = (.)func("glDebugMessageControl");
             glGetFramebufferParameteriv = (.)func("glGetFramebufferParameteriv");
             glVertexAttribI2uiv = (.)func("glVertexAttribI2uiv");
@@ -3899,9 +4279,11 @@ namespace OpenGL43
             glIsProgram = (.)func("glIsProgram");
             glBeginTransformFeedback = (.)func("glBeginTransformFeedback");
             glObjectPtrLabel = (.)func("glObjectPtrLabel");
+            glGetQueryBufferObjectuiv = (.)func("glGetQueryBufferObjectuiv");
             glTexBufferRange = (.)func("glTexBufferRange");
             glInvalidateTexSubImage = (.)func("glInvalidateTexSubImage");
             glIsSync = (.)func("glIsSync");
+            glTextureSubImage1D = (.)func("glTextureSubImage1D");
             glFinish = (.)func("glFinish");
             glGetProgramPipelineInfoLog = (.)func("glGetProgramPipelineInfoLog");
             glVertexAttrib2sv = (.)func("glVertexAttrib2sv");
