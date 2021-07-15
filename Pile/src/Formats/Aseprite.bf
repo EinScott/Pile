@@ -11,7 +11,7 @@ namespace Pile
 	///
 	/// Aseprite File Spec: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
 	/// This is not a complete implementation and focuses on usage in loading aseprite files for games
-	//[Optimize]
+	[Optimize]
 	class Aseprite
 	{
 	    public enum Modes
