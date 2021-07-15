@@ -11,7 +11,7 @@ namespace Pile
 	///
 	/// Aseprite File Spec: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
 	/// This is not a complete implementation and focuses on usage in loading aseprite files for games
-	[Optimize]
+	//[Optimize]
 	class Aseprite
 	{
 	    public enum Modes
@@ -188,14 +188,29 @@ namespace Pile
 				LogErrorReturn!("Parse can only be called once");
 
 	        // wrote these to match the documentation names so it's easier (for me, anyway) to parse
-	        uint8 BYTE() => stream.Read<uint8>();
-	        uint16 WORD() => stream.Read<uint16>();
-	        int16 SHORT() => stream.Read<int16>();
-	        uint32 DWORD() => stream.Read<uint32>();
-	        int32 LONG() => stream.Read<int32>();
+	        mixin BYTE()
+			{
+				Try!(stream.Read<uint8>())
+			}
+	        mixin WORD()
+			{
+				Try!(stream.Read<uint16>())
+			}
+	        mixin SHORT()
+			{
+				Try!(stream.Read<int16>())
+			}
+	        mixin DWORD()
+			{
+				Try!(stream.Read<uint32>())
+			}
+	        mixin LONG()
+			{
+				Try!(stream.Read<int32>())
+			}
 	        mixin STRING()
 			{
-				let buf = scope uint8[WORD()];
+				let buf = scope uint8[WORD!()];
 				let length = Try!(stream.TryRead(buf)); // BYTES(count) is here
 
 				if (length != buf.Count)
@@ -204,37 +219,40 @@ namespace Pile
 				let s = scope:mixin String((char8*)buf.Ptr, buf.Count);
 				s
 			}
-	        void SEEK(int number) => stream.Position += number;
+	        mixin SEEK(int number)
+			{
+				stream.Position += number;
+			}
 
 	        // Header
 	        {
 	            // file size
-	            DWORD();
+	            DWORD!();
 
 	            // Magic number (0xA5E0)
-	            var magic = WORD();
+	            var magic = WORD!();
 	            if (magic != 0xA5E0)
 				{
 					LogErrorReturn!("Couldn't load Aseprite: Invalid format");
 				}
 
 	            // Frames / Width / Height / Color Mode
-	            frameCount = WORD();
-	            Width = WORD();
-	            Height = WORD();
-	            Mode = (Modes)(WORD() / 8);
+	            frameCount = WORD!();
+	            Width = WORD!();
+	            Height = WORD!();
+	            Mode = (Modes)(WORD!() / 8);
 
 	            // Other Info, Ignored
-	            DWORD();       // Flags
-	            WORD();        // Speed (deprecated)
-	            DWORD();       // Set be 0
-	            DWORD();       // Set be 0
-	            BYTE();        // Palette entry 
-	            SEEK(3);       // Ignore these bytes
-	            WORD();        // Number of colors (0 means 256 for old sprites)
-	            BYTE();        // Pixel width
-	            BYTE();        // Pixel height
-	            SEEK(92);      // For Future
+	            DWORD!();       // Flags
+	            WORD!();        // Speed (deprecated)
+	            DWORD!();       // Set be 0
+	            DWORD!();       // Set be 0
+	            BYTE!();        // Palette entry 
+	            SEEK!(3);       // Ignore these bytes
+	            WORD!();        // Number of colors (0 means 256 for old sprites)
+	            BYTE!();        // Pixel width
+	            BYTE!();        // Pixel height
+	            SEEK!(92);      // For Future
 	        }
 
 	        // temporary variables
@@ -259,11 +277,11 @@ namespace Pile
 	            // frame header
 	            {
 	                frameStart = stream.Position;
-	                frameEnd = frameStart + DWORD();
-	                WORD();                  // Magic number (always 0xF1FA)
-	                chunkCount = WORD();     // Number of "chunks" in this frame
-	                frame.Duration = WORD(); // Frame duration (in milliseconds)
-	                SEEK(6);                 // For future (set to zero)
+	                frameEnd = frameStart + DWORD!();
+	                WORD!();                  // Magic number (always 0xF1FA)
+	                chunkCount = WORD!();     // Number of "chunks" in this frame
+	                frame.Duration = WORD!(); // Frame duration (in milliseconds)
+	                SEEK!(6);                 // For future (set to zero)
 	            }
 
 	            // chunks
@@ -277,8 +295,8 @@ namespace Pile
 		                // chunk header
 		                {
 		                    chunkStart = stream.Position;
-		                    chunkEnd = chunkStart + DWORD();
-		                    chunkType = (Chunks)WORD();
+		                    chunkEnd = chunkStart + DWORD!();
+		                    chunkType = (Chunks)WORD!();
 		                }
 
 		                // LAYER CHUNK
@@ -288,14 +306,14 @@ namespace Pile
 		                    var layer = new Layer();
 
 		                    // get layer data
-		                    layer.Flag = (Layer.Flags)WORD();
-		                    layer.Type = (Layer.Types)WORD();
-		                    layer.ChildLevel = WORD();
-		                    WORD(); // width (unused)
-		                    WORD(); // height (unused)
-		                    layer.BlendMode = WORD();
-		                    layer.Alpha = (BYTE() / 255f);
-		                    SEEK(3); // for future
+		                    layer.Flag = (Layer.Flags)WORD!();
+		                    layer.Type = (Layer.Types)WORD!();
+		                    layer.ChildLevel = WORD!();
+		                    WORD!(); // width (unused)
+		                    WORD!(); // height (unused)
+		                    layer.BlendMode = WORD!();
+		                    layer.Alpha = (BYTE!() / 255f);
+		                    SEEK!(3); // for future
 		                    layer.Name.Set(STRING!());
 
 		                    last = layer;
@@ -304,23 +322,23 @@ namespace Pile
 		                // CEL CHUNK
 		                else if (chunkType == Chunks.Cel)
 		                {
-		                    var layer = Layers[WORD()];
-		                    var x = SHORT();
-		                    var y = SHORT();
-		                    var alpha = BYTE() / 255f;
-		                    var celType = WORD();
+		                    var layer = Layers[WORD!()];
+		                    var x = SHORT!();
+		                    var y = SHORT!();
+		                    var alpha = BYTE!() / 255f;
+		                    var celType = WORD!();
 		                    int32 width = 0;
 		                    int32 height = 0;
 		                    Color[] linkPixels;
 		                    Cel link;
 
-		                    SEEK(7);
+		                    SEEK!(7);
 
 		                    // RAW or DEFLATE
 		                    if (celType == 0 || celType == 2)
 		                    {
-		                        width = WORD();
-		                        height = WORD();
+		                        width = WORD!();
+		                        height = WORD!();
 
 		                        var count = width * height * (int)Mode;
 								compressedBuffer.Count = count;
@@ -353,7 +371,7 @@ namespace Pile
 		                    // REFERENCE
 		                    else if (celType == 1)
 		                    {
-		                        var linkFrame = Frames[WORD()];
+		                        var linkFrame = Frames[WORD!()];
 		                        var linkCel = linkFrame.Cels[frame.Cels.Count];
 
 		                        width = linkCel.Width;
@@ -386,15 +404,15 @@ namespace Pile
 		                // PALETTE CHUNK
 		                else if (chunkType == Chunks.Palette)
 		                {
-		                    /*var size =*/ DWORD(); // UNUSED
-		                    var start = DWORD();
-		                    var end = DWORD();
-		                    SEEK(8); // for future
+		                    /*var size =*/ DWORD!(); // UNUSED
+		                    var start = DWORD!();
+		                    var end = DWORD!();
+		                    SEEK!(8); // for future
 
 		                    for (int p = 0; p < (end - start) + 1; p++)
 		                    {
-		                        var hasName = WORD();
-		                        palette[start + p] = Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
+		                        var hasName = WORD!();
+		                        palette[start + p] = Color(BYTE!(), BYTE!(), BYTE!(), BYTE!()).Premultiply();
 
 		                        if (Math.IsBitSet(hasName, 0))
 		                            STRING!();
@@ -405,7 +423,7 @@ namespace Pile
 		                {
 		                    if (last != null)
 		                    {
-		                        var flags = (int)DWORD();
+		                        var flags = (int)DWORD!();
 
 		                        // has text
 		                        if (Math.IsBitSet(flags, 0))
@@ -413,24 +431,24 @@ namespace Pile
 
 		                        // has color
 		                        if (Math.IsBitSet(flags, 1))
-		                            last.UserDataColor = Color(BYTE(), BYTE(), BYTE(), BYTE()).Premultiply();
+		                            last.UserDataColor = Color(BYTE!(), BYTE!(), BYTE!(), BYTE!()).Premultiply();
 		                    }
 		                }
 		                // TAG
 		                else if (chunkType == Chunks.FrameTags)
 		                {
-		                    var count = WORD();
-		                    SEEK(8);
+		                    var count = WORD!();
+		                    SEEK!(8);
 
 		                    for (int t = 0; t < count; t++)
 		                    {
 		                        var tag = new Tag();
-		                        tag.From = WORD();
-		                        tag.To = WORD();
-		                        tag.LoopDirection = (Tag.LoopDirections)BYTE();
-		                        SEEK(8);
-		                        tag.Color = Color(BYTE(), BYTE(), BYTE(), (uint8)255).Premultiply();
-		                        SEEK(1);
+		                        tag.From = WORD!();
+		                        tag.To = WORD!();
+		                        tag.LoopDirection = (Tag.LoopDirections)BYTE!();
+		                        SEEK!(8);
+		                        tag.Color = Color(BYTE!(), BYTE!(), BYTE!(), (uint8)255).Premultiply();
+		                        SEEK!(1);
 		                        tag.Name.Set(STRING!());
 		                        Tags.Add(tag);
 		                    }
@@ -438,20 +456,20 @@ namespace Pile
 		                // SLICE
 		                else if (chunkType == Chunks.Slice)
 		                {
-		                    let count = (int)DWORD();
-		                    let flags = (int)DWORD();
-		                    DWORD(); // reserved
+		                    let count = (int)DWORD!();
+		                    let flags = (int)DWORD!();
+		                    DWORD!(); // reserved
 		                    let name = STRING!();
 
 		                    for (int s = 0; s < count; s++)
 		                    {
 		                        var slice = new Slice()
 		                        {
-		                            Frame = DWORD(),
-		                            OriginX = LONG(),
-		                            OriginY = LONG(),
-		                            Width = DWORD(),
-		                            Height = DWORD()
+		                            Frame = DWORD!(),
+		                            OriginX = LONG!(),
+		                            OriginY = LONG!(),
+		                            Width = DWORD!(),
+		                            Height = DWORD!()
 		                        };
 								slice.Name.Set(name);
 
@@ -459,15 +477,15 @@ namespace Pile
 		                        if (Math.IsBitSet(flags, 0))
 		                        {
 		                            slice.NineSlice = Rect(
-		                                (int)LONG(),
-		                                (int)LONG(),
-		                                (int)DWORD(),
-		                                (int)DWORD());
+		                                (int)LONG!(),
+		                                (int)LONG!(),
+		                                (int)DWORD!(),
+		                                (int)DWORD!());
 		                        }
 
 		                        // pivot point
 		                        if (Math.IsBitSet(flags, 1))
-		                            slice.Pivot = Point2(DWORD(), DWORD());
+		                            slice.Pivot = Point2(DWORD!(), DWORD!());
 		                        
 		                        last = slice;
 		                        Slices.Add(slice);
@@ -507,8 +525,8 @@ namespace Pile
 	                }
 	                else
 	                {
-	                    var sa = MUL_UN8(src.A, opacity);
-	                    var ra = dest.A + sa - MUL_UN8(dest.A, sa);
+	                    var sa = MUL_UN8!(src.A, opacity);
+	                    var ra = dest.A + sa - MUL_UN8!(dest.A, sa);
 
 	                    dest.R = (uint8)(dest.R + ((int)src.R - dest.R) * sa / ra);
 	                    dest.G = (uint8)(dest.G + ((int)src.G - dest.G) * sa / ra);
@@ -519,17 +537,17 @@ namespace Pile
 	            }
 	        });
 
-	    [Inline]
-	    static int MUL_UN8(int a, int b)
+	    static mixin MUL_UN8(int a, int b)
 	    {
 	        var t = (a * b) + 0x80;
-	        return (((t >> 8) + t) >> 8);
+	        (((t >> 8) + t) >> 8)
 	    }
 
 	    #endregion
 
 	    #region Utils
 
+		[Inline] // only used once
 	    /// Converts an array of Bytes to an array of Colors, using the specific Aseprite Mode & Palette
 	    void BytesToPixels(Span<uint8> bytes, Span<Color> pixels, Modes mode, Color[] palette)
 	    {
@@ -559,6 +577,7 @@ namespace Pile
 	        }
 	    }
 
+		[Inline] // Only used once
 	    /// Applies a Cel's pixels to the Frame, using its Layer's BlendMode & Alpha
 	    void CelToFrame(Frame frame, Cel cel)
 	    {

@@ -262,8 +262,8 @@ namespace Pile
 				// Prepare data
 				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
 
-				if (importer.Load(name, node.Data) case .Err(let err))
-					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}: {err}");
+				if (importer.Load(name, node.Data) case .Err)
+					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}");
 			}
 			Importers.currentPackage = null;
 
