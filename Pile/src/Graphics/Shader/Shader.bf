@@ -8,6 +8,8 @@ namespace Pile
 {
 	class Shader : IPersistentAsset<ShaderData>
 	{
+		public bool IsSetup { [Inline]get; [Inline]protected set; }
+
 		readonly List<ShaderAttrib> attributes = new List<ShaderAttrib>() ~ DeleteContainerAndItems!(_);
 		readonly List<ShaderUniform> uniforms = new List<ShaderUniform>() ~ DeleteContainerAndItems!(_);
 		
@@ -22,15 +24,11 @@ namespace Pile
 		public readonly ReadOnlyList<ShaderAttrib> Attributes;
 		public readonly ReadOnlyList<ShaderUniform> Uniforms;
 
-		public this(ShaderData data)
+		public this()
 		{
 			Debug.Assert(Core.run, "Core needs to be initialized before creating platform dependent objects");
-			Debug.Assert(data != null, "ShaderData cannot be null");
 
 			Initialize();
-
-			Set(data);
-			ReflectShader();
 
 			Attributes = ReadOnlyList<ShaderAttrib>(attributes);
 			Uniforms = ReadOnlyList<ShaderUniform>(uniforms);
@@ -46,6 +44,7 @@ namespace Pile
 			for (let m in materialDependants)
 				m.OnShaderReset();
 
+			IsSetup = true;
 			return .Ok;
 		}
 

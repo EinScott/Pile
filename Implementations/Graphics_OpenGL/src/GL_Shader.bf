@@ -200,6 +200,12 @@ namespace Pile
 
 		internal void Use(Material material)
 		{
+			if (!IsSetup)
+			{
+				Debug.FatalError("Using shader that was not initialized with ShaderData");
+				return;
+			}
+
 			GL.glUseProgram(programID);
 
 			// This goes through all parameters of a material (holds shader uniforms and values for them)

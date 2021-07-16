@@ -487,7 +487,8 @@ namespace Pile
 					}
 					""");
 
-				defaultBatchShader = new Shader(source);
+				defaultBatchShader = new Shader();
+				Runtime.Assert(defaultBatchShader.Reset(source) case .Ok, "Couldn't create default batcher shader");
 			}
 
 			return defaultBatchShader;

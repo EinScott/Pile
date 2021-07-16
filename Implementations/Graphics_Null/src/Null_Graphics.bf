@@ -47,7 +47,7 @@ namespace Pile
 
 		protected internal override static Shader GetDefaultBatch2dShader()
 		{
-			return new Shader(scope .("", ""));
+			return new Shader();
 		}
 	}
 }

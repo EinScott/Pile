@@ -8,25 +8,30 @@ namespace Pile
 	class PersistentAsset<T, TReset> where T : IPersistentAsset<TReset>, class, delete where TReset : class, delete
 	{
 		readonly String resetName ~ delete _;
-		readonly T asset;
+		readonly T persistentAsset;
 		readonly bool ownsAsset;
 
-		TReset reset;
+		TReset resetAsset;
 
 		[Inline]
-		public T Asset => asset;
+		public T Asset => persistentAsset;
 
-		public this(T asset, StringView resetAssetName, bool ownsAsset = true)
+		public this(T persistentAsset, StringView resetAssetName, bool ownsAsset = true)
 		{
 			resetName = new .(resetAssetName);
 
 			this.ownsAsset = ownsAsset;
-			this.asset = asset;
+			this.persistentAsset = persistentAsset;
 
 			Assets.OnLoadPackage.Add(new => PackageLoaded);
 			Assets.OnUnloadPackage.Add(new => PackageUnloaded);
 
-			reset = Assets.Get<TReset>(resetName); // Will set it to reference the asset or null
+			resetAsset = Assets.Get<TReset>(resetName); // Will set it to reference the asset or null
+			if (!persistentAsset.IsSetup && resetAsset != null)
+			{
+				if (persistentAsset.Reset(resetAsset) case .Err)
+					Log.Warn(scope $"Reset on persistent asset of {resetName} failed on construction");
+			}
 		}
 
 		public ~this()
@@ -35,33 +40,33 @@ namespace Pile
 			Assets.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
 
 			if (ownsAsset)
-				delete asset;
+				delete persistentAsset;
 		}
 
 		void PackageLoaded(Package package)
 		{
-			if (reset != null) return; // Already have asset
+			if (resetAsset != null) return; // Already have asset
 
 			if (package.OwnsAsset(typeof(TReset), resetName) || (typeof(TReset) == typeof(Subtexture) && package.OwnsTextureAsset(resetName)))
 			{
-				reset = Assets.Get<TReset>(resetName); // Get it
+				resetAsset = Assets.Get<TReset>(resetName); // Get it
 
-				if (asset.Reset(reset) case .Err)
+				if (persistentAsset.Reset(resetAsset) case .Err)
 					Log.Warn(scope $"Reset on persistent asset of {resetName} failed");
 			}
 		}
 
 		void PackageUnloaded(Package package)
 		{
-			if (reset == null) return; // Don't have asset
+			if (resetAsset == null) return; // Don't have asset
 
 			if (package.OwnsAsset(typeof(TReset), resetName) || (typeof(TReset) == typeof(Subtexture) && package.OwnsTextureAsset(resetName)))
 			{
-				reset = null; // Leave it
+				resetAsset = null; // Leave it
 			}
 		}
 
 		[Inline]
-		public static implicit operator T(PersistentAsset<T, TReset> assetHandler) => assetHandler.asset;
+		public static implicit operator T(PersistentAsset<T, TReset> assetHandler) => assetHandler.persistentAsset;
 	}
 }
