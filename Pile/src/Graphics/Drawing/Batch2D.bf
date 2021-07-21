@@ -816,13 +816,12 @@ namespace Pile
 				do if (index < text.Length - 1 && text[index + 1] != '\n')
 		        {
 					// Look up next char
-					char32 nextChar = ?;
-
 					var nextIndex = index + 1;
-					if (!UTF8.DecodeAt(text, ref nextIndex, ref nextChar))
+					let res = text.GetChar32(nextIndex);
+					if (res.1 == 0) // .1 is length
 						break;
 
-		            if (ch.Kerning.TryGetValue(nextChar, let kerning))
+		            if (ch.Kerning.TryGetValue(res.0, let kerning))
 		                at.X += kerning;
 		        }
 
@@ -852,22 +851,23 @@ namespace Pile
 		{
 		    var relativePos = Vector2(0, font.Ascent);
 			var trueIndex = 0;
+			var textIndex = 0;
 
-		    for (int i = 0; i < text.Length; i++)
+		    for (let char in text.DecodedChars)
 		    {
-				char32 char = ?;
-				if (!UTF8.DecodeAt(text, ref i, ref char))
-					continue;
-
 		        if (char == '\n')
 		        {
 		            relativePos.X = 0;
 		            relativePos.Y += font.LineHeight + extraAdvance.Y;
+
+					textIndex = @char.NextIndex;
 		            continue;
 		        }
 
-		        relativePos.X += ProcessChar(font, text, i, relativePos, char, trueIndex, color, getModifier, washed) + extraAdvance.X;
+		        relativePos.X += ProcessChar(font, text, textIndex, relativePos, char, trueIndex, color, getModifier, washed) + extraAdvance.X;
 				trueIndex++;
+
+				textIndex = @char.NextIndex;
 		    }
 
 			return Vector2.Transform(relativePos - .(0, font.Ascent), MatrixStack);
@@ -997,9 +997,11 @@ namespace Pile
 
 		    for (int i = 0; i < text.Length; i++)
 		    {
-				char32 char = ?;
-				if (!UTF8.DecodeAt(text, ref i, ref char))
+				let res = text.GetChar32(i);
+				if (res.1 == 0) // .1 is length
 					continue;
+				i += (res.1) - 1;
+				let char = res.0;
 
 		        if (char == '\n')
 		        {
@@ -1134,9 +1136,11 @@ namespace Pile
 				for (int i = 0; i < text.Length; i++)
 				{
 					// Get char
-					char32 char = ?;
-					if (!UTF8.DecodeAt(text, ref i, ref char))
+					let res = text.GetChar32(i);
+					if (res.1 == 0) // .1 is length
 						continue;
+					i += (res.1) - 1;
+					let char = res.0;
 
 				    if (char == '\n')
 				    {

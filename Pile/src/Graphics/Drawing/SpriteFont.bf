@@ -144,9 +144,12 @@ namespace Pile
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				// Get char
-				char32 char = ?;
-				if (!UTF8.DecodeAt(text, ref i, ref char))
+				let res = text.GetChar32(i);
+				if (res.1 == 0) // .1 is length
 					continue;
+				
+				i += (res.1) - 1;
+				let char = res.0;
 
 		        if (char == '\n')
 		        {
@@ -205,10 +208,12 @@ namespace Pile
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				// Get char
-				char32 char = ?;
-				let iStart = i;
-				if (!UTF8.DecodeAt(text, ref i, ref char))
+				let res = text.GetChar32(i);
+				if (res.length == 0)
 					continue;
+				let iStart = i;
+				i += res.length - 1;
+				let char = res.c;
 
 				if (char == '\n')
 				{

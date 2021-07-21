@@ -69,18 +69,25 @@ namespace Pile
 		{
 #if DEBUG
 			// Typed text
-			inputLine.Append(Input.Keyboard.Text);
+			for (let char in Input.Keyboard.Text.DecodedChars)
+				inputLine.Append(char);
 
 			// Paste
 			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(.V))
-				inputLine.Append(Input.GetClipboardString(.. scope .()));
+				for (let char in Input.GetClipboardString(.. scope .()).DecodedChars)
+					inputLine.Append(char);
 
 			// Delete
 			if (inputLine.Length > 0)
 			{
+				mixin RemoveLast()
+				{
+					inputLine.RemoveFromEnd(inputLine.GetCodePointSpan(inputLine.Length - 1).length);
+				}
+
 				if (Input.Keyboard.Pressed(.Backspace))
 				{
-					inputLine.RemoveFromEnd(1);
+					RemoveLast!();
 					backDelay = 0.4f;
 				}
 				else if (Input.Keyboard.Down(.Backspace))
@@ -89,7 +96,7 @@ namespace Pile
 						backDelay -= Time.RawDelta;
 					else
 					{
-						inputLine.RemoveFromEnd(1);
+						RemoveLast!();
 						backDelay = 0.02f;
 					}
 				}
