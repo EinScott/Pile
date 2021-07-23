@@ -69,8 +69,10 @@ namespace Pile
 			return .Ok;*/
 
 			uint destL = (.)destination.Length;
+			int destL2 = (.)destination.Length;
 			uint srcL = (.)source.Length;
 			let s = mz_compress(destination.Ptr, &destL, source.Ptr, srcL, level);
+			let ss = MiniZ.MiniZ.Compress(destination.Ptr, ref destL2, source.Ptr, source.Length, (.)level);
 
 			switch (s)
 			{

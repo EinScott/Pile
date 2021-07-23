@@ -197,8 +197,10 @@ namespace Pile
 			case .KeyDown, .KeyUp:
 				if (e.key.isRepeat == 0)
 				{
-				    let keycode = e.key.keysym.sym;
-					Keys key = KeycodeToEnum(keycode);
+					// Depending on the configuration, the keys reported do not match the
+					// keyboard layout this to ensure controls are hopefully consistent
+					// Actual text input should use OnTextTyped or keyboard.Text!
+					Keys key = UseLocalKeyLayout ? KeycodeToEnum(e.key.keysym.sym) : ScancodeToEnum(e.key.keysym.scancode);
 
 				    if (e.type == SDL.EventType.KeyDown)
 				        OnKeyDown(key);
@@ -207,9 +209,12 @@ namespace Pile
 				}
 				// Text input events
 			case .TextInput:
-				int index = 0;
-				while (e.text.text[index] != 0)
-				    OnText((char16)(e.text.text[index++]));
+				int len = 0;
+				while (e.text.text[len] != 0)
+				    len++;
+
+				var e;
+				OnText(StringView((char8*)&e.text.text[0], len));
 			default:
 			}
 		}
@@ -251,6 +256,143 @@ namespace Pile
 		        case (uint8)SDL.SDL_GameControllerAxis.TriggerRight: output = .RightTrigger;
 		        default: output = .Unknown;
 		    }
+			return output;
+		}
+
+		
+		static Keys ScancodeToEnum(SDL.Scancode scancode)
+		{
+			Keys output;
+			switch (scancode)
+			{
+			case .Key0: output = .D0;
+			case .Key1: output = .D1;
+			case .Key2: output = .D2;
+			case .Key3: output = .D3;
+			case .Key4: output = .D4;
+			case .Key5: output = .D5;
+			case .Key6: output = .D6;
+			case .Key7: output = .D7;
+			case .Key8: output = .D8;
+			case .Key9: output = .D9;
+
+			case .A: output = .A;
+			case .B: output = .B;
+			case .C: output = .C;
+			case .D: output = .D;
+			case .E: output = .E;
+			case .F: output = .F;
+			case .G: output = .G;
+			case .H: output = .H;
+			case .I: output = .I;
+			case .J: output = .J;
+			case .K: output = .K;
+			case .L: output = .L;
+			case .M: output = .M;
+			case .N: output = .N;
+			case .O: output = .O;
+			case .P: output = .P;
+			case .Q: output = .Q;
+			case .R: output = .R;
+			case .S: output = .S;
+			case .T: output = .T;
+			case .U: output = .U;
+			case .V: output = .V;
+			case .W: output = .W;
+			case .X: output = .X;
+			case .Y: output = .Y;
+			case .Z: output = .Z;
+
+			case .LShift: output = .LeftShift;
+			case .LCtrl: output = .LeftControl;
+			case .LAlt: output = .LeftAlt;
+			case .LGui: output = .LeftSuper;
+			case .RShift: output = .RightShift;
+			case .RCtrl: output = .RightControl;
+			case .RAlt: output = .RightAlt;
+			case .RGui: output = .RightSuper;
+
+			case .Space: output = .Space;
+			case .Apostrophe: output = .Apostrophe;
+			case .Comma, .KpComma: output = .Comma;
+			case .Minus: output = .Minus;
+			case .Period, .Kpperiod: output = .Period;
+			case .Slash: output = .Slash;
+
+			case .LeftBracket: output = .LeftBracket;
+			case .BackSlash, .NonUSBackslash: output = .BackSlash;
+			case .RightBracket: output = .RightBracket;
+			case .Grave: output = .GraveAccent;
+			case .Escape: output = .Escape;
+			case .Return, .Return2: output = .Enter;
+			case .Tab: output = .Tab;
+			case .BackSpace: output = .Backspace;
+			case .Insert: output = .Insert;
+			case .Delete: output = .Delete;
+			case .Right: output = .Right;
+			case .Left: output = .Left;
+			case .Down: output = .Down;
+			case .Up: output = .Up;
+			case .Pageup: output = .PageUp;
+			case .PageDown: output = .PageDown;
+			case .Home: output = .Home;
+			case .Menu: output = .Menu;
+			case .End: output = .End;
+			case .CapsLock: output = .CapsLock;
+			case .ScrollLock: output = .ScrollLock;
+			case .NumLockClear: output = .NumLock;
+			case .PrintScreen: output = .PrintScreen;
+			case .Pause: output = .Pause;
+			case .Semicolon: output = .Semicolon;
+			case .Equals: output = .Equal;
+
+			case .F1: output = .F1;
+			case .F2: output = .F2;
+			case .F3: output = .F3;
+			case .F4: output = .F4;
+			case .F5: output = .F5;
+			case .F6: output = .F6;
+			case .F7: output = .F7;
+			case .F8: output = .F8;
+			case .F9: output = .F9;
+			case .F10: output = .F10;
+			case .F11: output = .F11;
+			case .F12: output = .F12;
+			case .F13: output = .F13;
+			case .F14: output = .F14;
+			case .F15: output = .F15;
+			case .F16: output = .F16;
+			case .F17: output = .F17;
+			case .F18: output = .F18;
+			case .F19: output = .F19;
+			case .F20: output = .F20;
+			case .F21: output = .F21;
+			case .F22: output = .F22;
+			case .F23: output = .F23;
+			case .F24: output = .F24;
+
+			case .Kp0: output = .KP_0;
+			case .Kp1: output = .KP_1;
+			case .Kp2: output = .KP_2;
+			case .Kp3: output = .KP_3;
+			case .Kp4: output = .KP_4;
+			case .Kp5: output = .KP_5;
+			case .Kp6: output = .KP_6;
+			case .Kp7: output = .KP_7;
+			case .Kp8: output = .KP_8;
+			case .Kp9: output = .KP_9;
+
+			case .KpDecimal: output = .KP_Decimal;
+			case .KpDivide: output = .KP_Divide;
+			case .KpMultiply: output = .KP_Multiply;
+			case .KpMinus: output = .KP_Subtract;
+			case .KpPlus: output = .KP_Add;
+			case .KpEnter: output = .KP_Enter;
+			case .KpEquals: output = .KP_Equal;
+
+			case .UNKNOWN: output = .Unknown;
+			default: output = .Unknown;
+			}
 			return output;
 		}
 
@@ -310,7 +452,7 @@ namespace Pile
 			case .QUOTE: output = .Apostrophe;
 			case .COMMA, .KP_COMMA: output = .Comma;
 			case .MINUS: output = .Minus;
-			case .PERIOD: output = .Period;
+			case .PERIOD, .KPPERIOD: output = .Period;
 			case .SLASH: output = .Slash;
 
 			case .Leftbracket: output = .LeftBracket;

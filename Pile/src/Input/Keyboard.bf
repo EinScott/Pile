@@ -11,6 +11,7 @@ namespace Pile
 		internal bool[MaxKeys] released = .();
 		internal int64[MaxKeys] timestamp = .();
 
+		/// This is an UTF8 string of what was actually typed and will depend on the keyboard layout (while individual key presses may be matched by ScanCode depending on config!)
 		public readonly String Text = new String(8);
 
 		internal this() {}

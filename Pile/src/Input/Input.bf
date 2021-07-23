@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System;
+using System.Text;
 
 using internal Pile;
 
@@ -23,6 +24,10 @@ namespace Pile
 
 		public static float repeatDelay = 0.4f;
 		public static float repeatInterval = 0.03f;
+
+		/// Default: true. If false, key presses are always reported on the QWERTY layout based on scan codes.
+		/// Otherwise the key code reported by the OS will be used, but these may not be recognized by name.
+		public static bool UseLocalKeyLayout = true;
 
 		internal static List<VirtualButton> virtualButtons = new List<VirtualButton>();
 		internal static bool deleting;
@@ -69,13 +74,23 @@ namespace Pile
 
 		public static extern Point2 MousePosition { get; set; }
 
-		public static Event<delegate void(char16)> OnTextTyped;
+		public static Event<delegate void(char32)> OnTextTyped;
 
-		static void OnText(char16 value)
+		/// Expects a UTF8 string
+		static void OnText(StringView text)
 		{
-			if (OnTextTyped.HasListeners)
-		    	OnTextTyped(value);
-		    nextState.keyboard.Text.Append(value);
+			var index = 0;
+			while (index < text.Length)
+			{
+				let res = UTF8.Decode(&text[index], text.Length - index);
+				Debug.Assert(res.length != 0);
+
+				if (OnTextTyped.HasListeners)
+					OnTextTyped(res.c);
+				
+				nextState.keyboard.Text.Append(StringView(&text[index], res.length));
+				index += res.length;
+			}
 		}
 
 		static void OnKeyDown(Keys key)
