@@ -1,7 +1,7 @@
 # Pile
 Pile is a small game engine made in the [Beef Language](https://github.com/beefytech/Beef), similar to frameworks like MonoGame/FNA and directly inspired by [Foster](https://github.com/NoelFB/Foster).
 
-It focusses on handling and abstracting some of the basic underlying workings of a game in a reasonably extendable and performant way as well as on giving you control about the structure of the actual game logic.
+It focusses on handling and abstracting some of the basic underlying workings of a game in a reasonably extendable and performant way while giving you control about the structure of the actual game logic.
 
 ## What it does
 Pile handles platform specific implementations through three core modules.
@@ -38,6 +38,6 @@ Third party software used:
 - [referencesource/System.Numerics](https://github.com/microsoft/referencesource/tree/master/System.Numerics/System/Numerics) - Parts of the structs located in ./Pile/src/Struct/*
 - [SDL2](https://www.libsdl.org/) - System Implementation
 - [SoLoud](http://sol.gfxile.net/soloud/index.html) - Audio Implementation
-- [OpenGL-Beef](https://github.com/MineGame159/opengl-beef) - GL function bindings
+- [Beef-OpenGL-Header-Generator](https://github.com/heisluft/Beef-OpenGL-Header-Generator) - GL function bindings
 
 The licenses for the binaries of each library used in Implementation projects can be found in `./Implementations/(name)/dist/LICENSE.txt`. Source files that include third party code have a separate license notice at the top of the file.
