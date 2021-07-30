@@ -1,5 +1,3 @@
-//using MiniZ;
-//using static MiniZ.MiniZ;
 using static Pile.MiniZ;
 using System;
 using System.IO;
@@ -10,7 +8,7 @@ namespace Pile
 	{
 		const int CHUNK_SIZE = uint16.MaxValue;
 
-		// TODO: use way more streams in the packages pipeline!
+		// TODO: use way more streams in the packages pipeline! (a bit off-topic in this file)
 		// TODO: compressionStream/zlibstream
 		public static Result<void /*?*/> Compress(Stream source, Stream destination, CompressionLevel level = .DEFAULT_COMPRESSION, bool writeZlibHeader = true)
 		{
@@ -69,10 +67,8 @@ namespace Pile
 			return .Ok;*/
 
 			uint destL = (.)destination.Length;
-			int destL2 = (.)destination.Length;
 			uint srcL = (.)source.Length;
 			let s = mz_compress(destination.Ptr, &destL, source.Ptr, srcL, level);
-			let ss = MiniZ.MiniZ.Compress(destination.Ptr, ref destL2, source.Ptr, source.Length, (.)level);
 
 			switch (s)
 			{

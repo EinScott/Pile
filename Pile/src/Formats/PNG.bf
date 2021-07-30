@@ -409,9 +409,9 @@ namespace Pile
 
 		// OPTION TO LEAVE OUT HEADER - also not to expect it on read? for packages maybe?
 		public static Result<void> Write(Stream stream, Bitmap bitmap)
-			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Ok; // TODO: fix png writing
+			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Err; // TODO: fix png writing
 
-		[Obsolete("Unfinished implementation", true)]
+		[Obsolete("Incomplete implementation", true)]
 		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
 		{
 		    const int32 MaxIDATChunkLength = 8192;
@@ -533,7 +533,7 @@ namespace Pile
 				switch (Compression.Compress(toCompress.[Friend]mMemory, .(zPtr, zlibMemory.Length), .BEST_SPEED))
 				{
 				case .Ok(let val):
-					zlibMemory.[Friend]mMemory.Count = (.)val;
+					zlibMemory.Position = zlibMemory.[Friend]mMemory.Count = (.)val;
 				case .Err:
 					LogErrorReturn!("Error writing PNG: Compression error");
 				}

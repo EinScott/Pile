@@ -1,10 +1,9 @@
 FileVersion = 1
-Dependencies = {corlib = "*", MiniZ = "*", "Atma.Json" = "*"}
+Dependencies = {corlib = "*", "Atma.Json" = "*"}
 
 [Project]
 Name = "Pile"
 
-# on release we run the packager as part of the build process
 [Configs.Release.Win64]
 PostBuildCmds = ["Execute(\"$(TargetPath PileGame).exe -packager\")"]
 
