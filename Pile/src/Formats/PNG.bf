@@ -149,21 +149,21 @@ namespace Pile
 		            compression = stream.Read<uint8>();
 		            filter = stream.Read<uint8>();
 		            interlace.UnderlyingRef = stream.Read<uint8>();
-		            hasTransparency = color == Colors.GreyscaleAlpha || color == Colors.TruecolorAlpha;
+		            hasTransparency = color == .GreyscaleAlpha || color == .TruecolorAlpha;
 
 					bitmap.ResizeAndClear((.)width, (.)height);
 
-		            if (color == Colors.Greyscale || color == Colors.Indexed)
+		            if (color == .Greyscale || color == .Indexed)
 		                components = 1;
-		            else if (color == Colors.GreyscaleAlpha)
+		            else if (color == .GreyscaleAlpha)
 		                components = 2;
-		            else if (color == Colors.Truecolor)
+		            else if (color == .Truecolor)
 		                components = 3;
-		            else if (color == Colors.TruecolorAlpha)
+		            else if (color == .TruecolorAlpha)
 		                components = 4;
 
 		            // currently don't support interlacing as I'm actually not sure where the interlace step takes place lol
-		            if (interlace == Interlace.Adam7)
+		            if (interlace == .Adam7)
 		                LogErrorReturn!("Error reading PNG: Interlaced PNGs not implemented");
 
 		            if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16)
@@ -253,12 +253,8 @@ namespace Pile
 
 		        // decompress the image data
 		        {
-		            //idat.Seek(2);
-		            //using DeflateStream deflateStream = new DeflateStream(idat, CompressionMode.Decompress);
-		            //deflateStream.Read(buffer);
-
-					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err(let err))
-						LogErrorReturn!(scope $"Error reading PNG: PNG iDAT decompression failed: {err}");
+					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err)
+						LogErrorReturn!("Error reading PNG: PNG iDAT decompression failed");
 		        }
 
 		        // apply filter pass - this happens in-place
@@ -407,11 +403,9 @@ namespace Pile
 		    return .Ok;
 		}
 
-		// OPTION TO LEAVE OUT HEADER - also not to expect it on read? for packages maybe?
 		public static Result<void> Write(Stream stream, Bitmap bitmap)
-			=> /*Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels)*/ .Err; // TODO: fix png writing
+			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
 
-		[Obsolete("Incomplete implementation", true)]
 		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
 		{
 		    const int32 MaxIDATChunkLength = 8192;
@@ -432,7 +426,7 @@ namespace Pile
 		            for (int n = 0; n < buffer.Length; n++)
 		                crc = crcTable[((int32)crc ^ buffer[n]) & 0xFF] ^ (crc >> 8);
 
-		            HandleWrite!(stream.Write(SwapEndian((uint8)(crc ^ 0xFFFFFFFFU))));
+		            HandleWrite!(stream.Write(SwapEndian((int32)(crc ^ 0xFFFFFFFFU))));
 		        }
 
 				return .Ok;
@@ -473,20 +467,17 @@ namespace Pile
 		    {
 		        Span<uint8> buf = scope uint8[13];
 
-		        //BinaryPrimitives.WriteInt32BigEndian(buf.Slice(0), width);
-		        //BinaryPrimitives.WriteInt32BigEndian(buf.Slice(4), height);
+				uint32 val = width;
+				buf[00] = (uint8)((val >> 24) & 0xFF);
+				buf[01] = (uint8)((val >> 16) & 0xFF);
+				buf[02] = (uint8)((val >> 8) & 0xFF);
+				buf[03] = (uint8)(val & 0xFF);
 
-				int32 val = (int32)width;
-				buf[00] = (uint8)(val & 0xFF);
-				buf[01] = (uint8)((val >> 8) & 0xFF);
-				buf[02] = (uint8)((val >> 16) & 0xFF);
-				buf[03] = (uint8)((val >> 24) & 0xFF);
-
-				val = (int32)height;
-				buf[00] = (uint8)(val & 0xFF);
-				buf[01] = (uint8)((val >> 8) & 0xFF);
-				buf[02] = (uint8)((val >> 16) & 0xFF);
-				buf[03] = (uint8)((val >> 24) & 0xFF);
+				val = height;
+				buf[04] = (uint8)((val >> 24) & 0xFF);
+				buf[05] = (uint8)((val >> 16) & 0xFF);
+				buf[06] = (uint8)((val >> 8) & 0xFF);
+				buf[07] = (uint8)(val & 0xFF);
 
 		        buf[08] = 8; // depth
 		        buf[09] = 6; // color (truecolor-alpha)
@@ -499,94 +490,38 @@ namespace Pile
 
 		    // IDAT Chunk(s)
 		    {
-				uint32 adler = 1;
-				MemoryStream toCompress = scope .();
-				
-				uint8 filter = 0;
-				uint8* ptr = (.)pixels.Ptr;
-				for (let y < height)
-				{
-					HandleWrite!(toCompress.Write(filter));
-					adler = Adler32.Add(adler, Span<uint8>(&filter, 1));
-
-					// Append the row of pixels (in steps, potentially)
-					const int MaxHorizontalStep = 1024;
-					for (var x  = 0; x < width; x += MaxHorizontalStep)
-					{
-						var segment = Span<uint8>(ptr + x * sizeof(Color), Math.Min(width - x, MaxHorizontalStep) * sizeof(Color));
-
-						HandleWrite!(toCompress.Write(segment));
-						adler = Adler32.Add(adler, segment);
-					}
-
-					ptr += width * sizeof(Color);
-				}
-
 				MemoryStream zlibMemory = scope .();
 
-				// zlib Header
-				/*HandleWrite!(zlibMemory.Write<uint8>(0x78)); // miniz does that
-				HandleWrite!(zlibMemory.Write<uint8>(0x9C));*/
+				CompressionStream deflate = scope .(zlibMemory, .BEST_SPEED, false);
 
-				zlibMemory.[Friend]mMemory.Count += toCompress.Length;
-				let zPtr = &zlibMemory.[Friend]mMemory[0];
-				switch (Compression.Compress(toCompress.[Friend]mMemory, .(zPtr, zlibMemory.Length), .BEST_SPEED))
+				let filter = uint8[1]();
+				uint8* pixelBuffer = (.)pixels.Ptr;
+
+				for (int y = 0; y < height; y++)
 				{
-				case .Ok(let val):
-					zlibMemory.Position = zlibMemory.[Friend]mMemory.Count = (.)val;
-				case .Err:
-					LogErrorReturn!("Error writing PNG: Compression error");
-				}
+				    // deflate filter
+				    HandleWrite!(deflate.Write(filter));
 
-				HandleWrite!(zlibMemory.Write(SwapEndian((.)adler)));
+				    // append the row of pixels (in steps, potentially)
+				    const int MaxHorizontalStep = 1024;
+				    for (int x = 0; x < width; x += MaxHorizontalStep)
+				    {
+				        var segment = Span<uint8>(pixelBuffer + x * sizeof(Color), Math.Min(width - x, MaxHorizontalStep) * 4);
+
+				        // delfate the segment of the row
+				        HandleWrite!(deflate.Write(segment));
+
+				        // write out chunks if we've hit out max IDAT chunk length
+				        if (zlibMemory.Position >= MaxIDATChunkLength)
+				            HandleWrite!(WriteIDAT(stream, zlibMemory, false));
+				    }
+
+				    pixelBuffer += width * sizeof(Color);
+				}
+				HandleWrite!(deflate.Close());
 
 				// Write all
 				HandleWrite!(WriteIDAT(stream, zlibMemory, true));
-
-		        // filter & deflate data line by line
-		        /*using (DeflateStream deflate = new DeflateStream(zlibMemory, CompressionLevel.Fastest, true))
-		        {
-		            fixed (Color* ptr = pixels)
-		            {
-		                Span<byte> filter = stackalloc byte[1] { 0 };
-		                byte* pixelBuffer = (byte*)ptr;
-
-		                for (int y = 0; y < height; y++)
-		                {
-		                    // deflate filter
-		                    deflate.Write(filter);
-
-		                    // update adler checksum
-		                    adler = Calc.Adler32(adler, filter);
-
-		                    // append the row of pixels (in steps, potentially)
-		                    const int MaxHorizontalStep = 1024;
-		                    for (int x = 0; x < width; x += MaxHorizontalStep)
-		                    {
-		                        var segment = new Span<uint8>(pixelBuffer + x * 4, Math.Min(width - x, MaxHorizontalStep) * 4);
-
-		                        // delfate the segment of the row
-		                        deflate.Write(segment);
-
-		                        // update adler checksum
-		                        adler = Calc.Adler32(adler, segment);
-
-		                        // write out chunks if we've hit out max IDAT chunk length
-		                        if (zlibMemory.Position >= MaxIDATChunkLength)
-		                            WriteIDAT(writer, zlibMemory, false);
-		                    }
-
-		                    pixelBuffer += width * 4;
-		                }
-		            }
-		        }
-
-		        // zlib adler32 trailer
-		        using (BinaryWriter bytes = new BinaryWriter(zlibMemory, Encoding.UTF8, true))
-		            bytes.Write(SwapEndian((int)adler));*/
-
-		        // Write out remaining chunks
-		        //WriteIDAT(stream, zlibMemory, true);
 		    }
 
 		    // IEND Chunk

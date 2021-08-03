@@ -41,7 +41,9 @@ namespace Pile
 		{
 			if (result case .Err(var err))
 			{
-				Log.Error($"{errMsg} ({err})");
+				if (typeof(decltype(err)) == typeof(void))
+					Log.Error($"{errMsg}");
+				else Log.Error($"{errMsg} ({err})");
 				return .Err((.)err);
 			}	
 
