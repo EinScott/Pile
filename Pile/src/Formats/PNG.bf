@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -254,7 +255,7 @@ namespace Pile
 		        // decompress the image data
 		        {
 					if (Compression.Decompress(idat.[Friend]mMemory, Span<uint8>(buffer)) case .Err)
-						LogErrorReturn!("Error reading PNG: PNG iDAT decompression failed");
+						LogErrorReturn!("Error reading PNG: PNG IDAT decompression failed");
 		        }
 
 		        // apply filter pass - this happens in-place
@@ -403,12 +404,13 @@ namespace Pile
 		    return .Ok;
 		}
 
-		public static Result<void> Write(Stream stream, Bitmap bitmap)
+		public static Result<void> Write(Stream stream, Bitmap bitmap, MiniZ.CompressionLevel compressionLevel = .DEFAULT_COMPRESSION)
 			=> Write(stream, bitmap.Width, bitmap.Height, bitmap.Pixels);
 
-		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels)
+		public static Result<void> Write(Stream stream, uint32 width, uint32 height, Color[] pixels, MiniZ.CompressionLevel compressionLevel = .DEFAULT_COMPRESSION)
 		{
 		    const int32 MaxIDATChunkLength = 8192;
+			const uint32 MaxImageSize = 2147483648;
 
 		    Result<void> Chunk(Stream stream, String title, Span<uint8> buffer)
 		    {
@@ -467,6 +469,10 @@ namespace Pile
 		    {
 		        Span<uint8> buf = scope uint8[13];
 
+				if (width == 0 || height == 0
+					|| width > MaxImageSize || height > MaxImageSize)
+					return .Err;
+
 				uint32 val = width;
 				buf[00] = (uint8)((val >> 24) & 0xFF);
 				buf[01] = (uint8)((val >> 16) & 0xFF);
@@ -492,7 +498,7 @@ namespace Pile
 		    {
 				MemoryStream zlibMemory = scope .();
 
-				CompressionStream deflate = scope .(zlibMemory, .BEST_SPEED, false);
+				CompressionStream deflate = scope .(zlibMemory, compressionLevel, false);
 
 				let filter = uint8[1]();
 				uint8* pixelBuffer = (.)pixels.Ptr;
@@ -506,7 +512,9 @@ namespace Pile
 				    const int MaxHorizontalStep = 1024;
 				    for (int x = 0; x < width; x += MaxHorizontalStep)
 				    {
-				        var segment = Span<uint8>(pixelBuffer + x * sizeof(Color), Math.Min(width - x, MaxHorizontalStep) * 4);
+				        var segment = Span<uint8>(pixelBuffer + x * sizeof(Color), Math.Min(width - x, MaxHorizontalStep) * sizeof(Color));
+
+						// TODO: use filter maybe?
 
 				        // delfate the segment of the row
 				        HandleWrite!(deflate.Write(segment));
@@ -519,6 +527,9 @@ namespace Pile
 				    pixelBuffer += width * sizeof(Color);
 				}
 				HandleWrite!(deflate.Close());
+
+				// Since we incremented the pointer at the end of the loop we will end up overstepping by one
+				Debug.Assert(pixelBuffer == pixels.Ptr + pixels.Count);
 
 				// Write all
 				HandleWrite!(WriteIDAT(stream, zlibMemory, true));
@@ -563,13 +574,12 @@ namespace Pile
 		[Inline]
 		static int32 SwapEndian(int32 input)
 		{
-		    if (BitConverter.IsLittleEndian)
-		    {
-		        uint value = (uint)input;
-		        return (int32)((value & 0x000000FF) << 24 | (value & 0x0000FF00) << 8 | (value & 0x00FF0000) >> 8 | (value & 0xFF000000) >> 24);
-		    }
-
+#if BF_LITTLE_ENDIAN
+	        uint32 value = (uint32)input;
+	        return (int32)((value & 0x000000FF) << 24 | (value & 0x0000FF00) << 8 | (value & 0x00FF0000) >> 8 | (value & 0xFF000000) >> 24);
+#else
 		    return input;
+#endif
 		}
 	}
 }

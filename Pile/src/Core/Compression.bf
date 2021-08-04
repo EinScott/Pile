@@ -121,11 +121,11 @@ namespace Pile
 				{
 					bufferFill = (.)Try!(underlying.TryRead(.(buffer, bufferSize)));
 
-					mzStream.next_in = buffer; // TODO: look if we actually need to do this?
+					mzStream.next_in = buffer;
 					mzStream.avail_in = bufferFill;
 				}
 
-				let status = mz_inflate(&mzStream, .SYNC_FLUSH);
+				let status = mz_inflate(&mzStream, .NO_FLUSH);
 				if (status < 0)
 					return .Err;
 
@@ -192,7 +192,7 @@ namespace Pile
 					}
 				}
 
-				let status = mz_deflate(&mzStream, .SYNC_FLUSH);
+				let status = mz_deflate(&mzStream, .NO_FLUSH);
 				if (status < 0)
 					return .Err;
 
@@ -203,7 +203,7 @@ namespace Pile
 					if (actualWrite != bufferSize)
 						return .Err;
 
-					mzStream.next_out = buffer; // TODO: do we actually need to refresh this?
+					mzStream.next_out = buffer;
 					mzStream.avail_out = bufferSize;
 				}
 			}
@@ -220,7 +220,7 @@ namespace Pile
 			if (actualWrite != write)
 				return .Err;
 
-			mzStream.next_out = buffer; // TODO: do we actually need to refresh this?
+			mzStream.next_out = buffer;
 			mzStream.avail_out = bufferSize;
 
 			return .Ok;
@@ -231,17 +231,43 @@ namespace Pile
 			// Finish stream
 			if (streamState != .NeedsInit)
 			{
+				defer
+				{
+					// Try! says that streamState is not accessible
+					this.[Friend]streamState = .NeedsInit;
+				}
+
 				switch (mode)
 				{
 				case .Decompress:
 					mz_inflateEnd(&mzStream);
 				case .Compress:
-					if (mz_deflate(&mzStream, .FULL_FLUSH) != .OK)
+					while (true)
+					{
+						// TODO: for some reason .FINISH calls always leave off the last png line??
+						// and PARTIAL_FLUSH / SYNC_FLUSH (same thing in miniz) works fine
+						
+						// in both cases, our png still only works *sometimes*
+						// this might or might not be part of the problem!
+
+						let res = mz_deflate(&mzStream, .PARTIAL_FLUSH);
+						if (res == .OK)
+						{
+							if (mzStream.avail_out == 0)
+								Try!(Flush());
+							else
+							{
+								/*if (mz_deflate(&mzStream, .FINISH) != .STREAM_END)
+									return .Err;*/
+								Try!(Flush());
+								break;
+							}
+						}
+						else return .Err;
+					}
+					if (mz_deflateEnd(&mzStream) != .OK)
 						return .Err;
-					mz_deflateEnd(&mzStream);
-					Try!(Flush());
 				}
-				streamState = .NeedsInit;
 			}
 
 			return .Ok;
@@ -252,7 +278,13 @@ namespace Pile
 	{
 		const int CHUNK_SIZE = int32.MaxValue;
 		// TODO: use way more streams in the packages pipeline! (a bit off-topic in this file)
-		
+
+		public static uint CompressionBound(int sourceLength)
+		{
+			Debug.Assert(sourceLength > 0);
+			return (.)mz_deflateBound(null, (.)sourceLength);
+		}
+
 		public static Result<uint> Compress(Span<uint8> source, Span<uint8> destination, CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			mz_stream s = default;
@@ -297,7 +329,7 @@ namespace Pile
 					LogErrorReturn!(scope $"Failed to deflate: {status}");
 			}
 
-			if (mz_deflate(&s, .FULL_FLUSH) == .OK && mz_deflateEnd(&s) != .OK)
+			if (mz_deflateEnd(&s) != .OK)
 				LogErrorReturn!("Failed to end deflate");
 
 			return .Ok(s.total_out);
@@ -361,7 +393,7 @@ namespace Pile
 					inRemaining -= chunk;
 				}
 
-				let status = mz_inflate(&s, .SYNC_FLUSH);
+				let status = mz_inflate(&s, .NO_FLUSH);
 
 				if (s.avail_out == 0)
 				{
