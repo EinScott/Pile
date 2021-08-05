@@ -514,7 +514,7 @@ namespace Pile
 				    {
 				        var segment = Span<uint8>(pixelBuffer + x * sizeof(Color), Math.Min(width - x, MaxHorizontalStep) * sizeof(Color));
 
-						// TODO: use filter maybe?
+						// TODO: use filter here?
 
 				        // delfate the segment of the row
 				        HandleWrite!(deflate.Write(segment));
@@ -526,6 +526,7 @@ namespace Pile
 
 				    pixelBuffer += width * sizeof(Color);
 				}
+				HandleWrite!(deflate.Write(0, 1)); // TODO: Without this it doesn't load in some programs and i don't know why -- seems to be a issue of the stream though!
 				HandleWrite!(deflate.Close());
 
 				// Since we incremented the pointer at the end of the loop we will end up overstepping by one

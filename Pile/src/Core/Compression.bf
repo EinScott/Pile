@@ -31,10 +31,10 @@ namespace Pile
 		public Stream UnderlyingStream => underlying;
 
 		[AllowAppend]
-		public this(Stream stream, CompressionLevel level, bool ownsStream, uint32 bufferSize = 8192) : this(stream, .Compress, ownsStream, level, bufferSize) {}
+		public this(Stream stream, CompressionLevel level, bool ownsStream = false, uint32 bufferSize = 8192) : this(stream, .Compress, ownsStream, level, bufferSize) {}
 
 		[AllowAppend]
-		public this(Stream stream, CompressionMode mode, bool ownsStream, CompressionLevel level = .DEFAULT_COMPRESSION, uint32 bufferSize = 8192)
+		public this(Stream stream, CompressionMode mode, bool ownsStream = false, CompressionLevel level = .DEFAULT_COMPRESSION, uint32 bufferSize = 8192)
 		{
 			Debug.Assert(stream != null);
 
@@ -59,23 +59,23 @@ namespace Pile
 
 		public override int64 Position
 		{
-			[Error("Position is not available on this stream"),Inline]
 			get
 			{
-				Runtime.FatalError();
+				Runtime.FatalError("Position is not available on CompressionStream");
 			}
 
-			[Error("Position is not available on this stream"),Inline]
 			set
 			{
-				Runtime.FatalError();
+				Runtime.FatalError("Position is not available on CompressionStream");
 			}
 		}
 
 		public override int64 Length
 		{
-			[Warn("Length is from the underlying stream"),Inline]
-			get => underlying.Length;
+			get
+			{
+				Runtime.FatalError("Length is not available on CompressionStream");
+			}
 		}
 
 		public override bool CanRead
@@ -90,6 +90,11 @@ namespace Pile
 			get => mode == .Compress && underlying.CanWrite;
 		}
 
+		public override Result<void> Seek(int64 pos, SeekKind seekKind = .Absolute)
+		{
+			return .Err;
+		}
+
 		public override Result<int> TryRead(Span<uint8> data)
 		{
 			if (!CanRead)
@@ -99,9 +104,9 @@ namespace Pile
 			{
 			case .NeedsInit:
 				mzStream.next_in = buffer;
-				mzStream.avail_in = bufferSize;
+				mzStream.avail_in = 0;
 
-				if (mz_inflateInit(&mzStream)  != .OK)
+				if (mz_inflateInit(&mzStream) != .OK)
 					return .Err;
 
 				streamState = .Ok;
@@ -245,25 +250,31 @@ namespace Pile
 					while (true)
 					{
 						// TODO: for some reason .FINISH calls always leave off the last png line??
-						// and PARTIAL_FLUSH / SYNC_FLUSH (same thing in miniz) works fine
-						
-						// in both cases, our png still only works *sometimes*
-						// this might or might not be part of the problem!
+						// and PARTIAL_FLUSH / SYNC_FLUSH (same thing in miniz) works fine (but dont properly end the stream)
 
-						let res = mz_deflate(&mzStream, .PARTIAL_FLUSH);
-						if (res == .OK)
+						let res = mz_deflate(&mzStream, .FINISH);
+						if (res == .OK && mzStream.avail_out == 0)
+							Try!(Flush());
+						else if (res == .STREAM_END)
 						{
-							if (mzStream.avail_out == 0)
-								Try!(Flush());
-							else
-							{
-								/*if (mz_deflate(&mzStream, .FINISH) != .STREAM_END)
-									return .Err;*/
-								Try!(Flush());
-								break;
-							}
+							Try!(Flush());
+							break;
 						}
 						else return .Err;
+
+						// this just does the exact same thing... last line still missing in png..
+						/*bool isEnd = ((tdefl_compressor*)mzStream.state).m_output_flush_remaining < bufferSize && ((tdefl_compressor*)mzStream.state).m_lookahead_size == 0;
+
+						let res = mz_deflate(&mzStream, isEnd ? .FINISH : .PARTIAL_FLUSH);
+
+						if (isEnd == true)
+						{
+							Try!(Flush());
+							break;
+						}
+						else if (res == .OK && mzStream.avail_out == 0)
+							Try!(Flush());
+						else return .Err;*/
 					}
 					if (mz_deflateEnd(&mzStream) != .OK)
 						return .Err;
