@@ -1,7 +1,7 @@
 using System;
 
 /*
-* Port of stb_truetype at e140649 by EinBurgbauer
+* Port of stb_truetype at e140649 by EinScott
 * The original stb_truetype (https://github.com/nothings/stb/blob/master/stb_truetype.h) by Sean Barret is
 * released as part of the public domain (www.unlicense.org).
 */

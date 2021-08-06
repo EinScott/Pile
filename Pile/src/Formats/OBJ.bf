@@ -1,5 +1,5 @@
 /*
-* Ported at 9255172 by EinBurgbauer
+* Ported at 9255172 by EinScott
 * Based on fast_obj (https://github.com/thisistherk/fast_obj) released under the MIT License:
 *
 * Copyright (c) 2018-2021 Richard Knight

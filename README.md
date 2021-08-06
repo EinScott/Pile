@@ -20,7 +20,7 @@ It also includes an extendable system for managing assets, a sprite batcher, UTF
 There are also some math structs, like Vector2 & 3, Point2 & 3, Quaternion and Rect (of integers) as well as some extensions to corelib classes, especially Math.
 
 ## Documentation
-Guide on [Getting Started](https://github.com/EinBurgbauer/Pile/wiki/Getting-Started). Further documentation can be found here: [Wiki](https://github.com/EinBurgbauer/Pile/wiki), [Examples & Template Project](https://github.com/EinBurgbauer/Pile/tree/master/Examples)
+Guide on [Getting Started](https://github.com/EinScott/Pile/wiki/Getting-Started). Further documentation can be found here: [Wiki](https://github.com/EinScott/Pile/wiki), [Examples & Template Project](https://github.com/EinScott/Pile/tree/master/Examples)
 
 # Platforms
 32-Bit Architectures are not supported.
@@ -30,7 +30,7 @@ Windows binaries are already included. Binaries for other platforms are missing 
 Help is appreciated, especially concerning supporting more platforms and core module implementations.
 
 # License
-Pile is licensed under the MIT license, see [LICENSE.txt](https://github.com/EinBurgbauer/Pile/blob/master/LICENSE.txt).
+Pile is licensed under the MIT license, see [LICENSE.txt](https://github.com/EinScott/Pile/blob/master/LICENSE.txt).
 
 Third party software used:
 - [fast-obj](https://github.com/thisistherk/fast_obj) - OBJ format support
