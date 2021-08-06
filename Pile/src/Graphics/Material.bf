@@ -16,7 +16,7 @@ namespace Pile
 			internal this(ShaderUniform uniform)
 			{
 				Uniform = uniform;
-				memory = new uint8[uniform.Type.Size(uniform.Length)];
+				memory = new uint8[uniform.Type.GetSize(uniform.Length)];
 			}
 
 			internal void Dispose()

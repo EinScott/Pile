@@ -36,7 +36,7 @@ namespace Pile
 				count
 			}
 
-		public int Size(int length)
+		public int GetSize(int length)
 		{
 			switch (this)
 			{
@@ -46,6 +46,23 @@ namespace Pile
 				return sizeof(int32) * length;
 			case .Sampler:
 				return sizeof(Texture) * length;
+			default:
+				Runtime.FatalError("Unknown uniform type");
+			}
+		}
+
+		public Type GetBeefType()
+		{
+			switch (this)
+			{
+			case .Float: return typeof(float);
+			case .Float2: return typeof(Vector2);
+			case .Float3: return typeof(Vector3);
+			case .Float4: return typeof(Vector4);
+			case .Int: return typeof(int32);
+			case .Matrix3x2: return typeof(Matrix3x2);
+			case .Matrix4x4: return typeof(Matrix4x4);
+			case .Sampler: return typeof(Texture);
 			default:
 				Runtime.FatalError("Unknown uniform type");
 			}
