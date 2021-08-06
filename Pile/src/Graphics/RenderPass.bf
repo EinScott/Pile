@@ -2,7 +2,7 @@ namespace Pile
 {
 	struct RenderPass
 	{
-		public IRenderTarget target;
+		public RenderTarget target;
 		public Rect? viewport;
 
 		public Material material;
@@ -18,7 +18,7 @@ namespace Pile
 		public Compare depthFunction;
 		public Rect? scissor;
 
-		public this(IRenderTarget target, Mesh mesh, Material material)
+		public this(RenderTarget target, Mesh mesh, Material material)
 		{
 			this.target = target;
 			viewport = null;

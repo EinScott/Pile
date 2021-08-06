@@ -5,7 +5,7 @@ namespace Pile
 	class VertexFormat
 	{
 		public readonly VertexAttribute[] Attributes;
-		public readonly int32 Stride;
+		public readonly uint32 Stride;
 
 		public this(params VertexAttribute[] attributes)
 		{

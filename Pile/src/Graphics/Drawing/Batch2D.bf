@@ -148,20 +148,20 @@ namespace Pile
 			matrixStack.Clear();
 		}
 
-		public void Render(IRenderTarget target)
+		public void Render(RenderTarget target)
 		{
 			let size = target.RenderSize;
 			let matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.X, size.Y, 0, 0, 100);
 			Render(target, matrix);
 		}
 
-		public void Render(IRenderTarget target, Color clearColor)
+		public void Render(RenderTarget target, Color clearColor)
 		{
 		    Graphics.Clear(target, clearColor);
 		    Render(target);
 		}
 
-		public void Render(IRenderTarget target, Matrix4x4 matrix, Rect? viewport = null, Color? clearColor = null)
+		public void Render(RenderTarget target, Matrix4x4 matrix, Rect? viewport = null, Color? clearColor = null)
 		{
 			if (clearColor != null)
 			    Graphics.Clear(target, clearColor.Value);

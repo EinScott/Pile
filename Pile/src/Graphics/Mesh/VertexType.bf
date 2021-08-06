@@ -7,7 +7,7 @@ namespace Pile
 		case Int;
 		case Float;
 
-		public int32 GetSize()
+		public uint32 GetSize()
 		{
 			switch (this)
 			{

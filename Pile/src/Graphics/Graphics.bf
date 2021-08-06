@@ -54,14 +54,14 @@ namespace Pile
 		protected static extern void AfterRenderInternal();
 
 		[Inline]
-		public static void Clear(IRenderTarget target, Color color) =>
+		public static void Clear(RenderTarget target, Color color) =>
 			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
 		[Inline]
-		public static void Clear(IRenderTarget target, Color color, float depth, int stencil) =>
+		public static void Clear(RenderTarget target, Color color, float depth, int stencil) =>
 			Clear(target, .All, color, depth, stencil, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
-		public static void Clear(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		public static void Clear(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			Debug.Assert(target.Renderable, "Render Target cannot currently be drawn to");
 
@@ -72,7 +72,7 @@ namespace Pile
 			ClearInternal(target, flags, color, depth, stencil, clamped);
 		}
 
-		protected static extern void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
+		protected static extern void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport);
 
 		public static void Render(RenderPass pass)
 		{

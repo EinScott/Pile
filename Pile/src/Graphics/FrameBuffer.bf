@@ -6,17 +6,14 @@ using internal Pile;
 
 namespace Pile
 {
-	class FrameBuffer : IRenderTarget
+	class FrameBuffer : RenderTarget
 	{
 		readonly List<Texture> Attachments = new List<Texture>() ~ DeleteContainerAndItems!(_);
 
 		public int AttachmentCount => Attachments.Count;
 
-		bool renderable;
-		public bool Renderable => renderable;
-		
 		UPoint2 renderSize;
-		public UPoint2 RenderSize => renderSize;
+		public override UPoint2 RenderSize => renderSize;
 
 		public this(uint32 width, uint32 height)
 			: this(width, height, .Color) {}

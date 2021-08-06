@@ -37,7 +37,7 @@ namespace Pile
 		protected static override void AfterRenderInternal() {}
 
 		[SkipCall]
-		protected static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
+		protected static override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport) {}
 
 		[SkipCall]
 		protected static override void RenderInternal(RenderPass pass) {}

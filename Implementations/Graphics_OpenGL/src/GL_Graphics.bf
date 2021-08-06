@@ -27,7 +27,7 @@ namespace Pile
 		static bool forceScissorUpdate;
 		static Rect viewport;
 		static RenderPass? lastRenderState;
-		static IRenderTarget lastRenderTarget;
+		static RenderTarget lastRenderTarget;
 		internal static List<uint32> vertexArraysToDelete = new List<uint32>() ~ delete _;
 		internal static List<uint32> frameBuffersToDelete = new List<uint32>() ~ delete _;
 		// --
@@ -154,7 +154,7 @@ namespace Pile
 #endif			
 		}
 
-		protected static override void ClearInternal(IRenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
+		protected static override void ClearInternal(RenderTarget target, Clear flags, Color color, float depth, int stencil, Rect viewport)
 		{
 			// Bind target
 			if (lastRenderTarget != target)

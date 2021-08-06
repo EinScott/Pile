@@ -4,7 +4,7 @@ using internal Pile;
 
 namespace Pile
 {
-	class Window : IRenderTarget
+	class Window : RenderTarget
 	{
 		public bool Closed { [Inline]get; internal set; }
 
@@ -25,12 +25,9 @@ namespace Pile
 			OnClose.Dispose();
 		}
 
-		bool renderable;
-		public bool Renderable => renderable;
-
 		public extern void* NativeHandle { get; };
 
-		public extern UPoint2 RenderSize { get; }
+		public override extern UPoint2 RenderSize { get; }
 
 		public extern void SetTitle(StringView title);
 		public extern void GetTitle(String buffer);

@@ -1,5 +1,6 @@
 using System;
 using OpenGL45;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -45,7 +46,7 @@ namespace Pile
 			bound = false;
 		}
 
-		protected override void SetVertices(Span<uint8> rawVertexData, VertexFormat format)
+		protected override void SetVerticesInternal(Span<uint8> rawVertexData, VertexFormat format)
 		{
 			if (lastVertexFormat != format)
 			{
@@ -56,7 +57,18 @@ namespace Pile
 			SetBuffer(ref vertexBufferID, .GL_ARRAY_BUFFER, rawVertexData.Ptr, (.)rawVertexData.Length, ref vertexBufferSize);
 		}
 
-		protected override void SetInstances(Span<uint8> rawVertexData, VertexFormat format)
+		protected override void SetVerticesEmptyInternal(uint count, Pile.VertexFormat format)
+		{
+			if (lastVertexFormat != format)
+			{
+				bound = false;
+				lastVertexFormat = format;
+			}
+
+			SetBuffer(ref vertexBufferID, .GL_ARRAY_BUFFER, null, (.)count, ref vertexBufferSize);
+		}
+
+		protected override void SetInstancesInternal(Span<uint8> rawInstanceData, VertexFormat format)
 		{
 			if (lastInstanceFormat != format)
 			{
@@ -64,14 +76,31 @@ namespace Pile
 				lastInstanceFormat = format;
 			}
 
-			SetBuffer(ref vertexBufferID, .GL_ARRAY_BUFFER, rawVertexData.Ptr, (.)rawVertexData.Length, ref instanceBufferSize);
+			SetBuffer(ref instanceBufferID, .GL_ARRAY_BUFFER, rawInstanceData.Ptr, (.)rawInstanceData.Length, ref instanceBufferSize);
 		}
 
-		protected override void SetIndices(Span<uint8> rawIndexData)
+		protected override void SetInstancesEmptyInternal(uint count, Pile.VertexFormat format)
+		{
+			if (lastInstanceFormat != format)
+			{
+				bound = false;
+				lastInstanceFormat = format;
+			}
+
+			SetBuffer(ref instanceBufferID, .GL_ARRAY_BUFFER, null, (.)count, ref instanceBufferSize);
+		}
+
+		protected override void SetIndicesInternal(Span<uint8> rawIndexData, IndexType type)
 		{
 			SetBuffer(ref indexBufferID, .GL_ELEMENT_ARRAY_BUFFER, rawIndexData.Ptr, (.)rawIndexData.Length, ref indexBufferSize);
 		}
 
+		protected override void SetIndicesEmptyInternal(uint count, Pile.IndexType type)
+		{
+			SetBuffer(ref indexBufferID, .GL_ELEMENT_ARRAY_BUFFER, null, (.)count, ref indexBufferSize);
+		}
+
+		[Inline]
 		void SetBuffer(ref uint32 bufferID, GL.BufferTargetARB glBufferType, void* data, int32 size, ref int currentSize)
 		{
 			if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
@@ -85,6 +114,31 @@ namespace Pile
 			}
 			else GL.glBufferSubData(glBufferType, 0, size, data);
 
+			GL.glBindBuffer(glBufferType, 0);
+		}
+
+		protected override void SetVerticesPartialInternal(uint offset, System.Span<uint8> rawVertexData)
+		{
+			SetBufferPartial(vertexBufferID, .GL_ARRAY_BUFFER, (.)offset, rawVertexData.Ptr, (.)rawVertexData.Length, vertexBufferSize);
+		}
+
+		protected override void SetInstancesPartialInternal(uint offset, System.Span<uint8> rawInstanceData)
+		{
+			SetBufferPartial(instanceBufferID, .GL_ARRAY_BUFFER, (.)offset, rawInstanceData.Ptr, (.)rawInstanceData.Length, instanceBufferSize);
+		}
+
+		protected override void SetIndicesPartialInternal(uint offset, System.Span<uint8> rawIndexData)
+		{
+			SetBufferPartial(indexBufferID, .GL_ELEMENT_ARRAY_BUFFER, (.)offset, rawIndexData.Ptr, (.)rawIndexData.Length, indexBufferSize);
+		}
+
+		[Inline]
+		void SetBufferPartial(uint32 bufferID, GL.BufferTargetARB glBufferType, int32 offset, void* data, int32 size, int currentSize)
+		{
+			Debug.Assert(offset + size <= currentSize);
+
+			GL.glBindBuffer(glBufferType, bufferID);
+			GL.glBufferSubData(glBufferType, offset, size, data);
 			GL.glBindBuffer(glBufferType, 0);
 		}
 
@@ -142,10 +196,10 @@ namespace Pile
 						let location = attribute.Location + loc;
 
 						GL.glEnableVertexAttribArray(location);
-						GL.glVertexAttribPointer(location, componentsInLoc, ToVertexType(vertexAttr.Type), vertexAttr.Normalized, format.Stride, (void*)offset);
+						GL.glVertexAttribPointer(location, componentsInLoc, ToVertexType(vertexAttr.Type), vertexAttr.Normalized, (int32)format.Stride, (void*)offset);
 						GL.glVertexAttribDivisor(location, divisor);
 
-						offset += componentsInLoc * vertexAttr.ComponentSize;
+						offset += (.)componentsInLoc * vertexAttr.ComponentSize;
 					}
 
 					return true;

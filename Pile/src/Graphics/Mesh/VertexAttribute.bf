@@ -11,8 +11,8 @@ namespace Pile
 		public readonly VertexType Type;
 		public readonly VertexComponents Components;
 
-		public readonly int32 ComponentSize;
-		public readonly int32 AttributeSize;
+		public readonly uint32 ComponentSize;
+		public readonly uint32 AttributeSize;
 
 		public readonly bool Normalized;
 
@@ -26,7 +26,7 @@ namespace Pile
 			Normalized = normalized;
 
 			ComponentSize = type.GetSize();
-			AttributeSize = (int32)components * ComponentSize;
+			AttributeSize = components.Underlying * ComponentSize;
 		}
 
 		public void Dispose()
