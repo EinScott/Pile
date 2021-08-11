@@ -351,6 +351,18 @@ namespace Pile
 			}
 		}
 
+		bool alwaysOnTop;
+		public override bool AlwaysOnTop
+		{
+			get => alwaysOnTop;
+
+			set
+			{
+				if (alwaysOnTop != value)
+					SDL.SetWindowAlwaysOnTop(window, alwaysOnTop = value);
+			}
+		}
+
 		internal bool focus;
 		public override bool Focus
 		{
@@ -375,6 +387,11 @@ namespace Pile
 		public override void SetFocused()
 		{
 			SDL.RaiseWindow(window);
+		}
+
+		public override void FlashWindow(Pile.WindowFlash flash)
+		{
+			SDL.FlashWindow(window, (.)flash);
 		}
 
 		protected internal override void Present()

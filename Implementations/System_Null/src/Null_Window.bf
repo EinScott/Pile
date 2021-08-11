@@ -37,17 +37,19 @@ namespace Pile
 
 		public override Vector2 ContentScale => .One;
 
-		public override bool Resizable { get; set; }
+		public override bool Resizable { get; [SkipCall]set; }
 
-		public override bool Transparent { get; set; }
+		public override bool Transparent { get; [SkipCall]set; }
 
-		public override bool Bordered { get; set; }
+		public override bool Bordered { get; [SkipCall]set; }
 
-		public override bool Fullscreen { get; set; }
+		public override bool Fullscreen { get; [SkipCall]set; }
 
-		public override bool Visible { get; set; }
+		public override bool Visible { get; [SkipCall]set; }
 
-		public override bool VSync { get; set; }
+		public override bool VSync { get; [SkipCall]set; }
+
+		public override bool AlwaysOnTop { get; [SkipCall]set; }
 
 		public override bool Focus => true;
 
@@ -57,6 +59,9 @@ namespace Pile
 
 		[SkipCall]
 		public override void SetFocused() {}
+
+		[SkipCall]
+		public override void FlashWindow(WindowFlash flash) {}
 
 		[SkipCall]
 		protected override void CloseInternal() {}

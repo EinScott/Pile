@@ -49,6 +49,7 @@ namespace Pile
 		public extern bool Fullscreen { get; set; }
 		public extern bool Visible { get; set; }
 		public extern bool VSync { get; set; }
+		public extern bool AlwaysOnTop { get; set; }
 
 		public extern bool Focus { get; }
 		public extern bool MouseOver { get; }
@@ -56,6 +57,7 @@ namespace Pile
 		public extern Display Display { get; }
 
 		public extern void SetFocused();
+		public extern void FlashWindow(WindowFlash flash);
 
 		public void Close()
 		{

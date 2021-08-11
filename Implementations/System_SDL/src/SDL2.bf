@@ -935,9 +935,25 @@ namespace SDL2
 
 		[LinkName("SDL_SetWindowTitle")]
 		public static extern void SetWindowTitle(Window* window, char8* title);
+
+		/* Available in 2.16 or newer*/
+		[LinkName("SDL_SetWindowAlwaysOnTop")]
+		public static extern void SetWindowAlwaysOnTop(Window* window, Bool on_top);
 		
 		[LinkName("SDL_ShowWindow")]
 		public static extern void ShowWindow(Window* window);
+
+		/* Available in 2.16 or newer*/
+		public enum SDL_FlashOperation : uint32
+		{
+			SDL_FLASH_CANCEL,
+			SDL_FLASH_BRIEFLY,
+			SDL_FLASH_UNTIL_FOCUSED
+		}
+
+		/* Available in 2.16 or newer*/
+		[LinkName("SDL_FlashWindow")]
+		public static extern void FlashWindow(Window* window, SDL_FlashOperation flashOperation);
 		
 		[LinkName("SDL_UpdateWindowSurface")]
 		public static extern int UpdateWindowSurface(Window* window);
