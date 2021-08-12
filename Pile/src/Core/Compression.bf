@@ -126,15 +126,23 @@ namespace Pile
 				{
 					bufferFill = (.)Try!(underlying.TryRead(.(buffer, bufferSize)));
 
+					/*if (bufferFill == 0)
+						return .Err;*/
+
 					mzStream.next_in = buffer;
 					mzStream.avail_in = bufferFill;
 				}
 
 				let status = mz_inflate(&mzStream, .NO_FLUSH);
-				if (status < 0)
-					return .Err;
 
-				if (mzStream.avail_out == 0)
+				if (status == .STREAM_END)
+				{
+					streamState = .HasEnded;
+					return .Ok(dataOffset + (availWrite - mzStream.avail_out));
+				}
+				else if (status < 0)
+					return .Err;
+				else if (mzStream.avail_out == 0)
 				{
 					// Since we didn't return yet, that means we've just done a full pass
 					dataOffset += uint32.MaxValue;
@@ -146,12 +154,6 @@ namespace Pile
 						mzStream.next_out = data.Ptr + dataOffset;
 						availWrite = mzStream.avail_out = (.)Math.Min((int)uint32.MaxValue, data.Length - dataOffset);
 					}
-				}
-
-				if (status == .STREAM_END)
-				{
-					streamState = .HasEnded;
-					return .Ok(dataOffset + (availWrite - mzStream.avail_out));
 				}
 			}
 		}
@@ -198,10 +200,10 @@ namespace Pile
 				}
 
 				let status = mz_deflate(&mzStream, .NO_FLUSH);
+
 				if (status < 0)
 					return .Err;
-
-				if (mzStream.avail_out == 0)
+				else if (mzStream.avail_out == 0)
 				{
 					let actualWrite = Try!(underlying.TryWrite(.(buffer, bufferSize)));
 
@@ -290,13 +292,13 @@ namespace Pile
 		const int CHUNK_SIZE = int32.MaxValue;
 		// TODO: use way more streams in the packages pipeline! (a bit off-topic in this file)
 
-		public static uint CompressionBound(int sourceLength)
+		public static int CompressionBound(int sourceLength)
 		{
 			Debug.Assert(sourceLength > 0);
 			return (.)mz_deflateBound(null, (.)sourceLength);
 		}
 
-		public static Result<uint> Compress(Span<uint8> source, Span<uint8> destination, CompressionLevel level = .DEFAULT_COMPRESSION)
+		public static Result<int> Compress(Span<uint8> source, Span<uint8> destination, CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			mz_stream s = default;
 			s.next_in = source.Ptr;
@@ -323,7 +325,11 @@ namespace Pile
 
 				let status = mz_deflate(&s, (inRemaining - s.avail_out > 0) ? .NO_FLUSH : .FINISH);
 
-				if (s.avail_out == 0)
+				if (status == .STREAM_END)
+					break;
+				else if (status != .OK)
+					LogErrorReturn!(scope $"Failed to deflate: {status}");
+				else if (s.avail_out == 0)
 				{
 					outRemaining -= availOutGiven;
 
@@ -333,17 +339,12 @@ namespace Pile
 					s.next_out = &destination[destination.Length - outRemaining];
 					availOutGiven = s.avail_out = (.)Math.Min(CHUNK_SIZE, outRemaining);
 				}
-
-				if (status == .STREAM_END)
-					break;
-				else if (status != .OK)
-					LogErrorReturn!(scope $"Failed to deflate: {status}");
 			}
 
 			if (mz_deflateEnd(&s) != .OK)
 				LogErrorReturn!("Failed to end deflate");
 
-			return .Ok(s.total_out);
+			return .Ok((.)s.total_out);
 
 			/*uint destL = (.)destination.Length;
 			uint srcL = (.)source.Length;
@@ -364,7 +365,7 @@ namespace Pile
 		public static Result<void> Compress(Span<uint8> source, ref Span<uint8> destination,  CompressionLevel level = .DEFAULT_COMPRESSION)
 		{
 			let length = Try!(Compress(source, destination, level));
-			destination.Length = (.)length;
+			destination.Length = length;
 			return .Ok;
 		}
 
@@ -374,11 +375,11 @@ namespace Pile
 				LogErrorReturn!("Destination array cannot be null");
 
 			let length = Try!(Compress(source, Span<uint8>(destination), level));
-			destination.Count = (.)length;
+			destination.Count = length;
 			return .Ok;
 		}
 
-		public static Result<uint> Decompress(Span<uint8> source, Span<uint8> destination)
+		public static Result<int> Decompress(Span<uint8> source, Span<uint8> destination)
 		{
 			mz_stream s = default;
 			s.next_in = source.Ptr;
@@ -406,27 +407,26 @@ namespace Pile
 
 				let status = mz_inflate(&s, .NO_FLUSH);
 
-				if (s.avail_out == 0)
+				if (status == .STREAM_END)
+					break;
+				else if (status != .OK)
+					LogErrorReturn!(scope $"Failed to inflate: {status}");
+				else if (s.avail_out == 0)
 				{
 					outRemaining -= availOutGiven;
 
-					if (outRemaining < 0 && status != .STREAM_END)
+					if (outRemaining <= 0)
 						LogErrorReturn!("Insufficient inflate destination buffer");
 
 					s.next_out = &destination[destination.Length - outRemaining];
 					availOutGiven = s.avail_out = (.)Math.Min(CHUNK_SIZE, outRemaining);
 				}
-
-				if (status == .STREAM_END || outRemaining == 0)
-					break;
-				else if (status != .OK)
-					LogErrorReturn!(scope $"Failed to inflate: {status}");
 			}
 
 			if (mz_inflateEnd(&s) != .OK)
 				LogErrorReturn!("Failed to end inflate");
 
-			return .Ok(s.total_out);
+			return .Ok((.)s.total_out);
 
 			/*int destL = (.)destination.Length;
 			//let s = Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
@@ -449,7 +449,7 @@ namespace Pile
 		public static Result<void> Decompress(Span<uint8> source, ref Span<uint8> destination)
 		{
 			let length = Try!(Decompress(source, destination));
-			destination.Length = (.)length;
+			destination.Length = length;
 			return .Ok;
 		}
 
@@ -459,7 +459,7 @@ namespace Pile
 				LogErrorReturn!("Destination array cannot be null");
 
 			let length = Try!(Decompress(source, Span<uint8>(destination)));
-			destination.Count = (.)length;
+			destination.Count = length;
 			return .Ok;
 		}
 	}

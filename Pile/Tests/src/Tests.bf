@@ -74,6 +74,48 @@ namespace Test
 		}*/
 
 		[Test]
+		static void TestCompression()
+		{
+			String s = "I am a nice string, I do lots of interesting stuff and it works totally fine. My favorite color is purple and I despise quotes..";
+			uint8[128] buffer = .();
+			Test.Assert(Compression.Compress(.((uint8*)s.Ptr, s.Length), buffer) case .Ok(let bufFill));
+
+			char8[128] sOut = .();
+			Test.Assert(Compression.Decompress(.(&buffer[0], bufFill), .((.)&sOut[0], 128)) case .Ok(128));
+
+			Test.Assert(s == StringView(&sOut, 128));
+		}
+		
+		[Test]
+		static void TestCompressionStreamRead()
+		{
+			MemoryStream mem = scope .();
+
+			String s = "I am a nice string, I do lots of interesting stuff and it works totally fine. My favorite color is purple and I despise quotes..";
+			uint8[128] buffer = .();
+			Test.Assert(Compression.Compress(.((uint8*)s.Ptr, s.Length), buffer) case .Ok(let bufFill));
+
+			mem.TryWrite(.(&buffer[0], (.)bufFill));
+			mem.Position = 0;
+
+			CompressionStream dcom = scope .(mem, .Decompress);
+
+			uint8[128] outBuf = .();
+			Test.Assert(dcom.TryRead(outBuf) case .Ok(128));
+
+			dcom.Close();
+			mem.Position = 0;
+
+			uint8[18] firstBit = .();
+			Test.Assert(dcom.TryRead(firstBit) case .Ok(18));
+			Test.Assert(StringView((.)&firstBit[0], 18) == "I am a nice string");
+
+			uint8[60] laterBit = .();
+			Test.Assert(dcom.TryRead(laterBit) case .Ok(60));
+			Test.Assert(StringView((.)&laterBit[0], 60) == ", I do lots of interesting stuff and it works totally fine. ");
+		}
+
+		[Test]
 		static void TestCompressionStream()
 		{
 			MemoryStream mem = scope .();
@@ -102,7 +144,7 @@ namespace Test
 				}
 			}
 
-			{
+			/*{
 				CompressionStream dcom = scope .(mem, .Decompress, false, default /* should care about this */);
 
 				let read = dcom.Read<uint8[18]>();
@@ -114,7 +156,7 @@ namespace Test
 				Test.Assert(s == "I am a String");
 				Test.Assert(dcom.Read<uint16[16]>() case .Ok(uint16[16](1, 2000, 3, 168, 35, 243, 999, 32, 5566, 53, 1, 1, 35676, 7, 1, 999)));
 				Test.Assert(dcom.Close() case .Ok);
-			}
+			}*/
 		}
 	}
 }

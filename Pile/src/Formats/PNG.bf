@@ -497,7 +497,6 @@ namespace Pile
 		    // IDAT Chunk(s)
 		    {
 				MemoryStream zlibMemory = scope .();
-
 				CompressionStream deflate = scope .(zlibMemory, compressionLevel, false);
 
 				let filter = uint8[1]();
