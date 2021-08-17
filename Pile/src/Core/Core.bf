@@ -14,7 +14,7 @@ namespace Pile
 		public uint32 windowHeight = 720;
 		public StringView gameTitle;
 		public StringView windowTitle;
-		public function Game() createGame;
+		public Game gameInstance;
 	}
 
 	[Obsolete("EntryPoint has been moved into Core", false)]
@@ -94,9 +94,11 @@ namespace Pile
 
 		internal static Event<Action> OnInit = .() ~ _.Dispose();
 		internal static Event<Action> OnDestroy = .() ~ _.Dispose();
+		internal static Event<Action> OnSwap = .() ~ _.Dispose();
 
 		static String title = new .() ~ delete _;
 		static Game Game;
+		static Game swapGame;
 
 		[Inline]
 		public static StringView Title => title;
@@ -105,7 +107,7 @@ namespace Pile
 		{
 			Debug.Assert(!run, "Core was already run");
 			Debug.Assert(config.gameTitle.Ptr != null, "Core.Config.gameTitle has to be set. Provide an unchanging, file system safe string literal");
-			Debug.Assert(config.createGame != null, "Core.Config.createGame has to be set. Provide a function that returns an instance of your game");
+			Debug.Assert(config.gameInstance != null, "Core.Config.createGame has to be set. Provide a function that returns an instance of your game");
 
 			run = true;
 
@@ -159,7 +161,8 @@ namespace Pile
 				OnInit();
 
 			// Prepare for running game
-			Game = config.createGame();
+			Game = config.gameInstance;
+			Debug.AssertNotStack(Game);
 			Debug.Assert(Game != null, "Game cannot be null");
 			Game.[Friend]Startup();
 
@@ -231,6 +234,19 @@ namespace Pile
 					Graphics.Step();
 					Input.Step();
 					System.Step();
+
+					if (swapGame != null)
+					{
+						Game.[Friend]Shutdown();
+						delete Game;
+
+						Game = swapGame;
+						swapGame = null;
+						Game.[Friend]Startup();
+
+						if (OnSwap.HasListeners)
+							OnSwap();
+					}
 
 					if (!Time.freezing)
 					{
@@ -344,6 +360,19 @@ namespace Pile
 		public static void Sleep(uint ms)
 		{
 			forceSleepMS = ms;
+		}
+
+		/// This swaps the game for a new one
+		/// There is no internal reset when swapping. The previous game
+		/// is responsible for any cleanup. This is probably only
+		/// sometimes of appropriate use, for example for extensive
+		/// editor environments and the like
+		public static void SwapGame(Game newGame)
+		{
+			Debug.AssertNotStack(newGame);
+			Runtime.Assert(swapGame == null, "Can only swap games once a frame!");
+
+			swapGame = newGame;
 		}
 
 		[Inline]

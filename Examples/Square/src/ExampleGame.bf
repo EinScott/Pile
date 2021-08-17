@@ -10,7 +10,7 @@ namespace Game
 	{
 		static this()
 		{
-			Core.Config.createGame = () => new ExampleGame();
+			Core.Config.gameInstance = new ExampleGame();
 			Core.Config.gameTitle = "example";
 			Core.Config.windowTitle = "Example Game";
 		}
