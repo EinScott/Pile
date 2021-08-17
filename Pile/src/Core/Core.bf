@@ -20,7 +20,7 @@ namespace Pile
 	[Obsolete("EntryPoint has been moved into Core", false)]
 	typealias EntryPoint = Core;
 
-	[Optimize,StaticInitPriority(PILE_SINIT_ENTRY)]
+	//[Optimize,StaticInitPriority(PILE_SINIT_ENTRY)]
 	static class Core
 	{
 		public static Event<delegate Result<void>()> OnStart ~ OnStart.Dispose();
@@ -87,6 +87,7 @@ namespace Pile
 		internal static bool run;
 		static bool exiting;
 		static uint forceSleepMS;
+		static bool skipRender;
 
 		// This is interchangeable.. if you really need to
 		internal static function void() coreLoop = => DoCoreLoop;
@@ -259,7 +260,7 @@ namespace Pile
 				}
 
 				// Render
-				if (!exiting && !System.window.Closed)
+				if (!skipRender && !exiting && !System.window.Closed)
 				{
 					{
 						PerfTrack!("Pile.Core.DoCoreLoop:Render");
@@ -295,9 +296,24 @@ namespace Pile
 				if (endCurrTime - currTime < Time.targetTicks && !exiting)
 				{
 					let sleep = Time.targetTicks - (timer.[Friend]GetElapsedDateTimeTicks() - currTime);
-					
-					if (sleep > TimeSpan.TicksPerMillisecond)
-						Thread.Sleep((.)sleep / TimeSpan.TicksPerMillisecond);
+
+					var worstSleepError = 0;
+					var lastSleep = 0;
+					let sleepWatch = scope Stopwatch()..Start();
+					while (lastSleep < sleep - worstSleepError)
+					{
+						Thread.Sleep(1);
+						let now = sleepWatch.[Friend]GetElapsedDateTimeTicks();
+						let actualSleepTime = now - lastSleep;
+						lastSleep = now;
+
+						let sleepError = actualSleepTime - TimeSpan.TicksPerMillisecond;
+						if (worstSleepError < sleepError)
+							worstSleepError = sleepError;
+					}
+
+					while (sleepWatch.[Friend]GetElapsedDateTimeTicks() < sleep)
+						Thread.SpinWait(1);
 				}
 
 				// Force sleep
@@ -317,6 +333,12 @@ namespace Pile
 			{
 				exiting = true;
 			}
+		}
+
+		[Inline]
+		public static void SkipRender()
+		{
+			skipRender = true;
 		}
 
 		public static void Sleep(uint ms)

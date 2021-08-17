@@ -4,8 +4,8 @@ namespace Pile
 {
 	class Subtexture
 	{
-		public readonly Vector2[4] TexCoords { get; private set; }
- 		public readonly Point2[4] DrawCoords { get; private set; }
+		public readonly Vector2[4] TexCoords { [Inline]get; private set; }
+ 		public readonly Point2[4] DrawCoords { [Inline]get; private set; }
 
 		public Texture Texture
 		{
@@ -43,7 +43,9 @@ namespace Pile
 		    }
 		}
 
+		[Inline]
 		public int Width => frame.Width;
+		[Inline]
 		public int Height => frame.Height;
 
 		Texture texture;

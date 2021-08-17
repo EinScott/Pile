@@ -4,13 +4,9 @@ namespace Pile
 
 	extension CharModifier
 	{
-		public function CharModifier GetFunc(Vector2 currPos, int index, char32 char);
-		public static GetFunc DefaultCharModifierFunc = => GetDefaultCharModifier;
+		public const CharModifier None = .(.Zero, .One, 0, .White);
 
-		public static CharModifier GetDefaultCharModifier(Vector2 currPos, int index, char32 char)
-		{
-			return .(.Zero, .One, 0, .White);
-		}
+		public function CharModifier GetFunc(Vector2 currPos, int index, char32 char);
 
 		// We kind of abuse + as a "Combine" operator
 		public static CharModifier operator+(CharModifier a, CharModifier b)

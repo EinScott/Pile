@@ -19,7 +19,7 @@ namespace Pile
 		public static extern String Info { get; }
 
 		public static int32 MaxTextureSize { get; protected set; }
-		public static bool OriginBottomLeft { get; protected set; }
+		public static bool OriginBottomLeft { [Inline]get; protected set; }
 
 		public enum DebugDrawMode { Disabled, WireFrame }
 		public static extern DebugDrawMode DebugDraw { get; set; }
