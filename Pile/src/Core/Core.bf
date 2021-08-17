@@ -20,7 +20,7 @@ namespace Pile
 	[Obsolete("EntryPoint has been moved into Core", false)]
 	typealias EntryPoint = Core;
 
-	//[Optimize,StaticInitPriority(PILE_SINIT_ENTRY)]
+	[Optimize,StaticInitPriority(PILE_SINIT_ENTRY)]
 	static class Core
 	{
 		public static Event<delegate Result<void>()> OnStart ~ OnStart.Dispose();

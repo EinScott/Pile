@@ -128,7 +128,7 @@ namespace Game
 			batch.HollowRect(textBox2, 2, .DarkGray);
 			{
 				PerfTrack!("DrawTextMixedFramed");
-				batch.TextMixedFramed(debugFont, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, .Gray, .Zero, 0, => CharModifier.DefaultCharModifierFunc, true, true, button.Asset);
+				batch.TextMixedFramed(debugFont, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, .Gray, .Zero, 0, null, true, true, button.Asset);
 			}
 
 			{
