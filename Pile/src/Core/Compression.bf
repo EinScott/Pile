@@ -251,9 +251,6 @@ namespace Pile
 				case .Compress:
 					while (true)
 					{
-						// TODO: for some reason .FINISH calls always leave off the last png line??
-						// and PARTIAL_FLUSH / SYNC_FLUSH (same thing in miniz) works fine (but dont properly end the stream)
-
 						let res = mz_deflate(&mzStream, .FINISH);
 						if (res == .OK && mzStream.avail_out == 0)
 							Try!(Flush());
@@ -263,20 +260,6 @@ namespace Pile
 							break;
 						}
 						else return .Err;
-
-						// this just does the exact same thing... last line still missing in png..
-						/*bool isEnd = ((tdefl_compressor*)mzStream.state).m_output_flush_remaining < bufferSize && ((tdefl_compressor*)mzStream.state).m_lookahead_size == 0;
-
-						let res = mz_deflate(&mzStream, isEnd ? .FINISH : .PARTIAL_FLUSH);
-
-						if (isEnd == true)
-						{
-							Try!(Flush());
-							break;
-						}
-						else if (res == .OK && mzStream.avail_out == 0)
-							Try!(Flush());
-						else return .Err;*/
 					}
 					if (mz_deflateEnd(&mzStream) != .OK)
 						return .Err;
@@ -345,21 +328,6 @@ namespace Pile
 				LogErrorReturn!("Failed to end deflate");
 
 			return .Ok((.)s.total_out);
-
-			/*uint destL = (.)destination.Length;
-			uint srcL = (.)source.Length;
-			let s = mz_compress(destination.Ptr, &destL, source.Ptr, srcL, level);
-
-			switch (s)
-			{
-			case .OK: return .Ok(destL);
-				// The errors that could realistically happen
-			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
-			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
-			case .BUF_ERROR: LogErrorReturn!("[MINIZ::BUF_ERR] Invalid buffer");
-				// Default case
-			default: LogErrorReturn!(scope $"MiniZ error: {s}");
-			}*/
 		}
 
 		public static Result<void> Compress(Span<uint8> source, ref Span<uint8> destination,  CompressionLevel level = .DEFAULT_COMPRESSION)
@@ -427,23 +395,6 @@ namespace Pile
 				LogErrorReturn!("Failed to end inflate");
 
 			return .Ok((.)s.total_out);
-
-			/*int destL = (.)destination.Length;
-			//let s = Uncompress(destination.Ptr, ref destL, source.Ptr, source.Length);
-			uint srcL = (.)source.Length;
-			uint destL2 = (.)destL;
-			let s = MiniZ.mz_uncompress(destination.Ptr, &destL2, source.Ptr, &srcL);
-
-			switch (s)
-			{
-			case .OK: return .Ok((.)destL);
-				// The errors that could realistically happen
-			case .MEM_ERROR: LogErrorReturn!("[MINIZ::MEM_ERROR] Failed to allocate memory");
-			case .ERRNO: LogErrorReturn!("[MINIZ::ERRNO] Error reading/writing data");
-			case .DATA_ERROR: LogErrorReturn!("[MINIZ::DATA_ERROR] Data is invalid or incomplete");
-				// Default case
-			default: LogErrorReturn!(scope $"MiniZ error: {s}");
-			}*/
 		}
 
 		public static Result<void> Decompress(Span<uint8> source, ref Span<uint8> destination)
