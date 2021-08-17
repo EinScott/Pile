@@ -14,7 +14,7 @@ namespace Pile
 		public uint32 windowHeight = 720;
 		public StringView gameTitle;
 		public StringView windowTitle;
-		public Game gameInstance;
+		public function Game() createGame;
 	}
 
 	[Obsolete("EntryPoint has been moved into Core", false)]
@@ -107,7 +107,7 @@ namespace Pile
 		{
 			Debug.Assert(!run, "Core was already run");
 			Debug.Assert(config.gameTitle.Ptr != null, "Core.Config.gameTitle has to be set. Provide an unchanging, file system safe string literal");
-			Debug.Assert(config.gameInstance != null, "Core.Config.createGame has to be set. Provide a function that returns an instance of your game");
+			Debug.Assert(config.createGame != null, "Core.Config.createGame has to be set. Provide a function that returns an instance of your game");
 
 			run = true;
 
@@ -161,7 +161,7 @@ namespace Pile
 				OnInit();
 
 			// Prepare for running game
-			Game = config.gameInstance;
+			Game = config.createGame();
 			Debug.AssertNotStack(Game);
 			Debug.Assert(Game != null, "Game cannot be null");
 			Game.[Friend]Startup();
@@ -362,14 +362,14 @@ namespace Pile
 			forceSleepMS = ms;
 		}
 
-		/// This swaps the game for a new one
-		/// There is no internal reset when swapping. The previous game
-		/// is responsible for any cleanup. This is probably only
-		/// sometimes of appropriate use, for example for extensive
-		/// editor environments and the like
+		/// Swaps the current game out for a new one. There is no internal reset when
+		/// swapping. The previous game is responsible for its cleanup.
+		/// This is probably only sometimes appropriate to use, like for example
+		/// for editor environments and alike.
 		public static void SwapGame(Game newGame)
 		{
 			Debug.AssertNotStack(newGame);
+			Debug.Assert(newGame != null);
 			Runtime.Assert(swapGame == null, "Can only swap games once a frame!");
 
 			swapGame = newGame;
