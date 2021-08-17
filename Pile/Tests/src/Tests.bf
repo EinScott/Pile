@@ -65,13 +65,13 @@ namespace Test
 			Test.Assert(ints.Count == 0);
 		}
 
-		/*[Test(ShouldFail=true)]
+		[Test(ShouldFail=true)]
 		static void TestCircularBufferFail()
 		{
 			CircularBuffer<int> ints = scope .(5) { 1, 2, 3 };
 #unwarn
 			let s = ints[5];
-		}*/
+		}
 
 		[Test]
 		static void TestCompression()
@@ -120,7 +120,7 @@ namespace Test
 		{
 			MemoryStream mem = scope .();
 			{
-				CompressionStream comp = scope .(mem, .BEST_COMPRESSION, false);
+				CompressionStream comp = scope .(mem, .BEST_COMPRESSION);
 
 				comp.Write(5, 18);
 				Test.Assert(comp.WriteStrSized32("I am a String. I am indeed a String. A very nice one.") case .Ok);
@@ -136,27 +136,26 @@ namespace Test
 			{
 				// Check the first bit if the original data
 				let orig = uint8[37](5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 53, 0, 0, 0, (.)'I', (.)' ', (.)'a', (.)'m', (.)' ', (.)'a', (.)' ', (.)'S', (.)'t', (.)'r', (.)'i', (.)'n', (.)'g', (.)'.', (.)' ');
-				uint8[107] buffer = .();
-				Test.Assert(Compression.Decompress(mem.[Friend]mMemory, buffer) case .Ok(107));
+				
+				uint8[199] buffer = .();
+				let comp = Compression.Decompress(mem.[Friend]mMemory, buffer);
+				Test.Assert(comp case .Ok(107));
 				for (let i < 37)
 				{
 					Test.Assert(buffer[i] == orig[i]);
 				}
 			}
 
-			/*{
-				CompressionStream dcom = scope .(mem, .Decompress, false, default /* should care about this */);
+			{
+				CompressionStream dcom = scope .(mem, .Decompress);
 
-				let read = dcom.Read<uint8[18]>();
-				Test.Assert(read case .Ok(uint8[18](5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5))); // TODO: ADLER check fails for some reason!
-				/*for (let i < 18)
-					Test.Assert(dcom.Read<uint8>() case .Ok(5));*/
+				for (let i < 18)
+					Test.Assert(dcom.Read<uint8>() case .Ok(5));
 				String s = scope .();
-				Test.Assert(dcom.ReadStrSized32(13, s) case .Ok);
-				Test.Assert(s == "I am a String");
-				Test.Assert(dcom.Read<uint16[16]>() case .Ok(uint16[16](1, 2000, 3, 168, 35, 243, 999, 32, 5566, 53, 1, 1, 35676, 7, 1, 999)));
+				Test.Assert(dcom.ReadStrSized32(s) case .Ok);
+				Test.Assert(s == "I am a String. I am indeed a String. A very nice one.");
 				Test.Assert(dcom.Close() case .Ok);
-			}*/
+			}
 		}
 	}
 }

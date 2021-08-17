@@ -440,7 +440,9 @@ namespace Pile
 		            s1 += ptr[7]; s2 += s1;
 		        }
 		        for (; i < block_len; ++i)
+				{
 		            s1 += *ptr++; s2 += s1;
+				}
 		        s1 %= 65521U; s2 %= 65521U;
 		        buf_len -= block_len;
 		        block_len = 5552;
@@ -3214,7 +3216,7 @@ namespace Pile
 		    *pOut_buf_size = pOut_buf_cur - pOut_buf_next;
 		    if ((decomp_flags & (.TINFL_FLAG_PARSE_ZLIB_HEADER | .TINFL_FLAG_COMPUTE_ADLER32)) != 0 && (status >= 0))
 		    {
-		        /*mz_uint8 *ptr = pOut_buf_next;
+		        mz_uint8 *ptr = pOut_buf_next;
 		        size_t buf_len = *pOut_buf_size;
 		        mz_uint32 i, s1 = (mz_uint32)(r.m_check_adler32 & 0xffff), s2 = (mz_uint32)(r.m_check_adler32 >> 16);
 		        size_t block_len = buf_len % 5552;
@@ -3239,9 +3241,7 @@ namespace Pile
 		            buf_len -= block_len;
 		            block_len = 5552;
 		        }
-		        r.m_check_adler32 = (s2 << 16) + s1;*/
-				// @report bug: FOR SOME REASON THIS EXACT SAME CODE ABOVE COMPILES DIFFERENTLY TWO TIMES, AND THE ABOVE ONE PRODUCES DIFFERENT VALUES...
-				r.m_check_adler32 = (mz_uint32)mz_adler32(r.m_check_adler32, pOut_buf_next, *pOut_buf_size);
+		        r.m_check_adler32 = (s2 << 16) + s1;
 		        if ((status == .TINFL_STATUS_DONE) && (decomp_flags & .TINFL_FLAG_PARSE_ZLIB_HEADER) != 0 && (r.m_check_adler32 != r.m_z_adler32))
 		            status = .TINFL_STATUS_ADLER32_MISMATCH;
 		    }
