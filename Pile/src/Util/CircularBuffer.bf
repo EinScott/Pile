@@ -262,6 +262,16 @@ namespace Pile
 			mSize = 0;
 		}
 
+		public bool PopEnd()
+		{
+		    if (mSize > 0)
+		    {
+		        mSize--;
+		        return true;
+		    }
+		    return false;
+		}
+
 		public bool Contains(T item)
 		{	
 			if (AllocSize > mSize)
