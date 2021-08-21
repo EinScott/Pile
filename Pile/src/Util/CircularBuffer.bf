@@ -263,8 +263,49 @@ namespace Pile
 		}
 
 		public bool Contains(T item)
-		{
-			return default;
+		{	
+			if (AllocSize > mSize)
+			{
+				// Do it the proper way since we might have things left in unclaimed indices
+				for (let i < mSize)
+				{
+					if (mItems[FromRelativeIndex(i)] == item)
+						return true;
+				}
+			}
+			else
+			{
+				// mItems is fully used, so we can just iterate though it whatever
+				for (let i < mSize)
+				{
+					if (mItems[[Unchecked]i] == item)
+						return true;
+				}
+			}
+			return false;
+		}
+
+		public int IndexOf(T item)
+		{	
+			if (AllocSize > mSize)
+			{
+				// Do it the proper way since we might have things left in unclaimed indices
+				for (let i < mSize)
+				{
+					if (mItems[FromRelativeIndex(i)] == item)
+						return i;
+				}
+			}
+			else
+			{
+				// mItems is fully used, so we can just iterate though it whatever
+				for (let i < mSize)
+				{
+					if (mItems[[Unchecked]i] == item)
+						return i;
+				}
+			}
+			return -1;
 		}
 
 		public void CopyTo(T[] array)
