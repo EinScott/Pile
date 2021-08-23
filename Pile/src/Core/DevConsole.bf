@@ -128,7 +128,7 @@ namespace Pile
 			}
 
 			// History
-			if (Input.Keyboard.Pressed(.Up))
+			if (Input.Keyboard.Pressed(.Up) && history.Count > 0)
 			{
 				let prevLook = currHistLook;
 				currHistLook = Math.Min(currHistLook + 1, history.Count - 1);
