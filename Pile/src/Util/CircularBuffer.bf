@@ -262,7 +262,7 @@ namespace Pile
 			mSize = 0;
 		}
 
-		public bool PopEnd()
+		public bool PopFront()
 		{
 		    if (mSize > 0)
 		    {
