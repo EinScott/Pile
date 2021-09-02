@@ -439,7 +439,7 @@ namespace Pile
 			quad[3] = .(Vector2.Transform(v3, MatrixStack), t3, color, mult, wash, 0, currentBatch.currentTextureIndex);
 
 		    if (Graphics.OriginBottomLeft && (currentBatch.textures[currentBatch.currentTextureIndex]?.IsFrameBuffer ?? false))
-		        FlipUV(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
+		        FlipUV!(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
 
 			currentBatch.elements += 2;
 		}
@@ -469,7 +469,7 @@ namespace Pile
 			quad[3] = .(Vector2.Transform(v3, MatrixStack), t3, c3, mult, wash, 0, currentBatch.currentTextureIndex);
 
 			if (Graphics.OriginBottomLeft && (currentBatch.textures[currentBatch.currentTextureIndex]?.IsFrameBuffer ?? false))
-				FlipUV(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
+				FlipUV!(ref quad[0].texCoord, ref quad[1].texCoord, ref quad[2].texCoord, ref quad[3].texCoord);
 
 			currentBatch.elements += 2;
 		}
@@ -1241,8 +1241,7 @@ namespace Pile
 
 		// UTIL
 
-		[Inline]
-		void FlipUV(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)
+		mixin FlipUV(ref Vector2 uv0, ref Vector2 uv1, ref Vector2 uv2, ref Vector2 uv3)
 		{
 		    uv0.Y = 1 - uv0.Y;
 		    uv1.Y = 1 - uv1.Y;
