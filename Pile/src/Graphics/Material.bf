@@ -232,6 +232,9 @@ namespace Pile
 		internal Shader shader;
 		Parameter[] parameters;
 
+		typealias ParamLookupPair = (Parameter* param, uint32 index);
+		Dictionary<StringView, ParamLookupPair> paramsByName = new Dictionary<StringView, ParamLookupPair>() ~ delete _;
+
 		public this(Shader shader)
 		{
 			this.shader = shader;
@@ -240,6 +243,8 @@ namespace Pile
 			parameters = new Parameter[Shader.Uniforms.Count];
 			for (int i = 0; i < Shader.Uniforms.Count; i++)
 				parameters[i] = Parameter(Shader.Uniforms[i]);
+
+			UpdateParamsByName();
 		}
 
 		public ~this()
@@ -279,17 +284,21 @@ namespace Pile
 
 			parameters = new Parameter[newParams.Count];
 			newParams.CopyTo(parameters);
+
+			UpdateParamsByName();
+		}
+
+		void UpdateParamsByName()
+		{
+			paramsByName.Clear();
+			for (let i < parameters.Count)
+				paramsByName.Add(parameters[[Unchecked]i].Uniform.Name, (&parameters[[Unchecked]i], (.)i));
 		}
 
 		public int IndexOf(StringView name)
 		{
-			for (int i < parameters.Count)
-			{
-				let param = ref parameters[[Unchecked]i];
-
-				if (param.Uniform.Name == name)
-					return i;
-			}
+			if (paramsByName.TryGetValue(name, var entry))
+				return entry.index;
 
 			return -1;
 		}
@@ -298,9 +307,8 @@ namespace Pile
 		{
 			get
 			{
-				for (var param in ref parameters)
-					if (param.Uniform.Name == name)
-						return ref param;
+				if (paramsByName.TryGetValue(name, var entry))
+					return ref *entry.param;
 
 				Runtime.FatalError("Couldn't find Parameter with given name on material");
 			}
