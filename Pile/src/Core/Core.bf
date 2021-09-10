@@ -287,7 +287,14 @@ namespace Pile
 					{
 						PerfTrack!("Pile.Core.DoCoreLoop:Present");
 
+						let vsVal = System.window.VSync;
+						if (vsVal && timer.[Friend]GetElapsedDateTimeTicks() - currTime >= Time.targetTicks)
+							System.window.VSync = false;
+
 						System.window.Present();
+
+						if (vsVal)
+							System.window.VSync = true;
 					}
 				}
 
