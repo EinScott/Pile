@@ -5,21 +5,45 @@ using System.Collections;
 namespace Pile
 {
 	[RegisterImporter]
-	class PNGImporter : RawImporter
+	class PNGImporter : Importer
 	{
-		public override String Name => "png";
+		public virtual String Name => "png";
 
-		public override Result<void> Load(StringView name, Span<uint8> data)
+		public virtual Result<void> Load(StringView name, Span<uint8> data)
 		{
-			let mem = scope ArrayStream(data);
-			let bitmap = scope Bitmap();
-			defer delete bitmap;
-			if (PNG.Read(mem, bitmap) case .Err)
-				return .Err;
+			let s = scope ArrayStream(data);
+			let sr = scope Serializer(s);
+
+			let bitmap = scope Bitmap(
+				sr.Read<uint32>(),
+				sr.Read<uint32>());
+			sr.ReadInto!(Span<uint8>((uint8*)bitmap.Pixels.Ptr, bitmap.Pixels.Count * sizeof(Color)));
 
 			Try!(Importers.SubmitTextureAsset(name, bitmap));
 
 			return .Ok;
+		}
+
+		public virtual Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath)
+		{
+			if (!PNG.IsValid(data))
+				LogErrorReturn!("PNGImporter: Data i not in PNG format");
+
+			let bitmap = scope Bitmap();
+			if (PNG.Read(data, bitmap) case .Err)
+				return .Err;
+
+			let s = scope ArrayStream((bitmap.Pixels.Count + 2) * sizeof(uint32));
+			let sr = scope Serializer(s);
+			
+			sr.Write<uint32>(bitmap.Width);
+			sr.Write<uint32>(bitmap.Height);
+			sr.Write!(Span<uint8>((uint8*)&bitmap.Pixels[0], bitmap.Pixels.Count * sizeof(Color)));
+
+			if (sr.HadError)
+				LogErrorReturn!("PNGImporter: Error transfering bitmap data");
+
+			return s.TakeOwnership();
 		}
 	}
 }

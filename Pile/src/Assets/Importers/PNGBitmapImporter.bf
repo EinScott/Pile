@@ -4,17 +4,19 @@ using System;
 namespace Pile
 {
 	[RegisterImporter]
-	class PNGBitmapImporter : RawImporter
+	class PNGBitmapImporter : PNGImporter
 	{
 		public override String Name => "png_bitmap";
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
-			let mem = scope ArrayStream(data);
-			let bitmap = new Bitmap();
-			defer delete bitmap;
-			if (PNG.Read(mem, bitmap) case .Err)
-				return .Err;
+			let s = scope ArrayStream(data);
+			let sr = scope Serializer(s);
+
+			let bitmap = new Bitmap(
+				sr.Read<uint32>(),
+				sr.Read<uint32>());
+			sr.ReadInto!(Span<uint8>((uint8*)bitmap.Pixels.Ptr, bitmap.Pixels.Count * sizeof(Color)));
 
 			if (Importers.SubmitAsset(name, bitmap) case .Err)
 			{
