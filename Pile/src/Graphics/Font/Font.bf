@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Collections;
 using System.Diagnostics;
@@ -22,6 +23,13 @@ namespace Pile
 		public readonly int32 LineHeight; // The Line Height of the Font (Height + LineGap). This is the total height of a single line, including the line gap
 
 		public static bool IsValid(Span<uint8> buffer) => stbtt.stbtt__isfont(buffer.Ptr) == 1;
+
+		public static bool IsValid(Stream stream)
+		{
+			if (stream.Peek<uint8[4]>() case .Ok(var val))
+				return stbtt.stbtt__isfont(&val[0]) == 1;
+			return false;
+		}
 
 		public this(Span<uint8> buffer)
 		{

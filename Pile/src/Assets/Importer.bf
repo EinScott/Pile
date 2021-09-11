@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reflection;
 using System.Collections;
 using System.Diagnostics;
@@ -19,7 +20,18 @@ namespace Pile
 		public bool RebuildOnAdditionalChanged => false;
 
 		public Result<void> Load(StringView name, Span<uint8> data);
-		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath);
+		public Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath);
+
+		public static mixin TryStreamToArray(Stream data)
+		{
+			let outData = new uint8[data.Length];
+			if (!(data.TryRead(outData) case .Ok(data.Length)))
+			{
+				delete outData;
+				LogErrorReturn!("Importer: Failed to read data from stream");
+			}
+			outData
+		}
 	}
 
 	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.DefaultConstructor)]

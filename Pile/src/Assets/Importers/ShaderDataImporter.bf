@@ -37,77 +37,79 @@ namespace Pile
 
 		public Result<void> Load(StringView name, Span<uint8> data)
 		{
-			let vLen = (((uint32)data[0]) << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | ((uint32)data[3]);
-			let fLen = (((uint32)data[4 + vLen]) << 24) | (((uint32)data[5 + vLen]) << 16) | (((uint32)data[6 + vLen]) << 8) | ((uint32)data[7 + vLen]);
-			var gLen = 0;
-			if (vLen + fLen + 2 * sizeof(uint32) > data.Length)
-				gLen = (((uint32)data[8 + vLen + fLen]) << 24) | (((uint32)data[9 + vLen + fLen]) << 16) | (((uint32)data[10 + vLen + fLen]) << 8) | ((uint32)data[11 + vLen + fLen]);
+			ArrayStream s = scope ArrayStream(data);
+			Serializer sr = scope Serializer(s);
 
-			ShaderData sData = new .(.((char8*)&data[4], vLen), .((char8*)&data[8 + vLen], fLen), gLen == 0 ? .() : .((char8*)&data[12 + vLen + fLen], gLen));
-			Importers.SubmitAsset(name, sData);
+			let vSource = sr.ReadInto!(scope uint8[sr.Read<uint32>()]);
+			let fSource = sr.ReadInto!(scope uint8[sr.Read<uint32>()]);
+			uint8[] gSource = null;
+			if (s.Position < s.Length)
+				gSource = sr.ReadInto!(scope:: uint8[sr.Read<uint32>()]);
 
-			return .Ok;
+			ShaderData asset = new .(.((char8*)&vSource[0], vSource.Count), .((char8*)&fSource[0], fSource.Count), gSource != null ? .((char8*)&gSource[0], gSource.Count) : .());
+
+			if (Importers.SubmitAsset(name, asset) case .Err)
+			{
+				delete asset;
+				return .Err;
+			}
+			else return .Ok;
 		}
 
-		public Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath)
+		public Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath)
 		{
 			ShaderImportFile f = .();
 
-			Try!(JsonConvert.Deserialize<ShaderImportFile>(&f, StringView((char8*)data.Ptr, data.Length)));
+			String filename = scope .();
+			Try!(data.ReadStrSized32(data.Length, filename));
+
+			Try!(JsonConvert.Deserialize<ShaderImportFile>(&f, filename));
 
 			if (f.vertexPath == null || f.fragmentPath == null)
-				LogErrorReturn!("At least VertexPath and FragmentPath need to be declared in json structure");
+				LogErrorReturn!("ShaderImporter: At least VertexPath and FragmentPath need to be declared in json structure");
 
 			// Load the actual files
 			let currDir = scope String();
 			Try!(Path.GetDirectoryPath(dataFilePath, currDir));
 
 			let vSource = scope String();
-			Try!(File.ReadAllText(Path.GetAbsolutePath(f.vertexPath, currDir, .. scope .()), vSource, true));
 			let fSource = scope String();
-			Try!(File.ReadAllText(Path.GetAbsolutePath(f.fragmentPath, currDir, .. scope .()), fSource, true));
 			String gSource = null;
-			if (f.geometryPath != null)
 			{
-				gSource = scope String();
-				Try!(File.ReadAllText(Path.GetAbsolutePath(f.geometryPath, currDir, .. scope .()), gSource, true));
+				Try!(File.ReadAllText(Path.GetAbsolutePath(f.vertexPath, currDir, .. scope .()), vSource, true));
+				Try!(File.ReadAllText(Path.GetAbsolutePath(f.fragmentPath, currDir, .. scope .()), fSource, true));
+				if (f.geometryPath != null)
+				{
+					gSource = scope:: String();
+					Try!(File.ReadAllText(Path.GetAbsolutePath(f.geometryPath, currDir, .. scope .()), gSource, true));
+				}
 			}
-
-			// todo: this could be nicer; rewrite when redoing packagefiles and passing streams to here
 
 			// Prepare to slot in
 			var neededLength = vSource.Length + fSource.Length + 2 * sizeof(uint32);
 			if (gSource != null)
 				neededLength += gSource.Length + sizeof(uint32);
 
-			let outData = new uint8[neededLength];
+			ArrayStream s = scope ArrayStream(neededLength);
+			Serializer sr = scope Serializer(s);
 
-			outData[0] = (uint8)((vSource.Length >> 24) & 0xFF);
-			outData[1] = (uint8)((vSource.Length >> 16) & 0xFF);
-			outData[2] = (uint8)((vSource.Length >> 8) & 0xFF);
-			outData[3] = (uint8)(vSource.Length & 0xFF);
+			sr.Write<uint32>((.)vSource.Length);
+			sr.Write!(Span<uint8>((uint8*)&vSource[0], vSource.Length));
 
-			Internal.MemCpy(&outData[4], &vSource[0], vSource.Length);
-
-			outData[4 + vSource.Length] = (uint8)((fSource.Length >> 24) & 0xFF);
-			outData[5 + vSource.Length] = (uint8)((fSource.Length >> 16) & 0xFF);
-			outData[6 + vSource.Length] = (uint8)((fSource.Length >> 8) & 0xFF);
-			outData[7 + vSource.Length] = (uint8)(fSource.Length & 0xFF);
-
-			Internal.MemCpy(&outData[8 + vSource.Length], &fSource[0], fSource.Length);
+			sr.Write<uint32>((.)fSource.Length);
+			sr.Write!(Span<uint8>((uint8*)&fSource[0], fSource.Length));
 
 			if (gSource != null)
 			{
-				outData[8 + vSource.Length + fSource.Length] = (uint8)((gSource.Length >> 24) & 0xFF);
-				outData[9 + vSource.Length + fSource.Length] = (uint8)((gSource.Length >> 16) & 0xFF);
-				outData[10 + vSource.Length + fSource.Length] = (uint8)((gSource.Length >> 8) & 0xFF);
-				outData[11 + vSource.Length + fSource.Length] = (uint8)(gSource.Length & 0xFF);
-
-				Internal.MemCpy(&outData[12 + vSource.Length + fSource.Length], &gSource[0], gSource.Length);
+				sr.Write<uint32>((.)gSource.Length);
+				sr.Write!(Span<uint8>((uint8*)&gSource[0], gSource.Length));
 			}
 
+			if (sr.HadError)
+				LogErrorReturn!("ShaderImporter: Could not write shader contents to file");
+
 			f.Dispose();
-			return outData;
+			return s.TakeOwnership();
 		}
 	}
 }

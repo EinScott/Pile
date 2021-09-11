@@ -108,10 +108,10 @@ namespace Pile
 		    Interlace interlace = Interlace.None;
 		    var components = 4;
 
-		    MemoryStream idat = new MemoryStream(); // Close() does nothing on this
-		    uint8[] idatChunk = new uint8[4096];
-		    uint8[] palette = new uint8[0];
-		    uint8[] alphaPalette = new uint8[0];
+		    MemoryStream idat = scope MemoryStream(); // Close() does nothing on this
+		    uint8[] idatChunk = scope uint8[4096];
+		    uint8[] palette = scope uint8[0];
+		    uint8[] alphaPalette = scope uint8[0];
 		    uint8[4] fourbytes = uint8[4]();
 
 		    bool hasIHDR = false, hasPLTE = false, hasIDAT = false;
@@ -180,8 +180,7 @@ namespace Pile
 		        else if (Check("PLTE", fourbytes))
 		        {
 		            hasPLTE = true;
-					delete palette;
-		            palette = new uint8[chunkLength];
+		            palette = scope:: uint8[chunkLength];
 
 		            let length = LogErrorTry!(stream.TryRead(palette), "Error reading PNG: Couldn't read PLTE chunk");
 					if (length != palette.Count)
@@ -209,8 +208,7 @@ namespace Pile
 		        {
 		            if (color == .Indexed)
 		            {
-						delete alphaPalette;
-		                alphaPalette = new uint8[chunkLength];
+		                alphaPalette = scope:: uint8[chunkLength];
 
 						let length = LogErrorTry!(stream.TryRead(alphaPalette), "Error reading PNG: Couldn't read tRNS chunk");
 						if (length != alphaPalette.Count)
@@ -250,7 +248,12 @@ namespace Pile
 
 		    // Parse the IDAT data into Pixels
 		    {
-		        uint8[] buffer = new uint8[width * height * (depth == 16 ? 2 : 1) * 4 + height];
+				// Sometimes we can get away with not allocating on small pngs
+				let bufLen = width * height * (depth == 16 ? 2 : 1) * 4 + height;
+				bool allocBuf = false;
+				if (bufLen > 8192)
+					allocBuf = true;
+		        uint8[] buffer = allocBuf ? new uint8[bufLen] : scope uint8[bufLen];
 
 		        // decompress the image data
 		        {
@@ -393,13 +396,9 @@ namespace Pile
 					bitmap.SetPixels(pixels);
 		        }
 
-				delete buffer;
+				if (allocBuf)
+					delete buffer;
 		    }
-
-			delete alphaPalette;
-			delete palette;
-			delete idatChunk;
-			delete idat;
 
 		    return .Ok;
 		}

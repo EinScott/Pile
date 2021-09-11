@@ -95,79 +95,57 @@ namespace Pile
 			// 		DATALENGTH (uint32)
 			// 		DATAARRAY[]
 
-			mixin ReadInto(var thing, Stream s)
-			{
-				switch (s.TryRead((Span<uint8>)thing))
-				{
-				case .Err:
-					LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath}");
-				case .Ok(let val):
-					if (val != ((Span<uint8>)thing).Length)
-						LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath} (unexpected partial read)");
-				}
+			Serializer sr = scope .(fs);
 
-				thing
-			}
-
-			mixin ReadUInt(Stream s)
-			{
-				uint8[4] data = .();
-				switch (s.TryRead(data))
-				{
-				case .Err:
-					LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath}");
-				case .Ok(let val):
-					if (val != data.Count)
-						LogErrorReturn!(scope $"Couldn't read package. Error reading data from {inPath} (unexpected partial read)");
-				}
-				(((uint32)data[0] << 24) | (((uint32)data[1]) << 16) | (((uint32)data[2]) << 8) | (uint32)data[3]) // big endian
-			}
-
-			let header = ReadInto!(scope uint8[4](), fs);
+			let header = sr.ReadInto!(scope uint8[4]());
 			if (header[0] != 0x50 || header[1] != 0x4C || header[2] != 0x50) // Check file header (currently we ignore "mode" at header[3])
 				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format");
 
-			let size = ReadUInt!(fs); // File size
+			let size = sr.Read<uint32>(); // File size
 
 			// Read content hash
-			ReadInto!(contentHash.mHash, fs);
+			sr.ReadInto!(contentHash.mHash);
 
 			// Read file body
 			{
 				let ds = scope CompressionStream(fs, .Decompress);
+				sr.s = ds;
 
 				// Read importer names
-				let importerNameCount = ReadUInt!(ds);
+				let importerNameCount = sr.Read<uint32>();
 				for (uint32 i = 0; i < importerNameCount; i++)
 				{
-					let importerNameLength = ReadUInt!(ds);
+					let importerNameLength = sr.Read<uint32>();
 
 					let nameString = new String(importerNameLength);
-					nameString.Length = importerNameLength;
-					ReadInto!(Span<uint8>((uint8*)nameString.Ptr, importerNameLength), ds);
+					nameString.[Friend]mLength = (.)importerNameLength;
+					sr.ReadInto!(Span<uint8>((uint8*)nameString.Ptr, importerNameLength));
 
 					importerNames.Add(nameString);
 				}
 
 				// Read nodes
-				let nodeCount = ReadUInt!(ds);
+				let nodeCount = sr.Read<uint32>();
 				for (uint32 i = 0; i < nodeCount; i++)
 				{
-					let importerIndex = ReadUInt!(ds);
+					let importerIndex = sr.Read<uint32>();
 
-					let nameLength = ReadUInt!(ds);
-					let name = ReadInto!(new uint8[nameLength], ds);
+					let nameLength = sr.Read<uint32>();
+					let name = sr.ReadInto!(new uint8[nameLength]);
 
-					let dataLength = ReadUInt!(ds);
-					let data = ReadInto!(new uint8[dataLength], ds);
+					let dataLength = sr.Read<uint32>();
+					let data = sr.ReadInto!(new uint8[dataLength]);
 
 					nodes.Add(Node(importerIndex, name, data));
 				}
 			}
 
+			if (sr.HadError)
+				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error reading from file");
+
 			// Confirm we read what we put in
 			if (size != fs.Position)
-				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format: The file contains {size} bytes, but the file content ended at {fs.Position}");	
+				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format: The file contains {size} bytes, but the file content ended at {fs.Position}");
 
 			fs.Close(); // We did only read, this should never error.
 
@@ -208,56 +186,40 @@ namespace Pile
 			// 		DATALENGTH (uint32)
 			// 		DATAARRAY[]
 
-			mixin Put(Span<uint8> data, Stream s)
-			{
-				if (s.Write(data) case .Err)
-					LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath}");
-			}
-
-			mixin PutUInt(int num, Stream s)
-			{
-				let uint = (uint32)num;
-				uint8[4] data; // big endian
-				data[0] = (uint8)((uint >> 24) & 0xFF);
-				data[1] = (uint8)((uint >> 16) & 0xFF);
-				data[2] = (uint8)((uint >> 8) & 0xFF);
-				data[3] = (uint8)(uint & 0xFF);
-
-				if (s.Write(data) case .Err)
-					LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath}");
-			}
+			Serializer sr = scope .(fs);
 
 			PackageMode mode = .None;
-			Put!(uint8[?](0x50, 0x4C, 0x50, mode.Underlying), fs); // Header & Mode
-			PutUInt!(0, fs); // Size placeholder
+			sr.Write!(uint8[?](0x50, 0x4C, 0x50, mode.Underlying)); // Header & Mode
+			sr.Write<uint32>(0); // Size placeholder
 
 			// Write content hash
 			var contentHash;
 			let hashSpan = Span<uint8>(&contentHash.mHash[0], contentHash.mHash.Count);
-			Put!(hashSpan, fs);
+			sr.Write!(hashSpan);
 
 			// Compress this block (main file content)
 			{
 				let cs = scope CompressionStream(fs, .BEST_SPEED);
+				sr.s = cs;
 	
 				// Write importer strings
-				PutUInt!(importerNames.Count, cs);
+				sr.Write<uint32>((.)importerNames.Count);
 				for (let s in importerNames)
 				{
-					PutUInt!(s.Length, cs);
+					sr.Write<uint32>((.)s.Length);
 					let span = Span<uint8>((uint8*)s.Ptr, s.Length);
-					Put!(span, cs);
+					sr.Write!(span);
 				}
 	
 				// Write nodes
-				PutUInt!(nodes.Count, cs);
+				sr.Write<uint32>((.)nodes.Count);
 				for (let node in nodes)
 				{
-					PutUInt!(node.Importer, cs);
-					PutUInt!(node.Name.Count, cs);
-					Put!(node.Name, cs);
-					PutUInt!(node.Data.Count, cs);
-					Put!(node.Data, cs);
+					sr.Write<uint32>(node.Importer);
+					sr.Write<uint32>((.)node.Name.Count);
+					sr.Write!(node.Name);
+					sr.Write<uint32>((.)node.Data.Count);
+					sr.Write!(node.Data);
 				}
 
 				if (cs.Close() case .Err)
@@ -267,7 +229,12 @@ namespace Pile
 			// Fill in size
 			let size = fs.Position;
 			fs.Seek(4);
-			PutUInt!(size, fs);
+
+			sr.s = fs;
+			sr.Write<uint32>((.)size);
+
+			if (sr.HadError)
+				LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath}");
 
 			if (fs.Close() case .Err)
 				LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath} when closing stream");
@@ -473,9 +440,6 @@ namespace Pile
 						previousNames.Add(StringView((char8*)node.Name.CArray(), node.Name.Count));
 				}
 
-				let importerData = new List<uint8>();
-				defer delete importerData;
-
 				let rootPath = scope String();
 				Try!(Path.GetDirectoryPath(cPackageBuildFilePath, rootPath));
 
@@ -577,11 +541,10 @@ namespace Pile
 							}
 
 							Log.Debug($"Importing {filePath}");
-							importerData.Clear();
 
 							// Read file
-							let res = File.ReadAll(filePath, importerData);
-							if (res case .Err(let err))
+							let fs = scope FileStream();
+							if (fs.Open(filePath, .Read) case .Err(let err))
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error reading file at {filePath} with {import.importer}: {err}");
 
 							// Compose config
@@ -596,7 +559,7 @@ namespace Pile
 							}
 
 							// Run through importer
-							let ress = importer.Build(importerData, config, filePath);
+							let ress = importer.Build(fs, config, filePath);
 							if (ress case .Err)
 								LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Importer error importing file at {filePath} with {import.importer}");
 							uint8[] buildData = ress.Get();

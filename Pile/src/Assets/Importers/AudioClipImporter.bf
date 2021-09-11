@@ -12,13 +12,14 @@ namespace Pile
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
-			let mem = scope MemoryStream();
-			Try!(mem.TryWrite(data));
-			mem.Position = 0;
-
 			let asset = new AudioClip(data);
 
-			return Importers.SubmitAsset(name, asset);
+			if (Importers.SubmitAsset(name, asset) case .Err)
+			{
+				delete asset;
+				return .Err;
+			}
+			else return .Ok;
 		}
 	}
 }

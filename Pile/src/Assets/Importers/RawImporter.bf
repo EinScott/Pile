@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections;
 
 namespace Pile
@@ -20,11 +21,9 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public virtual Result<uint8[]> Build(Span<uint8> data, Span<StringView> config, StringView dataFilePath)
+		public virtual Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath)
 		{
-			let outData = new uint8[data.Length];
-			data.CopyTo(outData);
-			return outData;
+			return Importer.TryStreamToArray!(data);
 		}
 	}
 
