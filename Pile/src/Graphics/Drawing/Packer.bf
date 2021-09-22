@@ -26,9 +26,14 @@ namespace Pile
 			}
 		}
 
+		public typealias PageData = (Bitmap page, uint8 sortFlag);
+
 		public class Output
 		{
-			public readonly List<Bitmap> Pages = new List<Bitmap>() ~ DeleteContainerAndItems!(_);
+			public readonly List<PageData> Pages = new List<PageData>() ~ {
+				for (let p in _) delete p.page;
+				delete _;
+			};
 			public readonly Dictionary<String, Entry> Entries = new Dictionary<String, Entry>() ~ DeleteDictionaryAndValues!(_);
 		}
 
@@ -39,12 +44,14 @@ namespace Pile
 			public Rect frame;
 			public Color[] pixels = null ~ DeleteNotNull!(_);
 			public Source duplicateOf = null;
+			public readonly uint8 SortFlag;
 
 			public bool Empty => packed.Width <= 0 || packed.Height <= 0;
 
-			public this(StringView name)
+			public this(StringView name, uint8 sortFlag)
 			{
 				this.name.Set(name);
+				SortFlag = sortFlag;
 			}
 		}
 
@@ -62,17 +69,17 @@ namespace Pile
 		readonly List<Source> sources = new List<Source>() ~ DeleteContainerAndItems!(_);
 		readonly Dictionary<int32, Source> duplicateLookup = new Dictionary<int32, Source>() ~ delete _;
 
-		public void AddBitmap(StringView name, Bitmap bitmap)
+		public void AddBitmap(StringView name, Bitmap bitmap, uint8 sortFlag = 0)
 		{
 			if (bitmap != null)
-				AddPixels(name, bitmap.Width, bitmap.Height, bitmap.Pixels);
+				AddPixels(name, bitmap.Width, bitmap.Height, bitmap.Pixels, sortFlag);
 		}
 
-		public void AddPixels(StringView name, uint32 width, uint32 height, Span<Color> pixels)
+		public void AddPixels(StringView name, uint32 width, uint32 height, Span<Color> pixels, uint8 sortFlag = 0)
 		{
 			hasUnpackedData = true;
 
-			let source = new Source(name);
+			let source = new Source(name, sortFlag);
 			int top = 0, left = 0, right = width, bottom = height;
 
 			// trim
@@ -120,7 +127,8 @@ namespace Pile
 
 			    if (combineDuplicates)
 			    {
-			        let hash = GetHash(left, right, top, bottom, pixels);
+					// Determine duplicates by the content of the trimmed image & sortFlags
+			        let hash = GetHash(left, right, top, bottom, pixels) + sortFlag;
 
 			        if (duplicateLookup.TryGetValue(hash, let duplicate))
 			        {
@@ -262,6 +270,7 @@ namespace Pile
 
 			// Sort the sources by size
 			sources.Sort(scope (a, b) => b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height);
+			sources.Sort(scope (a, b) => a.SortFlag - b.SortFlag);
 
 			// Make sure the largest isn't too large
 			if (sources[0].packed.Width > maxSize || sources[0].packed.Height > maxSize)
@@ -274,28 +283,41 @@ namespace Pile
 			let output = new Output();
 
 		    int32 packed = 0, page = 0;
-		    while (packed < sources.Count)
+			uint8 lastSortFlag = 0;
+			let sourceCount = sources.Count;
+			let srcList = sources.Ptr;
+		    while (packed < sourceCount)
 		    {
-		        if (sources[packed].Empty)
+		        if (srcList[packed].Empty)
 		        {
 		            packed++;
 		            continue;
 		        }
 
+				lastSortFlag = srcList[packed].SortFlag;
+
 		        let from = packed;
 		        var nodePtr = buffer.Ptr;
-		        var rootPtr = ResetNode(nodePtr++, 0, 0, sources[from].packed.Width + padding, sources[from].packed.Height + padding);
+		        var rootPtr = ResetNode(nodePtr++, 0, 0, srcList[from].packed.Width + padding, srcList[from].packed.Height + padding);
 
-		        while (packed < sources.Count)
+		        while (packed < sourceCount)
 		        {
-		            if (sources[packed].Empty || sources[packed].duplicateOf != null)
+		            if (srcList[packed].Empty || srcList[packed].duplicateOf != null)
 		            {
 		                packed++;
 		                continue;
 		            }
 
-		            int w = sources[packed].packed.Width + padding;
-		            int h = sources[packed].packed.Height + padding;
+					if (srcList[packed].SortFlag != lastSortFlag)
+					{
+						if (rootPtr.Rect.Width > 0)
+							break;
+						else // Page is empty anyway, just change lastSortFlag
+							lastSortFlag = srcList[packed].SortFlag;
+					}
+
+		            int w = srcList[packed].packed.Width + padding;
+		            int h = srcList[packed].packed.Height + padding;
 		            var node = FindNode(rootPtr, w, h);
 
 		            // try to expand
@@ -338,8 +360,8 @@ namespace Pile
 		            node.Down = ResetNode(nodePtr++, node.Rect.X, node.Rect.Y + h, node.Rect.Width, node.Rect.Height - h);
 		            node.Right = ResetNode(nodePtr++, node.Rect.X + w, node.Rect.Y, node.Rect.Width - w, h);
 
-		            sources[packed].packed.X = node.Rect.X;
-		            sources[packed].packed.Y = node.Rect.Y;
+		            srcList[packed].packed.X = node.Rect.X;
+		            srcList[packed].packed.Y = node.Rect.Y;
 
 		            packed++;
 		        }
@@ -364,12 +386,12 @@ namespace Pile
 		        // create each page
 		        {
 		            var bmp = new Bitmap(pageWidth, pageHeight);
-		            output.Pages.Add(bmp);
+		            output.Pages.Add((bmp, lastSortFlag));
 
 		            // create each entry for this page and copy its image data
 		            for (int i = from; i < packed; i++)
 		            {
-		                var source = sources[i];
+		                var source = srcList[i];
 
 		                // do not pack duplicate entries yet
 		                if (source.duplicateOf == null)

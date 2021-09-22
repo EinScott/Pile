@@ -7,7 +7,10 @@ using internal Pile;
 
 namespace Pile
 {
-	[Optimize,StaticInitPriority(PILE_SINIT_IMPL - 10)] // After impls
+#if !DEBUG
+	[Optimize]
+#endif
+	[StaticInitPriority(PILE_SINIT_IMPL - 10)] // After impls
 	static class Assets
 	{
 		static Packer packer = new Packer() ~ delete _;
@@ -386,13 +389,13 @@ namespace Pile
 
 		/// Use Packages for static assets, use this for ones you don't know at build time.
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
-		public static Result<Subtexture> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true)
+		public static Result<Subtexture> AddDynamicTextureAsset(StringView name, Bitmap bitmap, bool packAndUpdateTextures = true, TextureFilter textureFilter = Core.Defaults.TextureFilter)
 		{
 			Debug.Assert(Core.run);
 			Debug.Assert(name.Ptr != null);
 
 			// Add object in assets
-			let nameView = Try!(AddTextureAsset(name, bitmap, let asset));
+			let nameView = Try!(AddTextureAsset(name, bitmap, let asset, textureFilter));
 
 			// Add object location in dynamic lookup
 			if (!dynamicAssets.ContainsKey(typeof(Subtexture)))
@@ -466,7 +469,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset)
+		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset, TextureFilter textureFilter = Core.Defaults.TextureFilter)
 		{
 			Debug.Assert(Core.run);
 			Debug.Assert(name.Ptr != null);
@@ -483,7 +486,7 @@ namespace Pile
 			}
 
 			// Add to packer
-			packer.AddBitmap(nameString, bitmap);
+			packer.AddBitmap(nameString, bitmap, GetPackerFlag(textureFilter));
 
 			// Even if somebody decides to have their own asset type for subtextures like class Sprite { Subtexture subtex; }
 			// It's still good to store them here, because they would need to be in some lookup for updating on packer pack anyways
@@ -500,6 +503,15 @@ namespace Pile
 			assets.GetValue(type).Get().Add(nameString, asset); // Will be filled in on PackAndUpdate()
 
 			return .Ok(nameString);
+		}
+
+		internal static uint8 GetPackerFlag(TextureFilter textureFilter)
+		{
+			uint8 flag = 0;
+			if (textureFilter == .Linear)
+				flag = 1;
+
+			return flag;
 		}
 
 		internal static void RemoveAsset(Type type, StringView name)
@@ -571,10 +583,16 @@ namespace Pile
 			for (; i < output.Pages.Count; i++)
 			{
 				if (atlas.Count <= i)
-					atlas.Add(new Texture(output.Pages[[Unchecked]i]));
-				else atlas[[Unchecked]i].Set(output.Pages[[Unchecked]i]);
+					atlas.Add(new Texture(output.Pages[[Unchecked]i].page));
+				else atlas[[Unchecked]i].Set(output.Pages[[Unchecked]i].page);
 
-				delete output.Pages[[Unchecked]i];
+				// Configure based on page flags
+				let flags = output.Pages[[Unchecked]i].sortFlag;
+				if ((flags & 1) > 0)
+					atlas[[Unchecked]i].Filter = .Linear;
+				else atlas[[Unchecked]i].Filter = .Nearest;
+
+				delete output.Pages[[Unchecked]i].page;
 			}
 
 			// Delete unused textures from atlas

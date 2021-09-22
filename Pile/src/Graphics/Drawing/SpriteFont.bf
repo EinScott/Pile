@@ -103,7 +103,7 @@ namespace Pile
 
 			for (int i = 0; i < output.Pages.Count; i++)
 			{
-			    var texture = new Texture(output.Pages[i], filter, genMipmaps);
+			    var texture = new Texture(output.Pages[i].page, filter, genMipmaps);
 				tex[i] = texture;
 
 			    for (let entry in output.Entries.Values)
