@@ -263,7 +263,7 @@ namespace Pile
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer name at index {node.Importer} of file's importer name array; index out of range");
 
 				// Prepare data
-				let name = StringView((char8*)node.Name.CArray(), node.Name.Count);
+				let name = StringView((char8*)node.Name.Ptr, node.Name.Count);
 
 				if (importer.Load(name, node.Data) case .Err)
 					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}");

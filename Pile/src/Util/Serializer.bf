@@ -6,7 +6,7 @@ namespace Pile
 {
 	class Serializer
 	{
-		public Stream s;
+		public Stream underlyingStream;
 		bool err;
 
 		[Inline]
@@ -18,20 +18,20 @@ namespace Pile
 		public this(Stream s)
 		{
 			err = false;
-			this.s = s;
+			this.underlyingStream = s;
 			read = s.CanRead;
 			write = s.CanWrite;
 		}
 
 		public mixin Write(Span<uint8> span)
 		{
-			if (!this.write || this.s.Write(span) case .Err)
+			if (!this.write || this.underlyingStream.Write(span) case .Err)
 				this.err = true;
 		}
 
 		public mixin ReadInto(var span)
 		{
-			if (!this.read || !(this.s.TryRead((Span<uint8>)span) case .Ok(((Span<uint8>)span).Length)))
+			if (!this.read || !(this.underlyingStream.TryRead((Span<uint8>)span) case .Ok(((Span<uint8>)span).Length)))
 				this.err = true;
 			span
 		}
@@ -41,8 +41,9 @@ namespace Pile
 		{
 			var num;
 
+			uint8[] memory = scope uint8[sizeof(T)];
 			// Making this a span avoids array access checks
-			Span<uint8> data = scope:: uint8[sizeof(T)];
+			let data = memory.Ptr;
 
 			switch (sizeof(T))
 			{
@@ -73,7 +74,7 @@ namespace Pile
 				Debug.FatalError("Invalid read size");
 			}
 
-			if (!write || s.TryWrite(data) case .Err)
+			if (!write || underlyingStream.TryWrite(memory) case .Err)
 				err = true;
 		}
 
@@ -82,7 +83,7 @@ namespace Pile
 		{
 			T data = default;
 			let tSpan = Span<uint8>((uint8*)&data, sizeof(T));
-			if (!read || !(s.TryRead(tSpan) case .Ok(sizeof(T))))
+			if (!read || !(underlyingStream.TryRead(tSpan) case .Ok(sizeof(T))))
 				err = true;
 
 			T res = default;

@@ -109,7 +109,7 @@ namespace Pile
 			// Read file body
 			{
 				let ds = scope CompressionStream(fs, .Decompress);
-				sr.s = ds;
+				sr.underlyingStream = ds;
 
 				// Read importer names
 				let importerNameCount = sr.Read<uint32>();
@@ -200,7 +200,7 @@ namespace Pile
 			// Compress this block (main file content)
 			{
 				let cs = scope CompressionStream(fs, .BEST_SPEED);
-				sr.s = cs;
+				sr.underlyingStream = cs;
 	
 				// Write importer strings
 				sr.Write<uint32>((.)importerNames.Count);
@@ -230,7 +230,7 @@ namespace Pile
 			let size = fs.Position;
 			fs.Seek(4);
 
-			sr.s = fs;
+			sr.underlyingStream = fs;
 			sr.Write<uint32>((.)size);
 
 			if (sr.HadError)

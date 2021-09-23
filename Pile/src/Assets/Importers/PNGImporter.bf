@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Collections;
 
@@ -33,6 +34,7 @@ namespace Pile
 			if (PNG.Read(data, bitmap) case .Err)
 				return .Err;
 
+			Debug.Assert(sizeof(uint32) == sizeof(Color));
 			let s = scope ArrayStream((bitmap.Pixels.Count + 2) * sizeof(uint32));
 			let sr = scope Serializer(s);
 			
