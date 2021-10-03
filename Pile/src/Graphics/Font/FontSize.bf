@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 using stbtt;
 
 using internal Pile;
@@ -67,15 +68,16 @@ namespace Pile
 	            {
 	                int32 advance = 0, offsetX = 0, x0 = 0, y0 = 0, x1 = 0, y1 = 0;
 
-					stbtt.stbtt_GetGlyphHMetrics(font.fontInfo, glyph, &advance, &offsetX);
-					stbtt.stbtt_GetGlyphBitmapBox(font.fontInfo, glyph, Scale, Scale, &x0, &y0, &x1, &y1);
-
+					stbtt.stbtt_GetGlyphHMetrics(&font.fontInfo, glyph, &advance, &offsetX);
+					stbtt.stbtt_GetGlyphBitmapBox(&font.fontInfo, glyph, Scale, Scale, &x0, &y0, &x1, &y1);
+					
+					Debug.Assert((x1 - x0) >= 0 && (y1 - y0) >= 0);
 					uint32 w = (uint32)(x1 - x0);
 					uint32 h = (uint32)(y1 - y0);
 
 					// Define character
 					let ch = Character(unicode, glyph, w, h, advance * Scale, offsetX * Scale, y0,
-						(w > 0 && h > 0 && stbtt.stbtt_IsGlyphEmpty(font.fontInfo, glyph) == 0));
+						(w > 0 && h > 0 && !stbtt.stbtt_IsGlyphEmpty(&font.fontInfo, glyph)));
 
 					Charset.Add(unicode, ch);
 	            }
@@ -86,7 +88,7 @@ namespace Pile
 	    public float GetKerning(char32 unicode0, char32 unicode1)
 	    {
 	        if (Charset.TryGetValue(unicode0, let char0) && Charset.TryGetValue(unicode1, let char1))
-	        	return stbtt.stbtt_GetGlyphKernAdvance(Font.fontInfo, char0.Glyph, char1.Glyph) * Scale;
+	        	return stbtt.stbtt_GetGlyphKernAdvance(&Font.fontInfo, char0.Glyph, char1.Glyph) * Scale;
 
 	        return 0f;
 	    }
@@ -104,7 +106,7 @@ namespace Pile
                 // kinda weird but it works & saves creating more memory
 
                 var input = (uint8*)bitmap.Pixels.Ptr;
-                stbtt.stbtt_MakeGlyphBitmap(Font.fontInfo, input, (.)ch.Width, (.)ch.Height, (.)ch.Width, Scale, Scale, ch.Glyph);
+                stbtt.stbtt_MakeGlyphBitmap(&Font.fontInfo, input, (.)ch.Width, (.)ch.Height, (.)ch.Width, Scale, Scale, ch.Glyph);
 
                 for (int i = (.)(ch.Width * ch.Height - 1); i >= 0; i--)
                     bitmap.Pixels[i] = Color(input[i], input[i], input[i], input[i]);

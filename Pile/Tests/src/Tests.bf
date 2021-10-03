@@ -65,13 +65,15 @@ namespace Test
 			Test.Assert(ints.Count == 0);
 		}
 
-		[Test(ShouldFail=true)]
+		// This trips up the debugger every time (due to the Runtime assert in the indexer) and generally passes.
+		/*[Test(ShouldFail=true)]
 		static void TestCircularBufferFail()
 		{
 			CircularBuffer<int> ints = scope .(5) { 1, 2, 3 };
+
 #unwarn
 			let s = ints[5];
-		}
+		}*/
 
 		[Test]
 		static void TestCompression()
@@ -113,6 +115,55 @@ namespace Test
 			uint8[60] laterBit = .();
 			Test.Assert(dcom.TryRead(laterBit) case .Ok(60));
 			Test.Assert(StringView((.)&laterBit[0], 60) == ", I do lots of interesting stuff and it works totally fine. ");
+		}
+
+		[Test]
+		static void TestCompressionStreamBig()
+		{
+			const int TestCount = (int)uint16.MaxValue * 10000;
+			uint8[] compData = new .[TestCount];
+			defer delete compData;
+
+			int32 data = 0;
+			for (let i < compData.Count)
+			{
+				data += uint16.MaxValue;
+				data <<= 2;
+				data *= 3;
+				compData[[Unchecked]i] = *(uint8*)&data;
+			}
+			
+			MemoryStream mem = scope .();
+			{
+				CompressionStream comp = scope .(mem, .BEST_COMPRESSION);
+
+				comp.TryWrite(compData);
+			}
+
+			Test.Assert(mem.Position != 0);
+			Test.Assert(mem.Length != 0);
+			Debug.WriteLine(scope $"Compressed {TestCount} into {mem.Length} bytes");
+			mem.Position = 0;
+
+			uint8[] dcomData = new .[TestCount];
+			defer delete dcomData;
+			{
+
+				CompressionStream dcom = scope .(mem, .Decompress);
+				dcom.TryRead(dcomData);
+			}
+
+			uint8 expect = 0, real = 0;
+			var i = 0;
+			for (; i < compData.Count; i++)
+				if (compData[[Unchecked]i] != dcomData[[Unchecked]i])
+				{
+					expect = compData[i];
+					real = dcomData[i];
+					break;
+				}	
+
+			Test.Assert(i == compData.Count, scope $"{expect} != {real}");
 		}
 
 		[Test]

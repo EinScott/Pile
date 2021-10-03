@@ -117,8 +117,7 @@ namespace Pile
 				{
 					let importerNameLength = sr.Read<uint32>();
 
-					let nameString = new String(importerNameLength);
-					nameString.[Friend]mLength = (.)importerNameLength;
+					let nameString = new String(importerNameLength)..PrepareBuffer(importerNameLength);
 					sr.ReadInto!(Span<uint8>((uint8*)nameString.Ptr, importerNameLength));
 
 					importerNames.Add(nameString);

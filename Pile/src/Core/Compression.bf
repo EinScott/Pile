@@ -13,6 +13,8 @@ namespace Pile
 
 	class CompressionStream : Stream
 	{
+		const int MAX_DATA_LEN = uint32.MaxValue;
+
 		bool ownsStream;
 		CompressionLevel level;
 		CompressionMode mode;
@@ -118,16 +120,13 @@ namespace Pile
 			// next_in and avail_in are persistent and will be set when the buffer is refilled!
 			int dataOffset = 0;
 			mzStream.next_out = data.Ptr;
-			var availWrite = mzStream.avail_out = (.)Math.Min((int)uint32.MaxValue, data.Length);
+			var availWrite = mzStream.avail_out = (.)Math.Min(MAX_DATA_LEN, data.Length);
 
 			while (true)
 			{
 				if (mzStream.avail_in == 0)
 				{
 					bufferFill = (.)Try!(underlying.TryRead(.(buffer, bufferSize)));
-
-					/*if (bufferFill == 0)
-						return .Err;*/
 
 					mzStream.next_in = buffer;
 					mzStream.avail_in = bufferFill;
@@ -145,14 +144,14 @@ namespace Pile
 				else if (mzStream.avail_out == 0)
 				{
 					// Since we didn't return yet, that means we've just done a full pass
-					dataOffset += uint32.MaxValue;
+					dataOffset += MAX_DATA_LEN;
 
 					if (dataOffset >= data.Length) // We got everything we set out to get
 						return .Ok(data.Length);
 					else // We need more (unlikely)
 					{
 						mzStream.next_out = data.Ptr + dataOffset;
-						availWrite = mzStream.avail_out = (.)Math.Min((int)uint32.MaxValue, data.Length - dataOffset);
+						availWrite = mzStream.avail_out = (.)Math.Min(MAX_DATA_LEN, data.Length - dataOffset);
 					}
 				}
 			}
@@ -181,21 +180,21 @@ namespace Pile
 			// next_out and avail_out are persistent and will be set when the buffer is flushed!
 			int dataOffset = 0;
 			mzStream.next_in = data.Ptr;
-			mzStream.avail_in = (.)Math.Min((int)uint32.MaxValue, data.Length);
+			mzStream.avail_in = (.)Math.Min(MAX_DATA_LEN, data.Length);
 
 			while (true)
 			{
 				if (mzStream.avail_in == 0)
 				{
 					// Since we didn't return yet, that means we've just done a full pass
-					dataOffset += uint32.MaxValue;
+					dataOffset += MAX_DATA_LEN;
 
 					if (dataOffset >= data.Length) // We got everything we set out to get
 						return .Ok(data.Length);
 					else // We need more (unlikely)
 					{
 						mzStream.next_in = data.Ptr + dataOffset;
-						mzStream.avail_in = (.)Math.Min((int)uint32.MaxValue, data.Length - dataOffset);
+						mzStream.avail_in = (.)Math.Min(MAX_DATA_LEN, data.Length - dataOffset);
 					}
 				}
 
