@@ -125,7 +125,7 @@ namespace Pile
 	            Top,
 	            0, float.MaxValue);
 
-			inverse = TrySilent!(Matrix.Invert());
+			inverse = TrySilent!(matrix.Invert());
 	    }
 
 		public static explicit operator Matrix4x4(Camera2D cam) => cam.Matrix;
