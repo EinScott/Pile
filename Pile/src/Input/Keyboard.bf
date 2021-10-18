@@ -99,6 +99,7 @@ namespace Pile
 			return false;
 		}
 
+		[Inline]
 		public int64 Timestamp(Keys key)
 		{
 		    return timestamp[(int)key];

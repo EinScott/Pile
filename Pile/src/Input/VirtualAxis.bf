@@ -107,43 +107,40 @@ namespace Pile
 	    float GetValue(bool deadzone)
 	    {
 	        var value = 0f;
+			
+			switch (overlapBehaviour)
+			{
+			case .CancelOut:
+				for (var input in Nodes)
+				    value += input.Value(deadzone);
+				value = Math.Clamp(value, -1, 1);
+			case .TakeNewer:
+				var timestamp = 0d;
+				for (int i = 0; i < Nodes.Count; i++)
+				{
+				    var time = Nodes[i].Timestamp;
+				    var val = Nodes[i].Value(deadzone);
 
-	        if (overlapBehaviour == Overlaps.CancelOut)
-	        {
-	            for (var input in Nodes)
-	                value += input.Value(deadzone);
-	            value = Math.Clamp(value, -1, 1);
-	        }
-	        else if (overlapBehaviour == Overlaps.TakeNewer)
-	        {
-	            var timestamp = 0d;
-	            for (int i = 0; i < Nodes.Count; i++)
-	            {
-	                var time = Nodes[i].Timestamp;
-	                var val = Nodes[i].Value(deadzone);
+				    if (time > 0 && Math.Abs(val) > EPSILON && time > timestamp)
+				    {
+				        value = val;
+				        timestamp = time;
+				    }
+				}
+			case .TakeOlder:
+				var timestamp = double.MaxValue;
+				for (int i = 0; i < Nodes.Count; i++)
+				{
+				    var time = Nodes[i].Timestamp;
+				    var val = Nodes[i].Value(deadzone);
 
-	                if (time > 0 && Math.Abs(val) > EPSILON && time > timestamp)
-	                {
-	                    value = val;
-	                    timestamp = time;
-	                }
-	            }
-	        }
-	        else if (overlapBehaviour == Overlaps.TakeOlder)
-	        {
-	            var timestamp = double.MaxValue;
-	            for (int i = 0; i < Nodes.Count; i++)
-	            {
-	                var time = Nodes[i].Timestamp;
-	                var val = Nodes[i].Value(deadzone);
-
-	                if (time > 0 && Math.Abs(val) > EPSILON && time < timestamp)
-	                {
-	                    value = val;
-	                    timestamp = time;
-	                }
-	            }
-	        }
+				    if (time > 0 && Math.Abs(val) > EPSILON && time < timestamp)
+				    {
+				        value = val;
+				        timestamp = time;
+				    }
+				}
+			}
 
 	        return value;
 	    }

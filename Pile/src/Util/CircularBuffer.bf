@@ -61,13 +61,14 @@ namespace Pile
 			if (IsDynAlloc)
 			{
 				var items = mItems;
-#if BF_ENABLE_REALTIME_LEAK_CHECK
-				// To avoid scanning items being deleted
-				mItems = null;
-				Interlocked.Fence();
-#endif
 				Free(items);
 			}
+
+#if BF_ENABLE_REALTIME_LEAK_CHECK
+			// To avoid scanning items being deleted
+			mItems = null;
+			Interlocked.Fence();
+#endif
 		}
 
 		public T* Ptr
