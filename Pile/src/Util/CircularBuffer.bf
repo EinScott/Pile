@@ -146,6 +146,61 @@ namespace Pile
 			set => mItems[FromRelativeIndex(index)] = value;
 		}
 
+		public ref T this[Index index]
+		{
+			[Checked]
+			get
+			{
+				int idx;
+				switch (index)
+				{
+				case .FromFront(let offset): idx = offset;
+				case .FromEnd(let offset): idx = mSize - offset;
+				}
+
+				Runtime.Assert((uint)idx < (uint)mSize);
+				return ref mItems[FromRelativeIndex(idx)];
+			}
+
+			[Unchecked, Inline]
+			get
+			{
+				int idx;
+				switch (index)
+				{
+				case .FromFront(let offset): idx = offset;
+				case .FromEnd(let offset): idx = mSize - offset;
+				}
+				return ref mItems[FromRelativeIndex(idx)];
+			}
+
+			[Checked]
+			set
+			{
+				int idx;
+				switch (index)
+				{
+				case .FromFront(let offset): idx = offset;
+				case .FromEnd(let offset): idx = mSize - offset;
+				}
+
+				Runtime.Assert((uint)idx < (uint)mSize);
+				mItems[FromRelativeIndex(idx)] = value;
+			}
+
+			[Unchecked, Inline]
+			set
+			{
+				int idx;
+				switch (index)
+				{
+				case .FromFront(let offset): idx = offset;
+				case .FromEnd(let offset): idx = mSize - offset;
+				}
+				mItems[FromRelativeIndex(idx)] = value;
+			}
+		}
+
 		public ref T Front
 		{
 			get

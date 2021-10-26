@@ -38,10 +38,93 @@ namespace Pile
 
 		public T this[int index]
 		{
-			[Inline]
+			[Checked]
+			get
+			{
+				Runtime.Assert((uint)index < (uint)mLength);
+				return mPtr[index];
+			}
+
+			[Unchecked,Inline]
 		    get
 			{
 				return mPtr[index];
+			}
+		}
+
+		public T this[Index index]
+		{
+			[Checked]
+			get
+			{
+				int idx;
+				switch (index)
+				{
+				case .FromFront(let offset): idx = offset;
+				case .FromEnd(let offset): idx = mLength - offset;
+				}
+
+				Runtime.Assert((uint)idx < (uint)mLength);
+				return mPtr[idx];
+			}
+
+			[Unchecked,Inline]
+			get
+			{
+				int idx;
+				switch (index)
+				{
+				case .FromFront(let offset): idx = offset;
+				case .FromEnd(let offset): idx = mLength - offset;
+				}
+				return mPtr[idx];
+			}
+		}
+
+		public ReadOnlySpan<T> this[IndexRange range]
+		{
+#if !DEBUG
+			[Inline]
+#endif
+			get
+			{
+				T* start;
+				switch (range.[Friend]mStart)
+				{
+				case .FromFront(let offset):
+					Debug.Assert((uint)offset <= (uint)mLength);
+					start = mPtr + offset;
+				case .FromEnd(let offset):
+					Debug.Assert((uint)offset <= (uint)mLength);
+					start = mPtr + mLength - offset;
+				}
+				T* end;
+				if (range.[Friend]mIsClosed)
+				{
+					switch (range.[Friend]mEnd)
+					{
+					case .FromFront(let offset):
+						Debug.Assert((uint)offset < (uint)mLength);
+						end = mPtr + offset + 1;
+					case .FromEnd(let offset):
+						Debug.Assert((uint)(offset - 1) <= (uint)mLength);
+						end = mPtr + mLength - offset + 1;
+					}
+				}
+				else
+				{
+					switch (range.[Friend]mEnd)
+					{
+					case .FromFront(let offset):
+						Debug.Assert((uint)offset <= (uint)mLength);
+						end = mPtr + offset;
+					case .FromEnd(let offset):
+						Debug.Assert((uint)offset <= (uint)mLength);
+						end = mPtr + mLength - offset;
+					}
+				}
+
+				return .(start, end - start);
 			}
 		}
 

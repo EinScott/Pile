@@ -32,6 +32,12 @@ namespace Pile
 		public T this[int index] => underlying[index];
 
 		[Inline]
+		public T this[Index index] => underlying[index];
+
+		[Inline]
+		public ReadOnlySpan<T> this[IndexRange range] => underlying[range];
+
+		[Inline]
 		public T Front => underlying.Front;
 
 		[Inline]
