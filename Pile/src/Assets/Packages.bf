@@ -519,7 +519,7 @@ namespace Pile
 
 						// Check if name already exists
 						if (duplicateNameLookup.Contains(scope String(name)..ToLower()))
-							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath}: Entry with name {name} has already been imported. Consider using \"name_prefix\". Note that names are compared with OrdinalIgnoreCase");
+							LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error importing file at {filePath}: Entry with name {name} has already been imported.\n\tConsider using \"name_prefix\". Note that names are compared with OrdinalIgnoreCase. Alternatively consider changing the package's \"path\" to exclude that file");
 
 						// If some file changed AND (we do a full build OR this file is in the to import list) => we need to import this (again)
 						if (somethingChanged && (!patchBuild || importPaths.Contains(filePath)))

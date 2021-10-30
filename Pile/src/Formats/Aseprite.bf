@@ -33,7 +33,8 @@ namespace Pile
 	        FrameTags = 0x2018,
 	        Palette = 0x2019,
 	        UserData = 0x2020,
-	        Slice = 0x2022
+	        Slice = 0x2022,
+			//Tileset = 0x2023 TODO
 	    }
 
 	    public Modes Mode { get; private set; }

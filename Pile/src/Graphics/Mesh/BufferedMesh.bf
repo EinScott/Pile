@@ -96,7 +96,7 @@ namespace Pile
 				if (reserved != buffer.Count)
 				{
 					let newBuf = new T[reserved];
-					Internal.MemCpy(newBuf.Ptr, buffer.Ptr, (.)bufferFill * sizeof(T));
+					Internal.MemMove(newBuf.Ptr, buffer.Ptr, (.)bufferFill * sizeof(T));
 					delete buffer;
 					buffer = newBuf;
 				}

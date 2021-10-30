@@ -73,6 +73,7 @@ namespace Pile
 
 		public T* Ptr
 		{
+			[Inline]
 			get
 			{
 				return mItems;
@@ -95,6 +96,7 @@ namespace Pile
 
 		public int Count
 		{
+			[Inline]
 			get
 			{
 				return mSize;
@@ -103,6 +105,7 @@ namespace Pile
 
 		public bool IsEmpty
 		{
+			[Inline]
 			get
 			{
 				return mSize == 0;
@@ -111,6 +114,7 @@ namespace Pile
 
 		public bool IsFull
 		{
+			[Inline]
 			get
 			{
 				return mSize == (mAllocSizeAndFlags & SizeFlags);
@@ -134,16 +138,6 @@ namespace Pile
 
 			[Unchecked, Inline]
 			get => ref mItems[FromRelativeIndex(index)];
-
-			[Checked]
-			set
-			{
-				Runtime.Assert((uint)index < (uint)mSize);
-				mItems[FromRelativeIndex(index)] = value;
-			}
-
-			[Unchecked, Inline]
-			set => mItems[FromRelativeIndex(index)] = value;
 		}
 
 		public ref T this[Index index]
@@ -172,32 +166,6 @@ namespace Pile
 				case .FromEnd(let offset): idx = mSize - offset;
 				}
 				return ref mItems[FromRelativeIndex(idx)];
-			}
-
-			[Checked]
-			set
-			{
-				int idx;
-				switch (index)
-				{
-				case .FromFront(let offset): idx = offset;
-				case .FromEnd(let offset): idx = mSize - offset;
-				}
-
-				Runtime.Assert((uint)idx < (uint)mSize);
-				mItems[FromRelativeIndex(idx)] = value;
-			}
-
-			[Unchecked, Inline]
-			set
-			{
-				int idx;
-				switch (index)
-				{
-				case .FromFront(let offset): idx = offset;
-				case .FromEnd(let offset): idx = mSize - offset;
-				}
-				mItems[FromRelativeIndex(idx)] = value;
 			}
 		}
 

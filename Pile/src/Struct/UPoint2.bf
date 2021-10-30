@@ -138,8 +138,8 @@ namespace Pile
 		public static Point2 operator*(int b, UPoint2 a) => Point2((int)a.X * b, (int)a.Y * b);
 		public static Point2 operator/(UPoint2 a, int b) => Point2((int)a.X / b, (int)a.Y / b);
 
-		public static Point2 operator*(UPoint2 a, UPoint2 b) => UPoint2(a.X * b.X, a.Y * b.Y);
-		public static Point2 operator/(UPoint2 a, UPoint2 b) => UPoint2(a.X / b.Y, a.Y / b.Y);
+		public static UPoint2 operator*(UPoint2 a, UPoint2 b) => UPoint2(a.X * b.X, a.Y * b.Y);
+		public static UPoint2 operator/(UPoint2 a, UPoint2 b) => UPoint2(a.X / b.Y, a.Y / b.Y);
 
 		public static Point2 operator-(UPoint2 a) => Point2(-(int)a.X, -(int)a.Y);
 	}
