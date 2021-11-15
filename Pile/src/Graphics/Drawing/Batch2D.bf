@@ -781,10 +781,10 @@ namespace Pile
 
 		    if (tex != null)
 		    {
-		        tx0 = source.Left / tex.Width;
-		        ty0 = source.Top / tex.Height;
-		        tx1 = source.Right / tex.Width;
-		        ty1 = source.Bottom / tex.Height;
+		        tx0 = (float)source.Left / tex.Width;
+		        ty0 = (float)source.Top / tex.Height;
+		        tx1 = (float)source.Right / tex.Width;
+		        ty1 = (float)source.Bottom / tex.Height;
 		    }
 
 		    SetTexture(subtex.Texture);
