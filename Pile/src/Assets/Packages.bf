@@ -503,6 +503,12 @@ namespace Pile
 					if (!somethingChanged && importPaths.Count > 0)
 						somethingChanged = true;
 
+					// The following loop might return, do defer this here so it really deletes the strings in any case!
+					defer
+					{
+						ClearAndDeleteItems!(includePaths);
+					}
+
 					// Import all files found for this import statement with this importer
 					bool importerUsed = false;
 					let config = scope List<StringView>();
@@ -593,7 +599,6 @@ namespace Pile
 						// Add name data interpreted as string back to duplicate lookup in any case
 						duplicateNameLookup.Add(scope:BUILD String(name)..ToLower());
 					}
-					ClearAndDeleteItems!(includePaths);
 					importPaths.Clear();
 
 					if (importerUsed && currentImporter == importerNames.Count) // The importer doesnt already have an index

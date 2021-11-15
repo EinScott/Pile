@@ -8,6 +8,9 @@ namespace Pile
 	    Matrix4x4 inverse;
 		bool dirty = true;
 
+		[Inline]
+		public Rect CameraRect => .(point, viewport);
+
 	    public Matrix4x4 Matrix
 	    {
 	        get
