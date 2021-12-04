@@ -590,6 +590,8 @@ namespace Pile
 		{
 		    if (t > 0)
 		    {
+				Debug.Assert(rect.Width >= 0 && rect.Height >= 0);
+
 		        let tx = Math.Min(t, rect.Width / 2f);
 		        let ty = Math.Min(t, rect.Height / 2f);
 
@@ -604,6 +606,8 @@ namespace Pile
 		{
 		    if (t > 0)
 		    {
+				Debug.Assert(width >= 0 && height >= 0);
+
 		        let tx = Math.Min(t, width / 2f);
 		        let ty = Math.Min(t, height / 2f);
 

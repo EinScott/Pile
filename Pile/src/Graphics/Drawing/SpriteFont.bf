@@ -194,6 +194,90 @@ namespace Pile
 		    return Vector2(WidthOf(text), HeightOf(text));
 		}
 
+		/// Will return a StringView that is either the full line (end or before first line break) or a sub-string of it that fits the given width
+		public StringView SubstringLineByWidth(StringView text, float width, bool trimAtSpace = true)
+		{
+		    var countWidth = 0f;
+
+		    for (int i = 0; i < text.Length; i++)
+		    {
+				// Get char
+				let res = text.GetChar32(i);
+				if (res.1 == 0) // .1 is length
+					continue;
+				
+				i += (res.1) - 1;
+				let char = res.0;
+
+		        if (char == '\n')
+		        {
+					// End of line reached, return it
+		            return StringView(text.Ptr, i); // Do not include \n
+		        }
+
+		        if (!Charset.TryGetValue(char, let ch))
+		            continue;
+
+				if (countWidth + ch.Advance > width)
+				{
+					// Trim it
+					if (trimAtSpace)
+					{
+						for (int j = i; j >= 0; j--)
+							if (text[j].IsWhiteSpace)
+								return StringView(text.Ptr, i); // Do not include space
+					}
+
+					// As a fallback for when there is no way to trim, or just when we don't trim, simply cut here
+					return StringView(text.Ptr, i); // Do not include this character that goes beyond width
+				}
+		        else countWidth += ch.Advance;
+		    }
+
+			// Full text fits (and is one line)
+			return text;
+		}
+
+		/// Will return a StringView that is either the full line (start or after last line break) or a sub-string of it that fits the given width
+		public StringView SubstringLineByWidthFromEnd(StringView text, float width)
+		{
+		    var countWidth = 0f;
+
+		    for (int i = text.Length - 1; i >= 0; i--)
+		    {
+				// Get char
+				let res = text.GetChar32(i);
+				if (res.1 == 0) // in this case, the char is probably part of a larger code point in later / "earlier" chars
+					continue;
+				
+				let char = res.0;
+
+		        if (char == '\n')
+		        {
+					if (i == text.Length)
+						return StringView(&text[i], 0); // String ends with \n...
+
+					// End of prev line reached, return
+		            return StringView(&text[i + 1], text.Length - i - 1); // Do not include \n
+		        }
+
+		        if (!Charset.TryGetValue(char, let ch))
+		            continue;
+
+				if (countWidth + ch.Advance > width)
+				{
+					if (i == text.Length)
+						return StringView(&text[i], 0); // String is instantly too wide
+
+					return StringView(&text[i + 1], text.Length - i - 1); // Do not include this character that goes beyond width
+				}
+		        else countWidth += ch.Advance;
+		    }
+
+			// Full text fits (and is one line)
+			return text;
+		}
+
 		/// Returns the height of the text when rendered, text will be modified
 		public float WrapText(String text, float wrapWidth, String splitStr = "\n")
 		{

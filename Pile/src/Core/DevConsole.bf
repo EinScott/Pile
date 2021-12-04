@@ -31,6 +31,9 @@ namespace Pile
 		static String autoComplete;
 		static float backDelay;
 
+		public static Keys FocusKey = .Escape;
+		static bool focus;
+
 		static this()
 		{
 #if DEBUG
@@ -65,8 +68,22 @@ namespace Pile
 #if !DEBUG
 		[SkipCall]
 #endif
+		public static void ForceFocus(bool value = true)
+		{
+			focus = value;
+		}
+
+#if !DEBUG
+		[SkipCall]
+#endif
 		public static void Update()
 		{
+			if (Input.Keyboard.Pressed(FocusKey))
+				focus = !focus;
+
+			if (!focus)
+				return;
+
 #if DEBUG
 			// Typed text
 			for (let char in Input.Keyboard.Text.DecodedChars)
@@ -232,17 +249,23 @@ namespace Pile
 			// Input box
 			let textMargin = (edgeMargin / 4) * scale;
 			let lineHeight = (int)(font.LineHeight * textScale);
-			let inputBox = Rect(rect.Position + .(0, rect.Size.Y - (lineHeight + textMargin)), Point2(rect.Size.X, lineHeight  + (edgeMargin / 2) * scale));
+			let inputBox = Rect(rect.Position + .(0, rect.Height - (lineHeight + textMargin)), Point2(rect.Width, lineHeight  + (edgeMargin / 2) * scale));
 			batch.Rect(inputBox, .Black * 0.8f);
 
 			// Input line
 			{
-				let linePos = rect.Position + .(textMargin, rect.Size.Y - lineHeight);
-				batch.Text(font, scope $"> {inputLine}", linePos, Vector2(textScale), .One, 0); // TODO: limit input text, or render only last part?
+				let linePos = rect.Position + .(textMargin, rect.Height - lineHeight);
+				let inputWidth = font.WidthOf("> ") * textScale;
+				let showInput = font.SubstringLineByWidthFromEnd(inputLine, (rect.Width - textMargin * 2) / textScale - inputWidth);
+
+				if (focus)
+					batch.Text(font, showInput.Length != inputLine.Length ? ">|" : "> ", linePos, Vector2(textScale), .One, 0);
+				if (inputLine.Length > 0)
+					batch.Text(font, showInput, linePos + .((.)inputWidth, 0), Vector2(textScale), .One, 0, focus ? .White : .LightGray);
 			}
 
 			var logPos = inputBox.Position + .(textMargin, -(edgeMargin));
-			let logWidth = inputBox.Size.X - (textMargin * 2);
+			let logWidth = inputBox.Width - (textMargin * 2);
 
 			do if (diagnosticLine.Length > 0 || autoComplete.Length > 0)
 			{
