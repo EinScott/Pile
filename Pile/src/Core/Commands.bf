@@ -946,7 +946,6 @@ namespace Pile
 									data.type = .SignedInt;
 									data.signedInt = num;
 								}
-								
 							}
 						}
 					}

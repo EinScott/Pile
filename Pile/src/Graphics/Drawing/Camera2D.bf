@@ -9,7 +9,7 @@ namespace Pile
 		bool dirty = true;
 
 		[Inline]
-		public Rect CameraRect => .(point, viewport);
+		public Rect CameraRect => .(point - viewport / 2, viewport);
 
 	    public Matrix4x4 Matrix
 	    {
