@@ -97,8 +97,11 @@ namespace Pile
 		internal static Event<Action> OnSwap = .() ~ _.Dispose();
 
 		static String title = new .() ~ delete _;
-		static Game Game;
+		static Game game;
 		static Game swapGame;
+
+		[Inline]
+		public static Game Game => game;
 
 		[Inline]
 		public static StringView Title => title;
@@ -161,20 +164,20 @@ namespace Pile
 				OnInit();
 
 			// Prepare for running game
-			Game = config.createGame();
-			Debug.AssertNotStack(Game);
-			Debug.Assert(Game != null, "Game cannot be null");
-			Game.[Friend]Startup();
+			game = config.createGame();
+			Debug.AssertNotStack(game);
+			Debug.Assert(game != null, "Game cannot be null");
+			game.[Friend]Startup();
 
 			System.Window.Visible = true;
 
 			coreLoop();
 
 			// Shutdown game
-			Game.[Friend]Shutdown();
+			game.[Friend]Shutdown();
 
 			// Destroy
-			delete Game;
+			delete game;
 
 			if (OnDestroy.HasListeners)
 				OnDestroy();
@@ -237,12 +240,12 @@ namespace Pile
 
 					if (swapGame != null)
 					{
-						Game.[Friend]Shutdown();
-						delete Game;
+						game.[Friend]Shutdown();
+						delete game;
 
-						Game = swapGame;
+						game = swapGame;
 						swapGame = null;
-						Game.[Friend]Startup();
+						game.[Friend]Startup();
 
 						if (OnSwap.HasListeners)
 							OnSwap();
@@ -255,8 +258,8 @@ namespace Pile
 						Time.delta = Time.rawDelta * Time.Scale;
 
 						// Update game
-						Game.[Friend]Step();
-						Game.[Friend]Update();
+						game.[Friend]Step();
+						game.[Friend]Update();
 					}
 					else
 					{
@@ -264,7 +267,7 @@ namespace Pile
 						Time.freeze -= Time.rawDelta;
 
 						Time.delta = 0;
-						Game.[Friend]Step();
+						game.[Friend]Step();
 
 						if (Time.freeze <= float.Epsilon)
 						{
@@ -385,7 +388,7 @@ namespace Pile
 		[Inline]
 		internal static void WindowRender()
 		{
-			Game.[Friend]Render();
+			game.[Friend]Render();
 			Graphics.AfterRender();
 		}
 	}
