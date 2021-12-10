@@ -381,6 +381,11 @@ namespace Pile
 							if (passedParams.Count == 0 && bestMatchParamCount == int.MaxValue && m.ParamCount < suggestedParamCount)
 							{
 								let fn = m.Name;
+
+								// Only suggest function that could still match by adding more chars
+								if (fn.Length < name.Length)
+									continue;
+
 								NAMECHECK:do
 								{
 									for (let n < name.Length)
