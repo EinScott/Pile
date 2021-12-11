@@ -272,7 +272,6 @@ namespace Pile
 	static class Compression
 	{
 		const int CHUNK_SIZE = int32.MaxValue;
-		// TODO: use way more streams in the packages pipeline! (a bit off-topic in this file)
 
 		public static int CompressionBound(int sourceLength)
 		{
