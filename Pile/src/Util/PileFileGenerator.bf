@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Pile.Util
+namespace Pile
 {
 	class PileFileGenerator : Compiler.Generator
 	{
@@ -27,6 +27,7 @@ namespace Pile.Util
 					"""
 					using System;
 					using Pile;
+
 
 					""");
 
