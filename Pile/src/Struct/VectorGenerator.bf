@@ -5,6 +5,23 @@ namespace Pile
 {
 	class CodeFormatHelper
 	{
+		public struct FormatBlockEnd : IDisposable
+		{
+			CodeFormatHelper f;
+
+			[Inline]
+			public this(CodeFormatHelper format)
+			{
+				f = format;
+			}
+
+			[Inline]
+			public void Dispose()
+			{
+				f.End();
+			}
+		}
+
 		int tabDepth;
 		String outStr;
 
@@ -37,21 +54,25 @@ namespace Pile
 			TabTap();
 		}
 
-		public void Start(StringView declaringLine)
+		public FormatBlockEnd Start(StringView declaringLine)
 		{
 			NewLine();
 			outStr.Append(declaringLine);
 			NewLine();
 			outStr.Append('{');
 			TabPush();
+
+			return .(this);
 		}
 
 		// Also useful for when you need to compose the declaring line through many calls, then just call this in the end
-		public void Block()
+		public FormatBlockEnd Block()
 		{
 			NewLine();
 			outStr.Append('{');
 			TabPush();
+
+			return .(this);
 		}
 
 		public void End()
@@ -110,9 +131,13 @@ namespace Pile
 			}
 
 			let typeName = mParams["type"];
-			let floatingTypeName = mParams["ftype"];
+			var floatingTypeName = mParams["ftype"];
 			let intType = mParams["itype"];
 			let conversion = mParams["conversions"];
+
+			// Double vector type cannot have float as floating type!
+			if (typeName == "double" && floatingTypeName != typeName)
+				floatingTypeName = "double";
 
 			f.Put("using System;");
 			f.NewLine();
@@ -179,23 +204,23 @@ namespace Pile
 			f.NewLine();
 
 			// Constructors
-			f.Start("public this()");
-			f.Put("this = default;");
-			f.End();
+			using (f.Start("public this()"))
+				f.Put("this = default;");
 
 			f.NewLine();
 
-			f.Start(scope $"public this({typeName} all)");
-			if (componentCount <= 4)
+			using (f.Start(scope $"public this({typeName} all)"))
 			{
-				for (let compIdx < componentCount)
-					f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)} = all;");
+				if (componentCount <= 4)
+				{
+					for (let compIdx < componentCount)
+						f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)} = all;");
+				}
+				else
+				{
+					f.Put(scope $"Internal.MemSet(&components[0], all, {componentCount});");
+				}
 			}
-			else
-			{
-				f.Put(scope $"Internal.MemSet(&components[0], all, {componentCount});");
-			}
-			f.End();
 
 			f.NewLine();
 
@@ -203,11 +228,10 @@ namespace Pile
 			for (let compIdx < componentCount)
 				outText.Append(scope $"{typeName} {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()}, ");
 			outText..RemoveFromEnd(2).Append(')');
-			f.Block();
-			for (let compIdx < componentCount)
-				f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)} = {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()};");
-			f.End();
-
+			using (f.Block())
+				for (let compIdx < componentCount)
+					f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)} = {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()};");
+			
 			f.NewLine();
 
 			// Getter properties
@@ -235,49 +259,67 @@ namespace Pile
 
 			f.NewLine();
 
-			// Interface functions
+			// Interface Methods
 			f.Put("[Inline]");
 			f.Put("public bool Equals(Self o) => o == this;");
 
 			f.NewLine();
 
-			f.Start("public override void ToString(String strBuffer)");
-			f.Put("strBuffer.Append(\"[ \");");
-			for (let compIdx < componentCount)
+			using (f.Start("public override void ToString(String strBuffer)"))
 			{
-				f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)}.ToString(strBuffer);");
-				if (compIdx + 1 < componentCount)
-					f.Put("strBuffer.Append(\", \");");
+				f.Put("strBuffer.Append(\"[ \");");
+				for (let compIdx < componentCount)
+				{
+					f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)}.ToString(strBuffer);");
+					if (compIdx + 1 < componentCount)
+						f.Put("strBuffer.Append(\", \");");
+				}
+				f.Put("strBuffer.Append(\" ]\");");
 			}
-			f.Put("strBuffer.Append(\" ]\");");
-			f.End();
 
 			f.NewLine();
 
-			f.Start("public void ToString(String outString, String format, IFormatProvider formatProvider)");
-			f.Put("outString.Append(\"[ \");");
-			for (let compIdx < componentCount)
+			using (f.Start("public void ToString(String outString, String format, IFormatProvider formatProvider)"))
 			{
-				f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)}.ToString(outString, format, formatProvider);");
-				if (compIdx + 1 < componentCount)
-					f.Put("outString.Append(\", \");");
+				f.Put("outString.Append(\"[ \");");
+				for (let compIdx < componentCount)
+				{
+					f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)}.ToString(outString, format, formatProvider);");
+					if (compIdx + 1 < componentCount)
+						f.Put("outString.Append(\", \");");
+				}
+				f.Put("outString.Append(\" ]\");");
 			}
-			f.Put("outString.Append(\" ]\");");
-			f.End();
 
 			f.NewLine();
 
-			// Functions
+			// Methods
+			f.Put("/// Returns the Euclidean distance between the two given points.");
+			f.Put("[Inline]");
+			using (f.Start(scope $"public {floatingTypeName} DistanceTo(Self other)"))
+				f.Put("return (this - other).Length;");
+
+			f.NewLine();
+
+			f.Put("/// Returns the Euclidean distance between the two given points squared.");
+			f.Put("[Inline]");
+			using (f.Start(scope $"public {floatingTypeName} DistanceTo(Self other)"))
+				f.Put("return (this - other).LengthSquared;");
+
+			f.NewLine();
+
+			// Static Methods
 			if ((typeName == "float" || typeName == "double") && intType != "")
 			{
 				f.Put("/// Rounds the vector to a point.");
 				f.Put("[Inline]");
-				f.Start(scope $"public {intType} Round()");
-				f.Put("return .(");
-				for (let compIdx < componentCount)
-					outText.Append(scope $"(int)Math.Round({GetComponentField(.. scope .(), compIdx, componentCount)}), ");
-				outText..RemoveFromEnd(2).Append(");");
-				f.End();
+				using (f.Start(scope $"public static {intType} Round()"))
+				{
+					f.Put("return .(");
+					for (let compIdx < componentCount)
+						outText.Append(scope $"(int)Math.Round({GetComponentField(.. scope .(), compIdx, componentCount)}), ");
+					outText..RemoveFromEnd(2).Append(");");
+				}
 
 				f.NewLine();
 			}
@@ -285,109 +327,132 @@ namespace Pile
 			f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
 			f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
 			f.Put("[Inline]");
-			f.Start("public Self Normalize()");
-			f.Put("// Normalizing a zero vector is not possible and will return NaN.");
-			f.Put("// We ignore this in favor of not NaN-ing vectors.");
-			f.NewLine();
-			f.Put("return this == .Zero ? .Zero : this / Length;");
-			f.End();
+			using (f.Start("public static Self Normalize()"))
+			{
+				f.Put("// Normalizing a zero vector is not possible and will return NaN.");
+				f.Put("// We ignore this in favor of not NaN-ing vectors.");
+				f.NewLine();
+				f.Put("return this == .Zero ? .Zero : this / Length;");
+			}
 
 			f.NewLine();
 
 			f.Put("/// Returns the dot product of two vectors.");
 			f.Put("[Inline]");
-			f.Start(scope $"public static {floatingTypeName} Dot(Self value1, Self value2)");
-			f.Put("return ");
-			for (let compIdx < componentCount)
+			using (f.Start(scope $"public static {floatingTypeName} Dot(Self value1, Self value2)"))
 			{
-				let field = GetComponentField(.. scope .(), compIdx, componentCount);
-				outText.Append(scope $"value1.{field} * value2.{field} + ");
+				f.Put("return ");
+				for (let compIdx < componentCount)
+				{
+					let field = GetComponentField(.. scope .(), compIdx, componentCount);
+					outText.Append(scope $"value1.{field} * value2.{field} + ");
+				}
+				outText..RemoveFromEnd(3).Append(';');
 			}
-			outText..RemoveFromEnd(3).Append(';');
-			f.End();
 
 			f.NewLine();
+
+			if (componentCount == 2)
+			{
+				f.Put("/// Returns the angle of the vector.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public static {floatingTypeName} Angle(Self vec)"))
+				{
+					// Names of components are guaranteed
+					f.Put("return Math.Atan2(vec.Y, vec.X);");
+				}
+
+				f.NewLine();
+
+				f.Put("/// Returns the angle betweem two vectors.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public static {floatingTypeName} Angle(Self from, Self to)"))
+					f.Put("return Math.Atan2(to.Y - from.Y, to.X - from.X);");
+
+				f.NewLine();
+
+				f.Put("/// Constructs a vector from a given angle and a length.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public static Self AngleToVector({floatingTypeName} angle, {floatingTypeName} length = 1)"))
+					f.Put("return .(Math.Cos(angle) * length, Math.Sin(angle) * length);");
+
+				f.NewLine();
+			}
 			
 			f.Put("/// Returns the Euclidean distance between the two given points.");
 			f.Put("[Inline]");
-			f.Start(scope $"public static {floatingTypeName} Distance(Self value1, Self value2)");
-			f.Put("return (value1 - value2).Length;");
-			f.End();
+			using (f.Start(scope $"public static {floatingTypeName} Distance(Self value1, Self value2)"))
+				f.Put("return (value1 - value2).Length;");
 
 			f.NewLine();
 
 			f.Put("/// Returns the Euclidean distance between the two given points squared.");
 			f.Put("[Inline]");
-			f.Start(scope $"public static {floatingTypeName} Distance(Self value1, Self value2)");
-			f.Put("return (value1 - value2).LengthSquared;");
-			f.End();
-
-			f.NewLine();
-
-			f.Put("/// Returns the Euclidean distance between the two given points.");
-			f.Put("[Inline]");
-			f.Start(scope $"public {floatingTypeName} DistanceTo(Self other)");
-			f.Put("return (this - other).Length;");
-			f.End();
-
-			f.NewLine();
-
-			f.Put("/// Returns the Euclidean distance between the two given points squared.");
-			f.Put("[Inline]");
-			f.Start(scope $"public {floatingTypeName} DistanceTo(Self other)");
-			f.Put("return (this - other).LengthSquared;");
-			f.End();
+			using (f.Start(scope $"public static {floatingTypeName} Distance(Self value1, Self value2)"))
+				f.Put("return (value1 - value2).LengthSquared;");
 
 			f.NewLine();
 
 			f.Put("/// Returns the reflection of a vector off a surface that has the specified normal.");
 			f.Put("[Inline]");
-			f.Start("public static Self Reflect(Self vector, Self normal)");
-			f.Put("return vector - (normal * 2 * Self.Dot(vector, normal));");
-			f.End();
+			using (f.Start("public static Self Reflect(Self vector, Self normal)"))
+				f.Put("return vector - (normal * 2 * Self.Dot(vector, normal));");
 
 			f.NewLine();
 
 			f.Put("/// Restricts a vector between a min and max value.");
-			f.Start("public static Self Clamp(Self value1, Self min, Self max)");
-			for (let compIdx < componentCount)
+			using (f.Start("public static Self Clamp(Self value1, Self min, Self max)"))
 			{
-				let field = GetComponentField(.. scope .(), compIdx, componentCount);
-				let fieldName = GetComponentName(.. scope .(), compIdx, componentCount)..ToLower();
-				f.Put(scope $"var {fieldName} = value1.{field};");
-				f.Put(scope $"{fieldName} = ({fieldName} > max.{field}) ? max.{field} : {fieldName};");
-				f.Put(scope $"{fieldName} = ({fieldName} < min.{field}) ? min.{field} : {fieldName};");
-				f.NewLine();
+				for (let compIdx < componentCount)
+				{
+					let field = GetComponentField(.. scope .(), compIdx, componentCount);
+					let fieldName = GetComponentName(.. scope .(), compIdx, componentCount)..ToLower();
+					f.Put(scope $"var {fieldName} = value1.{field};");
+					f.Put(scope $"{fieldName} = ({fieldName} > max.{field}) ? max.{field} : {fieldName};");
+					f.Put(scope $"{fieldName} = ({fieldName} < min.{field}) ? min.{field} : {fieldName};");
+					f.NewLine();
+				}
+				f.Put("return .(");
+				for (let compIdx < componentCount)
+					outText..Append(GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()).Append(", ");
+				outText..RemoveFromEnd(2).Append(");");
 			}
-			f.Put("return .(");
-			for (let compIdx < componentCount)
-				outText..Append(GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()).Append(", ");
-			outText..RemoveFromEnd(2).Append(");");
-			f.End();
 
 			f.NewLine();
 
 			f.Put("/// Linearly interpolates between two vectors based on the given weighting.");
-			f.Start(scope $"public static Self Lerp(Self a, Self b, {floatingTypeName} amount)");
-			f.Put("return .(");
-			for (let compIdx < componentCount)
+			using (f.Start(scope $"public static Self Lerp(Self a, Self b, {floatingTypeName} amount)"))
 			{
-				let field = GetComponentField(.. scope .(), compIdx, componentCount);
-				outText.Append(scope $"a.{field} + (b.{field} - a.{field}) * amount, ");
+				f.Put("return .(");
+				for (let compIdx < componentCount)
+				{
+					let field = GetComponentField(.. scope .(), compIdx, componentCount);
+					outText.Append(scope $"a.{field} + (b.{field} - a.{field}) * amount, ");
+				}
+				outText..RemoveFromEnd(2).Append(");");
 			}
-			outText..RemoveFromEnd(2).Append(");");
-			f.End();
 
 			f.NewLine();
 
 			f.Put("/// Approaches the target vector by a constant given amount.");
-			f.Start("");
-			f.End();
+			using (f.Start(scope $"public static Self Approach(Self from, Self target, {floatingTypeName} amount)"))
+			{
+				using (f.Start("if (from == target)"))
+					f.Put("return target;");
+				using (f.Start("else"))
+				{
+					f.Put("let diff = target - from;");
+					using (f.Start("if (diff.Length <= amount * amount)"))
+						f.Put("return target;");
+					using (f.Start("else"))
+						f.Put("return from + Self.Normalize(diff) * amount;");
+				}
+			}
 
-			// ANGLE (to vec)
+			f.NewLine();
+
 			// max min abs sqrt
 			// transform
-			// clamp, lerp, approach
 
 			f.End();
 			f.End();
