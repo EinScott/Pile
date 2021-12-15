@@ -82,7 +82,7 @@ namespace Pile
 		// Used for Log/info only (to better trace back/ignore issues and bugs base on error logs).
 		// '.Minor' should be incremented for changes incompatible with older versions.
 		// '.Major' is incremented at milestones or big changes.
-		public static readonly Version Version = .(2, 3);
+		public static readonly Version Version = .(2, 4);
 
 		internal static bool run;
 		static bool exiting;

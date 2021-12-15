@@ -152,7 +152,7 @@ namespace Pile
 		{
 		    Vector2 move = (position - Position) * ease;
 		    if (move.LengthSquared > maxDistance * maxDistance)
-		        Position += move.Normalize() * maxDistance;
+		        Position += move.ToNormalized() * maxDistance;
 		    else
 		        Position += move;
 		}

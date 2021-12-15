@@ -259,9 +259,9 @@ namespace Pile
 				Math.Sin(look.X * Math.DegToRad_f) * Math.Cos(look.Y * Math.DegToRad_f)
 				);
 
-			front = newDir.Normalize();
-			right = Vector3.Cross(front, worldUp).Normalize();
-			up = Vector3.Cross(right, front).Normalize();
+			front = newDir.ToNormalized();
+			right = Vector3.Cross(front, worldUp).ToNormalized();
+			up = Vector3.Cross(right, front).ToNormalized();
 		}
 
 		protected virtual void UpdateProjectionMatrix()
@@ -296,14 +296,14 @@ namespace Pile
 		{
 		    Vector3 move = (position - Position) * ease;
 		    if (move.LengthSquared > maxDistance * maxDistance)
-		        Position += move.Normalize() * maxDistance;
+		        Position += move.ToNormalized() * maxDistance;
 		    else
 		        Position += move;
 		}
 
 		public void MoveRelative(float relFront, float relRight, float relUp, Vector2 relLook)
 		{
-			look += relLook;
+			look += .(relLook, 0);
 			
 			position += relFront * front;
 			position += relRight * right;
@@ -315,7 +315,7 @@ namespace Pile
 		public void LookAt(Vector3 position)
 		{
 			var position;
-			position.Normalize();
+			position.ToNormalized();
 
 			look.Y = Math.Asin(position.Y);
 			look.X = Math.Atan2(position.X, position.Z);

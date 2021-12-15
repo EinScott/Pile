@@ -476,7 +476,7 @@ namespace Pile
 
 		public void Line(Vector2 from, Vector2 to, float thickness, Color color)
 		{
-			let normal = (to - from).Normalize();
+			let normal = (to - from).ToNormalized();
 			let perp = Vector2(-normal.Y, normal.X) * thickness * 0.5f;
 			Quad(from + perp, from - perp, to - perp, to + perp, color);
 		}

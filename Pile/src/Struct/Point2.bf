@@ -137,7 +137,7 @@ namespace Pile
 		public static operator Point2((int X, int Y) tuple) => Point2(tuple.X, tuple.Y);
 		public static operator Point2(UPoint2 a) => Point2((int)a.X, (int)a.Y);
 
-		public static explicit operator Point2(Vector2 a) => a.Round();
+		public static explicit operator Point2(Vector2 a) => a.ToRounded();
 
 		[Commutable]
 		public static bool operator==(Point2 a, Point2 b) => a.X == b.X && a.Y == b.Y;

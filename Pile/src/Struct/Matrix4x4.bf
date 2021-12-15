@@ -483,7 +483,7 @@ namespace Pile
 		        zaxis = zaxis * 1.0f / (float)Math.Sqrt(norm);
 		    }
 
-		    Vector3 xaxis = Vector3.Cross(cameraUpVector, zaxis).Normalize();
+		    Vector3 xaxis = Vector3.Cross(cameraUpVector, zaxis).ToNormalized();
 
 		    Vector3 yaxis = Vector3.Cross(zaxis, xaxis);
 
@@ -536,13 +536,13 @@ namespace Pile
 		            zaxis = (Math.Abs(rotateAxis.Z) > minAngle) ? Vector3(1, 0, 0) : Vector3(0, 0, -1);
 		        }
 
-		        xaxis = Vector3.Cross(rotateAxis, zaxis).Normalize();
-		        zaxis = Vector3.Cross(xaxis, rotateAxis).Normalize();
+		        xaxis = Vector3.Cross(rotateAxis, zaxis).ToNormalized();
+		        zaxis = Vector3.Cross(xaxis, rotateAxis).ToNormalized();
 		    }
 		    else
 		    {
-		        xaxis = Vector3.Cross(rotateAxis, faceDir).Normalize();
-		        zaxis = Vector3.Cross(xaxis, yaxis).Normalize();
+		        xaxis = Vector3.Cross(rotateAxis, faceDir).ToNormalized();
+		        zaxis = Vector3.Cross(xaxis, yaxis).ToNormalized();
 		    }
 
 			return Matrix4x4(
@@ -950,8 +950,8 @@ namespace Pile
 		/// Creates a view matrix.
 		public static Matrix4x4 CreateLookAt(Vector3 cameraPosition, Vector3 cameraTarget, Vector3 cameraUpVector)
 		{
-		    Vector3 zaxis = (cameraPosition - cameraTarget).Normalize();
-		    Vector3 xaxis = Vector3.Cross(cameraUpVector, zaxis).Normalize();
+		    Vector3 zaxis = (cameraPosition - cameraTarget).ToNormalized();
+		    Vector3 xaxis = Vector3.Cross(cameraUpVector, zaxis).ToNormalized();
 		    Vector3 yaxis = Vector3.Cross(zaxis, xaxis);
 
 			Matrix4x4 result;
@@ -979,8 +979,8 @@ namespace Pile
 		/// Creates a world matrix with the specified parameters.
 		public static Matrix4x4 CreateWorld(Vector3 position, Vector3 forward, Vector3 up)
 		{
-		    Vector3 zaxis = (-forward).Normalize();
-		    Vector3 xaxis = Vector3.Cross(up, zaxis).Normalize();
+		    Vector3 zaxis = (-forward).ToNormalized();
+		    Vector3 xaxis = Vector3.Cross(up, zaxis).ToNormalized();
 		    Vector3 yaxis = Vector3.Cross(zaxis, xaxis);
 
 			Matrix4x4 result;
@@ -1233,7 +1233,7 @@ namespace Pile
                 *(pVectorBasis[a]) = pCanonicalBasis[a];
             }
 
-            *pVectorBasis[a] = (*pVectorBasis[a]).Normalize();
+            *pVectorBasis[a] = (*pVectorBasis[a]).ToNormalized();
 
             if (pfScales[b] < EPSILON)
             {
@@ -1286,14 +1286,14 @@ namespace Pile
                 *pVectorBasis[b] = Vector3.Cross(*pVectorBasis[a], *(pCanonicalBasis + cc));
             }
 
-            *pVectorBasis[b] = (*pVectorBasis[b]).Normalize();
+            *pVectorBasis[b] = (*pVectorBasis[b]).ToNormalized();
 
             if (pfScales[c] < EPSILON)
             {
                 *pVectorBasis[c] = Vector3.Cross(*pVectorBasis[a], *pVectorBasis[b]);
             }
 
-            *pVectorBasis[c] = (*pVectorBasis[c]).Normalize();
+            *pVectorBasis[c] = (*pVectorBasis[c]).ToNormalized();
 
             det = matTemp.Determinant;
 

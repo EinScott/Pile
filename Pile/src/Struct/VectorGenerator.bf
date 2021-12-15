@@ -51,14 +51,19 @@ namespace Pile
 		public void NewLine()
 		{
 			outStr.Append('\n');
+		}
+
+		public void PrepLine()
+		{
+			NewLine();
 			TabTap();
 		}
 
 		public FormatBlockEnd Start(StringView declaringLine)
 		{
-			NewLine();
+			PrepLine();
 			outStr.Append(declaringLine);
-			NewLine();
+			PrepLine();
 			outStr.Append('{');
 			TabPush();
 
@@ -68,7 +73,7 @@ namespace Pile
 		// Also useful for when you need to compose the declaring line through many calls, then just call this in the end
 		public FormatBlockEnd Block()
 		{
-			NewLine();
+			PrepLine();
 			outStr.Append('{');
 			TabPush();
 
@@ -78,13 +83,13 @@ namespace Pile
 		public void End()
 		{
 			TabPop();
-			NewLine();
+			PrepLine();
 			outStr.Append('}');
 		}
 
 		public void Put(StringView line)
 		{
-			NewLine();
+			PrepLine();
 			outStr.Append(line);
 		}
 	}
@@ -96,6 +101,9 @@ namespace Pile
 		// TODO a way to generate constructors that are composed of smaller vectors: Vector3(myVec2, 1);
 		// + then conversion operator with default value!
 		// TODO promotion operators (UPoint2 can be divided by int, but results in Point2)
+		// TODO: getters for swizzles -> YX ...
+
+		// TODO: floatingVectorType for Normalize on points
 
 		public override void InitUI()
 		{
@@ -348,6 +356,24 @@ namespace Pile
 			f.Put("[Inline]");
 			using (f.Start(scope $"public {typeName} DistanceToSquared(Self other)"))
 				f.Put("return (this - other).LengthSquared;");
+
+			f.NewLine();
+
+			if (isFloating && intVectorType != "")
+			{
+				f.Put("/// Rounds the vector to a point.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public {intVectorType} ToRounded()"))
+					f.Put("return Self.Round(this);");
+
+				f.NewLine();
+			}
+
+			f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
+			f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
+			f.Put("[Inline]");
+			using (f.Start("public Self ToNormalized()"))
+				f.Put("return Self.Normalize(this);");
 
 			f.NewLine();
 
