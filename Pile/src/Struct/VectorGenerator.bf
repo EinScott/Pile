@@ -93,14 +93,17 @@ namespace Pile
 	{
 		public override String Name => "Pile Vector Generator (Internal)";
 
+		// TODO a way to generate constructors that are composed of smaller vectors: Vector3(myVec2, 1);
+		// + then conversion operator with default value!
+		// TODO promotion operators (UPoint2 can be divided by int, but results in Point2)
+
 		public override void InitUI()
 		{
 			AddEdit("name", "Vector Name", "Vector2");
 			AddEdit("components", "Components", "2");
 			AddCombo("type", "Component Type", "float", StringView[?]("float", "double", "int", "uint"));
-			AddEdit("conversions", "Compatible Vector Types", "");
-			AddCombo("ftype", "Floating Type", "float", StringView[?]("float", "double"));
-			AddEdit("itype", "Int Equivalent Type", "Point2");
+			AddCombo("ftype", "Floating Type", "component", StringView[?]("float", "double", "component"));
+			AddEdit("itype", "Int Equivalent Type (Rounding)", "Point2");
 		}
 
 		public override void Generate(String outFileName, String outText, ref Flags generateFlags)
@@ -132,12 +135,64 @@ namespace Pile
 
 			let typeName = mParams["type"];
 			var floatingTypeName = mParams["ftype"];
-			let intType = mParams["itype"];
-			let conversion = mParams["conversions"];
 
-			// Double vector type cannot have float as floating type!
-			if (typeName == "double" && floatingTypeName != typeName)
-				floatingTypeName = "double";
+			// Floating
+			if (!(typeName.StartsWith("int") || typeName.StartsWith("uint")) && floatingTypeName != typeName)
+			{
+				if (floatingTypeName != "component")
+				{
+					Fail("Vectors with float components must use 'component' as the floatingTypeName");
+					return;
+				}
+
+				floatingTypeName = typeName;
+			}
+			else if (floatingTypeName == "component")
+			{
+				Fail("'component' is not valid as a floating type in this case");
+				return;
+			}
+
+			var intVectorType = mParams["itype"];
+			StringView intUVectorType = "";
+
+			// iType can contain the unsigned equivalent as well!
+			if (intVectorType.Contains(';'))
+			{
+				let semicolon = intVectorType.IndexOf(';');
+				if (!intVectorType.EndsWith(';'))
+				{
+					intUVectorType = intVectorType.Substring(semicolon + 1, intVectorType.Length - semicolon - 1);
+				}
+
+				intVectorType.RemoveToEnd(semicolon);
+			}
+
+			let isFloating = (typeName == "float" || typeName == "double");
+			let isUnsigned = typeName.StartsWith("uint");
+
+			// PutCompLine(f, componentCount, "return .(", "Math.Abs(vector.{})", ", ", ");");
+			mixin PutCompField(StringView lineStart, StringView componentInsert, StringView seperator, StringView end)
+			{
+				f.Put(lineStart);
+				for (let compIdx < componentCount)
+				{
+					let field = GetComponentField(.. scope .(), compIdx, componentCount);
+					outText..AppendF(componentInsert, field).Append(seperator);
+				}
+				outText..RemoveFromEnd(seperator.Length).Append(end);
+			}
+
+			mixin PutCompName(StringView lineStart, StringView componentInsert, StringView seperator, StringView end)
+			{
+				f.Put(lineStart);
+				for (let compIdx < componentCount)
+				{
+					let field = GetComponentName(.. scope .(), compIdx, componentCount);
+					outText..AppendF(componentInsert, field).Append(seperator);
+				}
+				outText..RemoveFromEnd(seperator.Length).Append(end);
+			}
 
 			f.Put("using System;");
 			f.NewLine();
@@ -165,7 +220,7 @@ namespace Pile
 						.Append(");");
 				}
 
-				if (typeName != "uint")
+				if (!isUnsigned)
 				{
 					for (let unitCompIdx < componentCount)
 					{
@@ -237,25 +292,13 @@ namespace Pile
 			// Getter properties
 			f.Put("/// Returns the length of the vector.");
 			f.Put("[Inline]");
-			f.Put(scope $"public {floatingTypeName} Length => (.)Math.Sqrt((.)");
-			for (let compIdx < componentCount)
-			{
-				let field = GetComponentField(.. scope .(), compIdx, componentCount);
-				outText.Append(scope $"{field} * {field} + ");
-			}
-			outText..RemoveFromEnd(3).Append(");");
+			PutCompField!(scope $"public {floatingTypeName} Length => (.)Math.Sqrt((.)", "{0} * {0}", " + ", ");");
 
 			f.NewLine();
 			
 			f.Put("/// Returns the length of the vector squared. This operation is cheaper than Length.");
 			f.Put("[Inline]");
-			f.Put(scope $"public {typeName} LengthSquared => ");
-			for (let compIdx < componentCount)
-			{
-				let field = GetComponentField(.. scope .(), compIdx, componentCount);
-				outText.Append(scope $"{field} * {field} + ");
-			}
-			outText..RemoveFromEnd(3).Append(';');
+			PutCompField!(scope $"public {typeName} LengthSquared => ", "{0} * {0}", " + ", ";");
 
 			f.NewLine();
 
@@ -303,23 +346,18 @@ namespace Pile
 
 			f.Put("/// Returns the Euclidean distance between the two given points squared.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public {floatingTypeName} DistanceTo(Self other)"))
+			using (f.Start(scope $"public {typeName} DistanceToSquared(Self other)"))
 				f.Put("return (this - other).LengthSquared;");
 
 			f.NewLine();
 
 			// Static Methods
-			if ((typeName == "float" || typeName == "double") && intType != "")
+			if (isFloating && intVectorType != "")
 			{
 				f.Put("/// Rounds the vector to a point.");
 				f.Put("[Inline]");
-				using (f.Start(scope $"public static {intType} Round()"))
-				{
-					f.Put("return .(");
-					for (let compIdx < componentCount)
-						outText.Append(scope $"(int)Math.Round({GetComponentField(.. scope .(), compIdx, componentCount)}), ");
-					outText..RemoveFromEnd(2).Append(");");
-				}
+				using (f.Start(scope $"public static {intVectorType} Round(Self vector)"))
+					PutCompField!("return .(", "(int)Math.Round(vector.{})", ", ", ");");
 
 				f.NewLine();
 			}
@@ -327,28 +365,28 @@ namespace Pile
 			f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
 			f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
 			f.Put("[Inline]");
-			using (f.Start("public static Self Normalize()"))
+			using (f.Start("public static Self Normalize(Self vector)"))
 			{
 				f.Put("// Normalizing a zero vector is not possible and will return NaN.");
 				f.Put("// We ignore this in favor of not NaN-ing vectors.");
 				f.NewLine();
-				f.Put("return this == .Zero ? .Zero : this / Length;");
+				f.Put("return vector == .Zero ? .Zero : vector / vector.Length;");
 			}
+
+			// TODO: investigate pattern
+			/*f.NewLine();
+
+			f.Put("/// Computes the cross product of two vectors.");
+			f.Put("[Inline]");
+			using (f.Start(scope $"public static {typeName} Cross(Self a, Self b)"))
+				PutCompField!("return ", "a.{0} * b.{0}", " + ", ";");*/
 
 			f.NewLine();
 
 			f.Put("/// Returns the dot product of two vectors.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public static {floatingTypeName} Dot(Self value1, Self value2)"))
-			{
-				f.Put("return ");
-				for (let compIdx < componentCount)
-				{
-					let field = GetComponentField(.. scope .(), compIdx, componentCount);
-					outText.Append(scope $"value1.{field} * value2.{field} + ");
-				}
-				outText..RemoveFromEnd(3).Append(';');
-			}
+			using (f.Start(scope $"public static {typeName} Dot(Self a, Self b)"))
+				PutCompField!("return ", "a.{0} * b.{0}", " + ", ";");
 
 			f.NewLine();
 
@@ -356,10 +394,10 @@ namespace Pile
 			{
 				f.Put("/// Returns the angle of the vector.");
 				f.Put("[Inline]");
-				using (f.Start(scope $"public static {floatingTypeName} Angle(Self vec)"))
+				using (f.Start(scope $"public static {floatingTypeName} Angle(Self vector)"))
 				{
 					// Names of components are guaranteed
-					f.Put("return Math.Atan2(vec.Y, vec.X);");
+					f.Put("return (.)Math.Atan2(vector.Y, vector.X);");
 				}
 
 				f.NewLine();
@@ -367,29 +405,29 @@ namespace Pile
 				f.Put("/// Returns the angle betweem two vectors.");
 				f.Put("[Inline]");
 				using (f.Start(scope $"public static {floatingTypeName} Angle(Self from, Self to)"))
-					f.Put("return Math.Atan2(to.Y - from.Y, to.X - from.X);");
+					f.Put("return (.)Math.Atan2(to.Y - from.Y, to.X - from.X);");
 
 				f.NewLine();
 
 				f.Put("/// Constructs a vector from a given angle and a length.");
 				f.Put("[Inline]");
-				using (f.Start(scope $"public static Self AngleToVector({floatingTypeName} angle, {floatingTypeName} length = 1)"))
-					f.Put("return .(Math.Cos(angle) * length, Math.Sin(angle) * length);");
+				using (f.Start(scope $"public static Self AngleToVector({typeName} angle, {typeName} length = 1)"))
+					f.Put("return .((.)(Math.Cos(angle) * length), (.)(Math.Sin(angle) * length));");
 
 				f.NewLine();
 			}
 			
 			f.Put("/// Returns the Euclidean distance between the two given points.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public static {floatingTypeName} Distance(Self value1, Self value2)"))
-				f.Put("return (value1 - value2).Length;");
+			using (f.Start(scope $"public static {floatingTypeName} Distance(Self a, Self b)"))
+				f.Put("return (a - b).Length;");
 
 			f.NewLine();
 
 			f.Put("/// Returns the Euclidean distance between the two given points squared.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public static {floatingTypeName} Distance(Self value1, Self value2)"))
-				f.Put("return (value1 - value2).LengthSquared;");
+			using (f.Start(scope $"public static {typeName} DistanceSquared(Self a, Self b)"))
+				f.Put("return (a - b).LengthSquared;");
 
 			f.NewLine();
 
@@ -401,13 +439,13 @@ namespace Pile
 			f.NewLine();
 
 			f.Put("/// Restricts a vector between a min and max value.");
-			using (f.Start("public static Self Clamp(Self value1, Self min, Self max)"))
+			using (f.Start("public static Self Clamp(Self vector, Self min, Self max)"))
 			{
 				for (let compIdx < componentCount)
 				{
 					let field = GetComponentField(.. scope .(), compIdx, componentCount);
 					let fieldName = GetComponentName(.. scope .(), compIdx, componentCount)..ToLower();
-					f.Put(scope $"var {fieldName} = value1.{field};");
+					f.Put(scope $"var {fieldName} = vector.{field};");
 					f.Put(scope $"{fieldName} = ({fieldName} > max.{field}) ? max.{field} : {fieldName};");
 					f.Put(scope $"{fieldName} = ({fieldName} < min.{field}) ? min.{field} : {fieldName};");
 					f.NewLine();
@@ -423,14 +461,10 @@ namespace Pile
 			f.Put("/// Linearly interpolates between two vectors based on the given weighting.");
 			using (f.Start(scope $"public static Self Lerp(Self a, Self b, {floatingTypeName} amount)"))
 			{
-				f.Put("return .(");
-				for (let compIdx < componentCount)
-				{
-					let field = GetComponentField(.. scope .(), compIdx, componentCount);
-					outText.Append(scope $"a.{field} + (b.{field} - a.{field}) * amount, ");
-				}
-				outText..RemoveFromEnd(2).Append(");");
-			}
+				if (isFloating)
+					PutCompField!("return .(", "a.{0} + (b.{0} - a.{0}) * amount", ", ", ");");
+				else PutCompField!("return .(", "a.{0} + (.)Math.Round((b.{0} - a.{0}) * amount)", ", ", ");");
+			}	
 
 			f.NewLine();
 
@@ -445,14 +479,80 @@ namespace Pile
 					using (f.Start("if (diff.Length <= amount * amount)"))
 						f.Put("return target;");
 					using (f.Start("else"))
-						f.Put("return from + Self.Normalize(diff) * amount;");
+						f.Put("return from + (Self)(Self.Normalize(diff) * amount);");
 				}
 			}
 
 			f.NewLine();
 
-			// max min abs sqrt
+			f.Put("/// Returns a vector whose elements are the minimum of each of the pairs of elements in the two source vectors.");
+			using (f.Start("public static Self Min(Self a, Self b)"))
+				PutCompField!("return .(", "(a.{0} < b.{0}) ? a.{0} : b.{0}", ", ", ");");
+
+			f.NewLine();
+
+			f.Put("/// Returns a vector whose elements are the maximum of each of the pairs of elements in the two source vectors.");
+			using (f.Start("public static Self Max(Self a, Self b)"))
+				PutCompField!("return .(", "(a.{0} > b.{0}) ? a.{0} : b.{0}", ", ", ");");
+
+			f.NewLine();
+
+			f.Put("/// Returns a vector whose elements are the absolute values of each of the source vector's elements.");
+			f.Put("[Inline]");
+			using (f.Start("public static Self Abs(Self vector)"))
+				PutCompField!("return .(", "Math.Abs(vector.{})", ", ", ");");
+
+			f.NewLine();
+
+			f.Put("/// Returns a vector whose elements are the square root of each of the source vector's elements.");
+			f.Put("[Inline]");
+			using (f.Start("public static Self Sqrt(Self vector)"))
+				PutCompField!("return .(", "Math.Sqrt(vector.{})", ", ", ");");
+
 			// transform
+
+			// special funcs
+
+			f.NewLine();
+
+			// Conversion Operators
+			PutCompName!("public static operator Self((", scope $"{typeName} {{}}", ", ", ") tuple) => .(");
+			for (let compIdx < componentCount) // Append constructor fill-in
+			{
+				outText..Append("tuple.")..Append(GetComponentName(.. scope .(), compIdx, componentCount))
+					.Append(", ");
+			}
+			outText..RemoveFromEnd(2).Append(");");
+
+			if (intVectorType != "")
+				PutCompName!(scope $"public static operator Self({intVectorType} a) => .(", "a.{}", ", ", ");"); // Assume that this vector has the same amount of components, thus the same member notation
+
+			if (intUVectorType != "")
+				PutCompName!(scope $"public static operator Self({intUVectorType} a) => .(", "a.{}", ", ", ");"); // Assume that this vector has the same amount of components, thus the same member notation
+
+			f.NewLine();
+
+			// Arithmetic Operators
+			f.Put("[Commutable]");
+			PutCompName!(scope $"public static bool operator==(Self a, Self b) => ", "a.{0} == b.{0}", " && ", ";");
+
+			f.NewLine();
+
+			PutCompName!(scope $"public static Self operator+(Self a, Self b) => .(", "a.{0} + b.{0}", ", ", ");");
+			PutCompName!(scope $"public static Self operator-(Self a, Self b) => .(", "a.{0} - b.{0}", ", ", ");");
+			PutCompName!(scope $"public static Self operator*(Self a, Self b) => .(", "a.{0} * b.{0}", ", ", ");");
+			PutCompName!(scope $"public static Self operator/(Self a, Self b) => .(", "a.{0} / b.{0}", ", ", ");");
+
+			f.NewLine();
+
+			PutCompName!(scope $"public static Self operator*({typeName} a, Self b) => .(", "a * b.{}", ", ", ");");
+			PutCompName!(scope $"public static Self operator*(Self a, {typeName} b) => .(", "a.{} * b", ", ", ");");
+			PutCompName!(scope $"public static Self operator/(Self a, {typeName} b) => .(", "a.{} / b", ", ", ");");
+
+			f.NewLine();
+
+			if (!isUnsigned)
+				PutCompName!(scope $"public static Self operator-(Self a) => .(", "-a.{}", ", ", ");");
 
 			f.End();
 			f.End();
