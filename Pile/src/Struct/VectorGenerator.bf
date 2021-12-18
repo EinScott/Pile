@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 
 namespace Pile
@@ -98,20 +99,19 @@ namespace Pile
 	{
 		public override String Name => "Pile Vector Generator (Internal)";
 
-		// TODO a way to generate constructors that are composed of smaller vectors: Vector3(myVec2, 1);
-		// + then conversion operator with default value!
-		// TODO promotion operators (UPoint2 can be divided by int, but results in Point2)
-		// TODO: getters for swizzles -> YX ...
-
-		// TODO: floatingVectorType for Normalize on points
+		static StringView[?] componentTypes = .("float", "double", "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64");
 
 		public override void InitUI()
 		{
-			AddEdit("name", "Vector Name", "Vector2");
-			AddEdit("components", "Components", "2");
-			AddCombo("type", "Component Type", "float", StringView[?]("float", "double", "int", "uint"));
+			AddEdit("name", "Vector Name", "Vector3");
+			AddEdit("components", "Components", "3");
+			AddCombo("type", "Component Type", "float", componentTypes);
+
 			AddCombo("ftype", "Floating Type", "component", StringView[?]("float", "double", "component"));
-			AddEdit("itype", "Int Equivalent Type (Rounding)", "Point2");
+			AddEdit("ivtype", "Int Equivalent Type", "Point3");
+			AddEdit("fvtype", "Float Equivalent Type", "");
+
+			AddEdit("compatv", "Compatible Smaller Vectors", "Vector2:float:2"); // from given vec to this: casting conversion ops + composed constructors
 		}
 
 		public override void Generate(String outFileName, String outText, ref Flags generateFlags)
@@ -141,11 +141,11 @@ namespace Pile
 				return;
 			}
 
-			let typeName = mParams["type"];
+			let componentType = mParams["type"];
 			var floatingTypeName = mParams["ftype"];
 
 			// Floating
-			if (!(typeName.StartsWith("int") || typeName.StartsWith("uint")) && floatingTypeName != typeName)
+			if (!(componentType.StartsWith("int") || componentType.StartsWith("uint")) && floatingTypeName != componentType)
 			{
 				if (floatingTypeName != "component")
 				{
@@ -153,7 +153,7 @@ namespace Pile
 					return;
 				}
 
-				floatingTypeName = typeName;
+				floatingTypeName = componentType;
 			}
 			else if (floatingTypeName == "component")
 			{
@@ -161,7 +161,7 @@ namespace Pile
 				return;
 			}
 
-			var intVectorType = mParams["itype"];
+			var intVectorType = mParams["ivtype"];
 			StringView intUVectorType = "";
 
 			// iType can contain the unsigned equivalent as well!
@@ -176,10 +176,76 @@ namespace Pile
 				intVectorType.RemoveToEnd(semicolon);
 			}
 
-			let isFloating = (typeName == "float" || typeName == "double");
-			let isUnsigned = typeName.StartsWith("uint");
+			var floatVectorType = mParams["fvtype"];
 
-			// PutCompLine(f, componentCount, "return .(", "Math.Abs(vector.{})", ", ", ");");
+			let isFloating = (componentType == "float" || componentType == "double");
+			let isUnsigned = componentType.StartsWith("uint");
+
+			if (isFloating && floatVectorType == "")
+				floatVectorType = "Self";
+
+			let compatibleVectors = scope List<(StringView vecName, StringView componentType, int components)>();
+			{
+				let compatibleVectorsStr = mParams["compatv"];
+				if (compatibleVectorsStr != "")
+				{
+					for (let entry in compatibleVectorsStr.Split(';'))
+					{
+						(StringView vecName, StringView componentType, int components) vectorInfo = default;
+
+						int parti = 0;
+						for (let part in entry.Split(':'))
+						{
+							switch (parti)
+							{
+							case 0: // Vec name
+								vectorInfo.vecName = part;
+							case 1: // Comp name
+								bool valid = false;
+								for (let comp in componentTypes)
+									if (comp == part)
+										valid = true;
+
+								if (!valid)
+								{
+									Fail(scope $"Unrecognized compatible vector component type name '{part}'");
+									return;
+								}
+
+								if (!isFloating && (part == "float" || part == "double"))
+								{
+									Fail("Floating type vectors aren't compatible with integer vectors");
+									return;
+								}
+
+								vectorInfo.componentType = part;
+
+							case 2: // Comp count
+								if (uint32.Parse(part) case .Ok(let val))
+								{
+									if (val >= componentCount)
+									{
+										Fail("Compatible vector has more components than this one. Only accepts same amount or fewer");
+										return;
+									}
+
+									vectorInfo.components = val;
+								}
+								else
+								{
+									Fail(scope $"Failed to parse component count for compatible vector '{vectorInfo.vecName}'");
+									return;
+								}
+							}
+
+							parti++;
+						}
+
+						compatibleVectors.Add(vectorInfo);
+					}
+				}
+			}
+
 			mixin PutCompField(StringView lineStart, StringView componentInsert, StringView seperator, StringView end)
 			{
 				f.Put(lineStart);
@@ -202,12 +268,14 @@ namespace Pile
 				outText..RemoveFromEnd(seperator.Length).Append(end);
 			}
 
+			f.Put(scope $"// Generated at {DateTime:yyyy-MM-dd}. Do not edit file, use extensions!");
+
 			f.Put("using System;");
 			f.NewLine();
 
 			f.Start("namespace Pile");
 			f.Start(scope $"struct {name} : IFormattable, IEquatable<{name}>");
-
+			
 			// Consts
 			{
 				f.Put("public const Self Zero = .();");
@@ -251,7 +319,7 @@ namespace Pile
 			f.NewLine();
 
 			// Component variables
-			f.Put(scope $"public {typeName}");
+			f.Put(scope $"public {componentType}");
 			if (componentCount <= 4)
 			{
 				outText.Append(' ');
@@ -272,7 +340,7 @@ namespace Pile
 
 			f.NewLine();
 
-			using (f.Start(scope $"public this({typeName} all)"))
+			using (f.Start(scope $"public this({componentType} all)"))
 			{
 				if (componentCount <= 4)
 				{
@@ -289,13 +357,35 @@ namespace Pile
 
 			f.Put("public this(");
 			for (let compIdx < componentCount)
-				outText.Append(scope $"{typeName} {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()}, ");
+				outText.Append(scope $"{componentType} {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()}, ");
 			outText..RemoveFromEnd(2).Append(')');
 			using (f.Block())
 				for (let compIdx < componentCount)
 					f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)} = {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()};");
 			
 			f.NewLine();
+
+			// Compatible vector constructors
+			for (let compVec in compatibleVectors)
+			{
+				f.Put("public this(");
+				outText..Append(compVec.vecName).Append(" v, ");
+
+				for (var compIdx = compVec.components; compIdx < componentCount; compIdx++)
+					outText.Append(scope $"{componentType} {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()}, ");
+				
+				outText..RemoveFromEnd(2).Append(')');
+				using (f.Block())
+					for (let compIdx < componentCount)
+					{
+						f.Put(scope $"{GetComponentField(.. scope .(), compIdx, componentCount)} = ");
+						if (compIdx < compVec.components)
+							outText.Append(scope $"v.{GetComponentField(.. scope .(), compIdx, compVec.components)};");
+						else outText.Append(scope $"{GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()};");
+					}	
+
+				f.NewLine();
+			}
 
 			// Getter properties
 			f.Put("/// Returns the length of the vector.");
@@ -306,7 +396,7 @@ namespace Pile
 			
 			f.Put("/// Returns the length of the vector squared. This operation is cheaper than Length.");
 			f.Put("[Inline]");
-			PutCompField!(scope $"public {typeName} LengthSquared => ", "{0} * {0}", " + ", ";");
+			PutCompField!(scope $"public {componentType} LengthSquared => ", "{0} * {0}", " + ", ";");
 
 			f.NewLine();
 
@@ -354,7 +444,7 @@ namespace Pile
 
 			f.Put("/// Returns the Euclidean distance between the two given points squared.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public {typeName} DistanceToSquared(Self other)"))
+			using (f.Start(scope $"public {componentType} DistanceToSquared(Self other)"))
 				f.Put("return (this - other).LengthSquared;");
 
 			f.NewLine();
@@ -369,14 +459,17 @@ namespace Pile
 				f.NewLine();
 			}
 
-			f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
-			f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
-			f.Put("[Inline]");
-			using (f.Start("public Self ToNormalized()"))
-				f.Put("return Self.Normalize(this);");
+			if (floatVectorType != "")
+			{
+				f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
+				f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public {floatVectorType} ToNormalized()"))
+					f.Put("return Self.Normalize(this);");
 
-			f.NewLine();
-
+				f.NewLine();
+			}
+			
 			// Static Methods
 			if (isFloating && intVectorType != "")
 			{
@@ -388,15 +481,18 @@ namespace Pile
 				f.NewLine();
 			}
 
-			f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
-			f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
-			f.Put("[Inline]");
-			using (f.Start("public static Self Normalize(Self vector)"))
+			if (floatVectorType != "")
 			{
-				f.Put("// Normalizing a zero vector is not possible and will return NaN.");
-				f.Put("// We ignore this in favor of not NaN-ing vectors.");
-				f.NewLine();
-				f.Put("return vector == .Zero ? .Zero : vector / vector.Length;");
+				f.Put("/// Returns a vector with the same direction as the given vector, but with a length of 1.");
+				f.Put("/// Vector2.Zero will still just return Vector2.Zero.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public static {floatVectorType} Normalize(Self vector)"))
+				{
+					f.Put("// Normalizing a zero vector is not possible and will return NaN.");
+					f.Put("// We ignore this in favor of not NaN-ing vectors.");
+					f.NewLine();
+					f.Put(scope $"return vector == .Zero ? {floatVectorType}.Zero : ({floatVectorType})vector / vector.Length;");
+				}
 			}
 
 			// TODO: investigate pattern
@@ -411,7 +507,7 @@ namespace Pile
 
 			f.Put("/// Returns the dot product of two vectors.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public static {typeName} Dot(Self a, Self b)"))
+			using (f.Start(scope $"public static {componentType} Dot(Self a, Self b)"))
 				PutCompField!("return ", "a.{0} * b.{0}", " + ", ";");
 
 			f.NewLine();
@@ -437,7 +533,7 @@ namespace Pile
 
 				f.Put("/// Constructs a vector from a given angle and a length.");
 				f.Put("[Inline]");
-				using (f.Start(scope $"public static Self AngleToVector({typeName} angle, {typeName} length = 1)"))
+				using (f.Start(scope $"public static Self AngleToVector({componentType} angle, {componentType} length = 1)"))
 					f.Put("return .((.)(Math.Cos(angle) * length), (.)(Math.Sin(angle) * length));");
 
 				f.NewLine();
@@ -452,7 +548,7 @@ namespace Pile
 
 			f.Put("/// Returns the Euclidean distance between the two given points squared.");
 			f.Put("[Inline]");
-			using (f.Start(scope $"public static {typeName} DistanceSquared(Self a, Self b)"))
+			using (f.Start(scope $"public static {componentType} DistanceSquared(Self a, Self b)"))
 				f.Put("return (a - b).LengthSquared;");
 
 			f.NewLine();
@@ -494,22 +590,25 @@ namespace Pile
 
 			f.NewLine();
 
-			f.Put("/// Approaches the target vector by a constant given amount.");
-			using (f.Start(scope $"public static Self Approach(Self from, Self target, {floatingTypeName} amount)"))
+			if (floatVectorType != "") // Condition for Normalize to exist
 			{
-				using (f.Start("if (from == target)"))
-					f.Put("return target;");
-				using (f.Start("else"))
+				f.Put("/// Approaches the target vector by a constant given amount.");
+				using (f.Start(scope $"public static Self Approach(Self from, Self target, {floatingTypeName} amount)"))
 				{
-					f.Put("let diff = target - from;");
-					using (f.Start("if (diff.Length <= amount * amount)"))
+					using (f.Start("if (from == target)"))
 						f.Put("return target;");
 					using (f.Start("else"))
-						f.Put("return from + (Self)(Self.Normalize(diff) * amount);");
+					{
+						f.Put("let diff = target - from;");
+						using (f.Start("if (diff.Length <= amount * amount)"))
+							f.Put("return target;");
+						using (f.Start("else"))
+							f.Put("return from + (Self)(Self.Normalize(diff) * amount);");
+					}
 				}
-			}
 
-			f.NewLine();
+				f.NewLine();
+			}
 
 			f.Put("/// Returns a vector whose elements are the minimum of each of the pairs of elements in the two source vectors.");
 			using (f.Start("public static Self Min(Self a, Self b)"))
@@ -523,26 +622,30 @@ namespace Pile
 
 			f.NewLine();
 
-			f.Put("/// Returns a vector whose elements are the absolute values of each of the source vector's elements.");
-			f.Put("[Inline]");
-			using (f.Start("public static Self Abs(Self vector)"))
-				PutCompField!("return .(", "Math.Abs(vector.{})", ", ", ");");
+			if (!isUnsigned)
+			{
+				f.Put("/// Returns a vector whose elements are the absolute values of each of the source vector's elements.");
+				f.Put("[Inline]");
+				using (f.Start("public static Self Abs(Self vector)"))
+					PutCompField!("return .(", "Math.Abs(vector.{})", ", ", ");");
 
-			f.NewLine();
+				f.NewLine();
+			}
 
-			f.Put("/// Returns a vector whose elements are the square root of each of the source vector's elements.");
-			f.Put("[Inline]");
-			using (f.Start("public static Self Sqrt(Self vector)"))
-				PutCompField!("return .(", "Math.Sqrt(vector.{})", ", ", ");");
+			if (floatVectorType != "")
+			{
+				f.Put("/// Returns a vector whose elements are the square root of each of the source vector's elements.");
+				f.Put("[Inline]");
+				using (f.Start(scope $"public static {floatVectorType} Sqrt(Self vector)"))
+					PutCompField!("return .(", "(.)Math.Sqrt(vector.{})", ", ", ");");
 
-			// transform
+				f.NewLine();
+			}
 
-			// special funcs
-
-			f.NewLine();
+			// Transform TODO
 
 			// Conversion Operators
-			PutCompName!("public static operator Self((", scope $"{typeName} {{}}", ", ", ") tuple) => .(");
+			PutCompName!("public static operator Self((", scope $"{componentType} {{}}", ", ", ") tuple) => .(");
 			for (let compIdx < componentCount) // Append constructor fill-in
 			{
 				outText..Append("tuple.")..Append(GetComponentName(.. scope .(), compIdx, componentCount))
@@ -551,34 +654,72 @@ namespace Pile
 			outText..RemoveFromEnd(2).Append(");");
 
 			if (intVectorType != "")
-				PutCompName!(scope $"public static operator Self({intVectorType} a) => .(", "a.{}", ", ", ");"); // Assume that this vector has the same amount of components, thus the same member notation
+			{
+				// Assume that this vector has the same amount of components, thus the same member notation
+				if (isUnsigned)
+					PutCompField!(scope $"public static explicit operator Self({intVectorType} a) => .(", "(.)a.{}", ", ", ");");
+				else PutCompField!(scope $"public static operator Self({intVectorType} a) => .(", "a.{}", ", ", ");");
+			}
 
 			if (intUVectorType != "")
-				PutCompName!(scope $"public static operator Self({intUVectorType} a) => .(", "a.{}", ", ", ");"); // Assume that this vector has the same amount of components, thus the same member notation
+			{
+				 // Assume that this vector has the same amount of components, thus the same member notation
+				if (isFloating)
+					PutCompField!(scope $"public static operator Self({intUVectorType} a) => .(", "a.{}", ", ", ");");
+				else
+				{
+					if (isUnsigned)
+						PutCompField!(scope $"public static explicit operator Self({intUVectorType} a) => .(", "(.)a.{}", ", ", ");");
+					else PutCompField!(scope $"public static operator Self({intUVectorType} a) => .(", "(.)a.{}", ", ", ");");
+				}
+			}	
+
+			if (!isFloating && floatVectorType != "")
+				f.Put(scope $"public static explicit operator Self({floatVectorType} a) => (.)a.ToRounded();"); // Assume that that vector also has this as intEquivalent!
 
 			f.NewLine();
+
+			// Compatible vector conversion operators
+			for (let compVec in compatibleVectors)
+			{
+				f.Put(scope $"public static explicit operator Self({compVec.vecName} a) => .(");
+				for (let compIdx < compVec.components)
+				{
+					let field = GetComponentField(.. scope .(), compIdx, compVec.components);
+					outText..AppendF("a.{}, ", field);
+				}
+				for (var compIdx = compVec.components; compIdx < componentCount; compIdx++)
+				{
+					outText..Append("default, ");
+				}
+				outText..RemoveFromEnd(2).Append(");");
+			}
+			if (compatibleVectors.Count > 0)
+				f.NewLine();
 
 			// Arithmetic Operators
 			f.Put("[Commutable]");
-			PutCompName!(scope $"public static bool operator==(Self a, Self b) => ", "a.{0} == b.{0}", " && ", ";");
+			PutCompField!(scope $"public static bool operator==(Self a, Self b) => ", "a.{0} == b.{0}", " && ", ";");
 
 			f.NewLine();
 
-			PutCompName!(scope $"public static Self operator+(Self a, Self b) => .(", "a.{0} + b.{0}", ", ", ");");
-			PutCompName!(scope $"public static Self operator-(Self a, Self b) => .(", "a.{0} - b.{0}", ", ", ");");
-			PutCompName!(scope $"public static Self operator*(Self a, Self b) => .(", "a.{0} * b.{0}", ", ", ");");
-			PutCompName!(scope $"public static Self operator/(Self a, Self b) => .(", "a.{0} / b.{0}", ", ", ");");
+			PutCompField!(scope $"public static Self operator+(Self a, Self b) => .(", "a.{0} + b.{0}", ", ", ");");
+			PutCompField!(scope $"public static Self operator-(Self a, Self b) => .(", "a.{0} - b.{0}", ", ", ");");
+			PutCompField!(scope $"public static Self operator*(Self a, Self b) => .(", "a.{0} * b.{0}", ", ", ");");
+			PutCompField!(scope $"public static Self operator/(Self a, Self b) => .(", "a.{0} / b.{0}", ", ", ");");
 
 			f.NewLine();
 
-			PutCompName!(scope $"public static Self operator*({typeName} a, Self b) => .(", "a * b.{}", ", ", ");");
-			PutCompName!(scope $"public static Self operator*(Self a, {typeName} b) => .(", "a.{} * b", ", ", ");");
-			PutCompName!(scope $"public static Self operator/(Self a, {typeName} b) => .(", "a.{} / b", ", ", ");");
+			PutCompField!(scope $"public static Self operator*({componentType} a, Self b) => .(", "a * b.{}", ", ", ");");
+			PutCompField!(scope $"public static Self operator*(Self a, {componentType} b) => .(", "a.{} * b", ", ", ");");
+			PutCompField!(scope $"public static Self operator/(Self a, {componentType} b) => .(", "a.{} / b", ", ", ");");
 
 			f.NewLine();
 
 			if (!isUnsigned)
-				PutCompName!(scope $"public static Self operator-(Self a) => .(", "-a.{}", ", ", ");");
+				PutCompField!(scope $"public static Self operator-(Self a) => .(", "-a.{}", ", ", ");");
+			else if (intVectorType != "")
+				PutCompField!(scope $"public static {intVectorType} operator-(Self a) => {intVectorType}(", "(.)(-(int)a.{})", ", ", ");");
 
 			f.End();
 			f.End();

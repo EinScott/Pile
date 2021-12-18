@@ -3,10 +3,13 @@
 // components=2
 // type=float
 // ftype=component
-// itype=Point2
-// GenHash=5A58AFCE41290BCEFA1AC21FDF255412
+// ivtype=Point2;UPoint2
+// fvtype=
+// compatv=
+// GenHash=7ED60EE3B7094680CDD2BB5C48844BD5
 
 
+// Generated at 12/18/2021 4:04:45 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -112,7 +115,7 @@ namespace Pile
 			// Normalizing a zero vector is not possible and will return NaN.
 			// We ignore this in favor of not NaN-ing vectors.
 
-			return vector == .Zero ? .Zero : vector / vector.Length;
+			return vector == .Zero ? Self.Zero : (Self)vector / vector.Length;
 		}
 
 		/// Returns the dot product of two vectors.
@@ -228,11 +231,12 @@ namespace Pile
 		[Inline]
 		public static Self Sqrt(Self vector)
 		{
-			return .(Math.Sqrt(vector.X), Math.Sqrt(vector.Y));
+			return .((.)Math.Sqrt(vector.X), (.)Math.Sqrt(vector.Y));
 		}
 
 		public static operator Self((float X, float Y) tuple) => .(tuple.X, tuple.Y);
 		public static operator Self(Point2 a) => .(a.X, a.Y);
+		public static operator Self(UPoint2 a) => .(a.X, a.Y);
 
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y;

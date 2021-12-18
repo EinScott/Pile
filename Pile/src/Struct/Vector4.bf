@@ -3,10 +3,13 @@
 // components=4
 // type=float
 // ftype=component
-// itype=Point4
-// GenHash=19ED10DB3916FB0EEE1FA1E2EFB5F9B8
+// ivtype=Point4
+// fvtype=
+// compatv=Vector2:float:2;Point2:int:2;Vector3:float:3;Point3:int:3
+// GenHash=1EF906F35A93E7FC7BA0D6192876C4FC
 
 
+// Generated at 12/18/2021 4:04:52 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -44,6 +47,38 @@ namespace Pile
 			X = x;
 			Y = y;
 			Z = z;
+			W = w;
+		}
+
+		public this(Vector2 v, float z, float w)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = z;
+			W = w;
+		}
+
+		public this(Point2 v, float z, float w)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = z;
+			W = w;
+		}
+
+		public this(Vector3 v, float w)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = v.Z;
+			W = w;
+		}
+
+		public this(Point3 v, float w)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = v.Z;
 			W = w;
 		}
 
@@ -128,7 +163,7 @@ namespace Pile
 			// Normalizing a zero vector is not possible and will return NaN.
 			// We ignore this in favor of not NaN-ing vectors.
 
-			return vector == .Zero ? .Zero : vector / vector.Length;
+			return vector == .Zero ? Self.Zero : (Self)vector / vector.Length;
 		}
 
 		/// Returns the dot product of two vectors.
@@ -231,11 +266,16 @@ namespace Pile
 		[Inline]
 		public static Self Sqrt(Self vector)
 		{
-			return .(Math.Sqrt(vector.X), Math.Sqrt(vector.Y), Math.Sqrt(vector.Z), Math.Sqrt(vector.W));
+			return .((.)Math.Sqrt(vector.X), (.)Math.Sqrt(vector.Y), (.)Math.Sqrt(vector.Z), (.)Math.Sqrt(vector.W));
 		}
 
 		public static operator Self((float X, float Y, float Z, float W) tuple) => .(tuple.X, tuple.Y, tuple.Z, tuple.W);
 		public static operator Self(Point4 a) => .(a.X, a.Y, a.Z, a.W);
+
+		public static explicit operator Self(Vector2 a) => .(a.X, a.Y, default, default);
+		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default, default);
+		public static explicit operator Self(Vector3 a) => .(a.X, a.Y, a.Z, default);
+		public static explicit operator Self(Point3 a) => .(a.X, a.Y, a.Z, default);
 
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;

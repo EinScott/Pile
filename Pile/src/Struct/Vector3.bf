@@ -3,10 +3,13 @@
 // components=3
 // type=float
 // ftype=component
-// itype=Point3
-// GenHash=FF1EE13D1220C66FC046268ADEC40DE8
+// ivtype=Point3
+// fvtype=
+// compatv=Vector2:float:2;Point2:int:2
+// GenHash=8D67E62ADCAB8BDF36423B0FF0ED9CAF
 
 
+// Generated at 12/18/2021 4:04:48 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -40,6 +43,20 @@ namespace Pile
 		{
 			X = x;
 			Y = y;
+			Z = z;
+		}
+
+		public this(Vector2 v, float z)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = z;
+		}
+
+		public this(Point2 v, float z)
+		{
+			X = v.X;
+			Y = v.Y;
 			Z = z;
 		}
 
@@ -120,7 +137,7 @@ namespace Pile
 			// Normalizing a zero vector is not possible and will return NaN.
 			// We ignore this in favor of not NaN-ing vectors.
 
-			return vector == .Zero ? .Zero : vector / vector.Length;
+			return vector == .Zero ? Self.Zero : (Self)vector / vector.Length;
 		}
 
 		/// Returns the dot product of two vectors.
@@ -219,11 +236,14 @@ namespace Pile
 		[Inline]
 		public static Self Sqrt(Self vector)
 		{
-			return .(Math.Sqrt(vector.X), Math.Sqrt(vector.Y), Math.Sqrt(vector.Z));
+			return .((.)Math.Sqrt(vector.X), (.)Math.Sqrt(vector.Y), (.)Math.Sqrt(vector.Z));
 		}
 
 		public static operator Self((float X, float Y, float Z) tuple) => .(tuple.X, tuple.Y, tuple.Z);
 		public static operator Self(Point3 a) => .(a.X, a.Y, a.Z);
+
+		public static explicit operator Self(Vector2 a) => .(a.X, a.Y, default);
+		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default);
 
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;

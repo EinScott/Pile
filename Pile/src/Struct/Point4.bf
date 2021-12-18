@@ -1,31 +1,33 @@
+// Generator=Pile:Pile.VectorGenerator
+// name=Point4
+// components=4
+// type=int
+// ftype=float
+// ivtype=
+// fvtype=Vector4
+// compatv=Point2:int:2;Point3:int:3
+// GenHash=5BE4239CA87959F0A08D7BE73239E9AE
+
+
+// Generated at 12/18/2021 4:08:45 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
 {
-	[Ordered]
-	struct Point4 : IFormattable, IEquatable<Point4>, IEquatable
+	struct Point4 : IFormattable, IEquatable<Point4>
 	{
-		public const Point4 Zero = .(0, 0, 0, 0);
-		public const Point4 One = .(1, 1, 1, 1);
-		public const Point4 UnitX = .(1, 0, 0, 0);
-		public const Point4 UnitY = .(0, 1, 0, 0);
-		public const Point4 UnitZ = .(0, 0, 1, 0);
-		public const Point4 UnitW = .(0, 0, 0, 1);
-
-		public const Point4 NegateX = .(-1, 1, 1, 1);
-		public const Point4 NegateY = .(1, -1, 1, 1);
-		public const Point4 NegateZ = .(1, 1, -1, 1);
-		public const Point4 NegateW = .(1, 1, 1, -1);
+		public const Self Zero = .();
+		public const Self One = .(1);
+		public const Self UnitX = .(1, 0, 0, 0);
+		public const Self UnitY = .(0, 1, 0, 0);
+		public const Self UnitZ = .(0, 0, 1, 0);
+		public const Self UnitW = .(0, 0, 0, 1);
+		public const Self NegateX = .(-1, 1, 1, 1);
+		public const Self NegateY = .(1, -1, 1, 1);
+		public const Self NegateZ = .(1, 1, -1, 1);
+		public const Self NegateW = .(1, 1, 1, -1);
 
 		public int X, Y, Z, W;
-
-		[Inline]
-		/// Returns the length of the vector.
-		public float Length => (float)Math.Sqrt((double)X * X + Y * Y + Z * Z + W * W);
-
-		[Inline]
-		/// Returns the length of the vector squared. This operation is cheaper than Length.
-		public float LengthSquared => X * X + Y * Y + Z * Z + W * W;
 
 		public this()
 		{
@@ -40,22 +42,6 @@ namespace Pile
 			W = all;
 		}
 
-		public this(Point3 point3, int w)
-		{
-			X = point3.X;
-			Y = point3.Y;
-			Z = point3.Z;
-			W = w;
-		}
-
-		public this(Point2 point2, int z, int w)
-		{
-			X = point2.X;
-			Y = point2.Y;
-			Z = z;
-			W = w;
-		}
-
 		public this(int x, int y, int z, int w)
 		{
 			X = x;
@@ -64,11 +50,32 @@ namespace Pile
 			W = w;
 		}
 
+		public this(Point2 v, int z, int w)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = z;
+			W = w;
+		}
+
+		public this(Point3 v, int w)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = v.Z;
+			W = w;
+		}
+
+		/// Returns the length of the vector.
 		[Inline]
-		public bool Equals(Point4 o) => o == this;
+		public float Length => (.)Math.Sqrt((.)X * X + Y * Y + Z * Z + W * W);
+
+		/// Returns the length of the vector squared. This operation is cheaper than Length.
+		[Inline]
+		public int LengthSquared => X * X + Y * Y + Z * Z + W * W;
 
 		[Inline]
-		public bool Equals(Object o) => (o is Point4) && (Point4)o == this;
+		public bool Equals(Self o) => o == this;
 
 		public override void ToString(String strBuffer)
 		{
@@ -96,97 +103,160 @@ namespace Pile
 			outString.Append(" ]");
 		}
 
-		[Inline]
 		/// Returns the Euclidean distance between the two given points.
-		public static float Distance(Point4 value1, Point4 value2)
+		[Inline]
+		public float DistanceTo(Self other)
 		{
-		    let difference = value1 - value2;
-			let ls = Point4.Dot(difference, difference);
-			return Math.Sqrt(ls);
+			return (this - other).Length;
 		}
 
+		/// Returns the Euclidean distance between the two given points squared.
 		[Inline]
-		/// Returns the Euclidean distance squared between the two given points.
-		public static float DistanceSquared(Point4 value1, Point4 value2)
+		public int DistanceToSquared(Self other)
 		{
-		    let difference = value1 - value2;
-			return Point4.Dot(difference, difference);
+			return (this - other).LengthSquared;
+		}
+
+		/// Returns a vector with the same direction as the given vector, but with a length of 1.
+		/// Vector2.Zero will still just return Vector2.Zero.
+		[Inline]
+		public Vector4 ToNormalized()
+		{
+			return Self.Normalize(this);
+		}
+
+		/// Returns a vector with the same direction as the given vector, but with a length of 1.
+		/// Vector2.Zero will still just return Vector2.Zero.
+		[Inline]
+		public static Vector4 Normalize(Self vector)
+		{
+			// Normalizing a zero vector is not possible and will return NaN.
+			// We ignore this in favor of not NaN-ing vectors.
+
+			return vector == .Zero ? Vector4.Zero : (Vector4)vector / vector.Length;
+		}
+
+		/// Returns the dot product of two vectors.
+		[Inline]
+		public static int Dot(Self a, Self b)
+		{
+			return a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W * b.W;
+		}
+
+		/// Returns the Euclidean distance between the two given points.
+		[Inline]
+		public static float Distance(Self a, Self b)
+		{
+			return (a - b).Length;
+		}
+
+		/// Returns the Euclidean distance between the two given points squared.
+		[Inline]
+		public static int DistanceSquared(Self a, Self b)
+		{
+			return (a - b).LengthSquared;
+		}
+
+		/// Returns the reflection of a vector off a surface that has the specified normal.
+		[Inline]
+		public static Self Reflect(Self vector, Self normal)
+		{
+			return vector - (normal * 2 * Self.Dot(vector, normal));
 		}
 
 		/// Restricts a vector between a min and max value.
-		public static Point4 Clamp(Point4 value1, Point4 min, Point4 max)
+		public static Self Clamp(Self vector, Self min, Self max)
 		{
-		    var x = value1.X;
-		    x = (x > max.X) ? max.X : x;
-		    x = (x < min.X) ? min.X : x;
+			var x = vector.X;
+			x = (x > max.X) ? max.X : x;
+			x = (x < min.X) ? min.X : x;
 
-		    var y = value1.Y;
-		    y = (y > max.Y) ? max.Y : y;
-		    y = (y < min.Y) ? min.Y : y;
+			var y = vector.Y;
+			y = (y > max.Y) ? max.Y : y;
+			y = (y < min.Y) ? min.Y : y;
 
-		    var z = value1.Z;
-		    z = (z > max.Z) ? max.Z : z;
-		    z = (z < min.Z) ? min.Z : z;
+			var z = vector.Z;
+			z = (z > max.Z) ? max.Z : z;
+			z = (z < min.Z) ? min.Z : z;
 
-		    var w = value1.W;
-		    w = (w > max.W) ? max.W : w;
-		    w = (w < min.W) ? min.W : w;
+			var w = vector.W;
+			w = (w > max.W) ? max.W : w;
+			w = (w < min.W) ? min.W : w;
 
-		    return Point4(x, y, z, w);
+			return .(x, y, z, w);
 		}
 
-		[Inline]
-		/// Returns the dot product of two vectors.
-		public static int Dot(Point4 vector1, Point4 vector2)
+		/// Linearly interpolates between two vectors based on the given weighting.
+		public static Self Lerp(Self a, Self b, float amount)
 		{
-		    return vector1.X * vector2.X +
-		           vector1.Y * vector2.Y +
-		           vector1.Z * vector2.Z +
-		           vector1.W * vector2.W;
+			return .(a.X + (.)Math.Round((b.X - a.X) * amount), a.Y + (.)Math.Round((b.Y - a.Y) * amount), a.Z + (.)Math.Round((b.Z - a.Z) * amount), a.W + (.)Math.Round((b.W - a.W) * amount));
+		}
+
+		/// Approaches the target vector by a constant given amount.
+		public static Self Approach(Self from, Self target, float amount)
+		{
+			if (from == target)
+			{
+				return target;
+			}
+			else
+			{
+				let diff = target - from;
+				if (diff.Length <= amount * amount)
+				{
+					return target;
+				}
+				else
+				{
+					return from + (Self)(Self.Normalize(diff) * amount);
+				}
+			}
 		}
 
 		/// Returns a vector whose elements are the minimum of each of the pairs of elements in the two source vectors.
-		public static Point4 Min(Point4 value1, Point4 value2)
+		public static Self Min(Self a, Self b)
 		{
-		    return Point4(
-		        (value1.X < value2.X) ? value1.X : value2.X,
-		        (value1.Y < value2.Y) ? value1.Y : value2.Y,
-		        (value1.Z < value2.Z) ? value1.Z : value2.Z,
-		        (value1.W < value2.W) ? value1.W : value2.W);
+			return .((a.X < b.X) ? a.X : b.X, (a.Y < b.Y) ? a.Y : b.Y, (a.Z < b.Z) ? a.Z : b.Z, (a.W < b.W) ? a.W : b.W);
 		}
 
 		/// Returns a vector whose elements are the maximum of each of the pairs of elements in the two source vectors.
-		public static Point4 Max(Point4 value1, Point4 value2)
+		public static Self Max(Self a, Self b)
 		{
-		    return Point4(
-		        (value1.X > value2.X) ? value1.X : value2.X,
-		        (value1.Y > value2.Y) ? value1.Y : value2.Y,
-		        (value1.Z > value2.Z) ? value1.Z : value2.Z,
-		        (value1.W > value2.W) ? value1.W : value2.W);
+			return .((a.X > b.X) ? a.X : b.X, (a.Y > b.Y) ? a.Y : b.Y, (a.Z > b.Z) ? a.Z : b.Z, (a.W > b.W) ? a.W : b.W);
 		}
 
 		/// Returns a vector whose elements are the absolute values of each of the source vector's elements.
-		public static Point4 Abs(Point4 value)
+		[Inline]
+		public static Self Abs(Self vector)
 		{
-		    return Point4(Math.Abs(value.X), Math.Abs(value.Y), Math.Abs(value.Z), Math.Abs(value.W));
+			return .(Math.Abs(vector.X), Math.Abs(vector.Y), Math.Abs(vector.Z), Math.Abs(vector.W));
 		}
 
-		public static operator Point4((int X, int Y, int Z, int W) tuple) => Point4(tuple.X, tuple.Y, tuple.Z, tuple.W);
-		public static explicit operator Point4(Vector4 a) => Point4((int)Math.Round(a.X), (int)Math.Round(a.Y), (int)Math.Round(a.Z), (int)Math.Round(a.W));
+		/// Returns a vector whose elements are the square root of each of the source vector's elements.
+		[Inline]
+		public static Vector4 Sqrt(Self vector)
+		{
+			return .((.)Math.Sqrt(vector.X), (.)Math.Sqrt(vector.Y), (.)Math.Sqrt(vector.Z), (.)Math.Sqrt(vector.W));
+		}
+
+		public static operator Self((int X, int Y, int Z, int W) tuple) => .(tuple.X, tuple.Y, tuple.Z, tuple.W);
+		public static explicit operator Self(Vector4 a) => (.)a.ToRounded();
+
+		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default, default);
+		public static explicit operator Self(Point3 a) => .(a.X, a.Y, a.Z, default);
 
 		[Commutable]
-		public static bool operator==(Point4 a, Point4 b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;
+		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;
 
-		public static Point4 operator+(Point4 a, Point4 b) => Point4(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
-		public static Point4 operator-(Point4 a, Point4 b) => Point4(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
+		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y, a.Z / b.Z, a.W / b.W);
 
-		public static Point4 operator*(Point4 a, int b) => Point4(a.X * b, a.Y * b, a.Z * b, a.W * b);
-		public static Point4 operator*(int b, Point4 a) => Point4(a.X * b, a.Y * b, a.Z * b, a.W * b);
-		public static Point4 operator/(Point4 a, int b) => Point4(a.X / b, a.Y / b, a.Z / b, a.W / b);
+		public static Self operator*(int a, Self b) => .(a * b.X, a * b.Y, a * b.Z, a * b.W);
+		public static Self operator*(Self a, int b) => .(a.X * b, a.Y * b, a.Z * b, a.W * b);
+		public static Self operator/(Self a, int b) => .(a.X / b, a.Y / b, a.Z / b, a.W / b);
 
-		public static Point4 operator*(Point4 a, Point4 b) => Point4(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
-		public static Point4 operator/(Point4 a, Point4 b) => Point4(a.X / b.X, a.Y / b.Y, a.Z / b.Z, a.W / b.W);
-
-		public static Point4 operator-(Point4 a) => Point4(-a.X, -a.Y, -a.Z, -a.W);
+		public static Self operator-(Self a) => .(-a.X, -a.Y, -a.Z, -a.W);
 	}
 }

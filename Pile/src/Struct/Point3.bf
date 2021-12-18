@@ -1,29 +1,31 @@
+// Generator=Pile:Pile.VectorGenerator
+// name=Point3
+// components=3
+// type=int
+// ftype=float
+// ivtype=
+// fvtype=Vector3
+// compatv=Point2:int:2
+// GenHash=E4CA648FD361F113BD0E2B2ED88A695F
+
+
+// Generated at 12/18/2021 4:08:00 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
 {
-	[Ordered]
-	struct Point3 : IFormattable, IEquatable<Point3>, IEquatable
+	struct Point3 : IFormattable, IEquatable<Point3>
 	{
-		public const Point3 Zero = .(0, 0, 0);
-		public const Point3 One = .(1, 1, 1);
-		public const Point3 UnitX = .(1, 0, 0);
-		public const Point3 UnitY = .(0, 1, 0);
-		public const Point3 UnitZ = .(0, 0, 1);
-
-		public const Point3 NegateX = .(-1, 1, 1);
-		public const Point3 NegateY = .(1, -1, 1);
-		public const Point3 NegateZ = .(1, 1, -1);
+		public const Self Zero = .();
+		public const Self One = .(1);
+		public const Self UnitX = .(1, 0, 0);
+		public const Self UnitY = .(0, 1, 0);
+		public const Self UnitZ = .(0, 0, 1);
+		public const Self NegateX = .(-1, 1, 1);
+		public const Self NegateY = .(1, -1, 1);
+		public const Self NegateZ = .(1, 1, -1);
 
 		public int X, Y, Z;
-
-		[Inline]
-		/// Returns the length of the vector.
-		public float Length => (float)Math.Sqrt((double)X * X + Y * Y + Z * Z);
-
-		[Inline]
-		/// Returns the length of the vector squared. This operation is cheaper than Length.
-		public float LengthSquared => X * X + Y * Y + Z * Z;
 
 		public this()
 		{
@@ -37,13 +39,6 @@ namespace Pile
 			Z = all;
 		}
 
-		public this(Point2 point2, int z)
-		{
-			X = point2.X;
-			Y = point2.Y;
-			Z = z;
-		}
-
 		public this(int x, int y, int z)
 		{
 			X = x;
@@ -51,11 +46,23 @@ namespace Pile
 			Z = z;
 		}
 
+		public this(Point2 v, int z)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = z;
+		}
+
+		/// Returns the length of the vector.
 		[Inline]
-		public bool Equals(Object o) => (o is Point3) && (Point3)o == this;
+		public float Length => (.)Math.Sqrt((.)X * X + Y * Y + Z * Z);
+
+		/// Returns the length of the vector squared. This operation is cheaper than Length.
+		[Inline]
+		public int LengthSquared => X * X + Y * Y + Z * Z;
 
 		[Inline]
-		public bool Equals(Point3 a) => a.X == X && a.Y == Y;
+		public bool Equals(Self o) => o == this;
 
 		public override void ToString(String strBuffer)
 		{
@@ -80,104 +87,154 @@ namespace Pile
 		}
 
 		/// Returns the Euclidean distance between the two given points.
-		public static float Distance(Point3 value1, Point3 value2)
-		{
-		    let difference = value1 - value2;
-			let ls = Point3.Dot(difference, difference);
-			return Math.Sqrt(ls);
-		}
-
-		/// Returns the Euclidean distance squared between the two given points.
-		public static float DistanceSquared(Point3 value1, Point3 value2)
-		{
-		    let difference = value1 - value2;
-			return Vector3.Dot(difference, difference);
-		}
-
 		[Inline]
-		/// Computes the cross product of two vectors.
-		public static Point3 Cross(Point3 vector1, Point3 vector2)
+		public float DistanceTo(Self other)
 		{
-		    return Point3(
-		        vector1.Y * vector2.Z - vector1.Z * vector2.Y,
-		        vector1.Z * vector2.X - vector1.X * vector2.Z,
-		        vector1.X * vector2.Y - vector1.Y * vector2.X);
+			return (this - other).Length;
 		}
 
+		/// Returns the Euclidean distance between the two given points squared.
 		[Inline]
-		/// Returns the reflection of a vector off a surface that has the specified normal.
-		public static Point3 Reflect(Point3 vector, Point3 normal)
+		public int DistanceToSquared(Self other)
 		{
-			return vector - (normal * Point3.Dot(vector, normal) * 2);
+			return (this - other).LengthSquared;
+		}
+
+		/// Returns a vector with the same direction as the given vector, but with a length of 1.
+		/// Vector2.Zero will still just return Vector2.Zero.
+		[Inline]
+		public Vector3 ToNormalized()
+		{
+			return Self.Normalize(this);
+		}
+
+		/// Returns a vector with the same direction as the given vector, but with a length of 1.
+		/// Vector2.Zero will still just return Vector2.Zero.
+		[Inline]
+		public static Vector3 Normalize(Self vector)
+		{
+			// Normalizing a zero vector is not possible and will return NaN.
+			// We ignore this in favor of not NaN-ing vectors.
+
+			return vector == .Zero ? Vector3.Zero : (Vector3)vector / vector.Length;
 		}
 
 		/// Returns the dot product of two vectors.
-		public static int Dot(Point3 vector1, Point3 vector2)
+		[Inline]
+		public static int Dot(Self a, Self b)
 		{
-		    return vector1.X * vector2.X +
-		           vector1.Y * vector2.Y +
-		           vector1.Z * vector2.Z;
+			return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+		}
+
+		/// Returns the Euclidean distance between the two given points.
+		[Inline]
+		public static float Distance(Self a, Self b)
+		{
+			return (a - b).Length;
+		}
+
+		/// Returns the Euclidean distance between the two given points squared.
+		[Inline]
+		public static int DistanceSquared(Self a, Self b)
+		{
+			return (a - b).LengthSquared;
+		}
+
+		/// Returns the reflection of a vector off a surface that has the specified normal.
+		[Inline]
+		public static Self Reflect(Self vector, Self normal)
+		{
+			return vector - (normal * 2 * Self.Dot(vector, normal));
 		}
 
 		/// Restricts a vector between a min and max value.
-		public static Point3 Clamp(Point3 value1, Point3 min, Point3 max)
+		public static Self Clamp(Self vector, Self min, Self max)
 		{
-		    var x = value1.X;
-		    x = (x > max.X) ? max.X : x;
-		    x = (x < min.X) ? min.X : x;
+			var x = vector.X;
+			x = (x > max.X) ? max.X : x;
+			x = (x < min.X) ? min.X : x;
 
-		    var y = value1.Y;
-		    y = (y > max.Y) ? max.Y : y;
-		    y = (y < min.Y) ? min.Y : y;
+			var y = vector.Y;
+			y = (y > max.Y) ? max.Y : y;
+			y = (y < min.Y) ? min.Y : y;
 
-		    var z = value1.Z;
-		    z = (z > max.Z) ? max.Z : z;
-		    z = (z < min.Z) ? min.Z : z;
+			var z = vector.Z;
+			z = (z > max.Z) ? max.Z : z;
+			z = (z < min.Z) ? min.Z : z;
 
-		    return Point3(x, y, z);
+			return .(x, y, z);
+		}
+
+		/// Linearly interpolates between two vectors based on the given weighting.
+		public static Self Lerp(Self a, Self b, float amount)
+		{
+			return .(a.X + (.)Math.Round((b.X - a.X) * amount), a.Y + (.)Math.Round((b.Y - a.Y) * amount), a.Z + (.)Math.Round((b.Z - a.Z) * amount));
+		}
+
+		/// Approaches the target vector by a constant given amount.
+		public static Self Approach(Self from, Self target, float amount)
+		{
+			if (from == target)
+			{
+				return target;
+			}
+			else
+			{
+				let diff = target - from;
+				if (diff.Length <= amount * amount)
+				{
+					return target;
+				}
+				else
+				{
+					return from + (Self)(Self.Normalize(diff) * amount);
+				}
+			}
 		}
 
 		/// Returns a vector whose elements are the minimum of each of the pairs of elements in the two source vectors.
-		public static Point3 Min(Point3 value1, Point3 value2)
+		public static Self Min(Self a, Self b)
 		{
-		    return Point3(
-		        (value1.X < value2.X) ? value1.X : value2.X,
-		        (value1.Y < value2.Y) ? value1.Y : value2.Y,
-		        (value1.Z < value2.Z) ? value1.Z : value2.Z);
+			return .((a.X < b.X) ? a.X : b.X, (a.Y < b.Y) ? a.Y : b.Y, (a.Z < b.Z) ? a.Z : b.Z);
 		}
 
 		/// Returns a vector whose elements are the maximum of each of the pairs of elements in the two source vectors.
-		public static Point3 Max(Point3 value1, Point3 value2)
+		public static Self Max(Self a, Self b)
 		{
-		    return Point3(
-		        (value1.X > value2.X) ? value1.X : value2.X,
-		        (value1.Y > value2.Y) ? value1.Y : value2.Y,
-		        (value1.Z > value2.Z) ? value1.Z : value2.Z);
+			return .((a.X > b.X) ? a.X : b.X, (a.Y > b.Y) ? a.Y : b.Y, (a.Z > b.Z) ? a.Z : b.Z);
 		}
 
-		[Inline]
 		/// Returns a vector whose elements are the absolute values of each of the source vector's elements.
-		public static Point3 Abs(Point3 value)
+		[Inline]
+		public static Self Abs(Self vector)
 		{
-		    return Point3(Math.Abs(value.X), Math.Abs(value.Y), Math.Abs(value.Z));
+			return .(Math.Abs(vector.X), Math.Abs(vector.Y), Math.Abs(vector.Z));
 		}
 
-		public static operator Point3((int X, int Y, int Z) tuple) => Point3(tuple.X, tuple.Y, tuple.Z);
-		public static explicit operator Point3(Vector3 a) => Point3((int)Math.Round(a.X), (int)Math.Round(a.Y), (int)Math.Round(a.Z));
+		/// Returns a vector whose elements are the square root of each of the source vector's elements.
+		[Inline]
+		public static Vector3 Sqrt(Self vector)
+		{
+			return .((.)Math.Sqrt(vector.X), (.)Math.Sqrt(vector.Y), (.)Math.Sqrt(vector.Z));
+		}
+
+		public static operator Self((int X, int Y, int Z) tuple) => .(tuple.X, tuple.Y, tuple.Z);
+		public static explicit operator Self(Vector3 a) => (.)a.ToRounded();
+
+		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default);
 
 		[Commutable]
-		public static bool operator==(Point3 a, Point3 b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
+		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
 
-		public static Point3 operator+(Point3 a, Point3 b) => Point3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
-		public static Point3 operator-(Point3 a, Point3 b) => Point3(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
 
-		public static Point3 operator*(Point3 a, int b) => Point3(a.X * b, a.Y * b, a.Z * b);
-		public static Point3 operator*(int b, Point3 a) => Point3(a.X * b, a.Y * b, a.Z * b);
-		public static Point3 operator/(Point3 a, int b) => Point3(a.X / b, a.Y / b, a.Z / b);
+		public static Self operator*(int a, Self b) => .(a * b.X, a * b.Y, a * b.Z);
+		public static Self operator*(Self a, int b) => .(a.X * b, a.Y * b, a.Z * b);
+		public static Self operator/(Self a, int b) => .(a.X / b, a.Y / b, a.Z / b);
 
-		public static Point3 operator*(Point3 a, Point3 b) => Point3(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
-		public static Point3 operator/(Point3 a, Point3 b) => Point3(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
-
-		public static Point3 operator-(Point3 a) => Point3(-a.X, -a.Y, -a.Z);
+		public static Self operator-(Self a) => .(-a.X, -a.Y, -a.Z);
 	}
 }

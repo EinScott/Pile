@@ -1,34 +1,37 @@
+// Generator=Pile:Pile.VectorGenerator
+// name=UPoint2
+// components=2
+// type=uint
+// ftype=float
+// ivtype=Point2
+// fvtype=Vector2
+// compatv=
+// GenHash=106C0823AC340E23D1BE5EC20DDABA1D
+
+
+// Generated at 12/18/2021 4:05:02 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
 {
-	[Ordered]
-	struct UPoint2 : IFormattable, IEquatable<UPoint2>, IEquatable
+	struct UPoint2 : IFormattable, IEquatable<UPoint2>
 	{
-		public const UPoint2 Zero = .(0, 0);
-		public const UPoint2 One = .(1, 1);
-		public const UPoint2 UnitX = .(1, 0);
-		public const UPoint2 UnitY = .(0, 1);
+		public const Self Zero = .();
+		public const Self One = .(1);
+		public const Self UnitX = .(1, 0);
+		public const Self UnitY = .(0, 1);
 
 		public uint X, Y;
-
-		[Inline]
-		/// Returns the length of the vector.
-		public float Length => (float)Math.Sqrt((double)X * X + Y * Y);
-
-		[Inline]
-		/// Returns the length of the vector squared. This operation is cheaper than Length.
-		public float LengthSquared => X * X + Y * Y;
 
 		public this()
 		{
 			this = default;
 		}
 
-		public this(uint both)
+		public this(uint all)
 		{
-			X = both;
-			Y = both;
+			X = all;
+			Y = all;
 		}
 
 		public this(uint x, uint y)
@@ -37,11 +40,16 @@ namespace Pile
 			Y = y;
 		}
 
+		/// Returns the length of the vector.
 		[Inline]
-		public bool Equals(Object o) => (o is UPoint2) && (UPoint2)o == this;
+		public float Length => (.)Math.Sqrt((.)X * X + Y * Y);
+
+		/// Returns the length of the vector squared. This operation is cheaper than Length.
+		[Inline]
+		public uint LengthSquared => X * X + Y * Y;
 
 		[Inline]
-		public bool Equals(UPoint2 o) => o == this;
+		public bool Equals(Self o) => o == this;
 
 		public override void ToString(String strBuffer)
 		{
@@ -61,86 +69,164 @@ namespace Pile
 			outString.Append(" ]");
 		}
 
+		/// Returns the Euclidean distance between the two given points.
 		[Inline]
-		/// Returns the Euclidean distance between the two given vectors.
-		public static float Distance(UPoint2 value1, UPoint2 value2)
+		public float DistanceTo(Self other)
 		{
-		    let difference = value1 - value2;
-			let ls = difference.LengthSquared;
-			return Math.Sqrt(ls);
+			return (this - other).Length;
 		}
 
+		/// Returns the Euclidean distance between the two given points squared.
 		[Inline]
-		/// Returns the Euclidean distance squared between the two given vectors.
-		public static float DistanceSquared(UPoint2 value1, UPoint2 value2)
+		public uint DistanceToSquared(Self other)
 		{
-		    let difference = value1 - value2;
-			return difference.LengthSquared;
+			return (this - other).LengthSquared;
+		}
+
+		/// Returns a vector with the same direction as the given vector, but with a length of 1.
+		/// Vector2.Zero will still just return Vector2.Zero.
+		[Inline]
+		public Vector2 ToNormalized()
+		{
+			return Self.Normalize(this);
+		}
+
+		/// Returns a vector with the same direction as the given vector, but with a length of 1.
+		/// Vector2.Zero will still just return Vector2.Zero.
+		[Inline]
+		public static Vector2 Normalize(Self vector)
+		{
+			// Normalizing a zero vector is not possible and will return NaN.
+			// We ignore this in favor of not NaN-ing vectors.
+
+			return vector == .Zero ? Vector2.Zero : (Vector2)vector / vector.Length;
+		}
+
+		/// Returns the dot product of two vectors.
+		[Inline]
+		public static uint Dot(Self a, Self b)
+		{
+			return a.X * b.X + a.Y * b.Y;
+		}
+
+		/// Returns the angle of the vector.
+		[Inline]
+		public static float Angle(Self vector)
+		{
+			return (.)Math.Atan2(vector.Y, vector.X);
+		}
+
+		/// Returns the angle betweem two vectors.
+		[Inline]
+		public static float Angle(Self from, Self to)
+		{
+			return (.)Math.Atan2(to.Y - from.Y, to.X - from.X);
+		}
+
+		/// Constructs a vector from a given angle and a length.
+		[Inline]
+		public static Self AngleToVector(uint angle, uint length = 1)
+		{
+			return .((.)(Math.Cos(angle) * length), (.)(Math.Sin(angle) * length));
+		}
+
+		/// Returns the Euclidean distance between the two given points.
+		[Inline]
+		public static float Distance(Self a, Self b)
+		{
+			return (a - b).Length;
+		}
+
+		/// Returns the Euclidean distance between the two given points squared.
+		[Inline]
+		public static uint DistanceSquared(Self a, Self b)
+		{
+			return (a - b).LengthSquared;
+		}
+
+		/// Returns the reflection of a vector off a surface that has the specified normal.
+		[Inline]
+		public static Self Reflect(Self vector, Self normal)
+		{
+			return vector - (normal * 2 * Self.Dot(vector, normal));
 		}
 
 		/// Restricts a vector between a min and max value.
-		public static UPoint2 Clamp(UPoint2 value1, UPoint2 min, UPoint2 max)
+		public static Self Clamp(Self vector, Self min, Self max)
 		{
-		    var x = value1.X;
-		    x = (x > max.X) ? max.X : x;
-		    x = (x < min.X) ? min.X : x;
+			var x = vector.X;
+			x = (x > max.X) ? max.X : x;
+			x = (x < min.X) ? min.X : x;
 
-		    var y = value1.Y;
-		    y = (y > max.Y) ? max.Y : y;
-		    y = (y < min.Y) ? min.Y : y;
+			var y = vector.Y;
+			y = (y > max.Y) ? max.Y : y;
+			y = (y < min.Y) ? min.Y : y;
 
-		    return UPoint2(x, y);
+			return .(x, y);
 		}
 
-		[Inline]
-		/// Returns the dot product of two vectors.
-		public static uint Dot(UPoint2 val1, UPoint2 val2)
+		/// Linearly interpolates between two vectors based on the given weighting.
+		public static Self Lerp(Self a, Self b, float amount)
 		{
-			return val1.X * val2.X + val1.Y * val2.Y;
+			return .(a.X + (.)Math.Round((b.X - a.X) * amount), a.Y + (.)Math.Round((b.Y - a.Y) * amount));
 		}
 
-		[Inline]
+		/// Approaches the target vector by a constant given amount.
+		public static Self Approach(Self from, Self target, float amount)
+		{
+			if (from == target)
+			{
+				return target;
+			}
+			else
+			{
+				let diff = target - from;
+				if (diff.Length <= amount * amount)
+				{
+					return target;
+				}
+				else
+				{
+					return from + (Self)(Self.Normalize(diff) * amount);
+				}
+			}
+		}
+
 		/// Returns a vector whose elements are the minimum of each of the pairs of elements in the two source vectors.
-		public static UPoint2 Min(UPoint2 value1, UPoint2 value2)
+		public static Self Min(Self a, Self b)
 		{
-		    return UPoint2(
-		        (value1.X < value2.X) ? value1.X : value2.X,
-		        (value1.Y < value2.Y) ? value1.Y : value2.Y);
+			return .((a.X < b.X) ? a.X : b.X, (a.Y < b.Y) ? a.Y : b.Y);
 		}
 
 		/// Returns a vector whose elements are the maximum of each of the pairs of elements in the two source vectors.
-		public static UPoint2 Max(UPoint2 value1, UPoint2 value2)
+		public static Self Max(Self a, Self b)
 		{
-		    return UPoint2(
-		        (value1.X > value2.X) ? value1.X : value2.X,
-		        (value1.Y > value2.Y) ? value1.Y : value2.Y);
+			return .((a.X > b.X) ? a.X : b.X, (a.Y > b.Y) ? a.Y : b.Y);
 		}
 
-		public static operator UPoint2((uint X, uint Y) tuple) => UPoint2(tuple.X, tuple.Y);
+		/// Returns a vector whose elements are the square root of each of the source vector's elements.
+		[Inline]
+		public static Vector2 Sqrt(Self vector)
+		{
+			return .((.)Math.Sqrt(vector.X), (.)Math.Sqrt(vector.Y));
+		}
 
-		public static explicit operator UPoint2(Point2 a) => .((.)a.X, (.)a.Y);
+		public static operator Self((uint X, uint Y) tuple) => .(tuple.X, tuple.Y);
+		public static explicit operator Self(Point2 a) => .((.)a.X, (.)a.Y);
+		public static explicit operator Self(Vector2 a) => (.)a.ToRounded();
 
 		[Commutable]
-		public static bool operator==(UPoint2 a, UPoint2 b) => a.X == b.X && a.Y == b.Y;
+		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y;
 
-		public static UPoint2 operator+(UPoint2 a, UPoint2 b) => UPoint2(a.X + b.X, a.Y + b.Y);
-		public static Point2 operator+(Point2 a, UPoint2 b) => Point2(a.X + (.)b.X, a.Y + (.)b.Y);
-		public static Point2 operator+(UPoint2 b, Point2 a) => Point2(a.X + (.)b.X, a.Y + (.)b.Y);
-		public static UPoint2 operator-(UPoint2 a, UPoint2 b) => UPoint2(a.X - b.X, a.Y - b.Y);
-		public static Point2 operator-(Point2 a, UPoint2 b) => Point2(a.X - (.)b.X, a.Y - (.)b.Y);
-		public static Point2 operator-(UPoint2 a, Point2 b) => Point2((.)a.X - b.X, (.)a.Y - b.Y);
+		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y);
+		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y);
+		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y);
+		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y);
 
-		public static UPoint2 operator*(UPoint2 a, uint b) => UPoint2(a.X * b, a.Y * b);
-		public static UPoint2 operator*(uint b, UPoint2 a) => UPoint2(a.X * b, a.Y * b);
-		public static UPoint2 operator/(UPoint2 a, uint b) => UPoint2(a.X / b, a.Y / b);
+		public static Self operator*(uint a, Self b) => .(a * b.X, a * b.Y);
+		public static Self operator*(Self a, uint b) => .(a.X * b, a.Y * b);
+		public static Self operator/(Self a, uint b) => .(a.X / b, a.Y / b);
 
-		public static Point2 operator*(UPoint2 a, int b) => Point2((int)a.X * b, (int)a.Y * b);
-		public static Point2 operator*(int b, UPoint2 a) => Point2((int)a.X * b, (int)a.Y * b);
-		public static Point2 operator/(UPoint2 a, int b) => Point2((int)a.X / b, (int)a.Y / b);
-
-		public static UPoint2 operator*(UPoint2 a, UPoint2 b) => UPoint2(a.X * b.X, a.Y * b.Y);
-		public static UPoint2 operator/(UPoint2 a, UPoint2 b) => UPoint2(a.X / b.Y, a.Y / b.Y);
-
-		public static Point2 operator-(UPoint2 a) => Point2(-(int)a.X, -(int)a.Y);
+		public static Point2 operator-(Self a) => Point2((.)(-(int)a.X), (.)(-(int)a.Y));
 	}
 }
