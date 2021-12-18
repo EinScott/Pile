@@ -28,6 +28,9 @@ namespace Pile
 		static List<Package> loadedPackages = new List<Package>() ~ DeleteContainerAndItems!(_);
 		static String packagesPath = new String() ~ delete _;
 
+		internal static uint32 assetAddIteration;
+		internal static uint32 assetDelIteration;
+
 		public static uint TextureCount => packer.SourceImageCount;
 		public static uint AssetCount
 		{
@@ -276,6 +279,7 @@ namespace Pile
 
 			if (OnLoadPackage.HasListeners)
 				OnLoadPackage(package);
+
 			return .Ok(package);
 		}
 
@@ -383,6 +387,7 @@ namespace Pile
 				dynamicAssets.Add(type, new List<StringView>());
 
 			dynamicAssets.GetValue(type).Get().Add(nameView);
+			assetAddIteration++;
 
 			return .Ok;
 		}
@@ -405,6 +410,7 @@ namespace Pile
 
 			if (packAndUpdateTextures)
 				PackAndUpdateTextures();
+			assetAddIteration++;
 
 			return .Ok(asset);
 		}
@@ -417,6 +423,7 @@ namespace Pile
 			// Remove asset if dynamics assets contained one with the name
 			if (dynamicAssets.GetValue(type).Get().Remove(name))
 				RemoveAsset(type, name);
+			assetDelIteration++;
 		}
 
 		/// PackAndUpdate needs to be true for the texture atlas to be updated, but has some performance hit. Could be disabled on the first of two consecutive calls.
@@ -432,6 +439,7 @@ namespace Pile
 
 				if (packAndUpdateTextures)
 					PackAndUpdateTextures();
+				assetDelIteration++;
 			}
 		}
 
@@ -466,6 +474,7 @@ namespace Pile
 
 			assets.GetValue(type).Get().Add(nameString, object);
 
+			assetAddIteration++;
 			return .Ok(nameString);
 		}
 
@@ -502,6 +511,7 @@ namespace Pile
 			asset = new Subtexture();
 			assets.GetValue(type).Get().Add(nameString, asset); // Will be filled in on PackAndUpdate()
 
+			assetAddIteration++;
 			return .Ok(nameString);
 		}
 
@@ -535,6 +545,7 @@ namespace Pile
 				let dict = assets.GetAndRemove(type).Get();
 				delete dict.value;
 			}
+			assetDelIteration++;
 		}
 
 		internal static void RemoveTextureAsset(StringView name)
@@ -563,6 +574,7 @@ namespace Pile
 				let dict = assets.GetAndRemove(type).Get();
 				delete dict.value;
 			}
+			assetDelIteration++;
 		}
 
 		internal static void PackAndUpdateTextures()
