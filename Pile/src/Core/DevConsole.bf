@@ -129,11 +129,14 @@ namespace Pile
 			if (Input.Keyboard.Pressed(.Enter) && inputLine.Length > 0)
 			{
 				// Commit to history
+				if (currHistLook == -1 || inputLine != history[(history.Count - 1) - currHistLook])
+				{
+					var hist = ref history.AddByRef();
+					if (hist == null)
+						hist = new String(inputLine);
+					else hist.Set(inputLine);
+				}
 				currHistLook = -1;
-				var hist = ref history.AddByRef();
-				if (hist == null)
-					hist = new String(inputLine);
-				else hist.Set(inputLine);
 
 				Write(.Info, inputLine);
 				Commands.Interpreter.Interpret(inputLine, => Write);
