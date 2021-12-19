@@ -69,10 +69,12 @@ namespace Pile
 #if !DEBUG
 		[SkipCall]
 #endif
+		[Inline]
 		public static void Debug(String message) => Log(.Info, message);
 #if !DEBUG
 		[SkipCall]
 #endif
+		[Inline]
 		public static void Debug(Object message) => Log(.Info, message);
 #if !DEBUG
 		[SkipCall]
@@ -84,7 +86,9 @@ namespace Pile
 			Log(.Info, message);
 		}
 
+		[Inline]
 		public static void Info(String message) => Log(.Info, message);
+		[Inline]
 		public static void Info(Object message) => Log(.Info, message);
 		public static void Info(StringView format, params Object[] inserts)
 		{
@@ -93,7 +97,9 @@ namespace Pile
 			Log(.Info, message);
 		}
 
+		[Inline]
 		public static void Warn(String message) => Log(.Warn, message);
+		[Inline]
 		public static void Warn(Object message) => Log(.Warn, message);
 		public static void Warn(StringView format, params Object[] inserts)
 		{
@@ -102,14 +108,10 @@ namespace Pile
 			Log(.Warn, message);
 		}
 
-		public static void Error(String message)
-		{
-			Log(.Error, message);
-		}
-		public static void Error(Object message)
-		{
-			Log(.Error, message);
-		}
+		[Inline]
+		public static void Error(String message) => Log(.Error, message);
+		[Inline]
+		public static void Error(Object message) => Log(.Error, message);
 		public static void Error(StringView format, params Object[] inserts)
 		{
 			let message = scope String();
@@ -127,7 +129,6 @@ namespace Pile
 			Log(type, msgStr);
 		}
 
-		[Inline]
 		static void Log(Types type, String message)
 		{
 			let fullMessage = scope String(type.GetLogString())..Append(message);

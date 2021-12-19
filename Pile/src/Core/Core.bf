@@ -17,9 +17,6 @@ namespace Pile
 		public function Game() createGame;
 	}
 
-	[Obsolete("EntryPoint has been moved into Core", false)]
-	typealias EntryPoint = Core;
-
 	[Optimize,StaticInitPriority(PILE_SINIT_ENTRY)]
 	static class Core
 	{
