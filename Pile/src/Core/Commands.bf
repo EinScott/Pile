@@ -620,6 +620,9 @@ namespace Pile
 							{
 								for (let f in ((TypeInstance)inType).GetFields())
 								{
+									if (!f.[Friend]mFieldData.mFlags.HasFlag(.EnumCase))
+										continue;
+
 									// Please note: this is highly illegal
 									// From Variant.Create where T : struct
 									if (passedParam.string.Equals(f.Name, true) || pickDefault)
@@ -717,6 +720,9 @@ namespace Pile
 
 					for (let f in ((TypeInstance)paramType).GetFields())
 					{
+						if (!f.[Friend]mFieldData.mFlags.HasFlag(.EnumCase))
+							continue;
+
 						let str = f.Name;
 
 						if (passedParam.string.Length > str.Length)
@@ -754,6 +760,9 @@ namespace Pile
 						{
 							for (let f in ((TypeInstance)paramType).GetFields())
 							{
+								if (!f.[Friend]mFieldData.mFlags.HasFlag(.EnumCase))
+									continue;
+
 								let str = f.Name;
 
 								if (passedParam.string.Length > str.Length)
