@@ -619,18 +619,11 @@ namespace Pile
 									if (!f.[Friend]mFieldData.mFlags.HasFlag(.EnumCase))
 										continue;
 
-									// From Variant.Create where T : struct
 									if (passedParam.string.Equals(f.Name, true) || pickDefault)
 									{
-										Variant variant;
-										variant.[Friend]mStructType = (int)Internal.UnsafeCastToPtr(inType);
-
-										// Normally we'd check to see if inType.Size <= sizeof(int), but the reflect info
-										// only stores an int right now, so i guess 64-bit enums are just screwed on 32 bit...
-										// At least it seems like fieldData.mData is not a disguised pointer the way it is used in Enum
-										variant.[Friend]mData = f.[Friend]mFieldData.mData;
-
-										argSlot = variant;
+										// mData is an int, and so will be enough for all enums on 64-bit
+										// (on 32-bit, Beef inserts a mDataHi int field after, that makes sure this still works)
+										argSlot = Variant.Create(inType, &f.[Friend]mFieldData.mData);
 										continue ARGMAKE;
 									}
 								}
