@@ -629,11 +629,10 @@ namespace Pile
 									{
 										Variant variant;
 										variant.[Friend]mStructType = (int)Internal.UnsafeCastToPtr(inType);
-										variant.[Friend]mData = 0;
 
 										// Normally we'd check to see if inType.Size <= sizeof(int), but the reflect info
 										// only stores an int right now, so i guess 64-bit enums are just screwed on 32 bit...
-										// At least it seems like mData is not a disguised pointer the way it is used in Enum
+										// At least it seems like fieldData.mData is not a disguised pointer the way it is used in Enum
 										variant.[Friend]mData = f.[Friend]mFieldData.mData;
 
 										argSlot = variant;
