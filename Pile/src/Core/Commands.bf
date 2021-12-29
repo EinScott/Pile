@@ -158,7 +158,6 @@ namespace Pile
 			Fullscreen,
 			Bordered,
 			Resizable,
-			Transparent,
 			VSync
 		}
 
@@ -178,9 +177,6 @@ namespace Pile
 			case .Resizable:
 				enabled = System.window.Resizable = !System.window.Resizable;
 				toggle.Set("Window resizing");
-			case .Transparent:
-				enabled = System.window.Transparent = !System.window.Transparent;
-				toggle.Set("Window transparency");
 			case .VSync:
 				enabled = System.window.VSync = !System.window.VSync;
 				toggle.Set("VSync");
@@ -623,7 +619,6 @@ namespace Pile
 									if (!f.[Friend]mFieldData.mFlags.HasFlag(.EnumCase))
 										continue;
 
-									// Please note: this is highly illegal
 									// From Variant.Create where T : struct
 									if (passedParam.string.Equals(f.Name, true) || pickDefault)
 									{

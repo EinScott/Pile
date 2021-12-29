@@ -310,15 +310,15 @@ namespace Pile
 			}
 		}
 
-		bool transparent;
-		public override bool Transparent
+		float opacity = 1;
+		public override float Opacity
 		{
-			get => transparent;
+			get => opacity;
 
 			set
 			{
-				if (value != transparent)
-					SDL.SetWindowOpacity(window, (transparent = value) ? 0 : 1);
+				if (value != opacity)
+					SDL.SetWindowOpacity(window, Math.Clamp(opacity, 0, 1));
 			}
 		}
 

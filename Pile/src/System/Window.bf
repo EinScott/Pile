@@ -42,9 +42,9 @@ namespace Pile
 		public extern UPoint2 Size { get; set; }
 		public extern UPoint2 MinSize { get; set; }
 		public extern Vector2 ContentScale { get; }
+		public extern float Opacity { get; set; }
 
 		public extern bool Resizable { get; set; }
-		public extern bool Transparent { get; set; }
 		public extern bool Bordered { get; set; }
 		public extern bool Fullscreen { get; set; }
 		public extern bool Visible { get; set; }
