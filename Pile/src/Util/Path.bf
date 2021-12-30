@@ -28,15 +28,5 @@ namespace System.IO
 			if (unifyPath.EndsWith('/'))
 				unifyPath.RemoveFromEnd(1);
 		}
-
-		public static void InternalCombineViews(String target, params StringView[] components)
-		{
-			for (var component in components)
-			{
-				if ((target.Length > 0) && (!target.EndsWith("\\")) && (!target.EndsWith("/")))
-					target.Append(Path.DirectorySeparatorChar);
-				target.Append(component);
-			}
-		}
 	}
 }

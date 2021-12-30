@@ -39,7 +39,7 @@ namespace Pile
 
 		public override bool Resizable { get; [SkipCall]set; }
 
-		public override bool Transparent { get; [SkipCall]set; }
+		public override float Opacity { get; [SkipCall]set; }
 
 		public override bool Bordered { get; [SkipCall]set; }
 

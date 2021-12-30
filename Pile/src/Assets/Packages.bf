@@ -283,7 +283,7 @@ namespace Pile
 				if (Path.IsPathRooted(path))
 					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a relative and direct path to items contained inside the asset folder");
 
-				let fullPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), rootPath, path));
+				let fullPath = Path.Clean(.. Path.InternalCombine(.. scope String(), rootPath, path));
 
 				if (fullPath.Contains("../") || fullPath.EndsWith("/..") || fullPath == "..")
 					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
@@ -381,7 +381,7 @@ namespace Pile
 
 			// Prepare paths
 			let packageName = Path.GetFileNameWithoutExtension(cPackageBuildFilePath, .. scope String());
-			let outputPath = Path.Clean(.. Path.InternalCombineViews(.. scope String(), outputFolderPath, packageName));
+			let outputPath = Path.Clean(.. Path.InternalCombine(.. scope String(), outputFolderPath, packageName));
 			Path.ChangeExtension(outputPath, ".bin", outputPath);
 
 			// Resolve imports and build

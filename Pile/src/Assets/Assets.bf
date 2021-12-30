@@ -229,7 +229,7 @@ namespace Pile
 			{
 				// Normalize path
 				let packagePath = scope String();
-				Path.InternalCombineViews(packagePath, packagesPath, packageName);
+				Path.InternalCombine(packagePath, packagesPath, packageName);
 
 				if (Packages.ReadPackage(packagePath, nodes, importerNames, ?) case .Err) // We don't care about the hash
 					LogErrorReturn!(scope $"Error reading package {packageName} for loading");
