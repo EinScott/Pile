@@ -2407,7 +2407,7 @@ namespace Pile
 		/* level may actually range from [0,10] (10 is a "hidden" max level, where we want a bit more compression and it's fine if throughput to fall off a cliff on some files). */
 		static tdefl_flags tdefl_create_comp_flags_from_zip_params(CompressionLevel level, int32 window_bits, CompressionStrategy strategy)
 		{
-		    tdefl_flags comp_flags = (.)(s_tdefl_num_probes[(level >= 0) ? MZ_MIN!(10, level.Underlying) : (int32)CompressionLevel.DEFAULT_LEVEL] | ((level.Underlying <= 3) ? (int32)tdefl_flags.TDEFL_GREEDY_PARSING_FLAG : 0));
+		    tdefl_flags comp_flags = (.)(s_tdefl_num_probes[(level >= 0) ? MZ_MIN!(10, level.Underlying) : (int32)CompressionLevel.DEFAULT_LEVEL] | ((level.Underlying <= 3) ? (uint32)tdefl_flags.TDEFL_GREEDY_PARSING_FLAG : 0));
 		    if (window_bits > 0)
 		        comp_flags |= .TDEFL_WRITE_ZLIB_HEADER;
 

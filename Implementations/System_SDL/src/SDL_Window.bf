@@ -294,7 +294,7 @@ namespace Pile
 			set
 			{
 				if (value != fullscreen)
-					SDL.SetWindowFullscreen(window, (fullscreen = value) ? (uint)SDL.WindowFlags.FullscreenDesktop : 0);
+					SDL.SetWindowFullscreen(window, (fullscreen = value) ? (uint32)SDL.WindowFlags.FullscreenDesktop : 0);
 			}
 		}
 
