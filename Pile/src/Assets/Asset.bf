@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 
 using internal Pile;
 
@@ -6,6 +7,21 @@ namespace Pile
 {
 	struct Asset<T> where T : class, delete
 	{
+		[Comptime]
+		static void ValidateT()
+		{
+			for (let i in typeof(T).Interfaces)
+				if (let g = i as SpecializedGenericType
+					&& g.UnspecializedType == typeof(IPersistentAsset<>))
+					Runtime.FatalError("Use PersistentAsset<> instead of Asset<> for this type!");
+		}
+
+		this
+		{
+			// Check if T should use PersistentAsset instead!
+			ValidateT();
+		}
+
 		readonly String name;
 		uint32 knownAssetAddIteration;
 		uint32 knownAssetDelIteration;

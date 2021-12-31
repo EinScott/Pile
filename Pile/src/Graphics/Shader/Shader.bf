@@ -38,7 +38,7 @@ namespace Pile
 		{
 			Debug.Assert(data != null, "ShaderData cannot be null");
 
-			Try!(Set(data));
+			Try!(Set(data)); // A fail here does not disturb the current state, so we're still "setup"
 			ReflectShader();
 
 			for (let m in materialDependants)

@@ -1,72 +1,77 @@
 using System;
 
+using internal Pile;
+
 namespace Pile
 {
 	/// For assets such as shaders and audoClips, where their content is set from intermediate data
 	/// which can be disposed of afterwards. TReset is only guaranteed to exist for the Reset() call.
 	/// If you need the asset to exist permanently, just use Asset<T> directly with your asset.
-	class PersistentAsset<T, TReset> where T : IPersistentAsset<TReset>, class, delete where TReset : class, delete
+	struct PersistentAsset<T, TReset> : IDisposable where T : IPersistentAsset<TReset>, class, delete where TReset : class, delete
 	{
-		readonly String resetName ~ delete _;
-		readonly T persistentAsset;
-		readonly bool ownsAsset;
-
+		readonly String resetName;
+		readonly T asset;
+		readonly bool deleteAsset;
+		uint32 knownAssetAddIteration;
+		uint32 knownAssetDelIteration;
 		TReset resetAsset;
 
-		[Inline]
-		public T Asset => persistentAsset;
-
-		public this(T persistentAsset, StringView resetAssetName, bool ownsAsset = true)
+		public T Asset
 		{
-			resetName = new .(resetAssetName);
+			get mut
+			{
+				if (!asset.IsSetup)
+					return null;
 
-			this.ownsAsset = ownsAsset;
-			this.persistentAsset = persistentAsset;
+				if (resetAsset != null && knownAssetDelIteration == Assets.assetDelIteration)
+				{
+					// Since we got the asset and nothing was deleted, we're still guaranteed valid
+					return asset;
+				}
+				else
+				{
+					// Try to get the asset again in case anything happened
+					if (resetAsset != null && knownAssetDelIteration != Assets.assetDelIteration
+						|| resetAsset == null && knownAssetAddIteration != Assets.assetAddIteration)
+					{
+						// Refresh
+						resetAsset = Assets.Get<TReset>(resetName);
+						knownAssetAddIteration = Assets.assetAddIteration;
+						knownAssetDelIteration = Assets.assetDelIteration;
 
-			Assets.OnLoadPackage.Add(new => PackageLoaded);
-			Assets.OnUnloadPackage.Add(new => PackageUnloaded);
+						if (resetAsset != null
+							&& (asset.Reset(resetAsset) case .Err)
+							&& !asset.IsSetup)
+								return null;
+					}
 
+					return asset;
+				}
+			}
+		}
+
+		public this(T persistentAsset, String constResetName, bool ownsAsset = true)
+		{
+			asset = persistentAsset;
+			deleteAsset = ownsAsset;
+
+			resetName = constResetName;
 			resetAsset = Assets.Get<TReset>(resetName); // Will set it to reference the asset or null
-			if (!persistentAsset.IsSetup && resetAsset != null)
-			{
-				if (persistentAsset.Reset(resetAsset) case .Err)
-					Log.Warn(scope $"Reset on persistent asset of {resetName} failed on construction");
-			}
+			knownAssetAddIteration = Assets.assetAddIteration;
+			knownAssetDelIteration = Assets.assetDelIteration;
+			if (!asset.IsSetup && resetAsset != null)
+				persistentAsset.Reset(resetAsset).IgnoreError();
 		}
 
-		public ~this()
-		{
-			Assets.OnLoadPackage.Remove(scope => PackageLoaded, true);
-			Assets.OnUnloadPackage.Remove(scope => PackageUnloaded, true);
-
-			if (ownsAsset)
-				delete persistentAsset;
-		}
-
-		void PackageLoaded(Package package)
-		{
-			if (resetAsset != null) return; // Already have asset
-
-			if (package.OwnsAsset(typeof(TReset), resetName) || (typeof(TReset) == typeof(Subtexture) && package.OwnsTextureAsset(resetName)))
-			{
-				resetAsset = Assets.Get<TReset>(resetName); // Get it
-
-				if (persistentAsset.Reset(resetAsset) case .Err)
-					Log.Warn(scope $"Reset on persistent asset of {resetName} failed");
-			}
-		}
-
-		void PackageUnloaded(Package package)
-		{
-			if (resetAsset == null) return; // Don't have asset
-
-			if (package.OwnsAsset(typeof(TReset), resetName) || (typeof(TReset) == typeof(Subtexture) && package.OwnsTextureAsset(resetName)))
-			{
-				resetAsset = null; // Leave it
-			}
-		}
+		public T AssetOrDefault(T def) mut => Asset == null ? def : asset;
 
 		[Inline]
-		public static implicit operator T(PersistentAsset<T, TReset> assetHandler) => assetHandler.persistentAsset;
+		public static implicit operator T(PersistentAsset<T, TReset> assetHandler) => assetHandler.asset;
+
+		public void Dispose()
+		{
+			if (deleteAsset)
+				delete asset;
+		}
 	}
 }
