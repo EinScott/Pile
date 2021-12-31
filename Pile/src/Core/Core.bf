@@ -7,6 +7,11 @@ using internal Pile;
 
 namespace Pile
 {
+	/* Preprocessor defines:
+		PILE_FORCE_DEBUG_TOOLS
+		PILE_FORCE_ASSET_TOOLS
+	*/
+
 	struct RunConfig
 	{
 		public WindowState windowState;
@@ -310,7 +315,7 @@ namespace Pile
 
 				// Record loop ticks (delta without sleep)
 				Time.loopTicks = endCurrTime - currTime;
-#if DEBUG
+#if DEBUG || PILE_FORCE_DEBUG_TOOLS
 				// We already have a timer running here...
 				Perf.[Friend]EndSection("Pile.Core.DoCoreLoop (no sleep)", TimeSpan(Time.loopTicks));
 #endif

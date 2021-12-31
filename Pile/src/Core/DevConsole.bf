@@ -4,6 +4,10 @@ using System.Collections;
 
 using internal Pile;
 
+#if DEBUG || PILE_FORCE_DEBUGTOOLS
+#define USE_CONSOLE
+#endif
+
 namespace Pile
 {
 	static class DevConsole
@@ -36,7 +40,7 @@ namespace Pile
 
 		static this()
 		{
-#if DEBUG
+#if USE_CONSOLE
 			Log.OnLine.Add(new => Write);
 
 			record = new .(64);
@@ -54,7 +58,7 @@ namespace Pile
 
 		static ~this()
 		{
-#if DEBUG
+#if USE_CONSOLE
 			DeleteContainerAndDisposeItems!(record);
 			DeleteContainerAndItems!(history);
 
@@ -65,7 +69,7 @@ namespace Pile
 #endif
 		}
 
-#if !DEBUG
+#if !USE_CONSOLE
 		[SkipCall]
 #endif
 		public static void ForceFocus(bool value = true)
@@ -73,18 +77,18 @@ namespace Pile
 			focus = value;
 		}
 
-#if !DEBUG
+#if !USE_CONSOLE
 		[SkipCall]
 #endif
 		public static void Update()
 		{
+#if USE_CONSOLE
 			if (Input.Keyboard.Pressed(FocusKey))
 				focus = !focus;
 
 			if (!focus)
 				return;
 
-#if DEBUG
 			// Typed text
 			for (let char in Input.Keyboard.Text.DecodedChars)
 				inputLine.Append(char);
@@ -234,7 +238,7 @@ namespace Pile
 #endif
 		}
 
-#if !DEBUG
+#if !USE_CONSOLE
 		[SkipCall]
 #endif
 		[PerfTrack]
@@ -341,13 +345,16 @@ namespace Pile
 			}
 		}
 
+#if !USE_CONSOLE
+		[SkipCall]
+#endif
 		public static void Clear()
 		{
 			for (var rec in record)
 				rec.message.Clear();
 		}
 		
-#if DEBUG
+#if USE_CONSOLE
 		static void Write(Log.Types type, StringView message)
 		{
 			var msg = ref record.AddByRef();

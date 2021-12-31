@@ -9,6 +9,9 @@ namespace Pile
 {
 	static
 	{
+		/// Set in static init!
+		internal static String relativeAssetsPath = @"../../../assets";
+
 		// Used for package hot reload
 		internal static mixin MakeScopedAssetsSourcePath()
 		{
@@ -17,7 +20,7 @@ namespace Pile
 			let dirPath = scope String();
 			if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 			{
-				assetsPath.Append(Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String()));
+				assetsPath.Append(Path.GetAbsolutePath(relativeAssetsPath, dirPath, .. scope String()));
 			}
 
 			assetsPath
@@ -38,7 +41,7 @@ namespace Pile
 				let dirPath = scope String();
 				if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 				{
-					let assetsPath = Path.GetAbsolutePath(@"../../../assets", dirPath, .. scope String());
+					let assetsPath = Path.GetAbsolutePath(relativeAssetsPath, dirPath, .. scope String());
 
 					// If the usual dir doesnt exist... try args
 					if (!Directory.Exists(assetsPath))

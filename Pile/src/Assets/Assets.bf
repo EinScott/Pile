@@ -5,6 +5,10 @@ using System.Diagnostics;
 
 using internal Pile;
 
+#if DEBUG || PILE_FORCE_ASSETTOOLS
+#define USE_HOTRELOAD
+#endif
+
 namespace Pile
 {
 #if !DEBUG
@@ -67,7 +71,7 @@ namespace Pile
 			// Get packages path
 			Path.Clean(Path.InternalCombine(.. scope .(), System.DataPath, "packages"), packagesPath);
 
-#if DEBUG
+#if USE_HOTRELOAD
 			System.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 
 #if BF_PLATFORM_WINDOWS // TODO: when fs-watcher is implemented for other platforms beef-side, remove this restriction (and the two ones below)
@@ -81,7 +85,7 @@ namespace Pile
 
 		internal static void Destroy()
 		{
-#if DEBUG
+#if USE_HOTRELOAD
 			System.Window.OnFocusChanged.Remove(scope => OnWindowFocusChanged, true);
 
 #if BF_PLATFORM_WINDOWS
@@ -91,7 +95,7 @@ namespace Pile
 #endif
 		}
 
-#if DEBUG
+#if USE_HOTRELOAD
 		static Platform.BfpFileWatcher* assetsWatcher;
 		internal static bool assetsChanged;
 
@@ -329,12 +333,12 @@ namespace Pile
 			return false;
 		}
 
-#if !DEBUG
+#if !USE_HOTRELOAD
 		[SkipCall]
 #endif
 		/// Will try to rebuild and reload all packages. This is a debug and development feature, therefore when not compiling with DEBUG, this call will be automatically ignored!
 		internal static Result<void> HotReloadPackages(bool force = false)
-#if DEBUG
+#if USE_HOTRELOAD
 		{
 			Result<void> err = .Ok;
 
@@ -366,7 +370,7 @@ namespace Pile
 		{
 			return .Ok;
 		}
-#endif // #if DEBUG
+#endif // #if USE_HOTRELOAD
 
 		//=== DYNAMIC ASSETS
 

@@ -5,9 +5,13 @@ using System.Collections;
 
 using internal Pile;
 
+#if DEBUG || PILE_FORCE_DEBUGTOOLS
+#define USE_COMMANDS
+#endif
+
 namespace Pile
 {
-#if DEBUG
+#if USE_COMMANDS
 	[AlwaysInclude(IncludeAllMethods=true),Reflect(.StaticMethods)]
 #endif
 	static class Commands
@@ -108,10 +112,8 @@ namespace Pile
 			else Log.Warn("No matching commands found");
 		}
 
-#if DEBUG
 		[Description("Clears the DevConsole")]
 		public static void Clear() => DevConsole.Clear();
-#endif
 
 		[Description("Closes the application")]
 		public static void Exit() => Core.Exit();
@@ -199,10 +201,9 @@ namespace Pile
 		[Description("Crashes the application")]
 		public static void ForceCrash() => Runtime.FatalError("Forced crash");
 
-#if DEBUG
 		[Description("Manually triggers an asset reload")]
 		public static void AssetsReload() => TrySilent!(Assets.HotReloadPackages());
-#endif
+
 		[Description("Lists the currently loaded packages")]
 		public static void AssetsLoaded()
 		{
@@ -266,7 +267,7 @@ namespace Pile
 				into.Append(')');
 			}
 
-#if !DEBUG
+#if !USE_COMMANDS
 			[SkipCall]
 #endif
 			internal static void Interpret(StringView line, function void(Log.Types, StringView message) logOut, String diagnostic = null, String autoComplete = null)
@@ -648,11 +649,13 @@ namespace Pile
 			{
 				bool CheckSignedInts(int64 val)
 				{
-#unwarn
 					return paramType == typeof(int8) && val <= int8.MaxValue && val >= int8.MinValue
 						|| paramType == typeof(int16) && val <= int16.MaxValue && val >= int16.MinValue
 						|| paramType == typeof(int32) && val <= int32.MaxValue && val >= int32.MinValue
-						|| paramType == typeof(int) && val <= int.MaxValue && val >= int.MinValue
+						|| paramType == typeof(int)
+#if BF_32_BIT
+							&& val <= int.MaxValue && val >= int.MinValue
+#endif
 						|| paramType == typeof(int64);
 				}
 
@@ -661,7 +664,10 @@ namespace Pile
 					return paramType == typeof(uint8) && val <= uint8.MaxValue && val >= uint8.MinValue
 						|| paramType == typeof(uint16) && val <= uint16.MaxValue && val >= uint16.MinValue
 						|| paramType == typeof(uint32) && val <= uint32.MaxValue && val >= uint32.MinValue
-						|| paramType == typeof(uint) && val <= uint.MaxValue && val >= uint.MinValue
+						|| paramType == typeof(uint)
+#if BF_32_BIT
+							&& val <= uint.MaxValue && val >= uint.MinValue
+#endif
 						|| paramType == typeof(uint64);
 				}
 

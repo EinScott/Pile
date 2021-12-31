@@ -5,6 +5,10 @@ using System.Collections;
 
 using internal Pile;
 
+#if DEBUG || PILE_FORCE_DEBUG_TOOLS
+#define USE_PERF
+#endif
+
 namespace Pile
 {
 	static
@@ -12,7 +16,7 @@ namespace Pile
 		[Comptime]
 		public static mixin PerfTrack(String scopeName)
 		{
-#if DEBUG
+#if USE_PERF
 			let sNum = Perf.[Friend]CrappyCompHash(scopeName);
 
 			// This needed so many workarounds to work...
@@ -24,7 +28,7 @@ namespace Pile
 #endif
 		}
 
-#if !DEBUG
+#if !USE_PERF
 		[SkipCall]
 #endif
 		[Comptime]
@@ -45,19 +49,14 @@ namespace Pile
 
 		public this(String sectionNameOverride = String.Empty, bool appendOverride = false)
 		{
-#if DEBUG
 			this.sectionNameOverride = sectionNameOverride;
 			this.appendOverride = appendOverride;
-#else
-			this.sectionNameOverride = String.Empty;
-			this.appendOverride = false;
-#endif
 		}
 
 		[Comptime]
 		public void ApplyToMethod(ComptimeMethodInfo methodInfo)
 		{
-#if DEBUG
+#if USE_PERF
 			// Make name
 			let sectionName = appendOverride
 				? scope String()
@@ -100,7 +99,7 @@ namespace Pile
 		public static int TrackCollectInterval = 30; // in steps/frames/loops
 		static int collectCounter;
 
-#if !DEBUG
+#if !USE_PERF
 		[SkipCall]
 #endif
 		internal static void Initialize()
@@ -109,7 +108,7 @@ namespace Pile
 			sectionDurationsRead = new .();
 		}
 
-#if !DEBUG
+#if !USE_PERF
 		[SkipCall]
 #endif
 		internal static void Step()
@@ -143,7 +142,7 @@ namespace Pile
 			}
 		}
 
-#if !DEBUG
+#if !USE_PERF
 		[SkipCall]
 #endif
 		static void EndSection(String sectionName, TimeSpan time)
@@ -160,7 +159,7 @@ namespace Pile
 			trackOverhead += __pt.Elapsed;
 		}
 
-#if !DEBUG
+#if !USE_PERF
 		[SkipCall]
 #endif
 		[Inline]
@@ -247,7 +246,7 @@ namespace Pile
 					perfText.AppendF("FPS: {}, tFPS: {:0000}, RawDelta: {:0.0000}s, Delta: {:0.0000}s, Freeze: {}\nVSync: {}, Draw Calls: {:00}, Tri Count: {:0000}, {}Sound Count: {:00} ({:00} audible)\n", Time.FPS, tFPS, Time.RawDelta, Time.Delta, Time.freeze > 0, System.window.VSync, Graphics.DebugInfo.drawCalls, Graphics.DebugInfo.triCount, gfxMem, Audio.SoundCount, Audio.AudibleSoundCount);
 				}
 
-#if DEBUG
+#if USE_PERF
 				if (sectionDurationsRead.Count > 0)
 				{
 					List<(String key, TimeSpan value)> ranking = scope .();
