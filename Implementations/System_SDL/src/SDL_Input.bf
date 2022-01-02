@@ -224,22 +224,22 @@ namespace Pile
 			Buttons output;
 		    switch (button)
 		    {
-		        case (uint8)SDL.SDL_GameControllerButton.A: output = .A;
-		        case (uint8)SDL.SDL_GameControllerButton.B: output = .B;
-		        case (uint8)SDL.SDL_GameControllerButton.X: output = .X;
-		        case (uint8)SDL.SDL_GameControllerButton.Y: output = .Y;
-		        case (uint8)SDL.SDL_GameControllerButton.Back: output = .Back;
-		        case (uint8)SDL.SDL_GameControllerButton.Guide: output = .Select;
-		        case (uint8)SDL.SDL_GameControllerButton.Start: output = .Start;
-		        case (uint8)SDL.SDL_GameControllerButton.LeftStick: output = .LeftStick;
-		        case (uint8)SDL.SDL_GameControllerButton.RightStick: output = .RightStick;
-		        case (uint8)SDL.SDL_GameControllerButton.LeftShoulder: output = .LeftShoulder;
-		        case (uint8)SDL.SDL_GameControllerButton.RightShoulder: output = .RightShoulder;
-		        case (uint8)SDL.SDL_GameControllerButton.DpadUp: output = .Up;
-		        case (uint8)SDL.SDL_GameControllerButton.DpadDown: output = .Down;
-		        case (uint8)SDL.SDL_GameControllerButton.DpadLeft: output = .Left;
-		        case (uint8)SDL.SDL_GameControllerButton.DpadRight: output = .Right;
-		        default: output = .Unknown;
+		    case (uint8)SDL.SDL_GameControllerButton.A: output = .A;
+		    case (uint8)SDL.SDL_GameControllerButton.B: output = .B;
+		    case (uint8)SDL.SDL_GameControllerButton.X: output = .X;
+		    case (uint8)SDL.SDL_GameControllerButton.Y: output = .Y;
+		    case (uint8)SDL.SDL_GameControllerButton.Back: output = .Back;
+		    case (uint8)SDL.SDL_GameControllerButton.Guide: output = .Select;
+		    case (uint8)SDL.SDL_GameControllerButton.Start: output = .Start;
+		    case (uint8)SDL.SDL_GameControllerButton.LeftStick: output = .LeftStick;
+		    case (uint8)SDL.SDL_GameControllerButton.RightStick: output = .RightStick;
+		    case (uint8)SDL.SDL_GameControllerButton.LeftShoulder: output = .LeftShoulder;
+		    case (uint8)SDL.SDL_GameControllerButton.RightShoulder: output = .RightShoulder;
+		    case (uint8)SDL.SDL_GameControllerButton.DpadUp: output = .Up;
+		    case (uint8)SDL.SDL_GameControllerButton.DpadDown: output = .Down;
+		    case (uint8)SDL.SDL_GameControllerButton.DpadLeft: output = .Left;
+		    case (uint8)SDL.SDL_GameControllerButton.DpadRight: output = .Right;
+		    default: output = .Unknown;
 		    }
 			return output;
 		}
@@ -249,12 +249,13 @@ namespace Pile
 			Axes output;
 		    switch (axes)
 		    {
-		        case (uint8)SDL.SDL_GameControllerAxis.LeftX: output = .LeftX;
-		        case (uint8)SDL.SDL_GameControllerAxis.LeftY: output = .LeftY;
-		        case (uint8)SDL.SDL_GameControllerAxis.RightX: output = .RightX;
-		        case (uint8)SDL.SDL_GameControllerAxis.TriggerLeft: output = .LeftTrigger;
-		        case (uint8)SDL.SDL_GameControllerAxis.TriggerRight: output = .RightTrigger;
-		        default: output = .Unknown;
+		    case (uint8)SDL.SDL_GameControllerAxis.LeftX: output = .LeftX;
+		    case (uint8)SDL.SDL_GameControllerAxis.LeftY: output = .LeftY;
+		    case (uint8)SDL.SDL_GameControllerAxis.RightX: output = .RightX;
+			case (uint8)SDL.SDL_GameControllerAxis.RightY: output = .RightY;
+		    case (uint8)SDL.SDL_GameControllerAxis.TriggerLeft: output = .LeftTrigger;
+		    case (uint8)SDL.SDL_GameControllerAxis.TriggerRight: output = .RightTrigger;
+		    default: output = .Unknown;
 		    }
 			return output;
 		}

@@ -25,6 +25,7 @@ namespace Pile
 				visible = false;
 			}
 
+			bool doMaximize = false;
 			switch (state)
 			{
 			case .Windowed:
@@ -32,7 +33,7 @@ namespace Pile
 				sdlFlags |= .Borderless;
 				bordered = false;
 			case .Maximized:
-				sdlFlags |= .Maximized;
+				doMaximize = true;
 			case .Fullscreen:
 				sdlFlags |= .FullscreenDesktop;
 				fullscreen = true;
@@ -62,9 +63,13 @@ namespace Pile
 			if (dpi != 1)
 			{
 				SDL.GetDesktopDisplayMode(index, let displayMode);
-				SDL.SetWindowPosition(window, (int32)(displayMode.w - width * dpi) / 2, (int32)(displayMode.h - height * dpi) / 2);
-				SDL.SetWindowSize(window, (int32)(width * dpi), (int32)(height * dpi));
+				Position = .((.)(displayMode.w - width * dpi) / 2, (.)(displayMode.h - height * dpi) / 2);
+				Size = .((.)(width * dpi), (.)(height * dpi));
 			}
+
+			// Maximize after pos and size was possibly changed for hidpi
+			if (doMaximize)
+				SDL.MaximizeWindow(window);
 
 			// Create graphics context
 			if (Graphics.Renderer.IsOpenGL)

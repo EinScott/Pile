@@ -152,8 +152,8 @@ namespace Pile
 				Audio.Initialize();
 				Log.Info(scope $"Audio: {Audio.ApiName} {Audio.MajorVersion}.{Audio.MinorVersion} ({Audio.Info})");
 			}
-			
-			Log.CreateDefaultPath();
+
+			Log.CreateDefaultPath(); // Relies on System.UserPath being set
 
 			BeefPlatform.Initialize();
 			Perf.Initialize();
@@ -161,6 +161,9 @@ namespace Pile
 
 			w.Stop();
 			Log.Info(scope $"Pile initialized (took {w.Elapsed.Milliseconds}ms)");
+
+			// First step, prepare for example Input info for startup call
+			PileStep!();
 
 			if (OnInit.HasListeners)
 				OnInit();
@@ -200,6 +203,13 @@ namespace Pile
 			run = false;
 		}
 
+		internal static mixin PileStep()
+		{
+			Graphics.Step();
+			System.Step();
+			Input.Step();
+		}
+
 		internal static void DoCoreLoop()
 		{
 			let timer = scope Stopwatch(true);
@@ -236,9 +246,7 @@ namespace Pile
 					Perf.Step();
 
 					// Update core modules
-					Graphics.Step();
-					Input.Step();
-					System.Step();
+					PileStep!();
 
 					if (swapGame != null)
 					{
@@ -306,9 +314,12 @@ namespace Pile
 				// Record FPS
 				frameCount++;
 				let endCurrTime = timer.[Friend]GetElapsedDateTimeTicks();
-				if (endCurrTime - lastCounted >= TimeSpan.TicksPerSecond)
+				const int fpsReportInterval = TimeSpan.TicksPerSecond / 4;
+				const int fpsReportMult = TimeSpan.TicksPerSecond / fpsReportInterval;
+				if (endCurrTime - lastCounted >= fpsReportInterval)
 				{
-					Time.fps = frameCount;
+					// Extrapolate back to per second instead of per reportInterval
+					Time.fps = frameCount * fpsReportMult;
 					lastCounted = endCurrTime;
 					frameCount = 0;
 				}
@@ -369,6 +380,7 @@ namespace Pile
 			skipRender = true;
 		}
 
+		[Inline]
 		public static void Sleep(uint ms)
 		{
 			forceSleepMS = ms;
