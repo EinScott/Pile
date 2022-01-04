@@ -443,7 +443,7 @@ namespace Pile
 				Try!(Path.GetDirectoryPath(cPackageBuildFilePath, rootPath));
 
 				// Build hash from all names
-				SHA256 hashBuilder = .();
+				SHA256 hashBuilder = scope .();
 
 				// Check additional files
 				bool additionalChanged = false; // If we are doing a full build, this will not matter (only forces imports on change, but we do that anyway here)
