@@ -2488,7 +2488,7 @@ namespace stbtt
 		   stbtt__hheap hh = default;
 		   stbtt__active_edge *active = null;
 		   int32 y,j=0, i;
-		   float[129] scanline_data = default; float *scanline, scanline2;
+		   float[129] scanline_data = ?; float *scanline, scanline2;
 
 		   //STBTT__NOTUSED(vsubsample);
 

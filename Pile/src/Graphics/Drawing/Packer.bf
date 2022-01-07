@@ -269,12 +269,18 @@ namespace Pile
 			    return .Err;
 
 			// Sort the sources by size
-			sources.Sort(scope (a, b) => b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height);
-			sources.Sort(scope (a, b) => a.SortFlag - b.SortFlag);
+			sources.Sort(scope (a, b) => // (b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height) + (b.SortFlag - a.SortFlag) * maxSize * maxSize)
+				{
+					if (b.SortFlag - a.SortFlag == 0)
+						return b.packed.Width * b.packed.Height - a.packed.Width * a.packed.Height;
+					else return b.SortFlag - a.SortFlag;
+				});
 
 			// Make sure the largest isn't too large
 			if (sources[0].packed.Width > maxSize || sources[0].packed.Height > maxSize)
 			    LogErrorReturn!("Source image is larger than max atlas size");
+
+
 
 			int nodeCount = sources.Count * 4;
 			let buffer = new PackingNode[nodeCount];

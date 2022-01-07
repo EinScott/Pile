@@ -63,6 +63,7 @@ namespace Pile
 			LineHeight = fontSize.LineHeight;
 
 			let packer = new Packer();
+			packer.padding = Math.Max(1, Size / 20); // Dirty fix to cut down on linear interpolation downscale bleed between chars
 			var buffer = new Bitmap(Size * 2, Size * 2);
 			let name = scope String(2);
 
