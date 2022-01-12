@@ -3009,7 +3009,7 @@ namespace OpenGL45
         public static function void(int32 n, uint32* ids) glCreateTransformFeedbacks;
         public static function void(int32 n, uint32* arrays) glCreateVertexArrays;
         public static function void(CullFaceMode mode) glCullFace;
-        public static function void(function void(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, char8* message, void* userParam) callback, void* userParam) glDebugMessageCallback;
+        public static function void(function void(DebugSource source, DebugType type, uint32 id, DebugSeverity severity, int32 length, char8* message, void* userParam) callback, void* userParam) glDebugMessageCallback;
         public static function void(DebugSource source, DebugType type, DebugSeverity severity, int32 count, uint32* ids, Boolean enabled) glDebugMessageControl;
         public static function void(DebugSource source, DebugType type, uint32 id, DebugSeverity severity, int32 length, char8* buf) glDebugMessageInsert;
         public static function void(int32 n, uint32* buffers) glDeleteBuffers;

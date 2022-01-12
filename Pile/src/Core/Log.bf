@@ -131,7 +131,7 @@ namespace Pile
 
 		static void Log(Types type, String message)
 		{
-			let fullMessage = scope String(type.GetLogString())..Append(message);
+			let fullMessage = scope String(6 + message.Length)..Append(type.GetLogString())..Append(message);
 
 			if (Verbosity <= type)
 				AppendRecord(fullMessage);

@@ -494,7 +494,7 @@ namespace Pile
 			return defaultBatchShader;
 		}
 
-		static void DebugCallback(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, char8* message, void* userParam)
+		static void DebugCallback(DebugSource source, DebugType type, uint32 id, DebugSeverity severity, int32 length, char8* message, void* userParam)
 		{
 			var s = scope String("OpenGL ");
 
