@@ -29,6 +29,17 @@ namespace Pile
 		    }
 		}
 
+		float zoom = 1;
+		public float Zoom
+		{
+			[Inline]get => zoom;
+			set
+			{
+				zoom = value;
+				dirty = true;
+			}
+		}
+
 	    UPoint2 viewport;
 	    public UPoint2 Viewport
 	    {
@@ -108,10 +119,10 @@ namespace Pile
 	        }
 	    }
 
-	    public int Top => point.Y - (int)(viewport.Y / 2);
-	    public int Bottom => point.Y + (int)(viewport.Y / 2);
-	    public int Left => point.X - (int)(viewport.X / 2);
-	    public int Right => point.X + (int)(viewport.X / 2);
+	    public int Top => point.Y - (int)(viewport.Y / (2*zoom));
+	    public int Bottom => point.Y + (int)(viewport.Y / (2*zoom));
+	    public int Left => point.X - (int)(viewport.X / (2*zoom));
+	    public int Right => point.X + (int)(viewport.X / (2*zoom));
 
 		public this(UPoint2 viewport)
 		{

@@ -20,10 +20,10 @@ namespace Pile
 		{
 			get mut
 			{
-				if (!asset.IsSetup)
+				if (resetName == null)
 					return null;
 
-				if (resetAsset != null && knownAssetDelIteration == Assets.assetDelIteration)
+				if (asset.IsSetup && resetAsset != null && knownAssetDelIteration == Assets.assetDelIteration)
 				{
 					// Since we got the asset and nothing was deleted, we're still guaranteed valid
 					return asset;
@@ -31,7 +31,8 @@ namespace Pile
 				else
 				{
 					// Try to get the asset again in case anything happened
-					if (resetAsset != null && knownAssetDelIteration != Assets.assetDelIteration
+					if (!asset.IsSetup
+						|| resetAsset != null && knownAssetDelIteration != Assets.assetDelIteration
 						|| resetAsset == null && knownAssetAddIteration != Assets.assetAddIteration)
 					{
 						// Refresh
@@ -64,6 +65,21 @@ namespace Pile
 		}
 
 		public T AssetOrDefault(T def) mut => Asset == null ? def : asset;
+
+		public void UpdateReference() mut
+		{
+			if (resetName == null)
+				return;
+
+			if (resetAsset != null && knownAssetDelIteration != Assets.assetDelIteration
+				|| resetAsset == null && knownAssetAddIteration != Assets.assetAddIteration)
+			{
+				// Refresh
+				resetAsset = Assets.Get<TReset>(resetName);
+				knownAssetAddIteration = Assets.assetAddIteration;
+				knownAssetDelIteration = Assets.assetDelIteration;
+			}
+		}
 
 		[Inline]
 		public static implicit operator T(PersistentAsset<T, TReset> assetHandler) => assetHandler.asset;

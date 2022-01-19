@@ -31,6 +31,9 @@ namespace Pile
 		{
 			get mut
 			{
+				if (name == null)
+					return null;
+
 				if (asset != null && knownAssetDelIteration == Assets.assetDelIteration)
 				{
 					// Since we got the asset and nothing was deleted, we're still guaranteed valid
