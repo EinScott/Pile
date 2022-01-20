@@ -18,36 +18,13 @@ namespace Pile
 
 		public T Asset
 		{
+			[Inline]
 			get mut
 			{
-				if (resetName == null)
-					return null;
+				UpdateReference();
 
-				if (asset.IsSetup && resetAsset != null && knownAssetDelIteration == Assets.assetDelIteration)
-				{
-					// Since we got the asset and nothing was deleted, we're still guaranteed valid
-					return asset;
-				}
-				else
-				{
-					// Try to get the asset again in case anything happened
-					if (!asset.IsSetup
-						|| resetAsset != null && knownAssetDelIteration != Assets.assetDelIteration
-						|| resetAsset == null && knownAssetAddIteration != Assets.assetAddIteration)
-					{
-						// Refresh
-						resetAsset = Assets.Get<TReset>(resetName);
-						knownAssetAddIteration = Assets.assetAddIteration;
-						knownAssetDelIteration = Assets.assetDelIteration;
-
-						if (resetAsset != null
-							&& (asset.Reset(resetAsset) case .Err)
-							&& !asset.IsSetup)
-								return null;
-					}
-
-					return asset;
-				}
+				// Always access asset!
+				return asset;
 			}
 		}
 
