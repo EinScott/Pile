@@ -171,9 +171,9 @@ namespace stbtt
 			Internal.StdFree(x);
 		}
 
-		static mixin STBTT_assert(var x)
+		static mixin STBTT_assert(bool x)
 		{
-			Runtime.Assert((int32)(x) != 0);
+			Runtime.Assert(x);
 		}
 
 		static mixin STBTT_strlen(var x)
@@ -341,7 +341,7 @@ namespace stbtt
 		   else if (b0 >= 251 && b0 <= 254) return (uint32)(-(b0 - 251)*256 - stbtt__buf_get8(b) - 108);
 		   else if (b0 == 28)               return stbtt__buf_get16(b);
 		   else if (b0 == 29)               return stbtt__buf_get32(b);
-		   STBTT_assert!(0);
+		   STBTT_assert!(false);
 		   return 0;
 		}
 
@@ -664,7 +664,7 @@ namespace stbtt
 		         return ttUSHORT(data + index_map + 10 + (unicode_codepoint - (.)first)*2);
 		      return 0;
 		   } else if (format == 2) {
-		      STBTT_assert!(0); // @TODO: high-byte mapping for japanese/chinese/korean
+		      STBTT_assert!(false); // @TODO: high-byte mapping for japanese/chinese/korean
 		      return 0;
 		   } else if (format == 4) { // standard mapping for windows fonts: binary search collection of ranges
 		      stbtt_uint16 segcount = ttUSHORT(data+index_map+6) >> 1;
@@ -735,7 +735,7 @@ namespace stbtt
 		      return 0; // not found
 		   }
 		   // @TODO
-		   STBTT_assert!(0);
+		   STBTT_assert!(false);
 		   return 0;
 		}
 
@@ -990,7 +990,7 @@ namespace stbtt
 		         }
 		         else {
 		            // @TODO handle matching point
-		            STBTT_assert!(0);
+		            STBTT_assert!(false);
 		         }
 		         if ((flags & (1<<3)) != 0) { // WE_HAVE_A_SCALE
 		            mtx[0] = mtx[3] = (float)ttSHORT(comp)/16384.0f; comp+=2;
@@ -2517,7 +2517,7 @@ namespace stbtt
 		         stbtt__active_edge * z = *step;
 		         if (z.ey <= scan_y_top) {
 		            *step = z.next; // delete from list
-		            STBTT_assert!(z.direction);
+		            STBTT_assert!(z.direction != 0);
 		            z.direction = 0;
 		            stbtt__hheap_free(&hh, z);
 		         } else {

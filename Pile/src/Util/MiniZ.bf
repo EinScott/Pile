@@ -1750,7 +1750,7 @@ namespace Pile
 		            *pMatch_len = MZ_MIN!(max_match_len, (mz_uint)TDEFL_MAX_MATCH_LEN);
 		            break;
 		        }
-		        else if ((probe_len = ((mz_uint)(p - s) * 2) + (mz_uint)(*(mz_uint8 *)p == *(mz_uint8 *)q)) > match_len)
+		        else if ((probe_len = ((mz_uint)(p - s) * 2) + (mz_uint)(*(mz_uint8 *)p == *(mz_uint8 *)q ? 1 : 0)) > match_len)
 		        {
 		            *pMatch_dist = dist;
 		            if ((*pMatch_len = match_len = MZ_MIN!(max_match_len, probe_len)) == max_match_len)
@@ -1870,7 +1870,7 @@ namespace Pile
 		                mz_uint32 probe_len = 32;
 		                repeat {} while ((TDEFL_READ_UNALIGNED_WORD2!(++p) == TDEFL_READ_UNALIGNED_WORD2!(++q)) && (TDEFL_READ_UNALIGNED_WORD2!(++p) == TDEFL_READ_UNALIGNED_WORD2!(++q)) &&
 		                         (TDEFL_READ_UNALIGNED_WORD2!(++p) == TDEFL_READ_UNALIGNED_WORD2!(++q)) && (TDEFL_READ_UNALIGNED_WORD2!(++p) == TDEFL_READ_UNALIGNED_WORD2!(++q)) && (--probe_len > 0));
-		                cur_match_len = ((mz_uint)(p - (mz_uint16 *)pCur_dict) * 2) + (mz_uint)(*(mz_uint8 *)p == *(mz_uint8 *)q);
+		                cur_match_len = ((mz_uint)(p - (mz_uint16 *)pCur_dict) * 2) + (mz_uint)(*(mz_uint8 *)p == *(mz_uint8 *)q ? 1 : 0);
 		                if (probe_len == 0)
 		                    cur_match_len = cur_match_dist != 0 ? TDEFL_MAX_MATCH_LEN : 0;
 
