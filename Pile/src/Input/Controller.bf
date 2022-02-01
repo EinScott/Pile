@@ -71,6 +71,28 @@ namespace Pile
 		}
 
 		[Inline]
+		public void ConsumeButton(Buttons button) mut
+		{
+			state[(int)button] = .Up;
+			timestamp[(int)button] = 0;
+		}
+
+		[Inline]
+		public void ConsumeAxis(Axes axis) mut
+		{
+			this.axis[(int)axis] = 0;
+			axisTimestamp[(int)axis] = 0;
+		}
+
+		public void ConsumeAll() mut
+		{
+			state = default;
+			timestamp = default;
+			axis = default;
+			axisTimestamp = default;
+		}
+
+		[Inline]
 		public bool Pressed(Buttons button) => (state[(int)button] & .Pressed) != 0;
 
 		[Inline]

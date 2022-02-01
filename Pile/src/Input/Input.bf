@@ -16,11 +16,11 @@ namespace Pile
 		internal static InputState nextState = InputState();
 
 		[Inline]
-		public static readonly Keyboard Keyboard => state.keyboard;
+		public static ref Keyboard Keyboard => ref state.keyboard;
 		[Inline]
-		public static readonly Mouse Mouse => state.mouse;
+		public static ref Mouse Mouse => ref state.mouse;
 		[Inline]
-		public static readonly ref Controller GetController(Controllers index) => ref state.GetController(index);
+		public static ref Controller GetController(Controllers index) => ref state.GetController(index);
 
 		public static float repeatDelay = 0.4f;
 		public static float repeatInterval = 0.03f;
@@ -59,7 +59,7 @@ namespace Pile
 		/// left- and rightMotor should only be floats from 0.0 to 1.0, duration is in MS
 		public static void SetControllerRumble(Controllers index, float leftMotor, float rightMotor, uint duration)
 		{
-			Debug.Assert(index >= 0 && index < (.)MaxControllers);
+			Debug.Assert((uint)index < MaxControllers);
 			Debug.Assert(leftMotor >= 0 && leftMotor <= 1);
 			Debug.Assert(rightMotor >= 0 && rightMotor <= 1);
 

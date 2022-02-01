@@ -36,6 +36,7 @@ namespace Pile
 		static float backDelay;
 
 		public static Keys FocusKey = .Escape;
+		public static bool ConsumeInput = true;
 		static bool focus;
 
 		static this()
@@ -84,7 +85,11 @@ namespace Pile
 		{
 #if USE_CONSOLE
 			if (Input.Keyboard.Pressed(FocusKey))
+			{
 				focus = !focus;
+				if (ConsumeInput)
+					Input.Keyboard.ConsumeKey(FocusKey);
+			}
 
 			if (!focus)
 				return;
@@ -235,6 +240,9 @@ namespace Pile
 				inputLine.RemoveToEnd(replaceStart);
 				inputLine.Append(completeFull ? replace : common);
 			}
+
+			if (ConsumeInput)
+				Input.Keyboard.ConsumeAll();
 #endif
 		}
 

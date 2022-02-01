@@ -37,6 +37,20 @@ namespace Pile
 		}
 
 		[Inline]
+		public void ConsumeKey(Keys key) mut
+		{
+			state[(int)key] = .Up;
+			timestamp[(int)key] = 0;
+		}
+
+		[Inline]
+		public void ConsumeAll() mut
+		{
+			state = default;
+			timestamp = default;
+		}
+
+		[Inline]
 		public bool Pressed(Keys key) => (state[(int)key] & .Pressed) != 0;
 
 		[Inline]

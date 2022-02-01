@@ -29,6 +29,20 @@ namespace Pile
 		}
 
 		[Inline]
+		public void ConsumeButton(MouseButtons button) mut
+		{
+			state[(int)button] = .Up;
+			timestamp[(int)button] = 0;
+		}
+
+		[Inline]
+		public void ConsumeAll() mut
+		{
+			state = default;
+			timestamp = default;
+		}
+
+		[Inline]
 		public bool Pressed(MouseButtons button) => (state[(int)button] & .Pressed) != 0;
 		[Inline]
 		public bool Down(MouseButtons button) => (state[(int)button] & .Down) != 0;
