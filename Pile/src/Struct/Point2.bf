@@ -6,10 +6,10 @@
 // ivtype=;UPoint2
 // fvtype=Vector2
 // compatv=
-// GenHash=6FEA29F7A3B6C445AC087671D284EFCA
+// GenHash=2961DBEC3BCB0DE02E8E2C9E853474E3
 
 
-// Generated at 12/18/2021 4:07:45 PM. Do not edit file, use extensions!
+// Generated at 2/1/2022 6:12:24 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -25,17 +25,20 @@ namespace Pile
 
 		public int X, Y;
 
+		[Inline]
 		public this()
 		{
 			this = default;
 		}
 
+		[Inline]
 		public this(int all)
 		{
 			X = all;
 			Y = all;
 		}
 
+		[Inline]
 		public this(int x, int y)
 		{
 			X = x;
@@ -221,21 +224,32 @@ namespace Pile
 		}
 
 		public static operator Self((int X, int Y) tuple) => .(tuple.X, tuple.Y);
+		[Inline]
 		public static operator Self(UPoint2 a) => .((.)a.X, (.)a.Y);
+		[Inline]
 		public static explicit operator Self(Vector2 a) => (.)a.ToRounded();
 
+		[Inline]
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y;
 
+		[Inline]
 		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y);
+		[Inline]
 		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y);
+		[Inline]
 		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y);
+		[Inline]
 		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y);
 
+		[Inline]
 		public static Self operator*(int a, Self b) => .(a * b.X, a * b.Y);
+		[Inline]
 		public static Self operator*(Self a, int b) => .(a.X * b, a.Y * b);
+		[Inline]
 		public static Self operator/(Self a, int b) => .(a.X / b, a.Y / b);
 
+		[Inline]
 		public static Self operator-(Self a) => .(-a.X, -a.Y);
 	}
 }

@@ -6,10 +6,10 @@
 // ivtype=Point3
 // fvtype=
 // compatv=Vector2:float:2;Point2:int:2
-// GenHash=8D67E62ADCAB8BDF36423B0FF0ED9CAF
+// GenHash=2F72B5449A6FBEE706DE06166CE468B8
 
 
-// Generated at 12/18/2021 4:04:48 PM. Do not edit file, use extensions!
+// Generated at 2/1/2022 6:12:13 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -27,11 +27,13 @@ namespace Pile
 
 		public float X, Y, Z;
 
+		[Inline]
 		public this()
 		{
 			this = default;
 		}
 
+		[Inline]
 		public this(float all)
 		{
 			X = all;
@@ -39,6 +41,7 @@ namespace Pile
 			Z = all;
 		}
 
+		[Inline]
 		public this(float x, float y, float z)
 		{
 			X = x;
@@ -46,6 +49,7 @@ namespace Pile
 			Z = z;
 		}
 
+		[Inline]
 		public this(Vector2 v, float z)
 		{
 			X = v.X;
@@ -53,6 +57,7 @@ namespace Pile
 			Z = z;
 		}
 
+		[Inline]
 		public this(Point2 v, float z)
 		{
 			X = v.X;
@@ -240,23 +245,35 @@ namespace Pile
 		}
 
 		public static operator Self((float X, float Y, float Z) tuple) => .(tuple.X, tuple.Y, tuple.Z);
+		[Inline]
 		public static operator Self(Point3 a) => .(a.X, a.Y, a.Z);
 
+		[Inline]
 		public static explicit operator Self(Vector2 a) => .(a.X, a.Y, default);
+		[Inline]
 		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default);
 
+		[Inline]
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
 
+		[Inline]
 		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+		[Inline]
 		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+		[Inline]
 		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+		[Inline]
 		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
 
+		[Inline]
 		public static Self operator*(float a, Self b) => .(a * b.X, a * b.Y, a * b.Z);
+		[Inline]
 		public static Self operator*(Self a, float b) => .(a.X * b, a.Y * b, a.Z * b);
+		[Inline]
 		public static Self operator/(Self a, float b) => .(a.X / b, a.Y / b, a.Z / b);
 
+		[Inline]
 		public static Self operator-(Self a) => .(-a.X, -a.Y, -a.Z);
 	}
 }

@@ -335,11 +335,13 @@ namespace Pile
 			f.NewLine();
 
 			// Constructors
+			f.Put("[Inline]");
 			using (f.Start("public this()"))
 				f.Put("this = default;");
 
 			f.NewLine();
 
+			f.Put("[Inline]");
 			using (f.Start(scope $"public this({componentType} all)"))
 			{
 				if (componentCount <= 4)
@@ -355,6 +357,8 @@ namespace Pile
 
 			f.NewLine();
 
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			f.Put("public this(");
 			for (let compIdx < componentCount)
 				outText.Append(scope $"{componentType} {GetComponentName(.. scope .(), compIdx, componentCount)..ToLower()}, ");
@@ -368,6 +372,8 @@ namespace Pile
 			// Compatible vector constructors
 			for (let compVec in compatibleVectors)
 			{
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				f.Put("public this(");
 				outText..Append(compVec.vecName).Append(" v, ");
 
@@ -389,13 +395,15 @@ namespace Pile
 
 			// Getter properties
 			f.Put("/// Returns the length of the vector.");
-			f.Put("[Inline]");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public {floatingTypeName} Length => (.)Math.Sqrt((.)", "{0} * {0}", " + ", ");");
 
 			f.NewLine();
 			
 			f.Put("/// Returns the length of the vector squared. This operation is cheaper than Length.");
-			f.Put("[Inline]");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public {componentType} LengthSquared => ", "{0} * {0}", " + ", ";");
 
 			f.NewLine();
@@ -443,7 +451,8 @@ namespace Pile
 			f.NewLine();
 
 			f.Put("/// Returns the Euclidean distance between the two given points squared.");
-			f.Put("[Inline]");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			using (f.Start(scope $"public {componentType} DistanceToSquared(Self other)"))
 				f.Put("return (this - other).LengthSquared;");
 
@@ -474,7 +483,8 @@ namespace Pile
 			if (isFloating && intVectorType != "")
 			{
 				f.Put("/// Rounds the vector to a point.");
-				f.Put("[Inline]");
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				using (f.Start(scope $"public static {intVectorType} Round(Self vector)"))
 					PutCompField!("return .(", "(int)Math.Round(vector.{})", ", ", ");");
 
@@ -506,7 +516,8 @@ namespace Pile
 			f.NewLine();
 
 			f.Put("/// Returns the dot product of two vectors.");
-			f.Put("[Inline]");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			using (f.Start(scope $"public static {componentType} Dot(Self a, Self b)"))
 				PutCompField!("return ", "a.{0} * b.{0}", " + ", ";");
 
@@ -625,7 +636,8 @@ namespace Pile
 			if (!isUnsigned)
 			{
 				f.Put("/// Returns a vector whose elements are the absolute values of each of the source vector's elements.");
-				f.Put("[Inline]");
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				using (f.Start("public static Self Abs(Self vector)"))
 					PutCompField!("return .(", "Math.Abs(vector.{})", ", ", ");");
 
@@ -635,7 +647,8 @@ namespace Pile
 			if (floatVectorType != "")
 			{
 				f.Put("/// Returns a vector whose elements are the square root of each of the source vector's elements.");
-				f.Put("[Inline]");
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				using (f.Start(scope $"public static {floatVectorType} Sqrt(Self vector)"))
 					PutCompField!("return .(", "(.)Math.Sqrt(vector.{})", ", ", ");");
 
@@ -655,6 +668,9 @@ namespace Pile
 
 			if (intVectorType != "")
 			{
+				if (componentCount <= 4)
+					f.Put("[Inline]");
+
 				// Assume that this vector has the same amount of components, thus the same member notation
 				if (isUnsigned)
 					PutCompField!(scope $"public static explicit operator Self({intVectorType} a) => .(", "(.)a.{}", ", ", ");");
@@ -663,6 +679,9 @@ namespace Pile
 
 			if (intUVectorType != "")
 			{
+				if (componentCount <= 4)
+					f.Put("[Inline]");
+
 				 // Assume that this vector has the same amount of components, thus the same member notation
 				if (isFloating)
 					PutCompField!(scope $"public static operator Self({intUVectorType} a) => .(", "a.{}", ", ", ");");
@@ -675,13 +694,18 @@ namespace Pile
 			}	
 
 			if (!isFloating && floatVectorType != "")
+			{
+				f.Put("[Inline]");
 				f.Put(scope $"public static explicit operator Self({floatVectorType} a) => (.)a.ToRounded();"); // Assume that that vector also has this as intEquivalent!
+			}
 
 			f.NewLine();
 
 			// Compatible vector conversion operators
 			for (let compVec in compatibleVectors)
 			{
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				f.Put(scope $"public static explicit operator Self({compVec.vecName} a) => .(");
 				for (let compIdx < compVec.components)
 				{
@@ -698,28 +722,52 @@ namespace Pile
 				f.NewLine();
 
 			// Arithmetic Operators
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			f.Put("[Commutable]");
 			PutCompField!(scope $"public static bool operator==(Self a, Self b) => ", "a.{0} == b.{0}", " && ", ";");
 
 			f.NewLine();
 
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator+(Self a, Self b) => .(", "a.{0} + b.{0}", ", ", ");");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator-(Self a, Self b) => .(", "a.{0} - b.{0}", ", ", ");");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator*(Self a, Self b) => .(", "a.{0} * b.{0}", ", ", ");");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator/(Self a, Self b) => .(", "a.{0} / b.{0}", ", ", ");");
 
 			f.NewLine();
 
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator*({componentType} a, Self b) => .(", "a * b.{}", ", ", ");");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator*(Self a, {componentType} b) => .(", "a.{} * b", ", ", ");");
+			if (componentCount <= 4)
+				f.Put("[Inline]");
 			PutCompField!(scope $"public static Self operator/(Self a, {componentType} b) => .(", "a.{} / b", ", ", ");");
 
 			f.NewLine();
 
 			if (!isUnsigned)
+			{
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				PutCompField!(scope $"public static Self operator-(Self a) => .(", "-a.{}", ", ", ");");
+			}
 			else if (intVectorType != "")
+			{
+				if (componentCount <= 4)
+					f.Put("[Inline]");
 				PutCompField!(scope $"public static {intVectorType} operator-(Self a) => {intVectorType}(", "(.)(-(int)a.{})", ", ", ");");
+			}
 
 			f.End();
 			f.End();

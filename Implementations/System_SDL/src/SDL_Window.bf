@@ -42,12 +42,6 @@ namespace Pile
 			window = SDL.CreateWindow(scope String(name).CStr(), .Centered, .Centered, (.)width, (.)height, sdlFlags);
 			windowID = SDL.GetWindowID(window);
 
-			// Set current values
-			SDL.GetWindowPosition(window, let px, let py);
-			position = .(px, py);
-
-			size = .(width, height);
-
 			// Scale to dpi
 			float hidpiRes
 #if BF_PLATFORM_WINDOWS
@@ -80,6 +74,12 @@ namespace Pile
 
 			if (*SDL.GetError() != '\0')
 				Runtime.FatalError(scope $"Error while creating window: {StringView(SDL.GetError())}");
+
+			// Setup current vals
+			{
+				SDL.GetWindowMinimumSize(window, let w, let h);
+				minSize = .((.)w, (.)h);
+			}
 		}
 
 		public override Result<void> SetIcon(Bitmap bitmap)
@@ -124,6 +124,7 @@ namespace Pile
 			get
 			{
 				var info = SDL.SDL_SysWMinfo();
+				SDL.GetVersion(out info.version);
 				SDL.GetWindowWMInfo(window, ref info);
 
 #if BF_PLATFORM_WINDOWS
@@ -148,94 +149,68 @@ namespace Pile
 			}
 		}
 
+		[Inline]
 		public override void SetTitle(StringView title) => SDL.SetWindowTitle(window, scope String(title));
+		[Inline]
 		public override void GetTitle(String buffer) => buffer.Append(SDL.GetWindowTitle(window));
 
-		internal Point2 position;
 		public override int X
 		{
-			get => position.X;
-			set
-			{
-				if (value != position.X)
-				{
-					position.X = value;
-					SDL.SetWindowPosition(window, (int32)position.X, (int32)position.Y);
-				}
-			}
+			[Inline]
+			get => SDL.GetWindowPosition(window, .. let _, ?);
+			[Inline]
+			set => SDL.SetWindowPosition(window, (int32)value, SDL.GetWindowPosition(window, .. let _, ?));
 		}
 		public override int Y
 		{
-			get => position.Y;
-			set
-			{
-				if (value != position.Y)
-				{
-					position.X = value;
-					SDL.SetWindowPosition(window, (int32)position.X, (int32)position.Y);
-				}
-			}
+			[Inline]
+			get => SDL.GetWindowPosition(window, ?, .. let _);
+			[Inline]
+			set => SDL.SetWindowPosition(window, SDL.GetWindowPosition(window, ?, .. let _), (int32)value);
 		}
 		public override Point2 Position
 		{
-			get => position;
-
-			set
+			[Inline]
+			get
 			{
-				if (value != position)
-				{
-					SDL.SetWindowPosition(window, (int32)value.X, (int32)value.Y);
-					position = value;
-				}
+				SDL.GetWindowPosition(window, let x, let y);
+				return .(x, y);
 			}
+			[Inline]
+			set => SDL.SetWindowPosition(window, (int32)value.X, (int32)value.Y);
 		}
 
-		internal UPoint2 size;
 		public override uint Width
 		{
-			get => size.X;
-
-			set
-			{
-				if (value != size.X)
-				{
-					size.X = value;
-					SDL.SetWindowSize(window, (int32)position.X, (int32)position.Y);
-				}
-			}
+			[Inline]
+			get => (.)SDL.GetWindowSize(window, .. let _, ?);
+			[Inline]
+			set => SDL.SetWindowSize(window, (int32)value, SDL.GetWindowSize(window, ?, .. let _));
 		}
 		public override uint Height
 		{
-			get => size.Y;
-
-			set
-			{
-				if (value != size.Y)
-				{
-					size.Y = value;
-					SDL.SetWindowSize(window, (int32)position.X, (int32)position.Y);
-				}
-			}
+			[Inline]
+			get => (.)SDL.GetWindowSize(window, ?, .. let _);
+			[Inline]
+			set => SDL.SetWindowSize(window, SDL.GetWindowSize(window, .. let _, ?), (int32)value);
 		}
 		public override UPoint2 Size
 		{
-			get => size;
-
-			set
+			[Inline]
+			get
 			{
-				if (value != size)
-				{
-					SDL.SetWindowSize(window, (int32)value.X, (int32)value.Y);
-					size = value;
-				}
+				SDL.GetWindowSize(window, let w, let h);
+				return .((.)w, (.)h);
 			}
+			[Inline]
+			set => SDL.SetWindowSize(window, (int32)value.X, (int32)value.Y);
 		}
 
 		UPoint2 minSize;
 		public override UPoint2 MinSize
 		{
+			[Inline]
 			get => minSize;
-
 			set
 			{
 				if (value != minSize)
@@ -250,7 +225,7 @@ namespace Pile
 		{
 			get
 			{
-				int32 w = 0, h = 0;
+				int32 w, h;
 
 				if (isGL)
 					SDL.GL_GetDrawableSize(window, out w, out h);
@@ -282,8 +257,8 @@ namespace Pile
 		bool resizable;
 		public override bool Resizable
 		{
+			[Inline]
 			get => resizable;
-
 			set
 			{
 				if (value != resizable)
@@ -294,8 +269,8 @@ namespace Pile
 		bool fullscreen;
 		public override bool Fullscreen
 		{
+			[Inline]
 			get => fullscreen;
-
 			set
 			{
 				if (value != fullscreen)
@@ -306,8 +281,8 @@ namespace Pile
 		bool bordered = true;
 		public override bool Bordered
 		{
+			[Inline]
 			get => bordered;
-
 			set
 			{
 				if (value != bordered)
@@ -318,8 +293,8 @@ namespace Pile
 		float opacity = 1;
 		public override float Opacity
 		{
+			[Inline]
 			get => opacity;
-
 			set
 			{
 				if (value != opacity)
@@ -330,8 +305,8 @@ namespace Pile
 		internal bool visible = true;
 		public override bool Visible
 		{
+			[Inline]
 			get => visible;
-
 			set
 			{
 				if (value != visible)
@@ -347,6 +322,7 @@ namespace Pile
 		bool vSync = true;
 		public override bool VSync
 		{
+			[Inline]
 			get => vSync;
 			set
 			{
@@ -359,8 +335,8 @@ namespace Pile
 		bool alwaysOnTop;
 		public override bool AlwaysOnTop
 		{
+			[Inline]
 			get => alwaysOnTop;
-
 			set
 			{
 				if (alwaysOnTop != value)
@@ -368,16 +344,16 @@ namespace Pile
 			}
 		}
 
-		internal bool focus;
 		public override bool Focus
 		{
-			get => focus;
+			[Inline]
+			get => (SDL.GetWindowFlags(window) & (uint)SDL.WindowFlags.InputFocus) != 0;
 		}
 
-		internal bool mouseFocus;
 		public override bool MouseOver
 		{
-			get => mouseFocus;
+			[Inline]
+			get => (SDL.GetWindowFlags(window) & (uint)SDL.WindowFlags.MouseFocus) != 0;
 		}
 
 		public override Display Display
@@ -387,10 +363,12 @@ namespace Pile
 				int index = SDL.SDL_GetWindowDisplayIndex(window);
 				return System.displays[index];
 			}
-		}	
+		}
 
 		public override void SetFocused()
 		{
+			if ((SDL.GetWindowFlags(window) & (uint)SDL.WindowFlags.Minimized) != 0)
+				SDL.RestoreWindow(window);
 			SDL.RaiseWindow(window);
 		}
 

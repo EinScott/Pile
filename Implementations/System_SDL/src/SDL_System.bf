@@ -81,8 +81,6 @@ namespace Pile
 							return;
 
 						case .SizeChanged: // Precedes .Resized, is always triggered when size changes
-							Window.size.X = (.)event.window.data1;
-							Window.size.Y = (.)event.window.data2;
 							if (Window.OnResized.HasListeners)
 								Window.OnResized();
 
@@ -93,8 +91,6 @@ namespace Pile
 		
 						// Moved
 						case .Moved:
-							Window.position.X = event.window.data1;
-							Window.position.Y = event.window.data2;
 							if (Window.OnMoved.HasListeners)
 								Window.OnMoved();
 		
@@ -102,11 +98,9 @@ namespace Pile
 						case .TAKE_FOCUS:
 							SDL_SetWindowInputFocus(Window.window); // Take focus
 						case .FocusGained:
-							Window.focus = true;
 							if (Window.OnFocusChanged.HasListeners)
 								Window.OnFocusChanged();
 						case .Focus_lost:
-							Window.focus = false;
 							if (Window.OnFocusChanged.HasListeners)
 								Window.OnFocusChanged();
 		
@@ -120,11 +114,6 @@ namespace Pile
 							if (Window.OnVisibilityChanged.HasListeners)
 								Window.OnVisibilityChanged();
 
-						// MouseOver
-						case .Enter:
-							Window.mouseFocus = true;
-						case .Leave:
-							Window.mouseFocus = false;
 						default:
 						}
 					}

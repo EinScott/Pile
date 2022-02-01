@@ -6,10 +6,10 @@
 // ivtype=Point4
 // fvtype=
 // compatv=Vector2:float:2;Point2:int:2;Vector3:float:3;Point3:int:3
-// GenHash=1EF906F35A93E7FC7BA0D6192876C4FC
+// GenHash=AB8F84F2E71285454D087EDEC2AC86FD
 
 
-// Generated at 12/18/2021 4:04:52 PM. Do not edit file, use extensions!
+// Generated at 2/1/2022 6:12:12 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -29,11 +29,13 @@ namespace Pile
 
 		public float X, Y, Z, W;
 
+		[Inline]
 		public this()
 		{
 			this = default;
 		}
 
+		[Inline]
 		public this(float all)
 		{
 			X = all;
@@ -42,6 +44,7 @@ namespace Pile
 			W = all;
 		}
 
+		[Inline]
 		public this(float x, float y, float z, float w)
 		{
 			X = x;
@@ -50,6 +53,7 @@ namespace Pile
 			W = w;
 		}
 
+		[Inline]
 		public this(Vector2 v, float z, float w)
 		{
 			X = v.X;
@@ -58,6 +62,7 @@ namespace Pile
 			W = w;
 		}
 
+		[Inline]
 		public this(Point2 v, float z, float w)
 		{
 			X = v.X;
@@ -66,6 +71,7 @@ namespace Pile
 			W = w;
 		}
 
+		[Inline]
 		public this(Vector3 v, float w)
 		{
 			X = v.X;
@@ -74,6 +80,7 @@ namespace Pile
 			W = w;
 		}
 
+		[Inline]
 		public this(Point3 v, float w)
 		{
 			X = v.X;
@@ -270,25 +277,39 @@ namespace Pile
 		}
 
 		public static operator Self((float X, float Y, float Z, float W) tuple) => .(tuple.X, tuple.Y, tuple.Z, tuple.W);
+		[Inline]
 		public static operator Self(Point4 a) => .(a.X, a.Y, a.Z, a.W);
 
+		[Inline]
 		public static explicit operator Self(Vector2 a) => .(a.X, a.Y, default, default);
+		[Inline]
 		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default, default);
+		[Inline]
 		public static explicit operator Self(Vector3 a) => .(a.X, a.Y, a.Z, default);
+		[Inline]
 		public static explicit operator Self(Point3 a) => .(a.X, a.Y, a.Z, default);
 
+		[Inline]
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;
 
+		[Inline]
 		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+		[Inline]
 		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+		[Inline]
 		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
+		[Inline]
 		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y, a.Z / b.Z, a.W / b.W);
 
+		[Inline]
 		public static Self operator*(float a, Self b) => .(a * b.X, a * b.Y, a * b.Z, a * b.W);
+		[Inline]
 		public static Self operator*(Self a, float b) => .(a.X * b, a.Y * b, a.Z * b, a.W * b);
+		[Inline]
 		public static Self operator/(Self a, float b) => .(a.X / b, a.Y / b, a.Z / b, a.W / b);
 
+		[Inline]
 		public static Self operator-(Self a) => .(-a.X, -a.Y, -a.Z, -a.W);
 	}
 }

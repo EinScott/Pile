@@ -6,10 +6,10 @@
 // ivtype=
 // fvtype=Vector4
 // compatv=Point2:int:2;Point3:int:3
-// GenHash=5BE4239CA87959F0A08D7BE73239E9AE
+// GenHash=26FE9FC986BDBC0024959EF25C7C1728
 
 
-// Generated at 12/18/2021 4:08:45 PM. Do not edit file, use extensions!
+// Generated at 2/1/2022 6:12:19 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
@@ -29,11 +29,13 @@ namespace Pile
 
 		public int X, Y, Z, W;
 
+		[Inline]
 		public this()
 		{
 			this = default;
 		}
 
+		[Inline]
 		public this(int all)
 		{
 			X = all;
@@ -42,6 +44,7 @@ namespace Pile
 			W = all;
 		}
 
+		[Inline]
 		public this(int x, int y, int z, int w)
 		{
 			X = x;
@@ -50,6 +53,7 @@ namespace Pile
 			W = w;
 		}
 
+		[Inline]
 		public this(Point2 v, int z, int w)
 		{
 			X = v.X;
@@ -58,6 +62,7 @@ namespace Pile
 			W = w;
 		}
 
+		[Inline]
 		public this(Point3 v, int w)
 		{
 			X = v.X;
@@ -240,23 +245,35 @@ namespace Pile
 		}
 
 		public static operator Self((int X, int Y, int Z, int W) tuple) => .(tuple.X, tuple.Y, tuple.Z, tuple.W);
+		[Inline]
 		public static explicit operator Self(Vector4 a) => (.)a.ToRounded();
 
+		[Inline]
 		public static explicit operator Self(Point2 a) => .(a.X, a.Y, default, default);
+		[Inline]
 		public static explicit operator Self(Point3 a) => .(a.X, a.Y, a.Z, default);
 
+		[Inline]
 		[Commutable]
 		public static bool operator==(Self a, Self b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;
 
+		[Inline]
 		public static Self operator+(Self a, Self b) => .(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+		[Inline]
 		public static Self operator-(Self a, Self b) => .(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+		[Inline]
 		public static Self operator*(Self a, Self b) => .(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
+		[Inline]
 		public static Self operator/(Self a, Self b) => .(a.X / b.X, a.Y / b.Y, a.Z / b.Z, a.W / b.W);
 
+		[Inline]
 		public static Self operator*(int a, Self b) => .(a * b.X, a * b.Y, a * b.Z, a * b.W);
+		[Inline]
 		public static Self operator*(Self a, int b) => .(a.X * b, a.Y * b, a.Z * b, a.W * b);
+		[Inline]
 		public static Self operator/(Self a, int b) => .(a.X / b, a.Y / b, a.Z / b, a.W / b);
 
+		[Inline]
 		public static Self operator-(Self a) => .(-a.X, -a.Y, -a.Z, -a.W);
 	}
 }

@@ -170,7 +170,7 @@ namespace Pile
 				// Controller events
 			case .ControllerDeviceadded:
 				let index = e.cdevice.which;
-				Debug.Assert(sdlGamepads[index] == null);
+				Debug.Assert(sdlGamepads[index] == null && sdlJoysticks[index] == null);
 				sdlGamepads[index] = SDL.GameControllerOpen(index);
 				OnJoystickConnect((uint)index, 15, 6, true);
 			case .ControllerDeviceremoved:
