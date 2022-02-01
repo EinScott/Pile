@@ -43,7 +43,7 @@ namespace System
 
 		public static float SineMap(float counter, float newMin, float newMax)
 		{
-		    return Map((float)Math.Sin(counter), 0, 1, newMin, newMax);
+		    return Map((float)Math.Sin(counter), -1, 1, newMin, newMax);
 		}
 
 		public static float ClampedMap(float val, float min, float max, float newMin = 0, float newMax = 1)
@@ -58,7 +58,7 @@ namespace System
 
 		public static double SineMap(double counter, double newMin, double newMax)
 		{
-		    return Map((float)Math.Sin(counter), 0, 1, newMin, newMax);
+		    return Map((float)Math.Sin(counter), -1, 1, newMin, newMax);
 		}
 
 		public static double ClampedMap(double val, double min, double max, double newMin = 0, double newMax = 1)

@@ -6,10 +6,8 @@ namespace Pile
 	{
 		public const int MaxKeys = Keys.Count();
 
-		internal bool[MaxKeys] pressed = .();
-		internal bool[MaxKeys] down = .();
-		internal bool[MaxKeys] released = .();
-		internal int64[MaxKeys] timestamp = .();
+		internal ButtonState[MaxKeys] state = default;
+		internal int64[MaxKeys] timestamp = default;
 
 		/// This is an UTF8 string of what was actually typed and will depend on the keyboard layout (while individual key presses may be matched by ScanCode depending on config!)
 		public readonly String Text = new String(8);
@@ -24,19 +22,14 @@ namespace Pile
 		internal void Step() mut
 		{
 			for (int i = 0; i < MaxKeys; i++)
-			{
-				pressed[i] = false;
-				released[i] = false;
-			}
+				state[i] &= ~(.Pressed|.Released);
 
 			Text.Clear();
 		}
 
 		internal void Copy(Keyboard from) mut
 		{
-			pressed = from.pressed;
-			down = from.down;
-			released = from.released;
+			state = from.state;
 			timestamp = from.timestamp;
 
 			Text.Clear();
@@ -44,36 +37,36 @@ namespace Pile
 		}
 
 		[Inline]
-		public bool Pressed(Keys key) => pressed[(int)key];
+		public bool Pressed(Keys key) => (state[(int)key] & .Pressed) != 0;
 
 		[Inline]
-		public bool Down(Keys key) => down[(int)key];
+		public bool Down(Keys key) => (state[(int)key] & .Down) != 0;
 
 		[Inline]
-		public bool Released(Keys key) => released[(int)key];
+		public bool Released(Keys key) => (state[(int)key] & .Released) != 0;
 
-		public bool Pressed(params Keys[] keys)
+		public bool AnyPressed(params Keys[] keys)
 		{
 		    for (int i = 0; i < keys.Count; i++)
-		        if (pressed[(int)keys[i]])
+		        if ((state[(int)keys[[Unchecked]i]] & .Pressed) != 0)
 		            return true;
 
 		    return false;
 		}
 
-		public bool Down(params Keys[] keys)
+		public bool AnyDown(params Keys[] keys)
 		{
 		    for (int i = 0; i < keys.Count; i++)
-		        if (down[(int)keys[i]])
+		        if ((state[(int)keys[[Unchecked]i]] & .Down) != 0)
 		            return true;
 
 		    return false;
 		}
 
-		public bool Released(params Keys[] keys)
+		public bool AnyReleased(params Keys[] keys)
 		{
 		    for (int i = 0; i < keys.Count; i++)
-		        if (released[(int)keys[i]])
+		        if ((state[(int)keys[[Unchecked]i]] & .Released) != 0)
 		            return true;
 
 		    return false;
@@ -100,13 +93,10 @@ namespace Pile
 		}
 
 		[Inline]
-		public int64 Timestamp(Keys key)
-		{
-		    return timestamp[(int)key];
-		}
+		public int64 Timestamp(Keys key) => timestamp[(int)key];
 
-		[Inline] public bool Ctrl => Down(Keys.LeftControl, Keys.RightControl);
-		[Inline] public bool Alt => Down(Keys.LeftAlt, Keys.RightAlt);
-		[Inline] public bool Shift => Down(Keys.LeftShift, Keys.RightShift);
+		[Inline] public bool Ctrl => AnyDown(Keys.LeftControl, Keys.RightControl);
+		[Inline] public bool Alt => AnyDown(Keys.LeftAlt, Keys.RightAlt);
+		[Inline] public bool Shift => AnyDown(Keys.LeftShift, Keys.RightShift);
 	}
 }

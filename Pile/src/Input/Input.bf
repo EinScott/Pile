@@ -93,135 +93,92 @@ namespace Pile
 			}
 		}
 
+		[Inline]
 		static void OnKeyDown(Keys key)
 		{
-		    int id = (int)key;
-		    if (id < Pile.Keyboard.MaxKeys)
-			{
-			    nextState.keyboard.down[[Unchecked]id] = true;
-			    nextState.keyboard.pressed[[Unchecked]id] = true;
-			    nextState.keyboard.timestamp[[Unchecked]id] = Time.Duration.Ticks;
-			}
+		    nextState.keyboard.state[(int)key] |= .Pressed|.Down;
+			nextState.keyboard.timestamp[[Unchecked](int)key] = Time.Duration.Ticks;
 		}
 
+		[Inline]
 		static void OnKeyUp(Keys key)
 		{
-		    int id = (int)key;
-		    if (id < Pile.Keyboard.MaxKeys)
-		    {
-			    nextState.keyboard.down[[Unchecked]id] = false;
-			    nextState.keyboard.released[[Unchecked]id] = true;
-			}
+		    nextState.keyboard.state[(int)key] = (nextState.keyboard.state[[Unchecked](int)key] & ~.Down) | .Released;
 		}
 
+		[Inline]
 		static void OnMouseDown(MouseButtons button)
 		{
-		    nextState.mouse.down[button.Underlying] = true;
-		    nextState.mouse.pressed[button.Underlying] = true;
-		    nextState.mouse.timestamp[button.Underlying] = Time.Duration.Ticks;
+		    nextState.mouse.state[(int)button] |= .Pressed|.Down;
+		    nextState.mouse.timestamp[[Unchecked](int)button] = Time.Duration.Ticks;
 		}
 
+		[Inline]
 		static void OnMouseUp(MouseButtons button)
 		{
-		    nextState.mouse.down[button.Underlying] = false;
-		    nextState.mouse.released[button.Underlying] = true;
+			nextState.mouse.state[(int)button] = (nextState.mouse.state[[Unchecked](int)button] & ~.Down) | .Released;
 		}
 
+		[Inline]
 		static void OnMouseWheel(float offsetX, float offsetY)
 		{
 		    nextState.mouse.wheelValue = Vector2(offsetX, offsetY);
 		}
 
+		[Inline]
 		static void OnJoystickConnect(uint index, uint buttonCount, uint axisCount, bool isGamepad)
 		{
-		    if (index < MaxControllers)
-		        nextState.controllers[[Unchecked](int)index].Connect(buttonCount, axisCount, isGamepad);
+		    nextState.controllers[[Unchecked]index].Connect(buttonCount, axisCount, isGamepad);
 		}
 
+		[Inline]
 		static void OnJoystickDisconnect(uint index)
 		{
-		    if (index < MaxControllers)
-		        nextState.controllers[[Unchecked](int)index].Disconnect();
+		    nextState.controllers[[Unchecked]index].Disconnect();
 		}
 
+		[Inline]
 		static void OnJoystickButtonDown(uint index, uint button)
 		{
-		    if (index < MaxControllers && button < Controller.MaxButtons)
-		    {
-		        nextState.controllers[[Unchecked](int)index].down[[Unchecked](int)button] = true;
-		        nextState.controllers[[Unchecked](int)index].pressed[[Unchecked](int)button] = true;
-		        nextState.controllers[[Unchecked](int)index].timestamp[[Unchecked](int)button] = Time.Duration.Ticks;
-		    }
+			if (button < Controller.MaxButtons)
+			{
+				nextState.controllers[[Unchecked](int)index].state[[Unchecked]button] |= .Pressed|.Down;
+				nextState.controllers[[Unchecked](int)index].timestamp[[Unchecked]button] = Time.Duration.Ticks;
+			}
 		}
 
+		[Inline]
 		static void OnJoystickButtonUp(uint index, uint button)
 		{
-		    if (index < MaxControllers && button < Controller.MaxButtons)
-		    {
-		        nextState.controllers[[Unchecked](int)index].down[[Unchecked](int)button] = false;
-		        nextState.controllers[[Unchecked](int)index].released[[Unchecked](int)button] = true;
-		    }
+			if (button < Controller.MaxButtons)
+		    	nextState.controllers[[Unchecked](int)index].state[[Unchecked]button] = (nextState.controllers[[Unchecked](int)index].state[[Unchecked]button] & ~.Down) | .Released;
 		}
 
+		[Inline]
 		static void OnGamepadButtonDown(uint index, Buttons button)
 		{
-		    if (index < MaxControllers)
-		    {
-		        nextState.controllers[[Unchecked](int)index].down[button.Underlying] = true;
-		        nextState.controllers[[Unchecked](int)index].pressed[button.Underlying] = true;
-		        nextState.controllers[[Unchecked](int)index].timestamp[button.Underlying] = Time.Duration.Ticks;
-		    }
+		    nextState.controllers[[Unchecked](int)index].state[[Unchecked](int)button] |= .Pressed|.Down;
+			nextState.controllers[[Unchecked](int)index].timestamp[[Unchecked](int)button] = Time.Duration.Ticks;
 		}
 
 		static void OnGamepadButtonUp(uint index, Buttons button)
 		{
-		    if (index < MaxControllers)
-		    {
-		        nextState.controllers[[Unchecked](int)index].down[button.Underlying] = false;
-		        nextState.controllers[[Unchecked](int)index].released[button.Underlying] = true;
-		    }
-		}
-
-		static bool IsJoystickButtonDown(uint index, uint button)
-		{
-		    return (index < MaxControllers && button < Controller.MaxButtons && nextState.controllers[[Unchecked](int)index].down[[Unchecked](int)button]);
-		}
-
-		static bool IsGamepadButtonDown(uint index, Buttons button)
-		{
-		    return (index < MaxControllers && nextState.controllers[[Unchecked](int)index].down[button.Underlying]);
+		    nextState.controllers[[Unchecked](int)index].state[[Unchecked](int)button] = (nextState.controllers[[Unchecked](int)index].state[[Unchecked](int)button] & ~.Down) | .Released;
 		}
 
 		static void OnJoystickAxis(uint index, uint axis, float value)
 		{
-		    if (index < MaxControllers && axis < Controller.MaxAxis)
+		    if (axis < Controller.MaxAxis)
 		    {
-		        nextState.controllers[[Unchecked](int)index].axis[[Unchecked](int)axis] = value;
-		        nextState.controllers[[Unchecked](int)index].axisTimestamp[[Unchecked](int)axis] = Time.Duration.Ticks;
+		        nextState.controllers[[Unchecked]index].axis[[Unchecked]axis] = value;
+		        nextState.controllers[[Unchecked]index].axisTimestamp[[Unchecked]axis] = Time.Duration.Ticks;
 		    }
-		}
-
-		static float GetJoystickAxis(uint index, uint axis)
-		{
-		    if (index < MaxControllers && axis < Controller.MaxAxis)
-		        return nextState.controllers[[Unchecked](int)index].axis[[Unchecked](int)axis];
-		    return 0;
 		}
 
 		static void OnGamepadAxis(uint index, Axes axis, float value)
 		{
-		    if (index < MaxControllers)
-		    {
-		        nextState.controllers[[Unchecked](int)index].axis[axis.Underlying] = value;
-		        nextState.controllers[[Unchecked](int)index].axisTimestamp[axis.Underlying] = Time.Duration.Ticks;
-		    }
-		}
-
-		static float GetGamepadAxis(uint index, Axes axis)
-		{
-		    if (index < MaxControllers)
-		        return nextState.controllers[[Unchecked](int)index].axis[axis.Underlying];
-		    return 0;
+			nextState.controllers[[Unchecked]index].axis[[Unchecked](int)axis] = value;
+			nextState.controllers[[Unchecked]index].axisTimestamp[[Unchecked](int)axis] = Time.Duration.Ticks;
 		}
 	}
 }

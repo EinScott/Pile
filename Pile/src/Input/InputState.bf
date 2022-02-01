@@ -5,13 +5,21 @@ using internal Pile;
 
 namespace Pile
 {
+	enum ButtonState : uint8
+	{
+		Up = 0,
+		Released = 1,
+		Pressed = 1 << 1,
+		Down = 1 << 2,
+	}
+
 	struct InputState
 	{
 		public Keyboard keyboard;
 		public Mouse mouse;
 		internal Controller[Input.MaxControllers] controllers = .();
 		[Inline]
-		public ref Controller GetController(Controllers index) mut => ref controllers[index.Underlying];
+		public ref Controller GetController(Controllers index) mut => ref controllers[(int)index];
 
 		internal this()
 		{

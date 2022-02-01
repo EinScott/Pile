@@ -2664,7 +2664,7 @@ namespace SDL2
 			private uint8 padding1;
 			private uint8 padding2;
 			private uint8 padding3;
-			public Int16 axisValue; /* value, lolC# */
+			public int16 axisValue; /* value, lolC# */
 			public uint16 padding4;
 		}
 
@@ -2678,8 +2678,8 @@ namespace SDL2
 			private uint8 padding1;
 			private uint8 padding2;
 			private uint8 padding3;
-			public Int16 xrel;
-			public Int16 yrel;
+			public int16 xrel;
+			public int16 yrel;
 		}
 
 		[CRepr]
@@ -2767,8 +2767,8 @@ namespace SDL2
 		{
 			public uint32 type;
 			public uint32 timestamp;
-			public Int64 touchId; // SDL_TouchID
-			public Int64 fingerId; // SDL_GestureID
+			public int64 touchId; // SDL_TouchID
+			public int64 fingerId; // SDL_GestureID
 			public float x;
 			public float y;
 			public float dx;
@@ -2781,7 +2781,7 @@ namespace SDL2
 		{
 			public uint32 type;
 			public uint32 timestamp;
-			public Int64 touchId; // SDL_TouchID
+			public int64 touchId; // SDL_TouchID
 			public float dTheta;
 			public float dDist;
 			public float x;

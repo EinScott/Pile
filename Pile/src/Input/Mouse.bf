@@ -6,10 +6,8 @@ namespace Pile
 	{
 		public const int MaxButtons = MouseButtons.Count();
 
-		internal bool[MaxButtons] pressed = .();
-		internal bool[MaxButtons] down = .();
-		internal bool[MaxButtons] released = .();
-		internal int64[MaxButtons] timestamp = .();
+		internal ButtonState[MaxButtons] state = default;
+		internal int64[MaxButtons] timestamp = default;
 		internal Vector2 wheelValue = .Zero;
 
 		internal this() {}
@@ -17,31 +15,25 @@ namespace Pile
 		internal void Step() mut
 		{
 			for (int i = 0; i < MaxButtons; i++)
-			{
-				pressed[i] = false;
-				released[i] = false;
-			}
+				state[i] &= ~(.Pressed|.Released);
 
-			wheelValue.X = 0;
-			wheelValue.Y = 0;
+			wheelValue = .Zero;
 		}
 
 		internal void Copy(Mouse from) mut
 		{
-			pressed = from.pressed;
-			down = from.down;
-			released = from.released;
+			state = from.state;
 			timestamp = from.timestamp;
 
 			wheelValue = from.wheelValue;
 		}
 
 		[Inline]
-		public bool Pressed(MouseButtons button) => pressed[(int)button];
+		public bool Pressed(MouseButtons button) => (state[(int)button] & .Pressed) != 0;
 		[Inline]
-		public bool Down(MouseButtons button) => down[(int)button];
+		public bool Down(MouseButtons button) => (state[(int)button] & .Down) != 0;
 		[Inline]
-		public bool Released(MouseButtons button) => released[(int)button];
+		public bool Released(MouseButtons button) => (state[(int)button] & .Released) != 0;
 
 		public int64 Timestamp(MouseButtons button)
 		{
@@ -63,17 +55,17 @@ namespace Pile
 			return false;
 		}
 
-		[Inline] public bool LeftPressed => pressed[(int)MouseButtons.Left];
-		[Inline] public bool LeftDown => down[(int)MouseButtons.Left];
-		[Inline] public bool LeftReleased => released[(int)MouseButtons.Left];
+		[Inline] public bool LeftPressed => (state[(int)MouseButtons.Left] & .Pressed) != 0;
+		[Inline] public bool LeftDown => (state[(int)MouseButtons.Left] & .Down) != 0;
+		[Inline] public bool LeftReleased => (state[(int)MouseButtons.Left] & .Released) != 0;
 
-		[Inline] public bool RightPressed => pressed[(int)MouseButtons.Right];
-		[Inline] public bool RightDown => down[(int)MouseButtons.Right];
-		[Inline] public bool RightReleased => released[(int)MouseButtons.Right];
+		[Inline] public bool RightPressed => (state[(int)MouseButtons.Right] & .Pressed) != 0;
+		[Inline] public bool RightDown => (state[(int)MouseButtons.Right] & .Down) != 0;
+		[Inline] public bool RightReleased => (state[(int)MouseButtons.Right] & .Released) != 0;
 
-		[Inline] public bool MiddlePressed => pressed[(int)MouseButtons.Middle];
-		[Inline] public bool MiddleDown => down[(int)MouseButtons.Middle];
-		[Inline] public bool MiddleReleased => released[(int)MouseButtons.Middle];
+		[Inline] public bool MiddlePressed => (state[(int)MouseButtons.Middle] & .Pressed) != 0;
+		[Inline] public bool MiddleDown => (state[(int)MouseButtons.Middle] & .Down) != 0;
+		[Inline] public bool MiddleReleased => (state[(int)MouseButtons.Middle] & .Pressed) != 0;
 
 		[Inline] public Vector2 Wheel => wheelValue;
 	}

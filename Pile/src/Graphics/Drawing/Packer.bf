@@ -255,6 +255,7 @@ namespace Pile
 			duplicateLookup.Clear();
 		}
 
+		[NoDiscard]
 		public Result<Output> Pack()
 		{
 			// Already been packed

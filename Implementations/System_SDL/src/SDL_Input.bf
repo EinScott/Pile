@@ -1,6 +1,7 @@
 using SDL2;
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 using internal Pile;
 
@@ -131,8 +132,9 @@ namespace Pile
 			case .JoyDeviceAdded:
 				let index = e.jdevice.which;
 
-				if (index >= 0 && MaxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
+				if ((uint)index < MaxControllers && SDL.IsGameController(index) == .False)
 				{
+					Debug.Assert(sdlJoysticks[index] == null);
 				    let ptr = sdlJoysticks[index] = SDL.JoystickOpen(index);
 				    let buttonCount = SDL.JoystickNumButtons(ptr);
 				    let axisCount = SDL.JoystickNumAxes(ptr);
@@ -140,9 +142,9 @@ namespace Pile
 				    OnJoystickConnect((uint)index, (uint)buttonCount, (uint)axisCount, false);
 				}
 			case .JoyDeviceRemoved:
-				let index = e.jdevice.which;
+				let index = JoystickIdToIndex(e.jdevice.which);
 
-				if (index >= 0 && MaxControllers < (uint)index && SDL.IsGameController(index) == SDL.Bool.False)
+				if (index >= 0)
 				{
 				    OnJoystickDisconnect((uint)index);
 
@@ -151,48 +153,57 @@ namespace Pile
 				    SDL.JoystickClose(ptr);
 				}
 			case .JoyButtonDown:
-				let index = e.jbutton.which;
-				if (SDL.IsGameController(index) == SDL.Bool.False)
+				let index = JoystickIdToIndex(e.jbutton.which);
+				if (index >= 0)
 				    OnJoystickButtonDown((uint)index, e.jbutton.button);
 			case .JoyButtonUp:
-				let index = e.jbutton.which;
-				if (SDL.IsGameController(index) == SDL.Bool.False)
+				let index = JoystickIdToIndex(e.jdevice.which);
+				if (index >= 0)
 				    OnJoystickButtonUp((uint)index, e.jbutton.button);
 			case .JoyAxisMotion:
-				let index = e.jaxis.which;
-				if (SDL.IsGameController(index) == SDL.Bool.False)
+				let index = JoystickIdToIndex(e.jdevice.which);
+				if (index >= 0)
 				{
-				    let value = Math.Max(-1f, Math.Min(1f, (int16)e.jaxis.axisValue / (float)Int16.MaxValue));
+				    let value = Math.Clamp(e.jaxis.axisValue / (float)int16.MaxValue, -1f, 1f);
 				    OnJoystickAxis((uint)index, e.jaxis.axis, value);
 				}
 				// Controller events
 			case .ControllerDeviceadded:
 				let index = e.cdevice.which;
+				Debug.Assert(sdlGamepads[index] == null);
 				sdlGamepads[index] = SDL.GameControllerOpen(index);
 				OnJoystickConnect((uint)index, 15, 6, true);
 			case .ControllerDeviceremoved:
-				let index = e.cdevice.which;
-				OnJoystickDisconnect((uint)index);
+				let index = GamepadIdToIndex(e.cdevice.which);
+				if (index >= 0)
+				{
+					OnJoystickDisconnect((uint)index);
 
-				let ptr = sdlGamepads[index];
-				sdlGamepads[index] = null;
-				SDL.GameControllerClose(ptr);
+					let ptr = sdlGamepads[index];
+					sdlGamepads[index] = null;
+					SDL.GameControllerClose(ptr);
+				}
 			case .ControllerButtondown:
-				let index = e.cbutton.which;
-				let button = GamepadButtonToEnum(e.cbutton.button);
-
-				OnGamepadButtonDown((uint)index, button);
+				let index = GamepadIdToIndex(e.cdevice.which);
+				if (index >= 0)
+				{
+					let button = GamepadButtonToEnum(e.cbutton.button);
+					OnGamepadButtonDown((uint)index, button);
+				}
 			case .ControllerButtonup:
 				let index = e.cbutton.which;
 				let button = GamepadButtonToEnum(e.cbutton.button);
 
 				OnGamepadButtonUp((uint)index, button);
 			case .ControllerAxismotion:
-				let index = e.caxis.which;
-				let axis = GamepadAxisToEnum(e.caxis.axis);
-				let value = Math.Max(-1f, Math.Min(1f, e.caxis.axisValue / (float)Int16.MaxValue));
+				let index = GamepadIdToIndex(e.cdevice.which);
+				if (index >= 0)
+				{
+					let axis = GamepadAxisToEnum(e.caxis.axis);
+					let value = Math.Clamp(e.caxis.axisValue / (float)int16.MaxValue, -1f, 1f);
 
-				OnGamepadAxis((uint)index, axis, value);
+					OnGamepadAxis((uint)index, axis, value);
+				}
 				// Key events
 			case .KeyDown, .KeyUp:
 				if (e.key.isRepeat == 0)
@@ -218,7 +229,29 @@ namespace Pile
 			default:
 			}
 		}
-		
+
+		static int32 JoystickIdToIndex(int32 id)
+		{
+			for (int32 i < sdlJoysticks.Count)
+			{
+				let j = sdlJoysticks[i];
+				if (j != null && SDL.JoystickInstanceID(j) == id)
+					return i;
+			}
+			return -1;
+		}
+
+		static int32 GamepadIdToIndex(int32 id)
+		{
+			for (int32 i < sdlGamepads.Count)
+			{
+				let g = sdlGamepads[i];
+				if (g != null && SDL.JoystickInstanceID(SDL.GameControllerGetJoystick(g)) == id)
+					return i;
+			}
+			return -1;
+		}
+
 		static Buttons GamepadButtonToEnum(uint8 button)
 		{
 			Buttons output;

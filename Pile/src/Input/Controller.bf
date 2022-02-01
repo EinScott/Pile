@@ -7,14 +7,12 @@ namespace Pile
 		public const uint MaxButtons = Buttons.Count();
 		public const uint MaxAxis = Axes.Count();
 
-		public bool Connected { get; private set mut; }
-		public bool IsGamepad { get; private set mut; }
-		public int Buttons { get; private set mut; }
-		public int Axes { get; private set mut; }
+		public bool Connected { [Inline]get; [Inline]private set mut; }
+		public bool IsGamepad { [Inline]get; [Inline]private set mut; }
+		public int Buttons { [Inline]get; [Inline]private set mut; }
+		public int Axes { [Inline]get; [Inline]private set mut; }
 
-		internal bool[MaxButtons] pressed = .();
-		internal bool[MaxButtons] down = .();
-		internal bool[MaxButtons] released = .();
+		internal ButtonState[MaxButtons] state = .();
 		internal int64[MaxButtons] timestamp = .();
 		internal float[MaxAxis] axis = .();
 		internal int64[MaxAxis] axisTimestamp = .();
@@ -42,67 +40,54 @@ namespace Pile
 		    Buttons = 0;
 		    Axes = 0;
 
-			for (int i = 0; i < MaxButtons; i++)
-			{
-				pressed[i] = false;
-				down[i] = false;
-				released[i] = false;
-				timestamp[i] = 0L;
-			}
-
-			for (int i = 0; i < MaxAxis; i++)
-			{
-				axis[i] = 0;
-				axisTimestamp[i] = 0L;
-			}
+			state = default;
+			timestamp = default;
+			axis = default;
+			axisTimestamp = default;
 		}
 
 		internal void Step() mut
 		{
 			for (int i = 0; i < MaxButtons; i++)
 			{
-				pressed[i] = false;
-				released[i] = false;
+				state[i] &= ~(.Pressed|.Released);
 			}
 		}
 
 		internal void Copy(Controller from) mut
 		{
-			Connected = from.Connected;
-			IsGamepad = from.IsGamepad;
-			Buttons = from.Buttons;
-			Axes = from.Axes;
+			if (Connected != from.Connected)
+			{
+				Connected = from.Connected;
+				IsGamepad = from.IsGamepad;
+				Buttons = from.Buttons;
+				Axes = from.Axes;
+			}
 
-			pressed = from.pressed;
-			down = from.down;
-			released = from.released;
+			state = from.state;
 			timestamp = from.timestamp;
 			axis = from.axis;
 			axisTimestamp = from.axisTimestamp;
 		}
 
 		[Inline]
-		bool Pressed(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && pressed[buttonIndex];
-		public bool Pressed(Buttons button) => Pressed((int)button);
+		public bool Pressed(Buttons button) => (state[(int)button] & .Pressed) != 0;
 
-		int64 Timestamp(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons ? timestamp[buttonIndex] : 0;
-		public int64 Timestamp(Buttons button) => Timestamp((int)button);
+		[Inline]
+		public int64 Timestamp(Buttons button) => timestamp[(int)button];
+		[Inline]
 		public int64 Timestamp(Axes axis) => axisTimestamp[(int)axis];
 
 		[Inline]
-		bool Down(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && down[buttonIndex];
-		public bool Down(Buttons button) => Down((int)button);
+		public bool Down(Buttons button) => (state[(int)button] & .Down) != 0;
 
 		[Inline]
-		bool Released(int buttonIndex) => buttonIndex >= 0 && buttonIndex < MaxButtons && released[buttonIndex];
-		public bool Released(Buttons button) => Released((int)button);
+		public bool Released(Buttons button) => (state[(int)button] & .Released) != 0;
 
 		[Inline]
-		float Axis(int axisIndex) => (axisIndex >= 0 && axisIndex < MaxAxis) ? axis[axisIndex] : 0f;
-		public float Axis(Axes axis) => Axis((int)axis);
+		public float Axis(Axes axis) => this.axis[(int)axis];
 
 		[Inline]
-		Vector2 Axis(int axisX, int axisY) => Vector2(Axis(axisX), Axis(axisY));
 		public Vector2 Axis(Axes axisX, Axes axisY) => Vector2(Axis(axisX), Axis(axisY));
 
 		[Inline] public Vector2 LeftStick => Axis(Pile.Axes.LeftX, Pile.Axes.LeftY);
