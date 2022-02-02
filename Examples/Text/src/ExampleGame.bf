@@ -16,7 +16,7 @@ namespace Game
 		Batch2D batch = new .() ~ delete _;
 		SpriteFont debugFont ~ delete _;
 
-		Asset<Subtexture> button = new Asset<Subtexture>("button") ~ delete _;
+		Asset<Subtexture> button = Asset<Subtexture>("button");
 
 		bool debugRender;
 

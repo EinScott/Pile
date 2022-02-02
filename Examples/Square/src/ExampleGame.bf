@@ -38,7 +38,7 @@ namespace Game
 		protected override void Update()
 		{
 			// Move rect by input
-			rectPos += input.Value.Normalize() * rectSpeed * Time.Delta;
+			rectPos += .Normalize(input.Value) * rectSpeed * Time.Delta;
 		}
 
 		protected override void Render()
@@ -48,7 +48,7 @@ namespace Game
 			batch.Clear();
 
 			// Raw rect at position
-			batch.Rect(Rect(rectPos.Round() + relativeRect.Position, relativeRect.Size), .Red);
+			batch.Rect(Rect(Vector2.Round(rectPos) + relativeRect.Position, relativeRect.Size), .Red);
 
 			// Render batch buffer
 			batch.Render(System.Window);

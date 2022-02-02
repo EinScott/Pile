@@ -24,7 +24,7 @@ namespace Pile
 			// -> the emitted defer block doesn't find the __pt_s identifier anymore when switched to defer:mixin? -> use a defer call (to instant evaluate the args)
 			// -> __pt_s.Elapsed is still 0 when instant evaluating? well feed in the Stopwatch instance since we know it's still valid when the call happens later!
 			// I'm impressed this works... finally
-			Compiler.Mixin(MakePerfTrackString(scopeName, sNum));
+			Compiler.MixinRoot(MakePerfTrackString(scopeName, sNum));
 #endif
 		}
 
