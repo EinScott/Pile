@@ -237,7 +237,7 @@ namespace Pile
 				}
 				
 				{
-					PerfTrack!("Pile.Core.DoCoreLoop:Update");
+					PerfTrack("Pile.Core.DoCoreLoop:Update");
 
 					// Raw time
 					Time.rawDuration += diffTime;
@@ -292,13 +292,13 @@ namespace Pile
 				if (!skipRender && !exiting && !System.window.Closed)
 				{
 					{
-						PerfTrack!("Pile.Core.DoCoreLoop:Render");
+						PerfTrack("Pile.Core.DoCoreLoop:Render");
 
 						System.window.Render(); // Calls WindowRender()
 					}
 
 					{
-						PerfTrack!("Pile.Core.DoCoreLoop:Present");
+						PerfTrack("Pile.Core.DoCoreLoop:Present");
 
 						let vsVal = System.window.VSync;
 						if (vsVal && timer.[Friend]GetElapsedDateTimeTicks() - currTime >= Time.targetTicks)

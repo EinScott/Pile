@@ -13,31 +13,23 @@ namespace Pile
 {
 	static
 	{
+		[Comptime,Obsolete("Use PerfTrack()", false)]
+		public static mixin PerfTrack(String scopeName) => PerfTrack(scopeName);
+
 		[Comptime]
-		public static mixin PerfTrack(String scopeName)
+		public static void PerfTrack(String scopeName)
 		{
 #if USE_PERF
-			let sNum = Perf.[Friend]CrappyCompHash(scopeName);
+			let sNum = (uint)scopeName.GetHashCode();
 
-			// This needed so many workarounds to work...
-			// -> string interpolation not allowed? well make the string in another comptimed function
-			// -> the emitted defer block doesn't find the __pt_s identifier anymore when switched to defer:mixin? -> use a defer call (to instant evaluate the args)
-			// -> __pt_s.Elapsed is still 0 when instant evaluating? well feed in the Stopwatch instance since we know it's still valid when the call happens later!
-			// I'm impressed this works... finally
-			Compiler.MixinRoot(MakePerfTrackString(scopeName, sNum));
+			Compiler.MixinRoot(scope $"""
+				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
+				defer
+				{{
+					Pile.Perf.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum}.Elapsed);
+				}}
+				""");
 #endif
-		}
-
-#if !USE_PERF
-		[SkipCall]
-#endif
-		[Comptime]
-		internal static String MakePerfTrackString(String scopeName, uint sNum)
-		{
-			return scope $"""
-				let __pt_s{sNum} = scope:mixin System.Diagnostics.Stopwatch(true);
-				defer:mixin Pile.Perf.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum});
-				""";
 		}
 	}
 
@@ -71,12 +63,15 @@ namespace Pile
 					sectionName..Append(' ')..Append(sectionNameOverride);
 			}
 
-			let sNum = Perf.[Friend]CrappyCompHash(sectionName);
+			let sNum = (uint)sectionName.GetHashCode();
 
 			// Put tracking on method
 			Compiler.EmitMethodEntry(methodInfo, scope $"""
 				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
-				defer Pile.Perf.[System.FriendAttribute]EndSection("{sectionName}", __pt_s{sNum});
+				defer
+				{{
+					Pile.Perf.[System.FriendAttribute]EndSection("{sectionName}", __pt_s{sNum}.Elapsed);
+				}}
 				""");
 #endif
 		}
@@ -157,33 +152,6 @@ namespace Pile
 			else sectionDurationsFill.Add(sectionName, time);
 
 			trackOverhead += __pt.Elapsed;
-		}
-
-#if !USE_PERF
-		[SkipCall]
-#endif
-		[Inline]
-		static void EndSection(String sectionName, Stopwatch watch)
-		{
-			EndSection(sectionName, watch.Elapsed);
-		}
-
-		[Comptime]
-		static uint CrappyCompHash(String string)
-		{
-			// Crappy 64 bit hash
-			uint sNum = 0;
-			for (let i < string.Length)
-			{
-				let val = (uint8)string[i];
-
-				if (val % 5 == 0 && val % 2 == 0)
-					sNum ^= val;
-				else if (val % 3 == 0)
-					sNum *= val;
-				else sNum += val;
-			}
-			return sNum;
 		}
 
 #unwarn // yes... we don't need [Friend] here... calm down

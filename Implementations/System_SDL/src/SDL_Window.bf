@@ -157,16 +157,16 @@ namespace Pile
 		public override int X
 		{
 			[Inline]
-			get => SDL.GetWindowPosition(window, .. let _, ?);
+			get => SDL.GetWindowPosition(window, .. ?, ?);
 			[Inline]
-			set => SDL.SetWindowPosition(window, (int32)value, SDL.GetWindowPosition(window, .. let _, ?));
+			set => SDL.SetWindowPosition(window, (int32)value, SDL.GetWindowPosition(window, .. ?, ?));
 		}
 		public override int Y
 		{
 			[Inline]
-			get => SDL.GetWindowPosition(window, ?, .. let _);
+			get => SDL.GetWindowPosition(window, ?, .. ?);
 			[Inline]
-			set => SDL.SetWindowPosition(window, SDL.GetWindowPosition(window, ?, .. let _), (int32)value);
+			set => SDL.SetWindowPosition(window, SDL.GetWindowPosition(window, ?, .. ?), (int32)value);
 		}
 		public override Point2 Position
 		{
@@ -183,16 +183,16 @@ namespace Pile
 		public override uint Width
 		{
 			[Inline]
-			get => (.)SDL.GetWindowSize(window, .. let _, ?);
+			get => (.)SDL.GetWindowSize(window, .. ?, ?);
 			[Inline]
-			set => SDL.SetWindowSize(window, (int32)value, SDL.GetWindowSize(window, ?, .. let _));
+			set => SDL.SetWindowSize(window, (int32)value, SDL.GetWindowSize(window, ?, .. ?));
 		}
 		public override uint Height
 		{
 			[Inline]
-			get => (.)SDL.GetWindowSize(window, ?, .. let _);
+			get => (.)SDL.GetWindowSize(window, ?, .. ?);
 			[Inline]
-			set => SDL.SetWindowSize(window, SDL.GetWindowSize(window, .. let _, ?), (int32)value);
+			set => SDL.SetWindowSize(window, SDL.GetWindowSize(window, .. ?, ?), (int32)value);
 		}
 		public override UPoint2 Size
 		{
