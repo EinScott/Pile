@@ -435,7 +435,7 @@ namespace Pile
 						{
 							let str = m.Name;
 
-							if (str.Length < wantParams)
+							if (str.Length < name.Length)
 								continue;
 
 							if ((StringView)str == last)
@@ -451,7 +451,7 @@ namespace Pile
 									if (str[matchedChars].ToLower != name[matchedChars].ToLower)
 										break NAMECHECK;
 
-								if (matchedChars >= name.Length)
+								if (matchedChars == name.Length)
 								{
 									if (overload > 0)
 									{

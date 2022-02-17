@@ -46,7 +46,7 @@ namespace Pile
 		}
 
 		[Comptime]
-		public void ApplyToMethod(ComptimeMethodInfo methodInfo)
+		public void ApplyToMethod(MethodInfo methodInfo)
 		{
 #if USE_PERF
 			// Make name

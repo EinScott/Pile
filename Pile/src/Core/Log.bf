@@ -70,7 +70,7 @@ namespace Pile
 		[SkipCall]
 #endif
 		[Inline]
-		public static void Debug(String message) => Log(.Info, message);
+		public static void Debug(StringView message) => Log(.Info, message);
 #if !DEBUG
 		[SkipCall]
 #endif
@@ -87,7 +87,7 @@ namespace Pile
 		}
 
 		[Inline]
-		public static void Info(String message) => Log(.Info, message);
+		public static void Info(StringView message) => Log(.Info, message);
 		[Inline]
 		public static void Info(Object message) => Log(.Info, message);
 		public static void Info(StringView format, params Object[] inserts)
@@ -98,7 +98,7 @@ namespace Pile
 		}
 
 		[Inline]
-		public static void Warn(String message) => Log(.Warn, message);
+		public static void Warn(StringView message) => Log(.Warn, message);
 		[Inline]
 		public static void Warn(Object message) => Log(.Warn, message);
 		public static void Warn(StringView format, params Object[] inserts)
@@ -109,7 +109,7 @@ namespace Pile
 		}
 
 		[Inline]
-		public static void Error(String message) => Log(.Error, message);
+		public static void Error(StringView message) => Log(.Error, message);
 		[Inline]
 		public static void Error(Object message) => Log(.Error, message);
 		public static void Error(StringView format, params Object[] inserts)
@@ -129,7 +129,7 @@ namespace Pile
 			Log(type, msgStr);
 		}
 
-		static void Log(Types type, String message)
+		static void Log(Types type, StringView message)
 		{
 			let fullMessage = scope String(6 + message.Length)..Append(type.GetLogString())..Append(message);
 
