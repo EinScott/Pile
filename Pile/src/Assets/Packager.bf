@@ -86,7 +86,7 @@ namespace Pile
 				// Identify file
 				let path = file.GetFilePath(.. scope String());
 
-				if (!path.EndsWith(".json")) continue;
+				if (!path.EndsWith(".bon")) continue;
 
 				// Add these as PackageBuildTask, because we need the details passed in to log errors later on
 				tasks.Add(Packages.BuildPackageAsync(path, outPath, FORCE) as Packages.PackageBuildTask);

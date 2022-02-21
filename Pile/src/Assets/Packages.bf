@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics;
 using System.Security.Cryptography;
-using Atma;
+using Bon;
 
 using internal Pile;
 
@@ -17,14 +17,14 @@ namespace Pile
 	static class Packages
 	{
 		// Represents the json data in the package import file
-		[Serializable]
+		[BonTarget]
 		internal class PackageData
 		{
 			public bool use_path_names;
 			public List<String> additionals ~ if (_ != null) DeleteContainerAndItems!(_);
-			public List<ImportData> imports ~ DeleteContainerAndItems!(_);
+			public List<ImportData> imports ~ if (_ != null) DeleteContainerAndItems!(_);
 
-			[Serializable]
+			[BonTarget]
 			internal class ImportData
 			{
 				public String path ~ DeleteNotNull!(_);
@@ -248,7 +248,8 @@ namespace Pile
 			if (File.ReadAllText(cPackageBuildFilePath, jsonFile) case .Err(let err))
 				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath} because the file could not be opened");
 
-			if (JsonConvert.Deserialize(packageData, jsonFile) case .Err)
+			var packageData;
+			if (Bon.Deserialize(ref packageData, jsonFile) case .Err)
 				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error reading json");
 
 			if (packageData.imports == null)
@@ -351,14 +352,11 @@ namespace Pile
 		public static Result<void> BuildPackage(StringView packageBuildFilePath, StringView outputFolderPath, bool force = false)
 		{
 			let t = scope Stopwatch(true);
-			PackageData packageData = new PackageData();
+			PackageData packageData = scope PackageData();
 
 			let cPackageBuildFilePath = Path.Clean(packageBuildFilePath, .. scope .());
 			if (ReadPackageBuildFile(cPackageBuildFilePath, packageData) case .Err)
-			{
-				delete packageData;
 				return .Err;
-			}
 
 			String assetsFolderPath = null;
 			if (packageData.use_path_names) // If we use relative path names as names, we need the path to make it relative to
@@ -390,9 +388,6 @@ namespace Pile
 			bool somethingChanged = false;
 			BUILD:
 			{
-				// Delete on scope exit
-				defer delete packageData;
-
 				HashSet<String> duplicateNameLookup = scope HashSet<String>();
 
 				HashSet<StringView> previousNames = scope HashSet<StringView>(); // All names of the last package content (only used in rebuild)

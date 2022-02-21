@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Atma;
+using Bon;
 
 namespace Pile
 {
@@ -17,7 +17,7 @@ namespace Pile
 	[RegisterImporter]
 	class ShaderDataImporter : Importer
 	{
-		[Serializable]
+		[BonTarget]
 		struct ShaderImportFile : IDisposable
 		{
 			public String vertexPath;
@@ -63,10 +63,10 @@ namespace Pile
 			String filename = scope .();
 			Try!(data.ReadStrSized32(data.Length, filename));
 
-			Try!(JsonConvert.Deserialize<ShaderImportFile>(&f, filename));
+			Try!(Bon.Deserialize<ShaderImportFile>(ref f, filename));
 
 			if (f.vertexPath == null || f.fragmentPath == null)
-				LogErrorReturn!("ShaderImporter: At least VertexPath and FragmentPath need to be declared in json structure");
+				LogErrorReturn!("ShaderImporter: At least VertexPath and FragmentPath need to be declared in bon structure");
 
 			// Load the actual files
 			let currDir = scope String();

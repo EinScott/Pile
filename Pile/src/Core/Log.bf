@@ -133,32 +133,35 @@ namespace Pile
 		{
 			let fullMessage = scope String(6 + message.Length)..Append(type.GetLogString())..Append(message);
 
-			if (Verbosity <= type)
-				AppendRecord(fullMessage);
-
-			if (OnLine.HasListeners)
-				OnLine(type, message);
-
-			if (PrintToConsole)
+			using (writeMonitor.Enter())
 			{
-				if (type == .Info)
-					Console.WriteLine(fullMessage);
-				else
+				if (Verbosity <= type)
+					AppendRecord(fullMessage);
+
+				if (OnLine.HasListeners)
+					OnLine(type, message);
+
+				if (PrintToConsole)
 				{
-					Console.ForegroundColor = type.GetLogColor();
-					Console.Write(type.GetLogString());
-					Console.ForegroundColor = .Gray;
-					Console.WriteLine(message);
-				}
+					if (type == .Info)
+						Console.WriteLine(fullMessage);
+					else
+					{
+						Console.ForegroundColor = type.GetLogColor();
+						Console.Write(type.GetLogString());
+						Console.ForegroundColor = .Gray;
+						Console.WriteLine(message);
+					}
 
 #if DEBUG
-				using (debugWriteMonitor.Enter())
-				{
-					if (debugNeedsWrite < DEBUGWRITEBUFSIZE)
-						debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
-					else debugWriteBuffer[DEBUGWRITEBUFSIZE - 1].Set(fullMessage); // rest in peace previous message...
-				}
+					using (debugWriteMonitor.Enter())
+					{
+						if (debugNeedsWrite < DEBUGWRITEBUFSIZE)
+							debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
+						else debugWriteBuffer[DEBUGWRITEBUFSIZE - 1].Set(fullMessage); // rest in peace previous message...
+					}
 #endif
+				}
 			}
 		}
 
@@ -172,6 +175,7 @@ namespace Pile
 #endif
 		}
 
+		static Monitor writeMonitor = new Monitor() ~ delete _;
 		const int DEBUGWRITEBUFSIZE = 8;
 #if DEBUG
 		[Inline]
