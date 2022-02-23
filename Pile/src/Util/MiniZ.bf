@@ -1091,11 +1091,11 @@ namespace Pile
 		            A[next].m_key = A[leaf++].m_key;
 		        if (leaf >= n || (root < next && A[root].m_key < A[leaf].m_key))
 		        {
-		            A[next].m_key = (mz_uint16)(A[next].m_key + A[root].m_key);
+		            A[next].m_key = (mz_uint16)((int32)A[next].m_key + A[root].m_key);
 		            A[root++].m_key = (mz_uint16)next;
 		        }
 		        else
-		            A[next].m_key = (mz_uint16)(A[next].m_key + A[leaf++].m_key);
+		            A[next].m_key = (mz_uint16)((int32)A[next].m_key + A[leaf++].m_key);
 		    }
 		    A[n - 2].m_key = 0;
 		    for (next = n - 3; next >= 0; next--)
@@ -1135,7 +1135,7 @@ namespace Pile
 		        pNum_codes[max_code_size] += pNum_codes[i];
 		    for (i = max_code_size; i > 0; i--)
 		        total += (((mz_uint32)pNum_codes[i]) << (max_code_size - i));
-		    while (total != (1UL << max_code_size))
+		    while (total != ((uint64)1 << max_code_size))
 		    {
 		        pNum_codes[max_code_size]--;
 		        for (i = max_code_size - 1; i > 0; i--)
@@ -1163,7 +1163,7 @@ namespace Pile
 		    {
 		        tdefl_sym_freq[TDEFL_MAX_HUFF_SYMBOLS] syms0 = .(), syms1 = .();
 				tdefl_sym_freq* pSyms;
-		        int32 num_used_syms = 0; // @change was uint32 before . indexes into array of size 288, so does not matter
+		        int32 num_used_syms = 0; // @change was uint32 before. indexes into array of size 288, so does not matter
 		        mz_uint16 *pSym_count = &d.m_huff_count[table_num][0];
 		        for (i = 0; i < table_len; i++)
 		            if (pSym_count[i] != 0)
@@ -1194,7 +1194,7 @@ namespace Pile
 		    for (i = 0; i < table_len; i++)
 		    {
 		        mz_uint rev_code = 0, code;
-				int32 code_size; // @change was mz_uint before . is set from uint8 array element, so does not matter
+				int32 code_size; // @change was mz_uint before. is set from uint8 array element, so does not matter
 		        if ((code_size = d.m_huff_code_sizes[table_num][i]) == 0)
 		            continue;
 		        code = next_code[code_size]++;
@@ -1243,7 +1243,7 @@ namespace Pile
 
 		    memcpy(&code_sizes_to_pack, &d.m_huff_code_sizes[0][0], num_lit_codes);
 		    memcpy(&code_sizes_to_pack[num_lit_codes], &d.m_huff_code_sizes[1][0], num_dist_codes);
-		    total_code_sizes_to_pack = (.)num_lit_codes + (.)num_dist_codes; // @change . cast is safe, see values they are set to above
+		    total_code_sizes_to_pack = (.)num_lit_codes + (.)num_dist_codes; // @change cast is safe, see values they are set to above
 		    num_packed_code_sizes = 0;
 		    rle_z_count = 0;
 		    rle_repeat_count = 0;
@@ -1254,13 +1254,13 @@ namespace Pile
 				{
 					if (rle_repeat_count < 3)
 					{
-						d.m_huff_count[2][prev_code_size] = (mz_uint16)(d.m_huff_count[2][prev_code_size] + rle_repeat_count);
+						d.m_huff_count[2][prev_code_size] = (mz_uint16)((uint32)d.m_huff_count[2][prev_code_size] + rle_repeat_count);
 						while ((rle_repeat_count--) != 0)
 							packed_code_sizes[num_packed_code_sizes++] = prev_code_size;
 					}
 					else
 					{
-						d.m_huff_count[2][16] = (mz_uint16)(d.m_huff_count[2][16] + 1);
+						d.m_huff_count[2][16] = (mz_uint16)((uint32)d.m_huff_count[2][16] + 1);
 						packed_code_sizes[num_packed_code_sizes++] = 16;
 						packed_code_sizes[num_packed_code_sizes++] = (mz_uint8)(rle_repeat_count - 3);
 					}
@@ -1274,19 +1274,19 @@ namespace Pile
 				{
 					if (rle_z_count < 3)
 					{
-						d.m_huff_count[2][0] = (mz_uint16)(d.m_huff_count[2][0] + rle_z_count);
+						d.m_huff_count[2][0] = (mz_uint16)((uint32)d.m_huff_count[2][0] + rle_z_count);
 						while ((rle_z_count--) != 0)
 							packed_code_sizes[num_packed_code_sizes++] = 0;
 					}
 					else if (rle_z_count <= 10)
 					{
-						d.m_huff_count[2][17] = (mz_uint16)(d.m_huff_count[2][17] + 1);
+						d.m_huff_count[2][17] = (mz_uint16)((uint32)d.m_huff_count[2][17] + 1);
 						packed_code_sizes[num_packed_code_sizes++] = 17;
 						packed_code_sizes[num_packed_code_sizes++] = (mz_uint8)(rle_z_count - 3);
 					}
 					else
 					{
-						d.m_huff_count[2][18] = (mz_uint16)(d.m_huff_count[2][18] + 1);
+						d.m_huff_count[2][18] = (mz_uint16)((uint32)d.m_huff_count[2][18] + 1);
 						packed_code_sizes[num_packed_code_sizes++] = 18;
 						packed_code_sizes[num_packed_code_sizes++] = (mz_uint8)(rle_z_count - 11);
 					}
@@ -1312,7 +1312,7 @@ namespace Pile
 		            if (code_size != prev_code_size)
 		            {
 		                TDEFL_RLE_PREV_CODE_SIZE!();
-		                d.m_huff_count[2][code_size] = (mz_uint16)(d.m_huff_count[2][code_size] + 1);
+		                d.m_huff_count[2][code_size] = (mz_uint16)((uint32)d.m_huff_count[2][code_size] + 1);
 		                packed_code_sizes[num_packed_code_sizes++] = code_size;
 		            }
 		            else if (++rle_repeat_count == 6)
@@ -1738,7 +1738,7 @@ namespace Pile
 		        if (dist == 0)
 		            break;
 		        q = (mz_uint16*)(&d.m_dict[0] + probe_pos);
-		        if (TDEFL_READ_UNALIGNED_WORD2!((q)) != s01) // @change doing q instead of (q) says the varaible is unitialized... weird bug?
+		        if (TDEFL_READ_UNALIGNED_WORD2!(q) != s01)
 		            continue;
 		        p = s;
 		        probe_len = 32;
@@ -2721,7 +2721,7 @@ namespace Pile
 					if (++counter < 4)
 						break;
 
-					if ((counter = (r.m_raw_header[0] | ((mz_uint)r.m_raw_header[1] << 8))) != (mz_uint)(0xFFFF ^ (r.m_raw_header[2] | ((mz_uint)r.m_raw_header[3] << 8))))
+					if ((counter = ((uint32)r.m_raw_header[0] | ((mz_uint)r.m_raw_header[1] << 8))) != (mz_uint)(0xFFFF ^ ((uint32)r.m_raw_header[2] | ((mz_uint)r.m_raw_header[3] << 8))))
 						DoResult!(tinfl_status.TINFL_STATUS_FAILED);
 					r.m_state = 7;
 					fallthrough;
@@ -2910,7 +2910,7 @@ namespace Pile
 							s += 3;
 						case 2:
 							GetBits!(s, 7);
-							s += 11; // @change was 13 before, apparently needs to be 11?
+							s += 11;
 						}
 
 						memset(&r.m_len_codes[counter], (dist == 16) ? r.m_len_codes[counter - 1] : 0, s);
