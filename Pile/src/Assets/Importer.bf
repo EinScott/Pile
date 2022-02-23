@@ -3,14 +3,69 @@ using System.IO;
 using System.Reflection;
 using System.Collections;
 using System.Diagnostics;
+using Bon;
 
 using internal Pile;
 
 namespace Pile
 {
-	interface Importer
+	// TODO: replace more strings with IDs, AssetId
+
+	interface IImporter
 	{
-		public String Name { get; }
+		Span<StringView> targetExtensions { get; } // Which exts should be sent to this importer
+		Span<StringView> dependantExtensions { get; } // Which exts cause this importer to rebuild
+
+		void ClearConfig();
+		Result<void> SetConfig(StringView bonStr);
+
+		Result<void> Build(Stream inStream, Stream outStream);
+		Result<void> Load(StringView name, Span<uint8> data);
+
+		public void FileSupported()
+		{
+
+		}
+	}
+
+	abstract class Importer : IImporter
+	{
+		public abstract Span<StringView> targetExtensions { get; }
+		public abstract Span<StringView> dependantExtensions { get; }
+
+		// No config!
+		[SkipCall]
+		public void ClearConfig() {}
+		public Result<void> SetConfig(StringView bonStr) => bonStr.Length == 0 ? .Ok : .Err;
+
+		public abstract Result<void> Build(Stream inStream, Stream outStream);
+		public abstract Result<void> Load(StringView name, Span<uint8> data);
+	}
+
+	abstract class Importer<TConfig> : IImporter where TConfig : struct, new
+	{
+		public TConfig config;
+
+		public abstract Span<StringView> targetExtensions { get; }
+		public abstract Span<StringView> dependantExtensions { get; }
+
+		[Inline]
+		public void ClearConfig()
+		{
+			config = .();
+		}
+
+		public Result<void> SetConfig(StringView bonStr)
+		{
+			if (Bon.Deserialize(ref config, bonStr) case .Ok)
+				return .Ok;
+			return .Err;
+		}
+
+		public abstract Result<void> Build(Stream inStream, Stream outStream);
+		public abstract Result<void> Load(StringView name, Span<uint8> data);
+
+		/*public String Name { get; }
 
 		/// Useful for when this relies on other files included "additional"
 		/// -> they will cause reloads, but if this is false, this importer won't
@@ -18,6 +73,8 @@ namespace Pile
 		/// On true, Build will always be called again when an additional file has
 		/// changed for all imports of this importer.
 		public bool RebuildOnAdditionalChanged => false;
+
+		public abstract void ClearConfig()
 
 		public Result<void> Load(StringView name, Span<uint8> data);
 		public Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath);
@@ -31,7 +88,7 @@ namespace Pile
 				LogErrorReturn!("Importer: Failed to read data from stream");
 			}
 			outData
-		}
+		}*/
 	}
 
 	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.DefaultConstructor)]
@@ -40,8 +97,6 @@ namespace Pile
 	[AlwaysInclude, StaticInitPriority(-1)]
 	static class Importers
 	{
-		public const String None = "none";
-
 		internal static Dictionary<String, Importer> importers = new .() ~ DeleteDictionaryAndValues!(_);
 		internal static Package currentPackage;
 
@@ -83,6 +138,12 @@ namespace Pile
 				importers.Add(i.Name, i);
 			}
 		}
+
+		public Result<void> Import(StringView name, StringView config)
+		{
+			// "hide" clear & set config calls!
+		}
+
 
 		/// Should only be called from Importers
 		public static Result<void> SubmitAsset(StringView name, Object asset)

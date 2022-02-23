@@ -16,21 +16,65 @@ namespace Pile
 #endif
 	static class Packages
 	{
+		// HEADER (3 bytes)
+		// INFO (1 byte - 4 bits version, 4 bits mode flags)
+		// INDEX_OFFSET (8 bytes, uint64)
+
+		// CONTENT_HASH (32 bytes)
+		// CONTENT_ENTRY_COUNT (4 bytes, uint32)
+		// CONTENT_ENTRY[]
+		//   ENTRY:
+		//   NAME_LENGTH (2 bytes, uint16)
+		//   NAME[]
+		//   DATA_LENGTH (8 bytes, uint64)
+		//   DATA[]
+
+		// INDEX_ENTRY_COUNT (2 bytes, uint16)
+		// INDEX_ENTRY[]
+		//   ENTRY:
+		//   PACKAGE_NAME_LENGTH (2 bytes, uint16)
+		//   PACKAGE_NAME[]
+		//   PACKAGE_CONTENT_ENTRY_COUNT (2 bytes, uint16)
+		//   PACKAGE_CONTENT_ENTRY[]
+		//     ENTRY:
+		//     IMPORTER_NAME_LENGTH (2 bytes, uint16)
+		//     IMPORTER_NAME[]
+		//     CONTENT_OFFSET_ENTRY_COUNT (4 bytes, uint32)
+		//     CONTENT_OFFSET_ENTRY[]
+		//       ENTRY:
+		//       OFFSET (8 bytes, uint64)
+
+		// ! IF mode has DEBUG
+		// PATCH_INFO_ENTRY_COUNT (2 bytes, uint16)
+		// PATCH_INFO_ENTRY[]
+		//   ENTRY:
+		//   CONTENT_HOLE_OFFSET (8 bytes, uint64)
+		//   CONTENT_HOLE_SIZE (8 bytes, uint64)
+
+		// FILE_SIZE (8 bytes, uint64)
+
+		// TODO: use this format!
+		// TODO: actually good patching, just read in index, append new stuff and fill into index, then append index
+
 		// Represents the json data in the package import file
 		[BonTarget]
 		internal class PackageData
 		{
-			public bool use_path_names;
-			public List<String> additionals ~ if (_ != null) DeleteContainerAndItems!(_);
-			public List<ImportData> imports ~ if (_ != null) DeleteContainerAndItems!(_);
+			public List<ImportPass> importPasses ~ if (_ != null) DeleteContainerAndDisposeItems!(_);
 
 			[BonTarget]
-			internal class ImportData
+			internal struct ImportPass : IDisposable
 			{
-				public String path ~ DeleteNotNull!(_);
-				public String importer ~ DeleteNotNull!(_);
-				public String name_prefix ~ DeleteNotNull!(_);
-				public String config ~ DeleteNotNull!(_);
+				public String targetDir;
+				public String importer;
+				public String config;
+
+				public void Dispose()
+				{
+					DeleteNotNull!(targetDir);
+					DeleteNotNull!(importer);
+					DeleteNotNull!(config);
+				}
 			}
 		}
 		
@@ -252,19 +296,19 @@ namespace Pile
 			if (Bon.Deserialize(ref packageData, jsonFile) case .Err)
 				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. Error reading json");
 
-			if (packageData.imports == null)
+			if (packageData.importPasses == null)
 				LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. \"imports\" array has to be specified in root object");
 
-			for (let imp in packageData.imports)
+			for (let imp in packageData.importPasses)
 			{
-				if (imp.path == null || imp.importer == null)
+				if (imp.targetDir == null || imp.importer == null)
 					LogErrorReturn!(scope $"Couldn't build package at {cPackageBuildFilePath}. \"path\" and \"importer\" has to be specified for every import statement");
 			}
 
 			return .Ok;
 		}
 
-		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath, PackageData config, PackageData.ImportData import)
+		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath, PackageData config, PackageData.ImportPass import)
 		{
 			let s = scope:mixin String();
 			if (import.name_prefix != null) s.Append(import.name_prefix);
@@ -461,7 +505,7 @@ namespace Pile
 					}
 				}
 
-				for (let import in packageData.imports)
+				for (let import in packageData.importPasses)
 				{
 					Importer importer;
 
@@ -478,7 +522,7 @@ namespace Pile
 					}
 
 					// Interpret path string (put all final paths in importPaths)
-					Try!(GetFilesFromPathsRec(rootPath, cPackageBuildFilePath, import.path, scope [&](entry, path) =>
+					Try!(GetFilesFromPathsRec(rootPath, cPackageBuildFilePath, import.targetDir, scope [&](entry, path) =>
 						{
 							// Hash name
 							let s = GetScopedAssetName!(path, assetsFolderPath, packageData, import);
