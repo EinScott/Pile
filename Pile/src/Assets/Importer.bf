@@ -9,12 +9,21 @@ using internal Pile;
 
 namespace Pile
 {
-	// TODO: replace more strings with IDs, AssetId
+	// TODO: replace more strings with IDs, AssetId ?? or not!
+	// make it easier to interface with Assets, make it usable for SpriteFont, remove atlas building from it and put that in an importer!
+	// separate package load & hot reload stuff from resource management!
+
+	// explicit passes of specified things with collective configs? - optional offset folder, but importer "chooses" files
+
+	// importers may use other importers - helper function
 
 	interface IImporter
 	{
-		Span<StringView> targetExtensions { get; } // Which exts should be sent to this importer
-		Span<StringView> dependantExtensions { get; } // Which exts cause this importer to rebuild
+		String Name { get; }
+
+		Span<StringView> TargetExtensions { get; } // Which exts should be sent to this importer
+		Span<StringView> DependantExtensions { get; } // Which exts cause this importer to rebuild
+		// TODO maybe-- instead make rebuild trigger filter part of pass spec, by default same as target path
 
 		void ClearConfig();
 		Result<void> SetConfig(StringView bonStr);
@@ -22,16 +31,30 @@ namespace Pile
 		Result<void> Build(Stream inStream, Stream outStream);
 		Result<void> Load(StringView name, Span<uint8> data);
 
-		public void FileSupported()
+		public bool FileSupported(StringView path)
 		{
+			let extStr = scope String(5);
+			if (Path.GetExtension(path, extStr) case .Err)
+				return false;
+			Debug.Assert(extStr.StartsWith('.'));
+			let extView = StringView(extStr, 1);
 
+			for (var ext in TargetExtensions)
+			{
+				if (ext.StartsWith('.'))
+					ext.RemoveFromStart(1);
+
+				if (ext == extView)
+					return true;
+			}
+			return false;
 		}
 	}
 
 	abstract class Importer : IImporter
 	{
-		public abstract Span<StringView> targetExtensions { get; }
-		public abstract Span<StringView> dependantExtensions { get; }
+		public abstract Span<StringView> TargetExtensions { get; }
+		public abstract Span<StringView> DependantExtensions { get; }
 
 		// No config!
 		[SkipCall]
@@ -46,8 +69,8 @@ namespace Pile
 	{
 		public TConfig config;
 
-		public abstract Span<StringView> targetExtensions { get; }
-		public abstract Span<StringView> dependantExtensions { get; }
+		public abstract Span<StringView> TargetExtensions { get; }
+		public abstract Span<StringView> DependantExtensions { get; }
 
 		[Inline]
 		public void ClearConfig()
@@ -97,7 +120,7 @@ namespace Pile
 	[AlwaysInclude, StaticInitPriority(-1)]
 	static class Importers
 	{
-		internal static Dictionary<String, Importer> importers = new .() ~ DeleteDictionaryAndValues!(_);
+		internal static Dictionary<String, IImporter> importers = new .() ~ DeleteDictionaryAndValues!(_);
 		internal static Package currentPackage;
 
 		public static this()
@@ -111,8 +134,9 @@ namespace Pile
 				bool implementsImporter = false;
 				repeat
 				{
+					// TODO: no clue if this still works!
 					for (let interf in currentType.Interfaces)
-						if (interf != null && (Type)interf == typeof(Importer))
+						if (interf != null && (Type)interf == typeof(IImporter))
 							implementsImporter = true;
 
 					currentType = currentType.BaseType;

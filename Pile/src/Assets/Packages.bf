@@ -16,49 +16,41 @@ namespace Pile
 #endif
 	static class Packages
 	{
+		// TODO:
+		// -> so... methods to read the index, do things with it, methods to load some collection of entries
+		// patched by either fitting the new data into the old slot (keep it in there as long as possible) or just
+		// appending it to the end and updating the index! -- both set the patched flag on file
+		// -> hot reload is fast, next full run will clean it up and do a full rebuild (probably nicer for workflow)
+
 		// HEADER (3 bytes)
-		// INFO (1 byte - 4 bits version, 4 bits mode flags)
+		// VERSION (1 byte)
+		// FLAGS (1 byte) (like patched: which says that this includes dead data and should be rebuild on next proper launch)
+		// SOURCE_HASH (32 bytes)
 		// INDEX_OFFSET (8 bytes, uint64)
 
-		// CONTENT_HASH (32 bytes)
-		// CONTENT_ENTRY_COUNT (4 bytes, uint32)
-		// CONTENT_ENTRY[]
-		//   ENTRY:
-		//   NAME_LENGTH (2 bytes, uint16)
-		//   NAME[]
-		//   DATA_LENGTH (8 bytes, uint64)
-		//   DATA[]
+		// CONTENT (?)
 
-		// INDEX_ENTRY_COUNT (2 bytes, uint16)
-		// INDEX_ENTRY[]
+		// PASS_ENTRY_COUNT (2 bytes, uint16)
+		// PASS_ENTRY[]
 		//   ENTRY:
-		//   PACKAGE_NAME_LENGTH (2 bytes, uint16)
-		//   PACKAGE_NAME[]
-		//   PACKAGE_CONTENT_ENTRY_COUNT (2 bytes, uint16)
-		//   PACKAGE_CONTENT_ENTRY[]
-		//     ENTRY:
 		//     IMPORTER_NAME_LENGTH (2 bytes, uint16)
 		//     IMPORTER_NAME[]
-		//     CONTENT_OFFSET_ENTRY_COUNT (4 bytes, uint32)
-		//     CONTENT_OFFSET_ENTRY[]
+		//     IMPORTER_CONFIG_LENGTH (2 bytes, uint16)
+		//     IMPORTER_CONFIG[]
+		//     CONTENT_ENTRY_COUNT (4 bytes, uint32)
+		//     CONTENT_ENTRY[]
 		//       ENTRY:
+		//       NAME_LENGTH (2 bytes, uint16 - most significant bit signals "data_patched")
+		//       NAME[]
 		//       OFFSET (8 bytes, uint64)
-
-		// ! IF mode has DEBUG
-		// PATCH_INFO_ENTRY_COUNT (2 bytes, uint16)
-		// PATCH_INFO_ENTRY[]
-		//   ENTRY:
-		//   CONTENT_HOLE_OFFSET (8 bytes, uint64)
-		//   CONTENT_HOLE_SIZE (8 bytes, uint64)
+		//       LENGTH (8 bytes, uint64)
+		//       SLOT_SIZE (8 bytes, uint64) -- only if "data_patched"
 
 		// FILE_SIZE (8 bytes, uint64)
 
-		// TODO: use this format!
-		// TODO: actually good patching, just read in index, append new stuff and fill into index, then append index
-
 		// Represents the json data in the package import file
 		[BonTarget]
-		internal class PackageData
+		internal class PackageSpec
 		{
 			public List<ImportPass> importPasses ~ if (_ != null) DeleteContainerAndDisposeItems!(_);
 
@@ -285,7 +277,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		static Result<void> ReadPackageBuildFile(StringView cPackageBuildFilePath, PackageData packageData)
+		static Result<void> ReadPackageBuildFile(StringView cPackageBuildFilePath, PackageSpec packageData)
 		{
 			// Read package file
 			String jsonFile = scope String();
@@ -308,7 +300,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath, PackageData config, PackageData.ImportPass import)
+		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath, PackageSpec config, PackageSpec.ImportPass import)
 		{
 			let s = scope:mixin String();
 			if (import.name_prefix != null) s.Append(import.name_prefix);
@@ -396,7 +388,7 @@ namespace Pile
 		public static Result<void> BuildPackage(StringView packageBuildFilePath, StringView outputFolderPath, bool force = false)
 		{
 			let t = scope Stopwatch(true);
-			PackageData packageData = scope PackageData();
+			PackageSpec packageData = scope PackageSpec();
 
 			let cPackageBuildFilePath = Path.Clean(packageBuildFilePath, .. scope .());
 			if (ReadPackageBuildFile(cPackageBuildFilePath, packageData) case .Err)
