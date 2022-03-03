@@ -4,26 +4,25 @@ using System.Collections;
 
 namespace Pile
 {
+	// TODO: no? we don't have extensions for this one i guess... could we make some conveniant abstract thing of it?
+	// like... rawTextImporter -> "txt", "md"
+	// or special case the "*" ending... but then we still have to allow filters on TargetDir! -- i mean yea
+
 	[RegisterImporter]
 	class RawImporter : Importer
 	{
-		public virtual String Name => "raw";
+		public override String Name => "raw";
 
-		public virtual Result<void> Load(StringView name, Span<uint8> data)
+		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let asset = new RawAsset(data);
 
-			if (Importers.SubmitAsset(name, asset) case .Err)
+			if (SubmitLoadedAsset(name, asset) case .Err)
 			{
 				delete asset;
 				return .Err;
 			}
 			else return .Ok;
-		}
-
-		public virtual Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath)
-		{
-			return Importer.TryStreamToArray!(data);
 		}
 	}
 
@@ -36,7 +35,7 @@ namespace Pile
 		{
 			data = new uint8[copy.Length];
 			copy.CopyTo(data);
-			text = StringView((char8*)data.CArray(), data.Count);
+			text = StringView((char8*)data.Ptr, data.Count);
 		}
 	}
 }

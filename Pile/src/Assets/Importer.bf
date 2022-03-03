@@ -9,32 +9,63 @@ using internal Pile;
 
 namespace Pile
 {
-	// TODO: replace more strings with IDs, AssetId ?? or not!
-	// make it easier to interface with Assets, make it usable for SpriteFont, remove atlas building from it and put that in an importer!
-	// separate package load & hot reload stuff from resource management!
+	// make it easier to interface with Assets, make it usable for SpriteFont -- make textureFilter settable from importers actually
+	// separate package load & hot reload stuff from resource management? -- maybe packageManager/packager all together?
 
-	// explicit passes of specified things with collective configs? - optional offset folder, but importer "chooses" files
-
-	// importers may use other importers - helper function
-
-	interface IImporter
+	[AlwaysInclude, StaticInitPriority(-1)]
+	abstract class Importer
 	{
-		String Name { get; }
+		public abstract String Name { get; }
 
-		Span<StringView> TargetExtensions { get; } // Which exts should be sent to this importer
-		Span<StringView> DependantExtensions { get; } // Which exts cause this importer to rebuild
+		public abstract Span<StringView> TargetExtensions { get; } // Which exts should be sent to this importer
+		public virtual Span<StringView> DependantExtensions => .(); // Which exts cause this importer to rebuild
 		// TODO maybe-- instead make rebuild trigger filter part of pass spec, by default same as target path
 
-		void ClearConfig();
-		Result<void> SetConfig(StringView bonStr);
+		public virtual void ClearConfig() {}
+		public virtual Result<void> SetConfig(StringView bonStr)
+		{
+			Debug.Assert(bonStr.Length == 0, "Config left unused!");
+			return .Ok;
+		}
 
-		Result<void> Build(Stream inStream, Stream outStream);
-		Result<void> Load(StringView name, Span<uint8> data);
+		public virtual Result<void> Build(Substream outStream, StringView filePath)
+		{
+			// By default, no processing is done, we simply transfer the file contents!
 
-		public bool FileSupported(StringView path)
+			Debug.Assert(File.Exists(filePath));
+
+			FileStream fs = scope FileStream();
+			Try!(fs.Open(filePath, .Open, .Read));
+
+			while (true)
+			{
+				uint8[4096] buffer;
+				switch (fs.TryRead(.(&buffer, 4096)))
+				{
+				case .Ok(let bytes):
+					if (bytes == 0)
+						return .Ok;
+
+					switch (outStream.TryWrite(.(&buffer, bytes)))
+					{
+					case .Err:
+						return .Err;
+					case .Ok(let write):
+						if (write != bytes)
+							return .Err;
+					}
+				case .Err:
+					return .Err;
+				}
+			}
+		}
+
+		public abstract Result<void> Load(StringView name, Span<uint8> data);
+
+		public bool TargetsFile(StringView path)
 		{
 			let extStr = scope String(5);
-			if (Path.GetExtension(path, extStr) case .Err)
+			if (!Path.GetExtension(path, extStr))
 				return false;
 			Debug.Assert(extStr.StartsWith('.'));
 			let extView = StringView(extStr, 1);
@@ -49,101 +80,34 @@ namespace Pile
 			}
 			return false;
 		}
-	}
 
-	abstract class Importer : IImporter
-	{
-		public abstract Span<StringView> TargetExtensions { get; }
-		public abstract Span<StringView> DependantExtensions { get; }
-
-		// No config!
-		[SkipCall]
-		public void ClearConfig() {}
-		public Result<void> SetConfig(StringView bonStr) => bonStr.Length == 0 ? .Ok : .Err;
-
-		public abstract Result<void> Build(Stream inStream, Stream outStream);
-		public abstract Result<void> Load(StringView name, Span<uint8> data);
-	}
-
-	abstract class Importer<TConfig> : IImporter where TConfig : struct, new
-	{
-		public TConfig config;
-
-		public abstract Span<StringView> TargetExtensions { get; }
-		public abstract Span<StringView> DependantExtensions { get; }
-
-		[Inline]
-		public void ClearConfig()
+		public bool DependsOnFile(StringView path)
 		{
-			config = .();
-		}
+			let extStr = scope String(5);
+			if (!Path.GetExtension(path, extStr))
+				return false;
+			Debug.Assert(extStr.StartsWith('.'));
+			let extView = StringView(extStr, 1);
 
-		public Result<void> SetConfig(StringView bonStr)
-		{
-			if (Bon.Deserialize(ref config, bonStr) case .Ok)
-				return .Ok;
-			return .Err;
-		}
-
-		public abstract Result<void> Build(Stream inStream, Stream outStream);
-		public abstract Result<void> Load(StringView name, Span<uint8> data);
-
-		/*public String Name { get; }
-
-		/// Useful for when this relies on other files included "additional"
-		/// -> they will cause reloads, but if this is false, this importer won't
-		/// be notified since the actual file it imports hasn't been changed.
-		/// On true, Build will always be called again when an additional file has
-		/// changed for all imports of this importer.
-		public bool RebuildOnAdditionalChanged => false;
-
-		public abstract void ClearConfig()
-
-		public Result<void> Load(StringView name, Span<uint8> data);
-		public Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath);
-
-		public static mixin TryStreamToArray(Stream data)
-		{
-			let outData = new uint8[data.Length];
-			if (!(data.TryRead(outData) case .Ok(data.Length)))
+			for (var ext in DependantExtensions)
 			{
-				delete outData;
-				LogErrorReturn!("Importer: Failed to read data from stream");
+				if (ext.StartsWith('.'))
+					ext.RemoveFromStart(1);
+
+				if (ext == extView)
+					return true;
 			}
-			outData
-		}*/
-	}
+			return false;
+		}
 
-	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.DefaultConstructor)]
-	struct RegisterImporterAttribute : Attribute {}
-
-	[AlwaysInclude, StaticInitPriority(-1)]
-	static class Importers
-	{
-		internal static Dictionary<String, IImporter> importers = new .() ~ DeleteDictionaryAndValues!(_);
+		internal static Dictionary<String, Importer> importers = new .() ~ DeleteDictionaryAndValues!(_);
 		internal static Package currentPackage;
 
-		public static this()
+		static this()
 		{
 			for (let type in Type.Types)
 			{
-				if (!type.IsObject || !type.HasCustomAttribute<RegisterImporterAttribute>())
-					continue;
-
-				TypeInstance currentType = type as TypeInstance;
-				bool implementsImporter = false;
-				repeat
-				{
-					// TODO: no clue if this still works!
-					for (let interf in currentType.Interfaces)
-						if (interf != null && (Type)interf == typeof(IImporter))
-							implementsImporter = true;
-
-					currentType = currentType.BaseType;
-				}
-				while (!implementsImporter && currentType != null && currentType != typeof(Object));
-
-				if (!implementsImporter)
+				if (!type.IsObject || !type.HasCustomAttribute<RegisterImporterAttribute>() || !type.IsSubtypeOf(typeof(Importer)))
 					continue;
 
 				Importer i;
@@ -156,21 +120,47 @@ namespace Pile
 					continue;
 				}
 
-				// Just a prettier error for debug builds, add won't allow duplicates anyway
+				// Just a prettier error for debug builds, Add() won't allow duplicates anyway
 				Debug.Assert(!importers.ContainsKey(i.Name), scope $"Importer with name {i.Name} already exists");
 
 				importers.Add(i.Name, i);
 			}
 		}
 
-		public Result<void> Import(StringView name, StringView config)
+		protected static mixin ToMetaFilePath(StringView path, String into)
 		{
-			// "hide" clear & set config calls!
+			Path.ChangeExtension(path, ".meta.bon", into);
 		}
 
+		protected static Result<void> LoadFullFile(StringView path, ref uint8[] outDataAlloc)
+		{
+			FileStream fs = scope FileStream();
+			Try!(fs.Open(path, .Open, .Read));
 
-		/// Should only be called from Importers
-		public static Result<void> SubmitAsset(StringView name, Object asset)
+			let len = fs.Length;
+			if (outDataAlloc == null || outDataAlloc.Count < len)
+				outDataAlloc = new uint8[len];
+			var ptr = outDataAlloc.Ptr;
+			var end = ptr + len;
+
+			while (true)
+			{
+				switch (fs.TryRead(.(ptr, 4096)))
+				{
+				case .Ok(let bytes):
+					if (bytes == 0)
+						return .Ok;
+					ptr += bytes;
+
+					Debug.Assert(ptr < end);
+				case .Err:
+					return .Err;
+				}
+			}
+		}
+
+		/// Should only be called from Load()
+		protected static Result<void> SubmitLoadedAsset(StringView name, Object asset)
 		{
 			Debug.Assert(currentPackage != null, "Importers can only submit assets while loading a Package (when called from Assets.LoadPackage(...))");
 
@@ -188,8 +178,8 @@ namespace Pile
 			return .Ok;
 		}
 
-		/// Should only be called from Importers. DOES NOT CONSUME BITMAP!
-		public static Result<Subtexture> SubmitTextureAsset(StringView name, Bitmap bitmap, TextureFilter filter = Core.Defaults.TextureFilter)
+		/// Should only be called from Load(). DOES NOT CONSUME BITMAP!
+		protected static Result<Subtexture> SubmitLoadedTextureAsset(StringView name, Bitmap bitmap, TextureFilter filter = Core.Defaults.TextureFilter)
 		{
 			Debug.Assert(currentPackage != null, "Importers can only submit assets while loading a Package (when called from Assets.LoadPackage(...))");
 
@@ -202,4 +192,7 @@ namespace Pile
 			return .Ok(asset);
 		}
 	}
+
+	[AttributeUsage(.Class, .AlwaysIncludeTarget|.ReflectAttribute, AlwaysIncludeUser=.IncludeAllMethods|.AssumeInstantiated, ReflectUser=.DefaultConstructor)]
+	struct RegisterImporterAttribute : Attribute {}
 }
