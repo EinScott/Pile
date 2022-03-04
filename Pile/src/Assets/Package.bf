@@ -12,6 +12,7 @@ namespace Pile
 		internal ~this() {}
 
 		internal readonly String name = new String() ~ delete _;
+		[Inline]
 		public StringView Name => name;
 
 		public bool OwnsAsset(Type type, String name)

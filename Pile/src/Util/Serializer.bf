@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections;
 using System.IO;
 
 namespace Pile
@@ -17,7 +18,6 @@ namespace Pile
 
 		public this(Stream s)
 		{
-			err = false;
 			this.underlyingStream = s;
 			read = s.CanRead;
 			write = s.CanWrite;
@@ -26,85 +26,103 @@ namespace Pile
 		public mixin Write(Span<uint8> span)
 		{
 			if (!this.write || this.underlyingStream.Write(span) case .Err)
-				this.err = true;
+				err = true;
 		}
 
 		public mixin ReadInto(var span)
 		{
 			if (!this.read || !(this.underlyingStream.TryRead((Span<uint8>)span) case .Ok(((Span<uint8>)span).Length)))
-				this.err = true;
+				err = true;
 			span
 		}
+
+		// Write numbers in little endian!
 
 		[Optimize]
 		public void Write<T>(T num) where T : struct, INumeric
 		{
-			var num;
+			T leData;
+			let data = (uint8*)&leData;
 
-			uint8[] memory = scope uint8[sizeof(T)];
-			// Making this a span avoids array access checks
-			let data = memory.Ptr;
+#if BF_LITTLE_ENDIAN
+			leData = num;
+#else
+			leData = default;
 
 			switch (sizeof(T))
 			{
 			case 8:
+#unwarn
 				var uint = *(uint64*)&num;
-				data[0] = (uint8)((uint >> 56) & 0xFF);
-				data[1] = (uint8)((uint >> 48) & 0xFF);
-				data[2] = (uint8)((uint >> 40) & 0xFF);
-				data[3] = (uint8)((uint >> 32) & 0xFF);
-				data[4] = (uint8)((uint >> 24) & 0xFF);
-				data[5] = (uint8)((uint >> 16) & 0xFF);
-				data[6] = (uint8)((uint >> 8) & 0xFF);
-				data[7] = (uint8)(uint & 0xFF);
+				data[0] = (uint8)(uint & 0xFF);
+				data[1] = (uint8)((uint >> 8) & 0xFF);
+				data[2] = (uint8)((uint >> 16) & 0xFF);
+				data[3] = (uint8)((uint >> 24) & 0xFF);
+				data[4] = (uint8)((uint >> 32) & 0xFF);
+				data[5] = (uint8)((uint >> 48) & 0xFF);
+				data[6] = (uint8)((uint >> 40) & 0xFF);
+				data[7] = (uint8)((uint >> 56) & 0xFF);
 			case 4:
+#unwarn
 				var uint = *(uint32*)&num;
-				data[0] = (uint8)((uint >> 24) & 0xFF);
-				data[1] = (uint8)((uint >> 16) & 0xFF);
-				data[2] = (uint8)((uint >> 8) & 0xFF);
-				data[3] = (uint8)(uint & 0xFF);
+				data[0] = (uint8)(uint & 0xFF);
+				data[1] = (uint8)((uint >> 8) & 0xFF);
+				data[2] = (uint8)((uint >> 16) & 0xFF);
+				data[3] = (uint8)((uint >> 24) & 0xFF);
 			case 2:
+#unwarn
 				var uint = *(uint16*)&num;
-				data[0] = (uint8)((uint >> 8) & 0xFF);
-				data[1] = (uint8)(uint & 0xFF);
+				data[0] = (uint8)(uint & 0xFF);
+				data[1] = (uint8)((uint >> 8) & 0xFF);
 			case 1:
+#unwarn
 				data[0] = *(uint8*)&num;
 			default:
+				Debug.FatalError("Invalid write size");
 				err = true;
-				Debug.FatalError("Invalid read size");
+				return;
 			}
+#endif
 
-			if (!write || underlyingStream.TryWrite(memory) case .Err)
+			if (!write || underlyingStream.TryWrite(.(data, sizeof(T))) case .Err)
 				err = true;
 		}
 
 		[Optimize]
 		public T Read<T>() where T : struct, INumeric
 		{
-			T data = default;
-			let tSpan = Span<uint8>((uint8*)&data, sizeof(T));
-			if (!read || !(underlyingStream.TryRead(tSpan) case .Ok(sizeof(T))))
+			T leData = default;
+			let data = (uint8*)&leData;
+			if (!read || !(underlyingStream.TryRead(.(data, sizeof(T))) case .Ok(sizeof(T))))
+			{
 				err = true;
+				return default;
+			}	
 
-			T res = default;
+#if BF_LITTLE_ENDIAN
+			return leData;
+#else
+			T num = default;
 			switch (sizeof(T))
 			{
 			case 8:
-				*(uint64*)(&res) = (
-					((uint64)tSpan[0] << 56) | (((uint64)tSpan[1]) << 48) | (((uint64)tSpan[2]) << 40) | (((uint64)tSpan[3]) << 32)
-					| ((uint64)tSpan[4] << 24) | (((uint64)tSpan[5]) << 16) | (((uint64)tSpan[6]) << 8) | (uint64)tSpan[7]);
+				*(uint64*)(&num) = (
+					((uint64)data[7] << 56) | (((uint64)data[6]) << 48) | (((uint64)data[5]) << 40) | (((uint64)data[4]) << 32)
+					| ((uint64)data[3] << 24) | (((uint64)data[2]) << 16) | (((uint64)data[1]) << 8) | (uint64)data[0]);
 			case 4:
-				*(uint32*)(&res) = (((uint32)tSpan[0] << 24) | (((uint32)tSpan[1]) << 16) | (((uint32)tSpan[2]) << 8) | (uint32)tSpan[3]);
+				*(uint32*)(&num) = (((uint32)data[3] << 24) | (((uint32)data[2]) << 16) | (((uint32)data[1]) << 8) | (uint32)data[0]);
 			case 2:
-				*(uint16*)(&res) = ((((uint16)tSpan[0]) << 8) | (uint16)tSpan[1]);
+				*(uint16*)(&num) = ((((uint16)data[1]) << 8) | (uint16)data[0]);
 			case 1:
-				*(uint8*)(&res) = tSpan[0];
+				*(uint8*)(&num) = data[0];
 			default:
-				err = true;
 				Debug.FatalError("Invalid read size");
+				err = true;
+				return default;
 			}
 
-			return res;
+			return num;
+#endif
 		}
 	}
 }

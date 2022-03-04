@@ -11,14 +11,8 @@ namespace Pile
 #if !DEBUG
 	[Optimize]
 #endif
-	static class Packages
+	static class PackageFormat
 	{
-		// TODO:
-		// -> so... methods to read the index, do things with it, methods to load some collection of entries
-		// patched by either fitting the new data into the old slot (keep it in there as long as possible) or just
-		// appending it to the end and updating the index! -- both set the patched flag on file
-		// -> hot reload is fast, next full run will clean it up and do a full rebuild (probably nicer for workflow)
-
 		// HEADER (3 bytes)
 		// VERSION (1 byte)
 		// FLAGS (1 byte) (like patched: which says that this includes dead data and should be rebuild on next proper launch)
@@ -30,7 +24,7 @@ namespace Pile
 		// IMPORTER_ENTRY_COUNT (1 byte, uint8)
 		// IMPORTER_ENTRY[]
 		//   ENTRY:
-		//   IMPORTER_NAME_LENGTH (2 bytes, uint16)
+		//   IMPORTER_NAME_LENGTH (1 byte, uint8)
 		//   IMPORTER_NAME[]
 		// PASS_ENTRY_COUNT (1 byte, uint8)
 		// PASS_ENTRY[]
@@ -71,13 +65,12 @@ namespace Pile
 		{
 			public uint8 importerIndex;
 			public String importerConfig;
-			public List<IndexPassEntry> entries; // Allocate with appropriate capacity
+			public List<IndexPassEntry> entries = new .();
 
 			[Inline]
 			public void Dispose()
 			{
 				DeleteNotNull!(importerConfig);
-				Debug.Assert(entries != null);
 				DeleteContainerAndDisposeItems!(entries);
 			}
 		}
@@ -135,6 +128,12 @@ namespace Pile
 
 		const int32 MAXCHUNK = int16.MaxValue - 1; // TODO: why? make int32? move ?
 
+		// TODO:
+		// -> so... methods to read the index, do things with it, methods to load some collection of entries
+		// patched by either fitting the new data into the old slot (keep it in there as long as possible) or just
+		// appending it to the end and updating the index! -- both set the patched flag on file
+		// -> hot reload is fast, next full run will clean it up and do a full rebuild (probably nicer for workflow)
+
 		// proposal:
 		// writePackage(stream ... list<buildpass>)
 		// readPackageHeader(stream) -> headerInfo
@@ -146,6 +145,164 @@ namespace Pile
 
 		// -> this kind of structure forces us to keep CompressionStreams out of most of the structure, we can basically only wrap them around single entries... like data
 		//    ... in which case that would be soley PackageManagers job!
+
+		public static Result<void> WritePackageFile(StringView outputPath, List<BuildPass> passes, SHA256Hash sourceHash)
+		{
+			let outPath = Path.ChangeExtension(outputPath, ".bin", .. scope String(outputPath));
+			let dir = scope String();
+			if (Path.GetDirectoryPath(outPath, dir) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path {outPath}");
+
+			if (!Directory.Exists(dir) && (Directory.CreateDirectory(dir) case .Err(let err)))
+				LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
+
+			let fs = scope FileStream();
+			if (fs.Open(outPath, .Create, .Write, .None, 65536) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to {outPath}");
+
+			return WritePackage(fs, passes, sourceHash);
+		}
+
+		public static Result<void> WritePackage(Stream outStream, List<BuildPass> passes, SHA256Hash sourceHash)
+		{
+			Serializer sr = scope .(outStream);
+
+			// Already includes header size!
+			uint64 offsetInFile = 5 /* header / version / flags */ + 32 /* sourceHash */ + 8 /* index offset */;
+
+			PackageFlags mode = .None;
+			sr.Write!(uint8[?](0x50, 0x4C, 0x50, 0x01, mode.Underlying)); // Header & Version & Flags
+
+			// Write content hash
+			var sourceHash;
+			let hashSpan = Span<uint8>(&sourceHash.mHash[0], sourceHash.mHash.Count);
+			sr.Write!(hashSpan);
+
+			uint64 precomputedIndexOffset = offsetInFile;
+			for (let pass in passes)
+				for (let entry in pass.entries)
+					if (entry.data != null)
+						precomputedIndexOffset += (uint64)entry.data.Count;
+
+			sr.Write<uint64>(precomputedIndexOffset);
+
+			// Compute file index to write while dumping content
+			Index fileIndex = scope .();
+
+			for (let pass in passes)
+			{
+				int importerIndex = fileIndex.importerNames.IndexOf(pass.importer);
+				if (importerIndex == -1)
+				{
+					importerIndex = fileIndex.importerNames.Count;
+					fileIndex.importerNames.Add(pass.importer);
+				}
+
+				fileIndex.passes.Add(.());
+				var indexPass = ref fileIndex.passes.Back;
+
+				if (importerIndex > uint8.MaxValue)
+					LogErrorReturn!("Couldn't write package. Too many importers used! (max 256)");
+				indexPass.importerIndex = (uint8)importerIndex;
+				indexPass.importerConfig = pass.importerConfig != null ? new .(pass.importerConfig) : null;
+
+				for (let entry in pass.entries)
+				{
+					indexPass.entries.Add(.());
+					var indexEntry = ref indexPass.entries.Back;
+
+					indexEntry.name = new .(entry.name);
+					indexEntry.offset = offsetInFile;
+					indexEntry.length = entry.data == null ? 0 : (uint64)entry.data.Count;
+
+					if (indexEntry.length != 0)
+						sr.Write!(entry.data);
+
+					offsetInFile += indexEntry.length;
+				}
+			}
+
+			Debug.Assert(precomputedIndexOffset == offsetInFile);
+
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't write package. Failed to write data (header or content)");
+
+			return WritePackageIndex(outStream, fileIndex, offsetInFile);
+		}
+
+		public static Result<void> WritePackageIndex(Stream outStream, Index fileIndex, uint64 fileSizeWithoutIndex)
+		{
+			Serializer sr = scope .(outStream);
+
+			var fileSize = fileSizeWithoutIndex;
+
+			if (fileIndex.importerNames.Count > uint8.MaxValue)
+				LogErrorReturn!("Couldn't write package. Too many importers used (max 256)");
+			sr.Write<uint8>((.)fileIndex.importerNames.Count);
+			fileSize += 1;
+			for (let importerName in fileIndex.importerNames)
+			{
+				if (importerName.Length > uint8.MaxValue)
+					LogErrorReturn!("Couldn't write package. Importer name too long (max 256 chars)");
+				let nameLen = (uint8)importerName.Length;
+				sr.Write<uint8>(nameLen);
+				sr.Write!(Span<uint8>((.)&importerName[0], nameLen));
+
+				fileSize += 1 + nameLen;
+			}
+
+			if (fileIndex.passes.Count > uint8.MaxValue)
+				LogErrorReturn!("Couldn't write package. Too many import passes used (max 256)");
+			sr.Write<uint8>((.)fileIndex.passes.Count);
+			fileSize += 1;
+			for (let pass in fileIndex.passes)
+			{
+				sr.Write<uint8>(pass.importerIndex);
+
+				let configLen = pass.importerConfig == null ? 0 : pass.importerConfig.Length;
+				if (configLen > uint16.MaxValue)
+					LogErrorReturn!("Couldn't write package. Importer config too long (max 65535 chars)");
+				sr.Write<uint16>((.)configLen);
+				sr.Write!(Span<uint8>((.)&pass.importerConfig[0], configLen));
+
+				if (pass.entries.Count > uint32.MaxValue)
+					LogErrorReturn!("Couldn't write package. Too many pass entries used (max uint32.MaxValue)");
+				sr.Write<uint32>((.)pass.entries.Count);
+
+				fileSize += 1 + 2 + (.)configLen + 4;
+
+				for (let entry in pass.entries)
+				{
+					if (entry.name.Length > uint16.MaxValue & ~0x8000)
+						LogErrorReturn!("Couldn't write package. Entry name too long (max 32767 chars)");
+
+					uint16 nameLength = (.)entry.name.Length;
+					if (entry.isPatched)
+						nameLength |= 0x8000;
+					sr.Write<uint16>(nameLength);
+					sr.Write!(Span<uint8>((.)&entry.name[0], entry.name.Length));
+
+					sr.Write<uint64>(entry.offset);
+					sr.Write<uint64>(entry.length);
+
+					fileSize += 2 + (.)entry.name.Length + 8 + 8;
+
+					if (entry.isPatched)
+					{
+						sr.Write<uint64>(entry.slotSize);
+						fileSize += 8;
+					}
+				}
+			}
+
+			fileSize += 8;
+			sr.Write<uint64>(fileSize);
+
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't write package. Failed to write data (index)");
+
+			return .Ok;
+		}
 
 		/*public static Result<void> ReadPackage(StringView packagePath, List<IndexPassEntry> nodes, List<String> importerNames, out SHA256Hash contentHash)
 		{
