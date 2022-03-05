@@ -258,7 +258,7 @@ namespace Pile
 
 			// Import each package node
 			Importer importer;
-			Importers.currentPackage = package;
+			Importers.currentPackage = package; // TODO: make this something local instead somehow?
 			for (let node in nodes)
 			{
 				// Find importer

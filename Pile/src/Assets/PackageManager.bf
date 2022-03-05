@@ -155,25 +155,26 @@ namespace Pile
 			}
 		}
 
-		static Result<void> ReadPackageConfigFile(StringView checkConfigPath, PackageConfig packageData)
+		static Result<void> ReadPackageConfigFile(StringView configPath, PackageConfig config)
 		{
 			// Read package file
-			String jsonFile = scope String();
-			if (File.ReadAllText(checkConfigPath, jsonFile) case .Err(let err))
-				LogErrorReturn!(scope $"Couldn't build package at {checkConfigPath}. Couldn't open file");
+			String jsonFile = scope String(512);
+			if (File.ReadAllText(configPath, jsonFile) case .Err(let err))
+				LogErrorReturn!(scope $"Couldn't build package at {configPath}. Couldn't open file");
 
-			var packageData;
-			if (Bon.Deserialize(ref packageData, jsonFile) case .Err)
-				LogErrorReturn!(scope $"Couldn't build package at {checkConfigPath}. Error reading bon");
+			Debug.Assert(config != null);
+			var config; // We know that bon won't realloc anything here. Config is set and of the right type!
+			if (Bon.Deserialize(ref config, jsonFile) case .Err)
+				LogErrorReturn!(scope $"Couldn't build package at {configPath}. Error reading bon");
 
 			// Check file structure
-			if (packageData.importPasses == null)
-				LogErrorReturn!(scope $"Couldn't build package at {checkConfigPath}. \"importPasses\" array has to be specified in root object");
+			if (config.importPasses == null)
+				LogErrorReturn!(scope $"Couldn't build package at {configPath}. \"importPasses\" array has to be specified in root object");
 
-			for (let imp in packageData.importPasses)
+			for (let imp in config.importPasses)
 			{
 				if (imp.targetDir == null || imp.importer == null)
-					LogErrorReturn!(scope $"Couldn't build package at {checkConfigPath}. \"targetDir\" and \"importer\" has to be specified for every import pass");
+					LogErrorReturn!(scope $"Couldn't build package at {configPath}. \"targetDir\" and \"importer\" has to be specified for every import pass");
 			}
 
 			return .Ok;
@@ -181,7 +182,7 @@ namespace Pile
 
 		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath)
 		{
-			Path.Unify(.. Path.GetRelativePath(filePath, assetsFolderPath, .. scope:mixin .()))
+			Path.Unify(.. Path.GetRelativePath(filePath, assetsFolderPath, .. scope:mixin .(filePath.Length - assetsFolderPath.Length + 16)))
 		}
 
 		static Result<void> GetFilesInDirRecursive(StringView rootPath, StringView checkedConfigPath, StringView paths, delegate void(FileFindEntry e, StringView path) onFile)
@@ -199,7 +200,7 @@ namespace Pile
 					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
 
 				// Check if containing folder exists
-				let dirPath = scope String();
+				let dirPath = scope String(fullPath.Length);
 				if ((Path.GetDirectoryPath(fullPath, dirPath) case .Err) || !Directory.Exists(dirPath))
 					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Failed to find containing directory of {path}");
 
@@ -257,50 +258,128 @@ namespace Pile
 			return .Ok;
 		}
 
-		/// If force is false, the package will only be built if there is no file at outPath or the package source changed and patched otherwise
-		public static Result<void> BuildPackage(StringView configFilePath, StringView outputFolderPath, bool force = false)
+		public static Result<void> BuildPackage(StringView configFilePath, StringView outputFolderPath)
 		{
 			let t = scope Stopwatch(true);
-			PackageConfig packageData = scope PackageConfig();
+			
+			PackageConfig config = scope PackageConfig();
+			Try!(ReadPackageConfigFile(configFilePath, config));
 
-			let checkedConfigPath = Path.Clean(configFilePath, .. scope .(configFilePath.Length));
+			let packageName = Path.GetFileNameWithoutExtension(configFilePath, .. scope .(64));
+			let outputPath = Path.InternalCombine(.. scope .(outputFolderPath.Length + packageName.Length + 16), outputFolderPath, packageName);
+			Path.ChangeExtension(outputPath, ".bin", outputPath);
+			String inputPath = scope .(configFilePath.Length);
+			Try!(Path.GetDirectoryPath(configFilePath, inputPath));
 
-			Try!(ReadPackageConfigFile(checkedConfigPath, packageData));
+			// SCAN: look what we need to build (if anything).
 
-			// For making paths relative to asset forlder root
-			String assetsFolderPath = Path.GetDirectoryPath(checkedConfigPath, .. scope .(checkedConfigPath.Length));
+			// Does the package already exist?
+			DateTime lastPackageBuildDate;
+			SHA256Hash lastSourceHash;
+			Stream packageStream = null;
 
-			// Package data
-			List<Entry> nodes = new List<Entry>(32);
-			List<String> importerNames = new List<String>(8);
-
-			defer
+			if (File.Exists(outputPath)
+				&& (File.GetLastWriteTimeUtc(outputPath) case .Ok(out lastPackageBuildDate))
+				&& (File.GetLastWriteTimeUtc(configFilePath) case .Ok(let lastConfigFileChange))
+				&& lastConfigFileChange < lastPackageBuildDate) // We already built with this config!
 			{
-				DeleteContainerAndItems!(importerNames);
-				for (let n in nodes)
-					n.Dispose();
-				delete nodes;
+				// Salvage data from the existing package (don't need to recompute what didn't change)
+				packageStream = PackageFormat.OpenPackageScoped!:SCAN(outputPath);
+
+				// TODO:
+				// load index
+				// put names of things contained in a hashSet
+				// -> if the file didn't change after lastBuildDate and we have data from it here... it's fine
+				// also worry about when to check what the importer wants... some passes need to be redone when some
+				// dependant files changed!
+				// set lastSourceHash
+			}
+			else
+			{
+				lastSourceHash = .();
+				lastPackageBuildDate = default;
 			}
 
+			// Hash every file that can affect the importers
+			SHA256 hashBuilder = scope .();
+			for (let pass in config.importPasses)
+			{
+				// Try to find importer
+				Importer importer;
+				if (!Importer.importers.TryGetValue(pass.importer, out importer))
+					LogErrorReturn!(scope $"Couldn't build package at {configFilePath}. Couldn't find importer '{pass.importer}'");
+
+				// TODO:
+				// bundle all dep paths
+				// iterate through all files with the right extensions and hash them & determine last write time
+
+				// don't know what of that to store yet...
+				// -> ideally, don't iterate again... save all paths we need
+
+				// determine if nothing changed (if lastBuild exists)
+			}
+
+			// exit early if we can
+
+			// gather all info List<PackageFormat.BuildPass>
+			// -> load what we can from old file if possbile
+			// -> build the rest with importers
+			// -> remove old files / passes / importers!
+
+			// write full new file
+
+			t.Stop();
+			Log.Info(scope $"Built package {packageName}; took {t.ElapsedMilliseconds}ms");
+
+			return .Ok;
+		}
+
+		// String assetsFolderPath = Path.GetDirectoryPath(configFilePath, .. scope .(configFilePath.Length));
+
+		/// If force is false, the package will only be built if there is no file at outPath or the package source changed and patched otherwise
+		/*public static Result<void> BuildPackage(StringView configFilePath, StringView outputFolderPath)
+		{
+			let t = scope Stopwatch(true);
+
+			let checkedConfigPath = Path.Clean(configFilePath, .. scope .(configFilePath.Length));
+			
+			PackageConfig packageData = scope PackageConfig();
+			Try!(ReadPackageConfigFile(checkedConfigPath, packageData));
+
+
+
+
+
+
+
+
+			// Package data
+			List<PackageFormat.BuildPass> passes = scope .(8);
+			List<String> importerNames = scope .(8);
+
 			// Prepare paths
-			let packageName = Path.GetFileNameWithoutExtension(checkedConfigPath, .. scope String());
-			let outputPath = Path.Clean(.. Path.InternalCombine(.. scope String(), outputFolderPath, packageName));
+			String assetsFolderPath = Path.GetDirectoryPath(checkedConfigPath, .. scope .(checkedConfigPath.Length));
+			let packageName = Path.GetFileNameWithoutExtension(checkedConfigPath, .. scope .(64));
+			let outputPath = Path.Clean(.. Path.InternalCombine(.. scope .(outputFolderPath.Length + packageName.Length + 32), outputFolderPath, packageName));
 			Path.ChangeExtension(outputPath, ".bin", outputPath);
 
-			// Resolve imports and build
 			SHA256Hash contentHash;
 			SHA256Hash lastContentHash;
 			bool somethingChanged = false;
+
+			
+
+			// Resolve imports and build
 			BUILD:
 			{
-				HashSet<String> duplicateNameLookup = scope HashSet<String>();
+				HashSet<String> duplicateNameLookup = scope HashSet<String>(32);
 
-				HashSet<StringView> previousNames = scope HashSet<StringView>(); // All names of the last package content (only used in rebuild)
-				List<String> includePaths = scope List<String>(); // All of these paths exist
-				List<StringView> importPaths = scope List<StringView>(); // All of these paths exist AND need to be imported again because of changes or additions
+				HashSet<StringView> previousNames = scope HashSet<StringView>(32); // All names of the last package content (only used in rebuild)
+				List<String> includePaths = scope List<String>(32); // All of these paths exist
+				List<StringView> importPaths = scope List<StringView>(32); // All of these paths exist AND need to be imported again because of changes or additions
 
 				// Check if we need to do a full build or can do a patch
-				DateTime lastPackageBuildDate;
+				/*DateTime lastPackageBuildDate;
 				bool patchBuild = false;
 				if (!force && File.Exists(outputPath) && (File.GetLastWriteTimeUtc(outputPath) case .Ok(out lastPackageBuildDate)) // Get last package build time if file exists
 					&& (File.GetLastWriteTimeUtc(checkedConfigPath) case .Ok(let lastBuildFileChange)) // Get last build file change time
@@ -525,7 +604,7 @@ namespace Pile
 								}
 							}
 						}
-				}
+				}*/
 
 				contentHash = hashBuilder.Finish();
 			}
@@ -546,7 +625,7 @@ namespace Pile
 				Log.Info(scope $"Built package {packageName}; took {t.ElapsedMilliseconds}ms");
 				return .Ok;
 			}
-		}
+		}*/
 
 		public static Task<bool> BuildPackageAsync(StringView packageBuildFilePath, StringView outputFolderPath, bool force = false)
 		{
