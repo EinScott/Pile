@@ -43,16 +43,6 @@ namespace Pile
 
 		// FILE_SIZE (8 bytes, uint64)
 
-		// TODO: how do we do reading?
-		// --> maybe code write first... but
-		// verify()
-		// read_index()
-		// read_and_process_content(index_data)
-		// -> normally we do all of those after one another?
-
-		// former read interaction (read -> process_data_though_importers -> importers_add_to_assets) is weird?
-		// -> now do it as it comes in? -> we read by index, so sorted by pass anyway.. just no collecting it first
-
 		// TODO: manage separate bon context (and our own logging hook)
 
 		public class Index
@@ -120,13 +110,15 @@ namespace Pile
 			}
 		}
 
-		enum PackageFlags : uint8
+		public enum PackageFlags : uint8
 		{
 			None = 0,
 			Patched = 1
 		}
 
-		const int32 MAXCHUNK = int16.MaxValue - 1; // TODO: why? make int32? move ?
+		const uint8 VERSION = 1;
+
+		//const int32 MAXCHUNK = int16.MaxValue - 1; // TODO: why? make int32? move ?
 
 		// TODO:
 		// -> so... methods to read the index, do things with it, methods to load some collection of entries
@@ -134,17 +126,9 @@ namespace Pile
 		// appending it to the end and updating the index! -- both set the patched flag on file
 		// -> hot reload is fast, next full run will clean it up and do a full rebuild (probably nicer for workflow)
 
-		// proposal:
-		// writePackage(stream ... list<buildpass>)
-		// readPackageHeader(stream) -> headerInfo
-		// readPackageIndex(stream) -> index, fileSize
-		// readPackageData(stream, indexEntry) -> buildPassEntry?? better name but struct would fit i guess? - you can assemble back a complete buildPass from this
-		// patchPackageData(stream, ref indexEntry, buildPassEntry)
-		// patchPackageHeader(stream) -> for hash? invalidate it? -- in any case update flags for patched
-		// patchPackageIndex(stream, index) -> also patch fileSize!
-
+		// TODO: compress content!
 		// -> this kind of structure forces us to keep CompressionStreams out of most of the structure, we can basically only wrap them around single entries... like data
-		//    ... in which case that would be soley PackageManagers job!
+		//    ... in which case that would be soley PackageManagers job! (maybe? nah do it here)
 
 		public static Result<void> WritePackageFile(StringView outputPath, List<BuildPass> passes, SHA256Hash sourceHash)
 		{
@@ -165,13 +149,16 @@ namespace Pile
 
 		public static Result<void> WritePackage(Stream outStream, List<BuildPass> passes, SHA256Hash sourceHash)
 		{
+			if (passes.Count == 0)
+				LogErrorReturn!("Couldn't write package. No passes");
+
 			Serializer sr = scope .(outStream);
 
 			// Already includes header size!
 			uint64 offsetInFile = 5 /* header / version / flags */ + 32 /* sourceHash */ + 8 /* index offset */;
 
 			PackageFlags mode = .None;
-			sr.Write!(uint8[?](0x50, 0x4C, 0x50, 0x01, mode.Underlying)); // Header & Version & Flags
+			sr.Write!(uint8[?](0x50, 0x4C, 0x50, VERSION, mode.Underlying)); // Header & Version & Flags
 
 			// Write content hash
 			var sourceHash;
@@ -191,6 +178,9 @@ namespace Pile
 
 			for (let pass in passes)
 			{
+				if (pass.entries.Count == 0)
+					continue; // Skip empty passes (if they even make it here)
+
 				int importerIndex = fileIndex.importerNames.IndexOf(pass.importer);
 				if (importerIndex == -1)
 				{
@@ -232,6 +222,8 @@ namespace Pile
 
 		public static Result<void> WritePackageIndex(Stream outStream, Index fileIndex, uint64 fileSizeWithoutIndex)
 		{
+			Debug.Assert(fileIndex.passes.Count > 0 && fileIndex.importerNames.Count > 0);
+
 			Serializer sr = scope .(outStream);
 
 			var fileSize = fileSizeWithoutIndex;
@@ -257,6 +249,8 @@ namespace Pile
 			fileSize += 1;
 			for (let pass in fileIndex.passes)
 			{
+				Debug.Assert(pass.importerIndex < fileIndex.importerNames.Count && pass.entries.Count != 0);
+
 				sr.Write<uint8>(pass.importerIndex);
 
 				let configLen = pass.importerConfig == null ? 0 : pass.importerConfig.Length;
@@ -304,183 +298,164 @@ namespace Pile
 			return .Ok;
 		}
 
-		/*public static Result<void> ReadPackage(StringView packagePath, List<IndexPassEntry> nodes, List<String> importerNames, out SHA256Hash contentHash)
+		public static mixin OpenPackageScoped(StringView packagePath)
 		{
-			contentHash = .();
 			let inPath = Path.Clean(packagePath, .. scope .());
-
 			if (!inPath.EndsWith(".bin"))
 				Path.ChangeExtension(inPath, ".bin", inPath);
-			
-			// Get file
-			let fs = scope BufferedFileStream();
+
+			let fs = scope:mixin FileStream();
 			if (fs.Open(inPath, .Open, .Read, .None, 65536) case .Err(let err))
-				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error reading file: {err}");
+				LogErrorReturn!(scope $"Couldn't read package. Error opening stream to {inPath}");
 
-			// HEADER (3 bytes)
-			// MODE (1 byte)
-			// FILESIZE (4 bytes, uint32)
-			// CONTENTHASH (32 bytes)
+			fs
+		}
 
-			// IMPORTERNAMECOUNT (uint32)
-			// IMPORTERNAMEARRAY[]
-			// 		ELEMENT:
-			// 		STRINGSIZE (uint32)
-			// 		STRING[]
+		public static Result<void> ReadPackageHeader(Stream inStream, out PackageFlags flags, out SHA256Hash sourceHash, out uint64 startPosition, out uint64 indexPosition)
+		{
+			Serializer sr = scope .(inStream);
 
-			// NODECOUNT (uint32)
-			// NODEDATAARRAY[]
-			//		ELEMENT:
-			//		IMPORTERNAMEINDEX (uint32)
-			// 		NAMELENGTH (uint32)
-			// 		NAMEDATA[]
-			// 		DATALENGTH (uint32)
-			// 		DATAARRAY[]
-
-			Serializer sr = scope .(fs);
-
-			let header = sr.ReadInto!(scope uint8[4]());
-			if (header[0] != 0x50 || header[1] != 0x4C || header[2] != 0x50) // Check file header (currently we ignore "mode" at header[3])
-				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format");
-
-			let size = sr.Read<uint32>(); // File size
+			startPosition = (.)inStream.Position;
+			let header = sr.ReadInto!(scope uint8[5]());
+			if (header[0] != 0x50 || header[1] != 0x4C || header[2] != 0x50 || header[3] != VERSION)
+			{
+				flags = default;
+				indexPosition = 0;
+				sourceHash = .();
+				LogErrorReturn!("Couldn't read package. Invalid file format");
+			}
+			flags = (.)header[4];
 
 			// Read content hash
-			sr.ReadInto!(contentHash.mHash);
+			sr.ReadInto!(sourceHash.mHash);
 
-			// Read file body
-			{
-				let ds = scope CompressionStream(fs, .Decompress);
-				sr.underlyingStream = ds;
-
-				// Read importer names
-				let importerNameCount = sr.Read<uint32>();
-				for (uint32 i = 0; i < importerNameCount; i++)
-				{
-					let importerNameLength = sr.Read<uint32>();
-
-					let nameString = new String(importerNameLength)..PrepareBuffer(importerNameLength);
-					sr.ReadInto!(Span<uint8>((uint8*)nameString.Ptr, importerNameLength));
-
-					importerNames.Add(nameString);
-				}
-
-				// Read nodes
-				let nodeCount = sr.Read<uint32>();
-				for (uint32 i = 0; i < nodeCount; i++)
-				{
-					let importerIndex = sr.Read<uint32>();
-
-					let nameLength = sr.Read<uint32>();
-					let name = sr.ReadInto!(new uint8[nameLength]);
-
-					let dataLength = sr.Read<uint32>();
-					let data = sr.ReadInto!(new uint8[dataLength]);
-
-					nodes.Add(Node(importerIndex, name, data));
-				}
-			}
+			indexPosition = (.)startPosition + sr.Read<uint64>();
 
 			if (sr.HadError)
-				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Error reading from file");
-
-			// Confirm we read what we put in
-			if (size != fs.Position)
-				LogErrorReturn!(scope $"Couldn't load package at {inPath}. Invalid file format: The file contains {size} bytes, but the file content ended at {fs.Position}");
-
-			fs.Close(); // We did only read, this should never error.
+				LogErrorReturn!("Couldn't read package. Failed to read data (header)");
 
 			return .Ok;
 		}
 
-		static Result<void> WritePackage(StringView cPackagePath, List<IndexPassEntry> nodes, List<String> importerNames, SHA256Hash contentHash)
+		public static Result<void> ReadPackageIndex(Stream inStream, uint64 indexPosition, uint64 startPosition, PackageFlags flags, Index fileIndex)
 		{
-			let outPath = Path.ChangeExtension(cPackagePath, ".bin", .. scope String(cPackagePath));
-			let dir = scope String();
-			if (Path.GetDirectoryPath(outPath, dir) case .Err)
-				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path {outPath}");
+			Serializer sr = scope .(inStream);
 
-			if (!Directory.Exists(dir) && (Directory.CreateDirectory(dir) case .Err(let err)))
-				LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
+			if (indexPosition == 0)
+				LogErrorReturn!("Invalid index position");
+			Try!(inStream.Seek((.)indexPosition));
 
-			let fs = scope BufferedFileStream();
-			if (fs.Open(outPath, .Create, .Write, .None, 65536) case .Err)
-				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to {outPath}");
+			Debug.Assert(fileIndex != null);
+			Debug.Assert(fileIndex.importerNames.Count == 0 && fileIndex.passes.Count == 0);
 
-			// HEADER (3 bytes)
-			// MODE (1 byte)
-			// FILESIZE (4 bytes, uint32)
-			// CONTENTHASH (32 bytes)
-
-			// IMPORTERNAMECOUNT (uint32)
-			// IMPORTERNAMEARRAY[]
-			// 		ELEMENT:
-			// 		STRINGSIZE (uint32)
-			// 		STRING[]
-
-			// NODECOUNT (uint32)
-			// NODEDATAARRAY[]
-			//		ELEMENT:
-			//		IMPORTERNAMEINDEX (uint32)
-			// 		NAMELENGTH (uint32)
-			// 		NAMEDATA[]
-			// 		DATALENGTH (uint32)
-			// 		DATAARRAY[]
-
-			Serializer sr = scope .(fs);
-
-			PackageMode mode = .None;
-			sr.Write!(uint8[?](0x50, 0x4C, 0x50, mode.Underlying)); // Header & Mode
-			sr.Write<uint32>(0); // Size placeholder
-
-			// Write content hash
-			var contentHash;
-			let hashSpan = Span<uint8>(&contentHash.mHash[0], contentHash.mHash.Count);
-			sr.Write!(hashSpan);
-
-			// Compress this block (main file content)
+			let importerCount = sr.Read<uint8>();
+			for (let i < importerCount)
 			{
-				let cs = scope CompressionStream(fs, .BEST_SPEED);
-				sr.underlyingStream = cs;
-	
-				// Write importer strings
-				sr.Write<uint32>((.)importerNames.Count);
-				for (let s in importerNames)
-				{
-					sr.Write<uint32>((.)s.Length);
-					let span = Span<uint8>((uint8*)s.Ptr, s.Length);
-					sr.Write!(span);
-				}
-	
-				// Write nodes
-				sr.Write<uint32>((.)nodes.Count);
-				for (let node in nodes)
-				{
-					sr.Write<uint32>(node.Importer);
-					sr.Write<uint32>((.)node.Name.Count);
-					sr.Write!(node.Name);
-					sr.Write<uint32>((.)node.Data.Count);
-					sr.Write!(node.Data);
-				}
+				let nameLength = sr.Read<uint8>();
+				let name = new String(nameLength);
+				sr.ReadInto!(Span<uint8>((.)&name[0], nameLength));
 
-				if (cs.Close() case .Err)
-					LogErrorReturn!(scope $"Couldn't write package. Error flushing compressionStream into file");
+				fileIndex.importerNames.Add(name);
 			}
 
-			// Fill in size
-			let size = fs.Position;
-			fs.Seek(4);
+			let passCount = sr.Read<uint8>();
 
-			sr.underlyingStream = fs;
-			sr.Write<uint32>((.)size);
+			if (importerCount == 0 || passCount == 0)
+				LogErrorReturn!("Couldn't read package. Index data corrupt (no passes or importers specified)");
+
+			for (let i < passCount)
+			{
+				let importerIndex = sr.Read<uint8>();
+				let importerConfigLength = sr.Read<uint16>();
+				let config = importerConfigLength == 0 ? null : new String(importerConfigLength);
+				if (importerConfigLength != 0)
+					sr.ReadInto!(Span<uint8>((.)&config[0], importerConfigLength));
+				let entryCount = sr.Read<uint32>();
+
+				if (importerIndex > importerCount || entryCount == 0)
+					LogErrorReturn!("Couldn't read package. Index data corrupt (invalid pass data / no entries)");
+
+				fileIndex.passes.Add(.());
+				var indexPass = ref fileIndex.passes.Back;
+				indexPass.importerIndex = importerIndex;
+				indexPass.importerConfig = config;
+				
+				for (let j < entryCount)
+				{
+					var entry = IndexPassEntry();
+
+					let nameLengthAndPatchedFlag = sr.Read<uint16>();
+					entry.isPatched = (nameLengthAndPatchedFlag & 0x8000) == 0x8000;
+					let nameLength = nameLengthAndPatchedFlag & ~0x8000;
+
+					if (nameLength == 0 || entry.isPatched && !flags.HasFlag(.Patched))
+						LogErrorReturn!("Couldn't read package. Index data corrupt (invalid entry)");
+
+					let name = new String(nameLength);
+					sr.ReadInto!(Span<uint8>((.)&name[0], nameLength));
+					entry.name = name;
+
+					entry.offset = sr.Read<uint64>();
+					entry.length = sr.Read<uint64>();
+					if (entry.isPatched)
+						entry.slotSize = sr.Read<uint64>();
+
+					if (startPosition + entry.offset + entry.length > indexPosition
+						|| startPosition + entry.offset + entry.slotSize > indexPosition)
+					{
+						delete name;
+						LogErrorReturn!("Couldn't read package. Index data corrupt (invalid entry reference)");
+					}
+
+					indexPass.entries.Add(entry);
+				}
+			}
+
+			let size = sr.Read<uint64>(); // File size
+			if (size != (.)inStream.Position - startPosition)
+				LogErrorReturn!("Couldn't read package. File size miss-match");
 
 			if (sr.HadError)
-				LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath}");
-
-			if (fs.Close() case .Err)
-				LogErrorReturn!(scope $"Couldn't write package. Error writing data to {outPath} when closing stream");
+				LogErrorReturn!("Couldn't read package. Failed to read data (index)");
 
 			return .Ok;
-		}*/
+		}
+
+		public static Result<void> ReadPackageData(Stream inStream, uint64 startPosition, IndexPassEntry entry, List<uint8> buffer)
+		{
+			Try!(inStream.Seek((.)startPosition + (.)entry.offset));
+
+			if (entry.length > (.)buffer.Count)
+			{
+				let addSize = entry.length - (.)buffer.Count;
+				buffer.GrowUnitialized((.)addSize);
+			}
+			else buffer.Count = (.)entry.length;
+
+			Debug.Assert(entry.length == (.)buffer.Count);
+
+			Serializer sr = scope .(inStream);
+			sr.ReadInto!(buffer);
+
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't read package. Failed to read data (content entry)");
+
+			return .Ok;
+		}
+
+		public static Result<void> PatchPackageData(Stream inStream, BuildPassEntry patchEntry, uint64 indexPosition, Index fileIndex, out uint64 appendSize)
+		{
+			// TODO: When we need to append, we need to put the index back with this offset and also change that in the header
+			appendSize = 0;
+
+			return .Err;
+		}
+
+		public static Result<void> PatchPackageHeader(Stream inStream, uint64 startPosition, uint64 indexPushedBackBy, SHA256Hash sourceHash)
+		{
+			// TOOD: change flags to Patched, modify index offse maybe, override sourceHash
+
+			return .Err;
+		}
 	}
 }

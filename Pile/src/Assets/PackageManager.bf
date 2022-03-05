@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using Bon;
@@ -192,7 +193,7 @@ namespace Pile
 				if (Path.IsPathRooted(path))
 					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Path {path} must be a relative and direct path to items contained inside the asset folder");
 
-				let fullPath = Path.Clean(.. Path.InternalCombine(.. scope String(), rootPath, path));
+				let fullPath = Path.Clean(.. Path.InternalCombine(.. scope String(rootPath.Length + path.Length), rootPath, path));
 
 				if (fullPath.Contains("../") || fullPath.EndsWith("/..") || fullPath == "..")
 					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
@@ -205,15 +206,15 @@ namespace Pile
 				// Import everything that matches
 				SEARCH:
 				{
-					let wildCard = Path.GetFileName(fullPath, .. scope String());
+					let wildCard = Path.GetFileName(fullPath, .. scope String(fullPath.Length / 2));
 
 					let importDirs = scope List<String>(8);
 					importDirs.Add(scope:SEARCH String(dirPath));
 
 					String currImportPath;
-					let enumeratePath = scope String(128);
-					let searchPath = scope String(128);
-					let wildCardPath = scope String(128);
+					let enumeratePath = scope String(260);
+					let searchPath = scope String(260);
+					let wildCardPath = scope String(260);
 					repeat // For each entry in import dirs
 					{
 						let current = importDirs.Count - 1;
@@ -577,7 +578,7 @@ namespace Pile
 
 			void Proc()
 			{
-				m_result = Packages.BuildPackage(packageBuildFilePath, outputFolderPath, force) case .Ok;
+				m_result = BuildPackage(packageBuildFilePath, outputFolderPath, force) case .Ok;
 				Finish(false);
 				Ref();
 				if (m_result)
