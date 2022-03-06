@@ -180,80 +180,76 @@ namespace Pile
 			return .Ok;
 		}
 
-		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath)
+		static mixin GetScopedAssetName(StringView filePath, StringView assetsFolderPath, bool noExtension = true)
 		{
-			Path.Unify(.. Path.GetRelativePath(filePath, assetsFolderPath, .. scope:mixin .(filePath.Length - assetsFolderPath.Length + 16)))
+			let path = Path.GetRelativePath(filePath, assetsFolderPath, .. scope:mixin .(filePath.Length - assetsFolderPath.Length + 16));
+			if (noExtension)
+				Path.ChangeExtension(path, default, path);
+			Path.Unify(path);
+			path
 		}
 
-		static Result<void> GetFilesInDirRecursive(StringView rootPath, StringView checkedConfigPath, StringView paths, delegate void(FileFindEntry e, StringView path) onFile)
+		static mixin FixExtensionsScoped(Span<StringView> extensions)
 		{
-			for (var path in paths.Split(';'))
+			List<String> exts = scope:mixin .(extensions.Length);
+			for (let ext in extensions)
 			{
-				path.Trim();
+				String fileExt = scope:PASS .(ext.Length + 1);
+				if (!ext.StartsWith('.'))
+					fileExt.Append('.');
+				fileExt.Append(ext);
 
-				if (Path.IsPathRooted(path))
-					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Path {path} must be a relative and direct path to items contained inside the asset folder");
-
-				let fullPath = Path.Clean(.. Path.InternalCombine(.. scope String(rootPath.Length + path.Length), rootPath, path));
-
-				if (fullPath.Contains("../") || fullPath.EndsWith("/..") || fullPath == "..")
-					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Path {path} must be a direct path to items contained inside the asset folder (without \"../)\"");
-
-				// Check if containing folder exists
-				let dirPath = scope String(fullPath.Length);
-				if ((Path.GetDirectoryPath(fullPath, dirPath) case .Err) || !Directory.Exists(dirPath))
-					LogErrorReturn!(scope $"Couldn't build package at {checkedConfigPath}. Failed to find containing directory of {path}");
-
-				// Import everything that matches
-				SEARCH:
-				{
-					let wildCard = Path.GetFileName(fullPath, .. scope String(fullPath.Length / 2));
-
-					let importDirs = scope List<String>(8);
-					importDirs.Add(scope:SEARCH String(dirPath));
-
-					String currImportPath;
-					let enumeratePath = scope String(260);
-					let searchPath = scope String(260);
-					let wildCardPath = scope String(260);
-					repeat // For each entry in import dirs
-					{
-						let current = importDirs.Count - 1;
-						currImportPath = importDirs[current]; // Pick from the back, since we dont want to remove stuff in middle or front
-
-						searchPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append('*');
-						wildCardPath..Set(currImportPath)..Append(Path.DirectorySeparatorChar).Append(wildCard);
-
-						bool match = false;
-						for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
-						{
-							enumeratePath.Clear();
-							entry.GetFilePath(enumeratePath);
-
-							if (searchPath == wildCardPath || Path.WildcareCompare(enumeratePath, wildCardPath))
-							{
-								match = true;
-
-								// Add matching files in this directory to import list
-								if (!entry.IsDirectory)
-								{
-									onFile(entry, enumeratePath);
-								}
-								// Look for matching sub dirs and add to importDirs list
-								else
-									importDirs.Add(scope:SEARCH String(enumeratePath));
-							}
-						}
-
-						if (!match)
-							Log.Warn(scope $"Couldn't find any matches for {wildCardPath} in {currImportPath}");
-
-						// Tidy up
-						importDirs.RemoveAtFast(current);
-					}
-					while (importDirs.Count > 0);
-				}
+				exts.Add(fileExt);
 			}
+			exts
+		}
+
+		static Result<void> ForFilesInDirRecursive(StringView path, Span<String> fileExtensions, StringView configFilePath, delegate void(FileFindEntry e, StringView path) onFile)
+		{
+			let importDirs = scope List<String>(8);
+			importDirs.Add(scope String(path));
+
+			let searchPath = scope String(260);
+			let enumeratePath = scope String(260);
+			repeat
+			{
+				let current = importDirs.Count - 1;
+				String currImportDir = importDirs.Back;
+
+				searchPath..Set(currImportDir).Append("/*");
+
+				bool foundOne = false;
+				for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
+				{
+					enumeratePath.Clear();
+					entry.GetFilePath(enumeratePath);
+
+					if (!entry.IsDirectory)
+					{
+						bool matchesExt = false;
+						for (let ext in fileExtensions)
+							if (enumeratePath.EndsWith(ext, .OrdinalIgnoreCase))
+							{
+								matchesExt = true;
+								break;
+							}
+
+						if (matchesExt)
+						{
+							foundOne = true;
+							onFile(entry, enumeratePath);
+						}
+					}
+					else
+						importDirs.Add(scope:: String(enumeratePath));
+				}
+
+				if (!foundOne)
+					Log.Warn(scope $"No matching files found in '{searchPath}'");
+
+				importDirs.RemoveAtFast(current);
+			}
+			while (importDirs.Count != 0);
 
 			return .Ok;
 		}
@@ -271,8 +267,6 @@ namespace Pile
 			String inputPath = scope .(configFilePath.Length);
 			Try!(Path.GetDirectoryPath(configFilePath, inputPath));
 
-			// SCAN: look what we need to build (if anything).
-
 			// Does the package already exist?
 			DateTime lastPackageBuildDate;
 			SHA256Hash lastSourceHash;
@@ -284,7 +278,9 @@ namespace Pile
 				&& lastConfigFileChange < lastPackageBuildDate) // We already built with this config!
 			{
 				// Salvage data from the existing package (don't need to recompute what didn't change)
-				packageStream = PackageFormat.OpenPackageScoped!:SCAN(outputPath);
+				packageStream = PackageFormat.OpenPackageScoped!::(outputPath);
+
+				lastSourceHash = default;
 
 				// TODO:
 				// load index
@@ -300,31 +296,119 @@ namespace Pile
 				lastPackageBuildDate = default;
 			}
 
+			List<(Importer impoter, List<(String path, bool modified)> targets)> passSets = scope .(8);
+			defer
+			{
+				for (let passSet in passSets)
+					for (let target in passSet.targets)
+						delete target.path;
+			}
+
 			// Hash every file that can affect the importers
 			SHA256 hashBuilder = scope .();
-			for (let pass in config.importPasses)
+			bool sourceWasModified = false;
+			for (let pass in config.importPasses) PASS:
 			{
+				if (pass.targetDir.Length == 0)
+					continue;
+
 				// Try to find importer
 				Importer importer;
 				if (!Importer.importers.TryGetValue(pass.importer, out importer))
 					LogErrorReturn!(scope $"Couldn't build package at {configFilePath}. Couldn't find importer '{pass.importer}'");
 
-				// TODO:
-				// bundle all dep paths
-				// iterate through all files with the right extensions and hash them & determine last write time
+				List<(String path, bool modified)> targets = scope:: .(16);
+				bool targetsStored = false;
+				defer
+				{
+					// In case we return before puttin this in passSets
+					if (!targetsStored)
+					{
+						for (let target in targets)
+							delete target.path;
+					}	
+				}
 
-				// don't know what of that to store yet...
-				// -> ideally, don't iterate again... save all paths we need
+				let targetPath = Path.Clean(.. Path.GetAbsolutePath(inputPath, pass.targetDir..Trim(), .. scope .(inputPath.Length + pass.targetDir.Length)));
+				let dependPath = pass.dependDir == null ? targetPath : Path.Clean(.. Path.GetAbsolutePath(inputPath, pass.dependDir..Trim(), .. scope .(inputPath.Length + pass.dependDir.Length)));
 
-				// determine if nothing changed (if lastBuild exists)
+				let targetExts = FixExtensionsScoped!(importer.TargetExtensions);
+
+				Try!(ForFilesInDirRecursive(targetPath, targetExts, configFilePath, scope (entry, path) =>
+					{
+						let relativePath = GetScopedAssetName!(path, inputPath, false);
+						hashBuilder.Update(.((.)&relativePath[0], relativePath.Length));
+
+						// TODO: only add when
+						// 1) prev build doesnt exist
+						// 2) ... doesnt have it
+						// 3) it was modified since -> sourceWasModified !! (also set the current true thing below)
+						// also (if prev build exists and has it) remove this from
+						// that lookup! --> rest has since been REMOVED
+
+						targets.Add((new .(path), true));
+					}));
+
+				// Pass has no effect
+				if (targets.Count == 0)
+					continue;
+
+				if (dependPath != targetPath)
+				{
+					let dependExts = FixExtensionsScoped!(importer.DependantExtensions);
+
+					Try!(ForFilesInDirRecursive(targetPath, dependExts, configFilePath, scope (entry, path) =>
+						{
+							// Also hash these since they potentially affect importer behavior
+							let relativePath = GetScopedAssetName!(path, inputPath, false);
+							hashBuilder.Update(.((.)&relativePath[0], relativePath.Length));
+
+							// TODO: if this was since modified
+							// -> sourceWasModified = true;
+						}));
+				}
+
+				passSets.Add((importer, targets));
+				targetsStored = true; // Don't delete the list contents we just submitted
 			}
 
-			// exit early if we can
+			if (passSets.Count == 0)
+				LogErrorReturn!(scope $"Couldn't build package at {configFilePath}. Package has no content");
+
+			let sourceHash = hashBuilder.Finish();
+			if (!sourceWasModified
+				&& lastSourceHash != default // on older package exists!
+				&& sourceHash == lastSourceHash)
+			{
+				return .Ok;
+			}
 
 			// gather all info List<PackageFormat.BuildPass>
-			// -> load what we can from old file if possbile
+			// -> load what we can from old file if possible
 			// -> build the rest with importers
 			// -> remove old files / passes / importers!
+			// ---- actually- we will automatically remove them because
+			//      when they're not in the pass's importTargetPaths, they
+			//      won't even get looked at again!
+			// TODO: duplicate name lookup-- things might be in the same folder and have the same extension
+			// for some reason- which we remove in the asset name! (maybe do this earlier?)
+			// -> already during iteration! -> should be a package-global lookup anyway!
+
+			for (let passSet in passSets)
+			{
+
+				for (let target in passSet.targets)
+				{
+					if (!target.modified)
+					{
+						// Look in last package if possible
+					}
+
+					// build stuff!
+
+					// submit data to buildIndex structure list thing!
+				}
+			}
 
 			// write full new file
 

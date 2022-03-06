@@ -343,7 +343,7 @@ namespace Pile
 			Result<void> err = .Ok;
 
 			DateTime buildStart = DateTime.Now;
-			if (RunPackager() case .Err)
+			if (RunPackager() case .Err) // TODO: redo this... no longer call packager!
 				LogErrorReturn!("Failed to run Packager");
 
 			for (let file in Directory.EnumerateFiles(packagesPath))
