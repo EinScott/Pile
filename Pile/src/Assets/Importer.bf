@@ -10,7 +10,6 @@ using internal Pile;
 namespace Pile
 {
 	// make it easier to interface with Assets, make it usable for SpriteFont -- make textureFilter settable from importers actually
-	// separate package load & hot reload stuff from resource management? -- maybe packageManager/packager all together?
 
 	[AlwaysInclude, StaticInitPriority(-1)]
 	abstract class Importer
@@ -18,8 +17,7 @@ namespace Pile
 		public abstract String Name { get; }
 
 		public abstract Span<StringView> TargetExtensions { get; } // Which exts should be sent to this importer
-		public virtual Span<StringView> DependantExtensions => .(); // Which exts cause this importer to rebuild
-		// TODO maybe-- instead make rebuild trigger filter part of pass spec, by default same as target path
+		public virtual Span<StringView> DependantExtensions => .(); // Which exts cause this importer to rebuild (as it also relies on those files)
 
 		public virtual void ClearConfig() {}
 		public virtual Result<void> SetConfig(StringView bonStr)
@@ -28,7 +26,7 @@ namespace Pile
 			return .Ok;
 		}
 
-		public virtual Result<void> Build(Substream outStream, StringView filePath)
+		public virtual Result<uint8[]> Build(StringView filePath)
 		{
 			// By default, no processing is done, we simply transfer the file contents!
 
@@ -37,68 +35,39 @@ namespace Pile
 			FileStream fs = scope FileStream();
 			Try!(fs.Open(filePath, .Open, .Read));
 
-			while (true)
+			return TryStreamToNewArray(fs);
+		}
+
+		public static Result<uint8[]> TryStreamToNewArray(Stream data)
+		{
+			let length = data.Length - data.Position;
+			let outData = new uint8[length];
+			var writeOffset = 0;
+			TRANSFER:while (writeOffset < length)
 			{
-				uint8[4096] buffer;
-				switch (fs.TryRead(.(&buffer, 4096)))
+				switch (data.TryRead(.(&outData[writeOffset], Math.Min(4096, length - writeOffset))))
 				{
 				case .Ok(let bytes):
-					if (bytes == 0)
-						return .Ok;
+					writeOffset += bytes;
 
-					switch (outStream.TryWrite(.(&buffer, bytes)))
-					{
-					case .Err:
-						return .Err;
-					case .Ok(let write):
-						if (write != bytes)
-							return .Err;
-					}
+					if (bytes == 0)
+						break TRANSFER;
+
 				case .Err:
-					return .Err;
+					break TRANSFER;
 				}
 			}
+
+			if (writeOffset != length)
+			{
+				delete outData;
+				LogErrorReturn!("Importer: Failed to read data from stream");
+			}
+
+			return .Ok(outData);
 		}
 
 		public abstract Result<void> Load(StringView name, Span<uint8> data);
-
-		public bool TargetsFile(StringView path)
-		{
-			let extStr = scope String(5);
-			if (!Path.GetExtension(path, extStr))
-				return false;
-			Debug.Assert(extStr.StartsWith('.'));
-			let extView = StringView(extStr, 1);
-
-			for (var ext in TargetExtensions)
-			{
-				if (ext.StartsWith('.'))
-					ext.RemoveFromStart(1);
-
-				if (ext == extView)
-					return true;
-			}
-			return false;
-		}
-
-		public bool DependsOnFile(StringView path)
-		{
-			let extStr = scope String(5);
-			if (!Path.GetExtension(path, extStr))
-				return false;
-			Debug.Assert(extStr.StartsWith('.'));
-			let extView = StringView(extStr, 1);
-
-			for (var ext in DependantExtensions)
-			{
-				if (ext.StartsWith('.'))
-					ext.RemoveFromStart(1);
-
-				if (ext == extView)
-					return true;
-			}
-			return false;
-		}
 
 		internal static Dictionary<String, Importer> importers = new .() ~ DeleteDictionaryAndValues!(_);
 		internal static Package currentPackage;

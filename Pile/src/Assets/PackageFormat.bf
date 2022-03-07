@@ -54,7 +54,13 @@ namespace Pile
 		{
 			public uint8 importerIndex;
 			public String importerConfig;
-			public List<IndexPassEntry> entries = new .();
+			public List<IndexPassEntry> entries;
+
+			public this(int entryCount)
+			{
+				this = default;
+				entries = new .(entryCount);
+			}
 
 			[Inline]
 			public void Dispose()
@@ -80,35 +86,6 @@ namespace Pile
 			}
 		}
 
-		public struct BuildPass : IDisposable
-		{
-			public String importer; // Allocate with appropriate capacity
-			public String importerConfig;
-			public List<BuildPassEntry> entries; // Allocate with appropriate capacity
-
-			public void Dispose()
-			{
-				Debug.Assert(importer != null);
-				delete importer;
-				DeleteNotNull!(importerConfig);
-				Debug.Assert(entries != null);
-				DeleteContainerAndDisposeItems!(entries);
-			}
-		}
-
-		public struct BuildPassEntry : IDisposable
-		{
-			public String name; // Allocate with appropriate capacity
-			public uint8[] data;
-
-			public void Dispose()
-			{
-				Debug.Assert(name != null);
-				delete name;
-				DeleteNotNull!(data);
-			}
-		}
-
 		public enum PackageFlags : uint8
 		{
 			None = 0,
@@ -116,8 +93,6 @@ namespace Pile
 		}
 
 		const uint8 VERSION = 1;
-
-		//const int32 MAXCHUNK = int16.MaxValue - 1; // TODO: why? make int32? move ?
 
 		// TODO:
 		// -> so... methods to read the index, do things with it, methods to load some collection of entries
@@ -129,8 +104,10 @@ namespace Pile
 		// -> this kind of structure forces us to keep CompressionStreams out of most of the structure, we can basically only wrap them around single entries... like data
 		//    ... in which case that would be soley PackageManagers job! (maybe? nah do it here)
 
-		public static Result<void> WritePackageFile(StringView outputPath, List<BuildPass> passes, SHA256Hash sourceHash)
+		public static Result<void> CreatePackage(StringView outputPath, FileStream fs)
 		{
+			Debug.Assert(fs != null && fs.Handle == 0);
+
 			let outPath = Path.ChangeExtension(outputPath, ".bin", .. scope String(outputPath));
 			let dir = scope String();
 			if (Path.GetDirectoryPath(outPath, dir) case .Err)
@@ -139,14 +116,41 @@ namespace Pile
 			if (!Directory.Exists(dir) && (Directory.CreateDirectory(dir) case .Err(let err)))
 				LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
 
-			let fs = scope FileStream();
 			if (fs.Open(outPath, .Create, .Write, .None, 65536) case .Err)
 				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to {outPath}");
 
-			return WritePackage(fs, passes, sourceHash);
+			return .Ok;
 		}
 
-		public static Result<void> WritePackage(Stream outStream, List<BuildPass> passes, SHA256Hash sourceHash)
+		public static Result<void> WritePackageHeaderProvisional(Stream outStream, PackageFlags flags, SHA256Hash sourceHash, out uint64 startPosition)
+		{
+			startPosition = (.)outStream.Position;
+
+			Serializer sr = scope .(outStream);
+
+			Debug.Assert(!flags.HasFlag(.Patched)); // We're writing fresh packages!
+			sr.Write!(uint8[?](0x50, 0x4C, 0x50, VERSION, flags.Underlying)); // Header & Version & Flags
+
+			// Write content hash
+			var sourceHash;
+			let hashSpan = Span<uint8>(&sourceHash.mHash[0], sourceHash.mHash.Count);
+			sr.Write!(hashSpan);
+
+			sr.Write<uint64>(0); // File size, come back later
+			sr.Write<uint64>(0); // Index offset
+
+			return .Ok;
+		}
+
+		// TODO: either manage index in build or make helper mixins here??? maybe ty that later!
+
+		public static Result<void> WritePackageData(Stream outStream, StringView entryName, Span<uint8> entryData, uint64 startPosition, out IndexPassEntry indexEntry)
+		{
+
+			return .Err;
+		}
+
+		/*public static Result<void> WritePackage(Stream outStream, List<BuildPass> passes, SHA256Hash sourceHash)
 		{
 			if (passes.Count == 0)
 				LogErrorReturn!("Couldn't write package. No passes");
@@ -228,7 +232,7 @@ namespace Pile
 				LogErrorReturn!("Couldn't write package. Failed to write data (header or content)");
 
 			return .Ok;
-		}
+		}*/
 
 		public static Result<void> WritePackageIndex(Stream outStream, Index fileIndex)
 		{
@@ -291,17 +295,18 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static mixin OpenPackageScoped(StringView packagePath)
+		public static Result<void> OpenPackage(StringView packagePath, FileStream fs)
 		{
+			Debug.Assert(fs != null && fs.Handle == 0);
+
 			let inPath = Path.Clean(packagePath, .. scope .());
 			if (!inPath.EndsWith(".bin"))
 				Path.ChangeExtension(inPath, ".bin", inPath);
 
-			let fs = scope:mixin FileStream();
 			if (fs.Open(inPath, .Open, .Read, .None, 65536) case .Err(let err))
 				LogErrorReturn!(scope $"Couldn't read package. Error opening stream to {inPath}");
 
-			fs
+			return .Ok;
 		}
 
 		public static Result<void> ReadPackageHeader(Stream inStream, out PackageFlags flags, out SHA256Hash sourceHash, out uint64 startPosition, out uint64 fileSize, out uint64 indexPosition)
@@ -372,7 +377,7 @@ namespace Pile
 				if (importerIndex > importerCount || entryCount == 0)
 					LogErrorReturn!("Couldn't read package. Index data corrupt (invalid pass data / no entries)");
 
-				fileIndex.passes.Add(.());
+				fileIndex.passes.Add(.(entryCount));
 				var indexPass = ref fileIndex.passes.Back;
 				indexPass.importerIndex = importerIndex;
 				indexPass.importerConfig = config;
@@ -417,18 +422,11 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> ReadPackageData(Stream inStream, uint64 startPosition, IndexPassEntry entry, List<uint8> buffer)
+		public static Result<void> ReadPackageData(Stream inStream, uint64 startPosition, IndexPassEntry entry, Span<uint8> buffer)
 		{
 			Try!(inStream.Seek((.)startPosition + (.)entry.offset));
 
-			if (entry.length > (.)buffer.Count)
-			{
-				let addSize = entry.length - (.)buffer.Count;
-				buffer.GrowUnitialized((.)addSize);
-			}
-			else buffer.Count = (.)entry.length;
-
-			Debug.Assert(entry.length == (.)buffer.Count);
+			Debug.Assert(entry.length == (.)buffer.Length);
 
 			Serializer sr = scope .(inStream);
 			sr.ReadInto!(buffer);
@@ -439,14 +437,16 @@ namespace Pile
 			return .Ok;
 		}
 
+		// === worry about this later... maybe use some of the newer write functions
+
 		// TODO: we always need to update the file size in the fucntions below (probably), do we need to pass some more params??
 		// TODO: i noticed we actually need to pass the importer in here...
 		// do we need a seperate function for adding passes in the first place? nah do it here
 		// -> rethink args as needed
 
-		public static Result<void> PatchPackageData(Stream inStream, StringView importerName, BuildPassEntry patchEntry, uint64 indexPosition, Index fileIndex, out uint64 appendSize)
+		public static Result<void> PatchPackageData(Stream outStream, StringView importerName, BuildEntry patchEntry, uint64 indexPosition, Index fileIndex, out uint64 appendSize)
 		{
-			int patchPassIndex = -1, patchEntryIndex = -1;
+			/*int patchPassIndex = -1, patchEntryIndex = -1;
 			IndexPassEntry foundEntryToPatch = default;
 			for (let pass in fileIndex.passes)
 				for (let entry in pass.entries)
@@ -483,16 +483,18 @@ namespace Pile
 				// Append
 				// appendSize = x;
 			}
-
-			
+			else
+			{
+				// .... just call WritePackageData here?
+			}
 
 			// TODO: When we need to append, we need to put the index back with this offset and also change that in the header
-			// (but dont do that here, but in bulk? user calls PatchPackageInfo??)
+			// (but dont do that here, but in bulk? user calls PatchPackageInfo??)*/
 			
 			return .Err;
 		}
 
-		public static Result<void> PatchPackageRemove(Stream inStream, StringView entryName, uint64 indexPosition, Index fileIndex)
+		public static Result<void> PatchPackageRemove(Stream outStream, StringView entryName, uint64 indexPosition, Index fileIndex)
 		{
 			// (remove empty passes)
 
@@ -501,11 +503,11 @@ namespace Pile
 
 		// TODO!!! either add fileSize to function below, or actually make one function to patch both the modified index in one go with the header!
 
-		public static Result<void> PatchPackageHeader(Stream inStream, uint64 startPosition, uint64 indexPushedBackBy, SHA256Hash sourceHash)
+		/*public static Result<void> PatchPackageHeader(Stream inStream, uint64 startPosition, uint64 indexPushedBackBy, SHA256Hash sourceHash)
 		{
 			// TOOD: change flags to Patched, modify index offse maybe, override sourceHash
 
 			return .Err;
-		}
+		}*/
 	}
 }
