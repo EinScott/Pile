@@ -11,7 +11,7 @@ namespace Pile
 #if !DEBUG
 	[Optimize]
 #endif
-	static class PackageFormat
+	internal static class PackageFormat
 	{
 		// HEADER (3 bytes)
 		// VERSION (1 byte)
@@ -27,7 +27,7 @@ namespace Pile
 		//   ENTRY:
 		//   IMPORTER_NAME_LENGTH (1 byte, uint8)
 		//   IMPORTER_NAME[]
-		// PASS_ENTRY_COUNT (1 byte, uint8)
+		// PASS_ENTRY_COUNT (2 byte, uint16)
 		// PASS_ENTRY[]
 		//   ENTRY:
 		//   IMPORTER_INDEX (1 byte, uint8)
@@ -202,9 +202,9 @@ namespace Pile
 				sr.Write!(Span<uint8>((.)&importerName[0], nameLen));
 			}
 
-			if (fileIndex.passes.Count > uint8.MaxValue)
-				LogErrorReturn!("Couldn't write package. Too many import passes used (max 256)");
-			sr.Write<uint8>((.)fileIndex.passes.Count);
+			if (fileIndex.passes.Count > uint16.MaxValue)
+				LogErrorReturn!("Couldn't write package. Too many import passes used (max 65535)");
+			sr.Write<uint16>((.)fileIndex.passes.Count);
 			for (let pass in fileIndex.passes)
 			{
 				Debug.Assert(pass.importerIndex < fileIndex.importerNames.Count && pass.entries.Count != 0);
@@ -310,7 +310,7 @@ namespace Pile
 				fileIndex.importerNames.Add(name);
 			}
 
-			let passCount = sr.Read<uint8>();
+			let passCount = sr.Read<uint16>();
 
 			if (importerCount == 0 || passCount == 0)
 				LogErrorReturn!("Couldn't read package. Index data corrupt (no passes or importers specified)");

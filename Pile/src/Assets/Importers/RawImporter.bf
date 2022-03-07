@@ -4,14 +4,13 @@ using System.Collections;
 
 namespace Pile
 {
-	// TODO: no? we don't have extensions for this one i guess... could we make some conveniant abstract thing of it?
-	// like... rawTextImporter -> "txt", "md"
-	// or special case the "*" ending... but then we still have to allow filters on TargetDir! -- i mean yea
-
 	[RegisterImporter]
 	class RawImporter : Importer
 	{
 		public override String Name => "raw";
+
+		const StringView[?] ext = .("", "bin", "txt", "bon");
+		public override Span<StringView> TargetExtensions => ext;
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{

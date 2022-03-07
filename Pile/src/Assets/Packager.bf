@@ -11,7 +11,7 @@ using internal Pile;
 
 namespace Pile
 {
-	static class PackageManager
+	internal static class Packager
 	{
 		// TODO: it would be nice if libraries could declare packages of their own!
 		// --> multiple asset source dirs? -- but how

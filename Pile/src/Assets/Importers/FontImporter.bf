@@ -1,19 +1,23 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Pile
 {
 	[RegisterImporter]
 	class FontImporter : Importer
 	{
-		public String Name => "font";
+		public override String Name => "font";
 
-		public Result<void> Load(StringView name, Span<uint8> data)
+		const StringView[?] ext = .("ttf");
+		public override Span<StringView> TargetExtensions => ext;
+
+		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let asset = new Font(data);
 
-			if (Importers.SubmitAsset(name, asset) case .Err)
+			if (SubmitLoadedAsset(name, asset) case .Err)
 			{
 				delete asset;
 				return .Err;
@@ -21,12 +25,19 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath)
+		public override Result<uint8[]> Build(StringView filePath)
 		{
+			Debug.Assert(File.Exists(filePath));
+
+			FileStream fs = scope FileStream();
+			Try!(fs.Open(filePath, .Open, .Read));
+
+			let data = Try!(TryStreamToNewArray(fs));
+
 			if (!Font.IsValid(data))
 				LogErrorReturn!("FontImporter: Data is not a valid font");
 
-			return Importer.TryStreamToArray!(data);
+			return data;
 		}
 	}
 }

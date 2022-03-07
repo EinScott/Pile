@@ -75,7 +75,7 @@ namespace Pile
 			System.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 
 #if BF_PLATFORM_WINDOWS // TODO: when fs-watcher is implemented for other platforms beef-side, remove this restriction (and the two ones below)
-			let assetsSource = MakeScopedAssetsSourcePath!();
+			let assetsSource = Packager.MakeScopedAssetsSourcePath!();
 			if (Directory.Exists(assetsSource))
 				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, null, null);
 #endif
@@ -241,7 +241,7 @@ namespace Pile
 
 			let package = new Package();
 
-			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, String.Empty, package.name);
+			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, default, package.name);
 			else package.name.Set(packageName);
 
 			loadedPackages.Add(package);
@@ -343,7 +343,7 @@ namespace Pile
 			Result<void> err = .Ok;
 
 			DateTime buildStart = DateTime.Now;
-			if (RunPackager() case .Err) // TODO: redo this... no longer call packager!
+			//if (RunPackager() case .Err) // TODO: redo this... no longer call packager!
 				LogErrorReturn!("Failed to run Packager");
 
 			for (let file in Directory.EnumerateFiles(packagesPath))

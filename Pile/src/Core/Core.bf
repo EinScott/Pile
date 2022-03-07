@@ -38,14 +38,14 @@ namespace Pile
 			// Packager mode
 			if (args.Count > 0 && args[0] == "-packager")
 			{
-				if (RunPackager() case .Err)
+				if (Packager.BuildAndPackageAssets() case .Err)
 					Runtime.FatalError("Error while running packager");
 				return 0;
 			}
 
 #if DEBUG
 			// In debug, run this on actual execute for debugging perks
-			RunPackager().IgnoreError();
+			Packager.BuildAndPackageAssets().IgnoreError();
 #endif
 			
 			// Run onStart

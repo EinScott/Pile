@@ -101,7 +101,7 @@ namespace Pile
 			Path.ChangeExtension(path, ".meta.bon", into);
 		}
 
-		protected static Result<void> LoadFullFile(StringView path, ref uint8[] outDataAlloc)
+		protected static Result<void> ReadFullFile(StringView path, ref uint8[] outDataAlloc)
 		{
 			FileStream fs = scope FileStream();
 			Try!(fs.Open(path, .Open, .Read));
