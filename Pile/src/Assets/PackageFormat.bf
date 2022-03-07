@@ -324,7 +324,7 @@ namespace Pile
 					sr.ReadInto!(Span<uint8>((.)&config[0], importerConfigLength));
 				let entryCount = sr.Read<uint32>();
 
-				if (importerIndex > importerCount || entryCount == 0)
+				if (importerIndex >= importerCount || entryCount == 0)
 					LogErrorReturn!("Couldn't read package. Index data corrupt (invalid pass data / no entries)");
 
 				fileIndex.passes.Add(.(entryCount));

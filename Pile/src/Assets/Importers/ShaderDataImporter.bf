@@ -5,10 +5,10 @@ using Bon;
 namespace Pile
 {
 	/**
-	This thing loads a json file like this:
+	This thing loads a bon file like this:
 	{
-		"vertexPath": "default.vs",
-		"fragmentPath": "default.fs"
+		vertexPath = "default.vs",
+		fragmentPath = "default.fs"
 	}
 
 	The geometry shader is optional.
@@ -32,10 +32,12 @@ namespace Pile
 			}
 		}
 
-		public String Name => "shader";
-		public bool RebuildOnAdditionalChanged => true;
+		public override String Name => "shader";
 
-		public Result<void> Load(StringView name, Span<uint8> data)
+		const StringView[?] ext = .("shader");
+		public override Span<StringView> TargetExtensions => ext;
+
+		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			ArrayStream s = scope ArrayStream(data);
 			Serializer sr = scope Serializer(s);
@@ -48,7 +50,7 @@ namespace Pile
 
 			ShaderData asset = new .(.((char8*)&vSource[0], vSource.Count), .((char8*)&fSource[0], fSource.Count), gSource != null ? .((char8*)&gSource[0], gSource.Count) : .());
 
-			if (Importers.SubmitAsset(name, asset) case .Err)
+			if (Importer.SubmitLoadedAsset(name, asset) case .Err)
 			{
 				delete asset;
 				return .Err;
@@ -56,21 +58,22 @@ namespace Pile
 			else return .Ok;
 		}
 
-		public Result<uint8[]> Build(Stream data, Span<StringView> config, StringView dataFilePath)
+		public override Result<uint8[]> Build(StringView filePath)
 		{
 			ShaderImportFile f = .();
 
-			String filename = scope .();
-			Try!(data.ReadStrSized32(data.Length, filename));
+			uint8[] data = null;
+			Try!(ReadFullFile(filePath, ref data));
+			defer delete data;
 
-			Try!(Bon.Deserialize<ShaderImportFile>(ref f, filename));
+			Try!(Bon.Deserialize<ShaderImportFile>(ref f, StringView((.)&data[0], data.Count)));
 
 			if (f.vertexPath == null || f.fragmentPath == null)
 				LogErrorReturn!("ShaderImporter: At least VertexPath and FragmentPath need to be declared in bon structure");
 
 			// Load the actual files
 			let currDir = scope String();
-			Try!(Path.GetDirectoryPath(dataFilePath, currDir));
+			Try!(Path.GetDirectoryPath(filePath, currDir));
 
 			let vSource = scope String();
 			let fSource = scope String();

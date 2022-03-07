@@ -449,7 +449,7 @@ namespace Pile
 				importer.ClearConfig();
 				if (passSet.importerConfig != null
 					&& passSet.importer.SetConfig(passSet.importerConfig) case .Err)
-					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to set config of importer {importer.Name}");
+					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to set config of importer '{importer.Name}'");
 
 				if (importerIndex > uint8.MaxValue)
 					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Too many importers used! (max 256)");

@@ -213,31 +213,20 @@ namespace Pile
 			Debug.Assert(packageName.Ptr != null);
 
 			if (!Directory.Exists(packagesPath))
-				LogErrorReturn!(scope $"Couldn't load package {packageName}. Path directory doesn't exist: {packagesPath}");
+				LogErrorReturn!(scope $"Couldn't load package '{packageName}'. Path directory doesn't exist: '{packagesPath}'");
 
 			for (int i < loadedPackages.Count)
 				if (loadedPackages[[Unchecked]i].Name == packageName)
-					LogErrorReturn!(scope $"Package {packageName} is already loaded");
+					LogErrorReturn!(scope $"Package '{packageName}' is already loaded");
 
-			List<Packages.Node> nodes = new List<Packages.Node>();
-			List<String> importerNames = new List<String>();
-			defer
-			{
-				for (let n in nodes)
-					n.Dispose();
-				delete nodes;
-				DeleteContainerAndItems!(importerNames);
-			}
+			let loadPath = Path.InternalCombine(.. scope .(packagesPath.Length + packageName.Length + 8), packagesPath, packageName);
 
-			// Read file
-			{
-				// Normalize path
-				let packagePath = scope String();
-				Path.InternalCombine(packagePath, packagesPath, packageName);
+			let packageStream = scope FileStream();
+			Try!(PackageFormat.OpenPackage(loadPath, packageStream));
+			Try!(PackageFormat.ReadPackageHeader(packageStream, let packageFlags, ?, let packageStartPos, let packageFileSize, let packageIndexPos));
 
-				if (Packages.ReadPackage(packagePath, nodes, importerNames, ?) case .Err) // We don't care about the hash
-					LogErrorReturn!(scope $"Error reading package {packageName} for loading");
-			}
+			PackageFormat.Index fileIndex = scope .();
+			Try!(PackageFormat.ReadPackageIndex(packageStream, packageIndexPos, packageStartPos, packageFileSize, packageFlags, fileIndex));
 
 			let package = new Package();
 
@@ -251,31 +240,47 @@ namespace Pile
 			{
 				if (@return case .Err)
 				{
-					Importers.currentPackage = null;
+					Importer.currentPackage = null;
 					Assets.UnloadPackage(package.name, false).IgnoreError();
 				}
 			}
 
 			// Import each package node
 			Importer importer;
-			Importers.currentPackage = package; // TODO: make this something local instead somehow?
-			for (let node in nodes)
+			Importer.currentPackage = package; // TODO: make this something local instead somehow?
+
+			for (let pass in fileIndex.passes)
 			{
 				// Find importer
-				if (node.Importer < (uint32)Importers.importers.Count && Importers.importers.ContainsKey(importerNames[(int)node.Importer]))
-					importer = Importers.importers.GetValue(importerNames[(int)node.Importer]).Get();
-				else if (node.Importer < (uint32)Importers.importers.Count)
-					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer {importerNames[(int)node.Importer]}");
-				else
-					LogErrorReturn!(scope $"Couldn't load package {packageName}. Couldn't find importer name at index {node.Importer} of file's importer name array; index out of range");
+				let importerName = fileIndex.importerNames[(int)pass.importerIndex];
+				if (!Importer.importers.TryGetValue(importerName, out importer))
+					LogErrorReturn!(scope $"Couldn't load package '{packageName}'. Failed to find importer '{importerName}'");
 
-				// Prepare data
-				let name = StringView((char8*)node.Name.Ptr, node.Name.Count);
+				importer.ClearConfig();
+				if (pass.importerConfig != null
+					&& importer.SetConfig(pass.importerConfig) case .Err)
+					LogErrorReturn!(scope $"Couldn't load package '{packageName}'. Failed to set config of importer '{importer.Name}'");
 
-				if (importer.Load(name, node.Data) case .Err)
-					LogErrorReturn!(scope $"Couldn't load package {packageName}. Error importing asset {name} with {importerNames[(int)node.Importer]}");
+				for (let entry in pass.entries) LOAD:
+				{
+					uint8[] data;
+					if (entry.length <= 1024)
+						data = scope:LOAD .[entry.length];
+					else
+					{
+						data = new .[entry.length];
+						defer:LOAD delete data;
+					}
+
+					Try!(PackageFormat.ReadPackageData(packageStream, packageStartPos, entry, data));
+
+					if (importer.Load(entry.name, data) case .Err)
+						LogErrorReturn!(scope $"Couldn't load package '{packageName}'. Failed to import '{entry.name}' with '{importer.Name}'");
+				}
 			}
-			Importers.currentPackage = null;
+			Importer.currentPackage = null;
+
+			packageStream.Close();
 
 			// Finish
 			if (packAndUpdateTextures)
