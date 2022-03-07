@@ -451,7 +451,6 @@ namespace Pile
 					&& passSet.importer.SetConfig(passSet.importerConfig) case .Err)
 					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to set config of importer {importer.Name}");
 
-				// TODO: maybe move this into format? (this if and the below add thingy)
 				if (importerIndex > uint8.MaxValue)
 					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Too many importers used! (max 256)");
 
@@ -516,9 +515,9 @@ namespace Pile
 				}
 			}
 
+			uint64 packageIndexOffset = (.)packageStream.Position - packageStartPos;
 			Try!(PackageFormat.WritePackageIndex(packageStream, fileIndex));
-
-			// TODO: patch header!
+			Try!(PackageFormat.WritePackageHeaderComplete(packageStream, packageIndexOffset, packageStartPos));
 
 			if (packageStream.Close() case .Err)
 				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Couldn't finish writing");

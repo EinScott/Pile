@@ -16,6 +16,7 @@ namespace Pile
 		bool read;
 		bool write;
 
+		[Inline]
 		public this(Stream s)
 		{
 			this.underlyingStream = s;

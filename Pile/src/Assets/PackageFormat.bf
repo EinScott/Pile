@@ -139,100 +139,50 @@ namespace Pile
 			sr.Write<uint64>(0); // File size, come back later
 			sr.Write<uint64>(0); // Index offset
 
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't write package. Failed to write data (header)");
+
 			return .Ok;
 		}
 
-		// TODO: either manage index in build or make helper mixins here??? maybe ty that later!
+		public static Result<void> WritePackageHeaderComplete(Stream outStream, uint64 indexOffset, uint64 startPosition)
+		{
+			Serializer sr = scope .(outStream);
+
+			let fillPos = startPosition + 5 /* header / version / flags */ + 32 /* source hash */;
+
+			Debug.Assert(fillPos + 16 < (.)outStream.Position);
+			uint64 fileSize = (.)outStream.Position - startPosition;
+			if (outStream.Seek((.)fillPos) case .Err)
+				LogErrorReturn!("Couldn't write package. Failed to seek back to header");
+			
+			sr.Write<uint64>((.)fileSize);
+			sr.Write<uint64>(indexOffset);
+
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't write package. Failed to write data (header)");
+
+			return .Ok;
+		}
 
 		public static Result<void> WritePackageData(Stream outStream, StringView entryName, Span<uint8> entryData, uint64 startPosition, out IndexPassEntry indexEntry)
 		{
-
-			return .Err;
-		}
-
-		/*public static Result<void> WritePackage(Stream outStream, List<BuildPass> passes, SHA256Hash sourceHash)
-		{
-			if (passes.Count == 0)
-				LogErrorReturn!("Couldn't write package. No passes");
-
-			let fileStart = outStream.Position;
-
 			Serializer sr = scope .(outStream);
 
-			PackageFlags mode = .None;
-			sr.Write!(uint8[?](0x50, 0x4C, 0x50, VERSION, mode.Underlying)); // Header & Version & Flags
+			indexEntry = default;
 
-			// Write content hash
-			var sourceHash;
-			let hashSpan = Span<uint8>(&sourceHash.mHash[0], sourceHash.mHash.Count);
-			sr.Write!(hashSpan);
+			indexEntry.name = new .(entryName);
+			indexEntry.offset = (.)outStream.Position - startPosition;
+			indexEntry.length = (uint64)entryData.Length;
 
-			let fileSizePosition = outStream.Position;
-			sr.Write<uint64>(0); // File size, come back later
-
-			// Already includes header size
-			uint64 offsetInFile = 5 /* header / version / flags */ + 32 /* sourceHash */ + 8 /* file size */ + 8 /* index offset */;
-
-			uint64 precomputedIndexOffset = offsetInFile;
-			for (let pass in passes)
-				for (let entry in pass.entries)
-					if (entry.data != null)
-						precomputedIndexOffset += (uint64)entry.data.Count;
-			sr.Write<uint64>(precomputedIndexOffset);
-
-			// Compute file index to write while dumping content
-			Index fileIndex = scope .();
-
-			for (let pass in passes)
-			{
-				if (pass.entries.Count == 0)
-					continue; // Skip empty passes (if they even make it here)
-
-				int importerIndex = fileIndex.importerNames.IndexOf(pass.importer);
-				if (importerIndex == -1)
-				{
-					importerIndex = fileIndex.importerNames.Count;
-					fileIndex.importerNames.Add(pass.importer);
-				}
-
-				fileIndex.passes.Add(.());
-				var indexPass = ref fileIndex.passes.Back;
-
-				if (importerIndex > uint8.MaxValue)
-					LogErrorReturn!("Couldn't write package. Too many importers used! (max 256)");
-				indexPass.importerIndex = (uint8)importerIndex;
-				indexPass.importerConfig = pass.importerConfig != null ? new .(pass.importerConfig) : null;
-
-				for (let entry in pass.entries)
-				{
-					indexPass.entries.Add(.());
-					var indexEntry = ref indexPass.entries.Back;
-
-					indexEntry.name = new .(entry.name);
-					indexEntry.offset = offsetInFile;
-					indexEntry.length = entry.data == null ? 0 : (uint64)entry.data.Count;
-
-					if (indexEntry.length != 0)
-						sr.Write!(entry.data);
-
-					offsetInFile += indexEntry.length;
-				}
-			}
-
-			Debug.Assert(precomputedIndexOffset == offsetInFile);
-
-			Try!(WritePackageIndex(outStream, fileIndex));
-			
-			Debug.Assert(outStream.Position > fileStart);
-			let fileSize = outStream.Position - fileStart;
-			outStream.Seek(fileSizePosition);
-			sr.Write<uint64>((.)fileSize);
+			if (indexEntry.length != 0)
+				sr.Write!(entryData);
 
 			if (sr.HadError)
-				LogErrorReturn!("Couldn't write package. Failed to write data (header or content)");
+				LogErrorReturn!("Couldn't write package. Failed to write data (content data)");
 
 			return .Ok;
-		}*/
+		}
 
 		public static Result<void> WritePackageIndex(Stream outStream, Index fileIndex)
 		{
@@ -406,7 +356,7 @@ namespace Pile
 						|| startPosition + entry.offset + entry.slotSize > indexPosition)
 					{
 						delete name;
-						LogErrorReturn!("Couldn't read package. Index data corrupt (invalid entry reference)");
+						LogErrorReturn!("Couldn't read package. Index data corrupt (invalid data reference)");
 					}
 
 					indexPass.entries.Add(entry);
@@ -432,82 +382,29 @@ namespace Pile
 			sr.ReadInto!(buffer);
 
 			if (sr.HadError)
-				LogErrorReturn!("Couldn't read package. Failed to read data (content entry)");
+				LogErrorReturn!("Couldn't read package. Failed to read data (content data)");
 
 			return .Ok;
 		}
 
-		// === worry about this later... maybe use some of the newer write functions
+		// TODO
 
-		// TODO: we always need to update the file size in the fucntions below (probably), do we need to pass some more params??
-		// TODO: i noticed we actually need to pass the importer in here...
-		// do we need a seperate function for adding passes in the first place? nah do it here
-		// -> rethink args as needed
-
-		public static Result<void> PatchPackageData(Stream outStream, StringView importerName, BuildEntry patchEntry, uint64 indexPosition, Index fileIndex, out uint64 appendSize)
+		public static Result<void> PatchPackageData(Stream outStream, Span<uint8> entryData, ref IndexPassEntry passEntry, out uint64 appendSize)
 		{
-			/*int patchPassIndex = -1, patchEntryIndex = -1;
-			IndexPassEntry foundEntryToPatch = default;
-			for (let pass in fileIndex.passes)
-				for (let entry in pass.entries)
-					if (entry.name == patchEntry.name)
-					{
-						patchPassIndex = @pass.Index;
-						patchEntryIndex = @entry.Index;
-						foundEntryToPatch = entry;
-						break;
-					}
-
-			var needsToAppend = false;
-			if (patchPassIndex > -1)
-			{
-				// Patch existing if possbile
-				if ((foundEntryToPatch.isPatched ? foundEntryToPatch.slotSize : foundEntryToPatch.length) <= (.)patchEntry.data.Count)
-				{
-					if (!foundEntryToPatch.isPatched)
-						foundEntryToPatch.slotSize = foundEntryToPatch.length;
-
-					foundEntryToPatch.isPatched = true;
-				}
-				else needsToAppend = true;
-
-				foundEntryToPatch.length = (.)patchEntry.data.Count;
-			}
-			else
-			{
-				// update entry for the append we undoubtably need to do
-			}
-
-			if (needsToAppend)
-			{
-				// Append
-				// appendSize = x;
-			}
-			else
-			{
-				// .... just call WritePackageData here?
-			}
-
-			// TODO: When we need to append, we need to put the index back with this offset and also change that in the header
-			// (but dont do that here, but in bulk? user calls PatchPackageInfo??)*/
-			
+			appendSize = 0;
 			return .Err;
 		}
 
-		public static Result<void> PatchPackageRemove(Stream outStream, StringView entryName, uint64 indexPosition, Index fileIndex)
+		public static Result<void> PatchPackageRemove(Stream outStream, ref IndexPassEntry passEntry)
 		{
-			// (remove empty passes)
-
 			return .Err;
 		}
 
-		// TODO!!! either add fileSize to function below, or actually make one function to patch both the modified index in one go with the header!
-
-		/*public static Result<void> PatchPackageHeader(Stream inStream, uint64 startPosition, uint64 indexPushedBackBy, SHA256Hash sourceHash)
+		public static Result<void> PatchPackageHeader(Stream outStream, PackageFlags flags, SHA256Hash sourceHash, uint64 fileSize, uint64 indexOffset, uint64 startPosition)
 		{
-			// TOOD: change flags to Patched, modify index offse maybe, override sourceHash
+			// Add .Patched to flags in any case!
 
 			return .Err;
-		}*/
+		}
 	}
 }
