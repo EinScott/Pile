@@ -15,11 +15,12 @@ namespace Pile
 	{
 		// TODO: it would be nice if libraries could declare packages of their own!
 		// --> multiple asset source dirs? -- but how
-		// --> alternatively with.. either comptime included packages... no OR a manual reg. setup (...)?
 
 		// make it easier to interface with Assets, make it usable for SpriteFont -- make textureFilter settable from importers actually
 		// separate package load & hot reload stuff from resource management? -- maybe packageManager/packager all together?
 		// -> packager packageBuilder & the other will be PackageLoader
+
+		// TODO: package compression
 
 		/// Set in static init!
 		internal static String relativeAssetsPath = @"../../../assets";
@@ -39,7 +40,7 @@ namespace Pile
 		}
 
 		[Optimize]
-		internal static Result<void> BuildAndPackageAssets() // TODO: update mentions of Packager!
+		internal static Result<void> BuildAndPackageAssets()
 		{
 			String inPath = scope .();
 			String outPath = scope .();
@@ -212,6 +213,7 @@ namespace Pile
 
 			let searchPath = scope String(260);
 			let enumeratePath = scope String(260);
+			bool foundOne = false;
 			repeat
 			{
 				let current = importDirs.Count - 1;
@@ -219,7 +221,6 @@ namespace Pile
 
 				searchPath..Set(currImportDir).Append("/*");
 
-				bool foundOne = false;
 				for (let entry in Directory.Enumerate(searchPath, .Files | .Directories))
 				{
 					enumeratePath.Clear();
@@ -245,12 +246,12 @@ namespace Pile
 						importDirs.Add(scope:: String(enumeratePath));
 				}
 
-				if (!foundOne)
-					Log.Warn(scope $"No matching files found in '{searchPath}'");
-
 				importDirs.RemoveAtFast(current);
 			}
 			while (importDirs.Count != 0);
+			
+			if (!foundOne)
+				Log.Warn(scope $"No matching files found in '{path}'");
 
 			return .Ok;
 		}
@@ -263,6 +264,9 @@ namespace Pile
 			Try!(ReadPackageConfigFile(configFilePath, config));
 
 			let packageName = Path.GetFileNameWithoutExtension(configFilePath, .. scope .(64));
+			Debug.Assert(packageName.EndsWith(".package"));
+			packageName.RemoveFromEnd(8);
+
 			let outputPath = Path.InternalCombine(.. scope .(outputFolderPath.Length + packageName.Length + 16), outputFolderPath, packageName);
 			Path.ChangeExtension(outputPath, ".bin", outputPath);
 			String inputPath = scope .(configFilePath.Length);
@@ -292,17 +296,16 @@ namespace Pile
 					oldPackageStream = null;
 				}
 			}
-
-			// TODO: deletion / scope problems here!
-			// why do we save files as .bin.bin??
-			// rename errror?
 			
 			List<(Importer importer, String importerConfig, bool dependModified, List<(String path, bool modified)> targets)> passSets = scope .(8);
 			defer
 			{
 				for (let passSet in passSets)
+				{
 					for (let target in passSet.targets)
 						delete target.path;
+					delete passSet.targets;
+				}
 			}
 
 			// Hash every file that can affect the importers
@@ -325,7 +328,7 @@ namespace Pile
 					if (!Importer.importers.TryGetValue(pass.importer, out importer))
 						LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Couldn't find importer '{pass.importer}'");
 
-					List<(String path, bool modified)> targets = scope:: .(16);
+					List<(String path, bool modified)> targets = new .(16);
 					bool targetsStored = false;
 					defer
 					{
@@ -334,11 +337,12 @@ namespace Pile
 						{
 							for (let target in targets)
 								delete target.path;
+							delete targets;
 						}	
 					}
 
-					let targetPath = Path.Clean(.. Path.GetAbsolutePath(inputPath, pass.targetDir..Trim(), .. scope .(Math.Min(260, inputPath.Length + pass.targetDir.Length))));
-					let dependPath = pass.dependDir == null ? targetPath : Path.Clean(.. Path.GetAbsolutePath(inputPath, pass.dependDir..Trim(), .. scope .(Math.Min(260, inputPath.Length + pass.dependDir.Length))));
+					let targetPath = Path.Clean(.. Path.GetAbsolutePath(pass.targetDir..Trim(), inputPath, .. scope .(Math.Min(260, inputPath.Length + pass.targetDir.Length))));
+					let dependPath = pass.dependDir == null ? targetPath : Path.Clean(.. Path.GetAbsolutePath(pass.dependDir..Trim(), inputPath, .. scope .(Math.Min(260, inputPath.Length + pass.dependDir.Length))));
 
 					let targetExts = FixExtensionsScoped!(importer.TargetExtensions);
 
@@ -457,7 +461,7 @@ namespace Pile
 					oldPackageFileIndex = null; // Then... don't
 			}
 
-			let newPackagePath = scope String(outputPath.Length + 4)..Append(outputPath)..Append(".build");
+			let newPackagePath = scope String(outputPath.Length + 5)..Append(outputPath)..Append(".build");
 			FileStream packageStream = scope .();
 			Try!(PackageFormat.CreatePackage(newPackagePath, packageStream));
 			Try!(PackageFormat.WritePackageHeaderProvisional(packageStream, .None, sourceHash, let packageStartPos));
@@ -504,6 +508,11 @@ namespace Pile
 					Debug.Assert(entryName.Length > 0);
 
 					uint8[] entryData = null;
+					defer
+					{
+						DeleteNotNull!(entryData);
+					}
+
 					bool needToBuildData = true;
 					if (oldPackageFileIndex != null && passSet.dependModified && !target.modified)
 					{

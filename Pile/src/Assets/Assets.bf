@@ -220,6 +220,7 @@ namespace Pile
 					LogErrorReturn!(scope $"Package '{packageName}' is already loaded");
 
 			let loadPath = Path.InternalCombine(.. scope .(packagesPath.Length + packageName.Length + 8), packagesPath, packageName);
+			loadPath.Append(".bin");
 
 			let packageStream = scope FileStream();
 			Try!(PackageFormat.OpenPackage(loadPath, packageStream));
@@ -229,9 +230,7 @@ namespace Pile
 			Try!(PackageFormat.ReadPackageIndex(packageStream, packageIndexPos, packageStartPos, packageFileSize, packageFlags, fileIndex));
 
 			let package = new Package();
-
-			if (packageName.EndsWith(".bin")) Path.ChangeExtension(packageName, default, package.name);
-			else package.name.Set(packageName);
+			package.name.Set(packageName);
 
 			loadedPackages.Add(package);
 

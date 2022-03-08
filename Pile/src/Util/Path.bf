@@ -27,6 +27,9 @@ namespace System.IO
 			unifyPath.Replace('\\', '/');
 			if (unifyPath.EndsWith('/'))
 				unifyPath.RemoveFromEnd(1);
+
+			if (unifyPath.StartsWith("./"))
+				unifyPath.Remove(0, 2);
 		}
 	}
 }

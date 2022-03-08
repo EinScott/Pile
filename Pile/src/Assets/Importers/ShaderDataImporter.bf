@@ -34,8 +34,11 @@ namespace Pile
 
 		public override String Name => "shader";
 
+		// TODO: not the cleanes of things
 		static StringView[?] ext = .("shader");
+		static StringView[?] dep = .("vs", "fs");
 		public override Span<StringView> TargetExtensions => ext;
+		public override Span<StringView> DependantExtensions => dep;
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{

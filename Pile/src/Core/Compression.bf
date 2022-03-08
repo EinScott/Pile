@@ -239,8 +239,7 @@ namespace Pile
 			{
 				defer
 				{
-					// Try! says that streamState is not accessible
-					this.[Friend]streamState = .NeedsInit;
+					streamState = .NeedsInit;
 				}
 
 				switch (mode)

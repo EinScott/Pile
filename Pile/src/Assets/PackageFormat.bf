@@ -42,8 +42,6 @@ namespace Pile
 		//     LENGTH (8 bytes, uint64)
 		//     SLOT_SIZE (8 bytes, uint64) -- only if "data_patched"
 
-		// TODO: manage separate bon context (and our own logging hook)
-
 		public class Index
 		{
 			public List<String> importerNames = new .() ~ DeleteContainerAndItems!(_);
@@ -94,30 +92,19 @@ namespace Pile
 
 		const uint8 VERSION = 1;
 
-		// TODO:
-		// -> so... methods to read the index, do things with it, methods to load some collection of entries
-		// patched by either fitting the new data into the old slot (keep it in there as long as possible) or just
-		// appending it to the end and updating the index! -- both set the patched flag on file
-		// -> hot reload is fast, next full run will clean it up and do a full rebuild (probably nicer for workflow)
-
-		// TODO: compress content!
-		// -> this kind of structure forces us to keep CompressionStreams out of most of the structure, we can basically only wrap them around single entries... like data
-		//    ... in which case that would be soley PackageManagers job! (maybe? nah do it here)
-
 		public static Result<void> CreatePackage(StringView outputPath, FileStream fs)
 		{
 			Debug.Assert(fs != null && fs.Handle == 0);
 
-			let outPath = Path.ChangeExtension(outputPath, ".bin", .. scope String(outputPath));
 			let dir = scope String();
-			if (Path.GetDirectoryPath(outPath, dir) case .Err)
-				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path {outPath}");
+			if (Path.GetDirectoryPath(outputPath, dir) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error getting directory of path '{outputPath}'");
 
 			if (!Directory.Exists(dir) && (Directory.CreateDirectory(dir) case .Err(let err)))
-				LogErrorReturn!(scope $"Couldn't write package. Error creating directory {dir} ({err})");
+				LogErrorReturn!(scope $"Couldn't write package. Error creating directory '{dir}' ({err})");
 
-			if (fs.Open(outPath, .Create, .Write, .None, 65536) case .Err)
-				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to {outPath}");
+			if (fs.Open(outputPath, .Create, .Write, .None, 65536) case .Err)
+				LogErrorReturn!(scope $"Couldn't write package. Error opening stream to '{outputPath}'");
 
 			return .Ok;
 		}
@@ -250,12 +237,8 @@ namespace Pile
 		{
 			Debug.Assert(fs != null && fs.Handle == 0);
 
-			let inPath = Path.Clean(packagePath, .. scope .());
-			if (!inPath.EndsWith(".bin"))
-				Path.ChangeExtension(inPath, ".bin", inPath);
-
-			if (fs.Open(inPath, .Open, .Read, .None, 65536) case .Err(let err))
-				LogErrorReturn!(scope $"Couldn't read package. Error opening stream to {inPath}");
+			if (fs.Open(packagePath, .Open, .Read, .None, 65536) case .Err(let err))
+				LogErrorReturn!(scope $"Couldn't read package. Error opening stream to '{packagePath}'");
 
 			return .Ok;
 		}
@@ -305,7 +288,7 @@ namespace Pile
 			for (let i < importerCount)
 			{
 				let nameLength = sr.Read<uint8>();
-				let name = new String(nameLength);
+				let name = new String(nameLength)..PrepareBuffer(nameLength);
 				sr.ReadInto!(Span<uint8>((.)&name[0], nameLength));
 
 				fileIndex.importerNames.Add(name);
@@ -320,7 +303,7 @@ namespace Pile
 			{
 				let importerIndex = sr.Read<uint8>();
 				let importerConfigLength = sr.Read<uint16>();
-				let config = importerConfigLength == 0 ? null : new String(importerConfigLength);
+				let config = importerConfigLength == 0 ? null : new String(importerConfigLength)..PrepareBuffer(importerConfigLength);
 				if (importerConfigLength != 0)
 					sr.ReadInto!(Span<uint8>((.)&config[0], importerConfigLength));
 				let entryCount = sr.Read<uint32>();
@@ -344,7 +327,7 @@ namespace Pile
 					if (nameLength == 0 || entry.isPatched && !flags.HasFlag(.Patched))
 						LogErrorReturn!("Couldn't read package. Index data corrupt (invalid entry)");
 
-					let name = new String(nameLength);
+					let name = new String(nameLength)..PrepareBuffer(nameLength);
 					sr.ReadInto!(Span<uint8>((.)&name[0], nameLength));
 					entry.name = name;
 

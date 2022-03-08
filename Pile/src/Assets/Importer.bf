@@ -122,8 +122,9 @@ namespace Pile
 					if (bytes == 0)
 						return .Ok;
 					ptr += bytes;
+					
+					Debug.Assert(ptr <= end);
 
-					Debug.Assert(ptr < end);
 				case .Err:
 					return .Err;
 				}
