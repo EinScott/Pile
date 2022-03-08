@@ -193,6 +193,13 @@ namespace Pile
 					fileExt.Append('.');
 				fileExt.Append(ext);
 
+				switch (fileExt)
+				{
+				case ".bon", "", ".":
+					Log.Warn(scope $"Importer wants file extension '{fileExt}' - which we ignore! This will likely cause problems, choose a more specific file ending!");
+					continue;
+				}
+
 				exts.Add(fileExt);
 			}
 			exts
@@ -286,6 +293,10 @@ namespace Pile
 				}
 			}
 
+			// TODO: deletion / scope problems here!
+			// why do we save files as .bin.bin??
+			// rename errror?
+			
 			List<(Importer importer, String importerConfig, bool dependModified, List<(String path, bool modified)> targets)> passSets = scope .(8);
 			defer
 			{
@@ -353,10 +364,19 @@ namespace Pile
 
 							duplicateNameLookup.Add(new .(relativePath));
 
-							bool wasModifiedSinceLastBuild = true;
-							if (oldPackageStream != null
-								&& entry.GetLastWriteTimeUtc() < oldPackageBuildDate)
-								wasModifiedSinceLastBuild = false;
+							bool wasModifiedSinceLastBuild = false;
+							if (oldPackageStream == null
+								|| entry.GetLastWriteTimeUtc() >= oldPackageBuildDate)
+								wasModifiedSinceLastBuild = true;
+
+							if (!wasModifiedSinceLastBuild)
+							{
+								let metaFilePath = Importer.[Friend]ToScopedMetaFilePath!(path);
+								if (metaFilePath != path && File.Exists(metaFilePath)
+									&& (oldPackageStream == null
+									|| File.GetLastWriteTimeUtc(metaFilePath) >= oldPackageBuildDate))
+									wasModifiedSinceLastBuild = true;
+							}
 
 							targets.Add((new .(path), wasModifiedSinceLastBuild));
 						}));
@@ -366,7 +386,8 @@ namespace Pile
 						continue;
 
 					bool dependModified = false;
-					if (dependPath != targetPath)
+					if (dependPath != targetPath
+						&& importer.DependantExtensions.Length > 0)
 					{
 						let dependExts = FixExtensionsScoped!(importer.DependantExtensions);
 
@@ -376,9 +397,18 @@ namespace Pile
 								let relativePath = GetScopedAssetName!(path, inputPath, false);
 								hashBuilder.Update(.((.)&relativePath[0], relativePath.Length));
 
-								if (oldPackageStream != null
-									&& entry.GetLastWriteTimeUtc() >= oldPackageBuildDate)
-									dependModified = true;
+								if (!dependModified)
+								{
+									if (oldPackageStream == null
+										|| entry.GetLastWriteTimeUtc() >= oldPackageBuildDate)
+										dependModified = true;
+
+									let metaFilePath = Importer.[Friend]ToScopedMetaFilePath!(path);
+									if (metaFilePath != path && File.Exists(metaFilePath)
+										&& (oldPackageStream == null
+										|| File.GetLastWriteTimeUtc(metaFilePath) >= oldPackageBuildDate))
+										dependModified = true;
+								}
 							}));
 					}
 
@@ -443,7 +473,7 @@ namespace Pile
 				if (importerIndex == -1)
 				{
 					importerIndex = fileIndex.importerNames.Count;
-					fileIndex.importerNames.Add(importer.Name);
+					fileIndex.importerNames.Add(new .(importer.Name));
 				}
 
 				importer.ClearConfig();
@@ -475,7 +505,7 @@ namespace Pile
 
 					uint8[] entryData = null;
 					bool needToBuildData = true;
-					if (!target.modified && oldPackageFileIndex != null)
+					if (oldPackageFileIndex != null && passSet.dependModified && !target.modified)
 					{
 						for (let entry in oldIndexPass.entries)
 						{

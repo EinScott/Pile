@@ -10,7 +10,7 @@ namespace Pile
 	{
 		public override String Name => "font";
 
-		const StringView[?] ext = .("ttf");
+		static StringView[?] ext = .("ttf"); // @report: const-ing this corrupts!
 		public override Span<StringView> TargetExtensions => ext;
 
 		public override Result<void> Load(StringView name, Span<uint8> data)

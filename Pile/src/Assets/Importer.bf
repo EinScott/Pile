@@ -96,9 +96,11 @@ namespace Pile
 			}
 		}
 
-		protected static mixin ToMetaFilePath(StringView path, String into)
+		protected static mixin ToScopedMetaFilePath(StringView path)
 		{
+			let into = scope:mixin String(path.Length + 10);
 			Path.ChangeExtension(path, ".meta.bon", into);
+			into
 		}
 
 		protected static Result<void> ReadFullFile(StringView path, ref uint8[] outDataAlloc)

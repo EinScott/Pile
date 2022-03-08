@@ -12,7 +12,7 @@ namespace Pile
 
 		public override String Name => "audioClip";
 
-		const StringView[?] ext = .("ogg", "mp3", "wav");
+		static StringView[?] ext = .("ogg", "mp3", "wav");
 		public override Span<StringView> TargetExtensions => ext;
 
 		public override Result<void> Load(StringView name, Span<uint8> data)

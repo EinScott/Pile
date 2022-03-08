@@ -16,7 +16,7 @@ namespace Pile
 	{
 		public override String Name => "image";
 
-		const StringView[?] ext = .("png");
+		static StringView[?] ext = .("png");
 		public override Span<StringView> TargetExtensions => ext;
 
 		public override Result<void> Load(StringView name, Span<uint8> data)

@@ -215,7 +215,8 @@ namespace Pile
 				if (configLen > uint16.MaxValue)
 					LogErrorReturn!("Couldn't write package. Importer config too long (max 65535 chars)");
 				sr.Write<uint16>((.)configLen);
-				sr.Write!(Span<uint8>((.)&pass.importerConfig[0], configLen));
+				if (configLen > 0)
+					sr.Write!(Span<uint8>((.)&pass.importerConfig[0], configLen));
 
 				if (pass.entries.Count > uint32.MaxValue)
 					LogErrorReturn!("Couldn't write package. Too many pass entries used (max uint32.MaxValue)");

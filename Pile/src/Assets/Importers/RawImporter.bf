@@ -9,7 +9,7 @@ namespace Pile
 	{
 		public override String Name => "raw";
 
-		const StringView[?] ext = .("bin", "txt");
+		static StringView[?] ext = .("bin", "txt");
 		public override Span<StringView> TargetExtensions => ext;
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
