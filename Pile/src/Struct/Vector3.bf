@@ -6,15 +6,15 @@
 // ivtype=Point3
 // fvtype=
 // compatv=Vector2:float:2;Point2:int:2
-// GenHash=2F72B5449A6FBEE706DE06166CE468B8
+// GenHash=4D5F7237F7785BBAF6716ACA9912E11C
 
 
-// Generated at 2/1/2022 6:12:13 PM. Do not edit file, use extensions!
+// Generated at 3/8/2022 8:33:22 PM. Do not edit file, use extensions!
 using System;
 
 namespace Pile
 {
-	struct Vector3 : IFormattable, IEquatable<Vector3>
+	struct Vector3 : IFormattable, IEquatable<Vector3>, IHashable
 	{
 		public const Self Zero = .();
 		public const Self One = .(1);
@@ -96,6 +96,14 @@ namespace Pile
 			outString.Append(", ");
 			Z.ToString(outString, format, formatProvider);
 			outString.Append(" ]");
+		}
+
+		public int GetHashCode()
+		{
+			var hash = X.GetHashCode();
+			hash ^= (hash << 5) + (hash >> 2) + Y.GetHashCode();
+			hash ^= (hash << 5) + (hash >> 2) + Z.GetHashCode();
+			return hash;
 		}
 
 		/// Returns the Euclidean distance between the two given points.

@@ -275,7 +275,7 @@ namespace Pile
 			// Does the package already exist?
 			DateTime oldPackageBuildDate = default;
 			SHA256Hash oldSourceHash = default;
-			FileStream oldPackageStream = null;
+			Serializer oldPackageSr = null;
 			uint64 oldPackageStartPos = 0, oldPackageIndexPos = 0, oldPackageFileSize = 0;
 			PackageFormat.PackageFlags oldPackageFlags = default;
 
@@ -289,11 +289,12 @@ namespace Pile
 				&& oldConfigFileChange < oldPackageBuildDate) // We already built with this config!
 			{
 				// Salvage data from the existing package (don't need to recompute what didn't change)
-				if ((PackageFormat.OpenPackage(outputPath, oldPackageStream = scope:: .()) case .Err)
-					|| PackageFormat.ReadPackageHeader(oldPackageStream, out oldPackageFlags, out oldSourceHash, out oldPackageStartPos, out oldPackageFileSize, out oldPackageIndexPos) case .Err)
+				FileStream fs = scope:: .();
+				if ((PackageFormat.OpenPackage(outputPath, fs) case .Err)
+					|| PackageFormat.ReadPackageHeader(oldPackageSr = scope:: .(fs), out oldPackageFlags, out oldSourceHash, out oldPackageStartPos, out oldPackageFileSize, out oldPackageIndexPos) case .Err)
 				{
-					oldPackageStream.Close(); // We're just reading.. this should never return .Err!
-					oldPackageStream = null;
+					fs.Close(); // We're just reading.. this should never return .Err!
+					oldPackageSr = null;
 				}
 			}
 			
@@ -369,7 +370,7 @@ namespace Pile
 							duplicateNameLookup.Add(new .(relativePath));
 
 							bool wasModifiedSinceLastBuild = false;
-							if (oldPackageStream == null
+							if (oldPackageSr == null
 								|| entry.GetLastWriteTimeUtc() >= oldPackageBuildDate)
 								wasModifiedSinceLastBuild = true;
 
@@ -377,7 +378,7 @@ namespace Pile
 							{
 								let metaFilePath = Importer.[Friend]ToScopedMetaFilePath!(path);
 								if (metaFilePath != path && File.Exists(metaFilePath)
-									&& (oldPackageStream == null
+									&& (oldPackageSr == null
 									|| File.GetLastWriteTimeUtc(metaFilePath) >= oldPackageBuildDate))
 									wasModifiedSinceLastBuild = true;
 							}
@@ -395,7 +396,7 @@ namespace Pile
 					{
 						let dependExts = FixExtensionsScoped!(importer.DependantExtensions);
 
-						Try!(ForFilesInDirRecursive(targetPath, dependExts, scope [&dependModified,&hashBuilder,&inputPath,&oldPackageStream,&oldPackageBuildDate](entry, path) =>
+						Try!(ForFilesInDirRecursive(targetPath, dependExts, scope [&dependModified,&hashBuilder,&inputPath,&oldPackageSr,&oldPackageBuildDate](entry, path) =>
 							{
 								// Also hash these since they potentially affect importer behavior
 								let relativePath = GetScopedAssetName!(path, inputPath, false);
@@ -403,13 +404,13 @@ namespace Pile
 
 								if (!dependModified)
 								{
-									if (oldPackageStream == null
+									if (oldPackageSr == null
 										|| entry.GetLastWriteTimeUtc() >= oldPackageBuildDate)
 										dependModified = true;
 
 									let metaFilePath = Importer.[Friend]ToScopedMetaFilePath!(path);
 									if (metaFilePath != path && File.Exists(metaFilePath)
-										&& (oldPackageStream == null
+										&& (oldPackageSr == null
 										|| File.GetLastWriteTimeUtc(metaFilePath) >= oldPackageBuildDate))
 										dependModified = true;
 								}
@@ -444,7 +445,7 @@ namespace Pile
 			}
 
 			if (!sourceChanged
-				&& oldPackageStream != null
+				&& oldPackageSr != null
 				&& sourceHash == oldSourceHash)
 			{
 				t.Stop();
@@ -453,18 +454,19 @@ namespace Pile
 			}
 
 			PackageFormat.Index oldPackageFileIndex = null;
-			if (oldPackageStream != null)
+			if (oldPackageSr != null)
 			{
 				oldPackageFileIndex = scope:: .();
 
-				if (PackageFormat.ReadPackageIndex(oldPackageStream, oldPackageIndexPos, oldPackageStartPos, oldPackageFileSize, oldPackageFlags, oldPackageFileIndex) case .Err)
+				if (PackageFormat.ReadPackageIndex(oldPackageSr, oldPackageIndexPos, oldPackageStartPos, oldPackageFileSize, oldPackageFlags, oldPackageFileIndex) case .Err)
 					oldPackageFileIndex = null; // Then... don't
 			}
 
 			let newPackagePath = scope String(outputPath.Length + 5)..Append(outputPath)..Append(".build");
 			FileStream packageStream = scope .();
 			Try!(PackageFormat.CreatePackage(newPackagePath, packageStream));
-			Try!(PackageFormat.WritePackageHeaderProvisional(packageStream, .None, sourceHash, let packageStartPos));
+			let sr = scope Serializer(packageStream);
+			Try!(PackageFormat.WritePackageHeaderProvisional(sr, .None, sourceHash, let packageStartPos));
 
 			PackageFormat.Index fileIndex = scope .();
 
@@ -521,7 +523,7 @@ namespace Pile
 							if (entry.name == entryName)
 							{
 								entryData = new .[entry.length];
-								if (PackageFormat.ReadPackageData(oldPackageStream, oldPackageStartPos, entry, entryData) case .Err)
+								if (PackageFormat.ReadPackageData(oldPackageSr, oldPackageStartPos, entry, entryData) case .Err)
 								{
 									// Just try to build then...
 									DeleteAndNullify!(entryData);
@@ -549,21 +551,21 @@ namespace Pile
 
 					Debug.Assert(entryData != null);
 
-					Try!(PackageFormat.WritePackageData(packageStream, entryName, entryData, packageStartPos, let passEntry));
+					Try!(PackageFormat.WritePackageData(sr, entryName, entryData, packageStartPos, let passEntry));
 					indexPass.entries.Add(passEntry);
 				}
 			}
 
 			uint64 packageIndexOffset = (.)packageStream.Position - packageStartPos;
-			Try!(PackageFormat.WritePackageIndex(packageStream, fileIndex));
-			Try!(PackageFormat.WritePackageHeaderComplete(packageStream, packageIndexOffset, packageStartPos));
+			Try!(PackageFormat.WritePackageIndex(sr, fileIndex));
+			Try!(PackageFormat.WritePackageHeaderComplete(sr, packageIndexOffset, packageStartPos));
 
 			if (packageStream.Close() case .Err)
 				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Couldn't finish writing");
 
-			if (oldPackageStream != null)
+			if (oldPackageSr != null)
 			{
-				oldPackageStream.Close(); // We only read... this should never error!
+				oldPackageSr.underlyingStream.Close(); // We only read... this should never error!
 				File.Delete(outputPath).IgnoreError();
 			}
 

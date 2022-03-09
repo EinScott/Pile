@@ -274,7 +274,7 @@ namespace Pile
 			f.NewLine();
 
 			f.Start("namespace Pile");
-			f.Start(scope $"struct {name} : IFormattable, IEquatable<{name}>");
+			f.Start(scope $"struct {name} : IFormattable, IEquatable<{name}>, IHashable");
 			
 			// Consts
 			{
@@ -438,6 +438,29 @@ namespace Pile
 						f.Put("outString.Append(\", \");");
 				}
 				f.Put("outString.Append(\" ]\");");
+			}
+
+			f.NewLine();
+
+			using (f.Start("public int GetHashCode()"))
+			{
+				if (componentCount <= 4)
+				{
+					f.Put(scope $"var hash = {GetComponentField(.. scope .(), 0, componentCount)}.GetHashCode();");
+					for (let compIdx < componentCount - 1)
+					{
+						f.Put(scope $"hash ^= (hash << 5) + (hash >> 2) + {GetComponentField(.. scope .(), compIdx + 1, componentCount)}.GetHashCode();");
+					}
+				}
+				else
+				{
+					f.Put("int hash = 0;");
+					using (f.Start(scope $"for (let i < {componentCount})"))
+					{
+						f.Put("hash ^= (hash << 5) + (hash >> 2) + components[i].GetHashCode();");
+					}
+				}
+				f.Put("return hash;");
 			}
 
 			f.NewLine();

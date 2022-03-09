@@ -109,11 +109,9 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> WritePackageHeaderProvisional(Stream outStream, PackageFlags flags, SHA256Hash sourceHash, out uint64 startPosition)
+		public static Result<void> WritePackageHeaderProvisional(Serializer sr, PackageFlags flags, SHA256Hash sourceHash, out uint64 startPosition)
 		{
-			startPosition = (.)outStream.Position;
-
-			Serializer sr = scope .(outStream);
+			startPosition = (.)sr.underlyingStream.Position;
 
 			Debug.Assert(!flags.HasFlag(.Patched)); // We're writing fresh packages!
 			sr.Write!(uint8[?](0x50, 0x4C, 0x50, VERSION, flags.Underlying)); // Header & Version & Flags
@@ -132,15 +130,13 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> WritePackageHeaderComplete(Stream outStream, uint64 indexOffset, uint64 startPosition)
+		public static Result<void> WritePackageHeaderComplete(Serializer sr, uint64 indexOffset, uint64 startPosition)
 		{
-			Serializer sr = scope .(outStream);
-
 			let fillPos = startPosition + 5 /* header / version / flags */ + 32 /* source hash */;
 
-			Debug.Assert(fillPos + 16 < (.)outStream.Position);
-			uint64 fileSize = (.)outStream.Position - startPosition;
-			if (outStream.Seek((.)fillPos) case .Err)
+			Debug.Assert(fillPos + 16 < (.)sr.underlyingStream.Position);
+			uint64 fileSize = (.)sr.underlyingStream.Position - startPosition;
+			if (sr.underlyingStream.Seek((.)fillPos) case .Err)
 				LogErrorReturn!("Couldn't write package. Failed to seek back to header");
 			
 			sr.Write<uint64>((.)fileSize);
@@ -152,14 +148,12 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> WritePackageData(Stream outStream, StringView entryName, Span<uint8> entryData, uint64 startPosition, out IndexPassEntry indexEntry)
+		public static Result<void> WritePackageData(Serializer sr, StringView entryName, Span<uint8> entryData, uint64 startPosition, out IndexPassEntry indexEntry)
 		{
-			Serializer sr = scope .(outStream);
-
 			indexEntry = default;
 
 			indexEntry.name = new .(entryName);
-			indexEntry.offset = (.)outStream.Position - startPosition;
+			indexEntry.offset = (.)sr.underlyingStream.Position - startPosition;
 			indexEntry.length = (uint64)entryData.Length;
 
 			if (indexEntry.length != 0)
@@ -171,11 +165,9 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> WritePackageIndex(Stream outStream, Index fileIndex)
+		public static Result<void> WritePackageIndex(Serializer sr, Index fileIndex)
 		{
 			Debug.Assert(fileIndex.passes.Count > 0 && fileIndex.importerNames.Count > 0);
-
-			Serializer sr = scope .(outStream);
 
 			if (fileIndex.importerNames.Count > uint8.MaxValue)
 				LogErrorReturn!("Couldn't write package. Too many importers used (max 256)");
@@ -243,11 +235,9 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> ReadPackageHeader(Stream inStream, out PackageFlags flags, out SHA256Hash sourceHash, out uint64 startPosition, out uint64 fileSize, out uint64 indexPosition)
+		public static Result<void> ReadPackageHeader(Serializer sr, out PackageFlags flags, out SHA256Hash sourceHash, out uint64 startPosition, out uint64 fileSize, out uint64 indexPosition)
 		{
-			Serializer sr = scope .(inStream);
-
-			startPosition = (.)inStream.Position;
+			startPosition = (.)sr.underlyingStream.Position;
 			let header = sr.ReadInto!(scope uint8[5]());
 			if (header[0] != 0x50 || header[1] != 0x4C || header[2] != 0x50 || header[3] != VERSION)
 			{
@@ -273,13 +263,11 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> ReadPackageIndex(Stream inStream, uint64 indexPosition, uint64 startPosition, uint64 fileSize, PackageFlags flags, Index fileIndex)
+		public static Result<void> ReadPackageIndex(Serializer sr, uint64 indexPosition, uint64 startPosition, uint64 fileSize, PackageFlags flags, Index fileIndex)
 		{
-			Serializer sr = scope .(inStream);
-
 			if (indexPosition == 0)
 				LogErrorReturn!("Invalid index position");
-			Try!(inStream.Seek((.)indexPosition));
+			Try!(sr.underlyingStream.Seek((.)indexPosition));
 
 			Debug.Assert(fileIndex != null);
 			Debug.Assert(fileIndex.importerNames.Count == 0 && fileIndex.passes.Count == 0);
@@ -347,7 +335,7 @@ namespace Pile
 				}
 			}
 			
-			if (fileSize != (.)inStream.Position - startPosition)
+			if (fileSize != (.)sr.underlyingStream.Position - startPosition)
 				LogErrorReturn!("Couldn't read package. File size miss-match");
 
 			if (sr.HadError)
@@ -356,13 +344,12 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> ReadPackageData(Stream inStream, uint64 startPosition, IndexPassEntry entry, Span<uint8> buffer)
+		public static Result<void> ReadPackageData(Serializer sr, uint64 startPosition, IndexPassEntry entry, Span<uint8> buffer)
 		{
-			Try!(inStream.Seek((.)startPosition + (.)entry.offset));
+			Try!(sr.underlyingStream.Seek((.)startPosition + (.)entry.offset));
 
 			Debug.Assert(entry.length == (.)buffer.Length);
 
-			Serializer sr = scope .(inStream);
 			sr.ReadInto!(buffer);
 
 			if (sr.HadError)
@@ -373,18 +360,18 @@ namespace Pile
 
 		// TODO
 
-		public static Result<void> PatchPackageData(Stream outStream, Span<uint8> entryData, ref IndexPassEntry passEntry, out uint64 appendSize)
+		public static Result<void> PatchPackageData(Serializer sr, Span<uint8> entryData, ref IndexPassEntry passEntry, out uint64 appendSize)
 		{
 			appendSize = 0;
 			return .Err;
 		}
 
-		public static Result<void> PatchPackageRemove(Stream outStream, ref IndexPassEntry passEntry)
+		public static Result<void> PatchPackageRemove(Serializer sr, ref IndexPassEntry passEntry)
 		{
 			return .Err;
 		}
 
-		public static Result<void> PatchPackageHeader(Stream outStream, PackageFlags flags, SHA256Hash sourceHash, uint64 fileSize, uint64 indexOffset, uint64 startPosition)
+		public static Result<void> PatchPackageHeader(Serializer sr, PackageFlags flags, SHA256Hash sourceHash, uint64 fileSize, uint64 indexOffset, uint64 startPosition)
 		{
 			// Add .Patched to flags in any case!
 

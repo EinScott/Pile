@@ -224,10 +224,11 @@ namespace Pile
 
 			let packageStream = scope FileStream();
 			Try!(PackageFormat.OpenPackage(loadPath, packageStream));
-			Try!(PackageFormat.ReadPackageHeader(packageStream, let packageFlags, ?, let packageStartPos, let packageFileSize, let packageIndexPos));
+			let sr = scope Serializer(packageStream);
+			Try!(PackageFormat.ReadPackageHeader(sr, let packageFlags, ?, let packageStartPos, let packageFileSize, let packageIndexPos));
 
 			PackageFormat.Index fileIndex = scope .();
-			Try!(PackageFormat.ReadPackageIndex(packageStream, packageIndexPos, packageStartPos, packageFileSize, packageFlags, fileIndex));
+			Try!(PackageFormat.ReadPackageIndex(sr, packageIndexPos, packageStartPos, packageFileSize, packageFlags, fileIndex));
 
 			let package = new Package();
 			package.name.Set(packageName);
@@ -248,6 +249,8 @@ namespace Pile
 			Importer importer;
 			Importer.currentPackage = package; // TODO: make this something local instead somehow?
 
+			List<uint8> loadData = scope .(1024);
+
 			for (let pass in fileIndex.passes)
 			{
 				// Find importer
@@ -262,18 +265,13 @@ namespace Pile
 
 				for (let entry in pass.entries) LOAD:
 				{
-					uint8[] data;
-					if (entry.length <= 1024)
-						data = scope:LOAD .[entry.length];
-					else
-					{
-						data = new .[entry.length];
-						defer:LOAD delete data;
-					}
+					if (entry.length > (.)loadData.Count)
+						loadData.GrowUnitialized((.)entry.length - loadData.Count);
+					else loadData.Count = (.)entry.length;
 
-					Try!(PackageFormat.ReadPackageData(packageStream, packageStartPos, entry, data));
+					Try!(PackageFormat.ReadPackageData(sr, packageStartPos, entry, loadData));
 
-					if (importer.Load(entry.name, data) case .Err)
+					if (importer.Load(entry.name, loadData) case .Err)
 						LogErrorReturn!(scope $"Couldn't load package '{packageName}'. Failed to import '{entry.name}' with '{importer.Name}'");
 				}
 			}
