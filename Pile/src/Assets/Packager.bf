@@ -39,51 +39,58 @@ namespace Pile
 			assetsPath
 		}
 
-		[Optimize]
-		internal static Result<void> BuildAndPackageAssets()
+		static Result<void> GetAssetPaths(String inPath, String outPath)
 		{
-			String inPath = scope .();
-			String outPath = scope .();
+			let dirPath = scope String();
+			if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 			{
-				let dirPath = scope String();
-				if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
+				let assetsPath = Path.GetAbsolutePath(relativeAssetsPath, dirPath, .. scope String());
+
+				// If the usual dir doesnt exist... try args
+				if (!Directory.Exists(assetsPath))
 				{
-					let assetsPath = Path.GetAbsolutePath(relativeAssetsPath, dirPath, .. scope String());
-
-					// If the usual dir doesnt exist... try args
-					if (!Directory.Exists(assetsPath))
+					if (Core.CommandLine.Count > 1)
 					{
-						if (Core.CommandLine.Count > 1)
+						if (Path.IsPathRooted(Core.CommandLine[1]))
+							assetsPath.Set(Core.CommandLine[1]);
+						else
 						{
-							if (Path.IsPathRooted(Core.CommandLine[1]))
-								assetsPath.Set(Core.CommandLine[1]);
-							else
-							{
-								assetsPath.Clear();
-								Path.GetAbsolutePath(Core.CommandLine[1], dirPath, assetsPath);
-							}
-						}
-
-						if (!Directory.Exists(assetsPath))
-						{
-							Log.Warn("Assets folder couldn't be found in workspace.");
-							return .Ok;
+							assetsPath.Clear();
+							Path.GetAbsolutePath(Core.CommandLine[1], dirPath, assetsPath);
 						}
 					}
 
-					inPath.Append(assetsPath);
-					outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
+					if (!Directory.Exists(assetsPath))
+					{
+						Log.Warn("Assets folder couldn't be found in workspace.");
+						return .Ok;
+					}
 				}
-			}
 
-			if (!Directory.Exists(inPath))
-			{
-				Log.Info(scope $"No packages to build. {inPath} doesn't exist");
+				inPath.Append(assetsPath);
+				outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
+
+				if (!Directory.Exists(inPath))
+				{
+					Log.Info(scope $"No packages to build. {inPath} doesn't exist");
+					return .Ok;
+				}
+
+				if (!Directory.Exists(outPath) && (Directory.CreateDirectory(outPath) case .Err(let err)))
+					LogErrorReturn!(scope $"Failed to create package output path {outPath}");
+
 				return .Ok;
 			}
 
-			if (!Directory.Exists(outPath) && (Directory.CreateDirectory(outPath) case .Err(let err)))
-				LogErrorReturn!(scope $"Failed to create package output path {outPath}");
+			return .Err;
+		}
+
+		[Optimize]
+		internal static Result<void> BuildAndPackageAssets(bool quickPatchOldFile = false)
+		{
+			String inPath = scope .(260);
+			String outPath = scope .(260);
+			Try!(GetAssetPaths(inPath, outPath));
 
 			let tasks = scope List<PackageBuildTask>();
 
@@ -91,12 +98,12 @@ namespace Pile
 			for (let file in Directory.EnumerateFiles(inPath))
 			{
 				// Identify file
-				let path = file.GetFilePath(.. scope String());
+				let path = file.GetFilePath(.. scope String(260));
 
 				if (!path.EndsWith(".package.bon")) continue;
 
 				// Add these as PackageBuildTask, because we need the details passed in to log errors later on
-				tasks.Add(BuildPackageAsync(path, outPath) as PackageBuildTask);
+				tasks.Add(scope:: PackageBuildTask(path, outPath, quickPatchOldFile));
 			}
 
 			if (tasks.Count == 0)
@@ -118,7 +125,6 @@ namespace Pile
 
 						// Remove task
 						tasks.RemoveAtFast(i--);
-						delete task;
 					}
 				}
 			}
@@ -184,7 +190,7 @@ namespace Pile
 			path
 		}
 
-		static mixin FixExtensionsScoped(Span<StringView> extensions)
+		static mixin PrepareExtensionsScoped(Span<StringView> extensions)
 		{
 			List<String> exts = scope:mixin .(extensions.Length);
 			for (let ext in extensions)
@@ -204,6 +210,29 @@ namespace Pile
 				exts.Add(fileExt);
 			}
 			exts
+		}
+
+		static mixin DoImporterBuild(Importer importer, StringView targetPath, ref uint8[] entryData, StringView packageName)
+		{
+			switch (importer.Build(targetPath))
+			{
+			case .Err:
+				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to build file '{targetPath}' with importer {importer.Name}");
+			case .Ok(out entryData):
+			}
+
+			if (entryData == null)
+				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Importer {importer.Name} returned no data for '{targetPath}'");
+
+			Debug.Assert(entryData != null);
+		}
+
+		static mixin PrepareImporterConfig(Importer importer, String importerConfig, StringView packageName)
+		{
+			importer.ClearConfig();
+			if (importerConfig != null
+				&& importer.SetConfig(importerConfig) case .Err)
+				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to set config of importer '{importer.Name}'");
 		}
 
 		static Result<void> ForFilesInDirRecursive(StringView path, Span<String> fileExtensions, delegate void(FileFindEntry e, StringView path) onFile)
@@ -256,8 +285,9 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> BuildPackage(StringView configFilePath, StringView outputFolderPath)
+		public static Result<void> BuildPackage(StringView configFilePath, StringView outputFolderPath, bool quickPatchOldFile = false)
 		{
+			var quickPatchOldFile;
 			let t = scope Stopwatch(true);
 			
 			PackageConfig config = scope PackageConfig();
@@ -290,12 +320,18 @@ namespace Pile
 			{
 				// Salvage data from the existing package (don't need to recompute what didn't change)
 				FileStream fs = scope:: .();
-				if ((PackageFormat.OpenPackage(outputPath, fs) case .Err)
+				if ((PackageFormat.OpenPackage(outputPath, fs, quickPatchOldFile) case .Err)
 					|| PackageFormat.ReadPackageHeader(oldPackageSr = scope:: .(fs), out oldPackageFlags, out oldSourceHash, out oldPackageStartPos, out oldPackageFileSize, out oldPackageIndexPos) case .Err)
 				{
 					fs.Close(); // We're just reading.. this should never return .Err!
 					oldPackageSr = null;
 				}
+			}
+
+			if (quickPatchOldFile && oldPackageSr == null)
+			{
+				// We cannot patch it!
+				quickPatchOldFile = false;
 			}
 			
 			List<(Importer importer, String importerConfig, bool dependModified, List<(String path, bool modified)> targets)> passSets = scope .(8);
@@ -345,7 +381,7 @@ namespace Pile
 					let targetPath = Path.Clean(.. Path.GetAbsolutePath(pass.targetDir..Trim(), inputPath, .. scope .(Math.Min(260, inputPath.Length + pass.targetDir.Length))));
 					let dependPath = pass.dependDir == null ? targetPath : Path.Clean(.. Path.GetAbsolutePath(pass.dependDir..Trim(), inputPath, .. scope .(Math.Min(260, inputPath.Length + pass.dependDir.Length))));
 
-					let targetExts = FixExtensionsScoped!(importer.TargetExtensions);
+					let targetExts = PrepareExtensionsScoped!(importer.TargetExtensions);
 
 					Try!(ForFilesInDirRecursive(targetPath, targetExts, scope (entry, path) =>
 						{
@@ -394,7 +430,7 @@ namespace Pile
 					if (dependPath != targetPath
 						&& importer.DependantExtensions.Length > 0)
 					{
-						let dependExts = FixExtensionsScoped!(importer.DependantExtensions);
+						let dependExts = PrepareExtensionsScoped!(importer.DependantExtensions);
 
 						Try!(ForFilesInDirRecursive(targetPath, dependExts, scope [&dependModified,&hashBuilder,&inputPath,&oldPackageSr,&oldPackageBuildDate](entry, path) =>
 							{
@@ -459,7 +495,81 @@ namespace Pile
 				oldPackageFileIndex = scope:: .();
 
 				if (PackageFormat.ReadPackageIndex(oldPackageSr, oldPackageIndexPos, oldPackageStartPos, oldPackageFileSize, oldPackageFlags, oldPackageFileIndex) case .Err)
+				{
 					oldPackageFileIndex = null; // Then... don't
+					quickPatchOldFile = false;
+				}
+			}
+
+			PATCH: do if (quickPatchOldFile)
+			{
+				Debug.Assert(oldPackageFileIndex != null);
+
+				var oldPackagePatchedIndexPos = oldPackageIndexPos;
+
+				for (let passSet in passSets)
+				{
+					Debug.Assert(passSet.targets.Count > 0);
+
+					if (!passSet.dependModified)
+						continue;
+
+					let importer = passSet.importer;
+					PrepareImporterConfig!(importer, passSet.importerConfig, packageName);
+
+					Debug.Assert(oldPackageFileIndex.passes.Count == passSets.Count);
+					let oldIndexPass = oldPackageFileIndex.passes[@passSet.Index];
+
+					for (let target in passSet.targets)
+					{
+						if (!target.modified)
+							continue;
+
+						let entryName = GetScopedAssetName!(target.path, inputPath);
+						Debug.Assert(entryName.Length > 0);
+
+						int existingIndexEntryIdx = -1;
+						for (let entry in oldIndexPass.entries)
+						{
+							if (entry.name == entryName)
+							{
+								existingIndexEntryIdx = @entry.Index;
+								break;
+							}
+						}
+
+						uint8[] entryData = null;
+						DoImporterBuild!(importer, target.path, ref entryData, packageName);
+
+						if (existingIndexEntryIdx != -1)
+						{
+							if (PackageFormat.PatchExistingPackageData(oldPackageSr, entryData, ref oldIndexPass.entries[existingIndexEntryIdx], oldPackageStartPos, ref oldPackagePatchedIndexPos) case .Err)
+								break PATCH;
+						}
+						else
+						{
+							if (PackageFormat.PatchNewPackageData(oldPackageSr, entryName, entryData, oldPackageStartPos, ref oldPackagePatchedIndexPos, let indexEntry) case .Err)
+								break PATCH;
+
+							oldIndexPass.entries.Add(indexEntry);
+						}
+
+						delete entryData;
+					}
+				}
+
+				if ((oldPackageSr.underlyingStream.Seek((.)oldPackageStartPos + (.)oldPackagePatchedIndexPos) case .Err)
+					|| (PackageFormat.WritePackageIndex(oldPackageSr, oldPackageFileIndex) case .Err)
+					|| (PackageFormat.PatchPackageHeader(oldPackageSr, .None, sourceHash, oldPackagePatchedIndexPos, oldPackageStartPos) case .Err))
+					break PATCH;
+
+				if (oldPackageSr.underlyingStream.Close() case .Err)
+					LogErrorReturn!(scope $"Couldn't patch package '{packageName}'. Couldn't finish writing");
+
+				t.Stop();
+				Log.Info(scope $"Patched package '{packageName}'; took {t.ElapsedMilliseconds}ms");
+
+				return .Ok;
 			}
 
 			let newPackagePath = scope String(outputPath.Length + 5)..Append(outputPath)..Append(".build");
@@ -481,11 +591,7 @@ namespace Pile
 					importerIndex = fileIndex.importerNames.Count;
 					fileIndex.importerNames.Add(new .(importer.Name));
 				}
-
-				importer.ClearConfig();
-				if (passSet.importerConfig != null
-					&& passSet.importer.SetConfig(passSet.importerConfig) case .Err)
-					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to set config of importer '{importer.Name}'");
+				PrepareImporterConfig!(importer, passSet.importerConfig, packageName);
 
 				if (importerIndex > uint8.MaxValue)
 					LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Too many importers used! (max 256)");
@@ -516,7 +622,7 @@ namespace Pile
 					}
 
 					bool needToBuildData = true;
-					if (oldPackageFileIndex != null && passSet.dependModified && !target.modified)
+					if (oldPackageFileIndex != null && !passSet.dependModified && !target.modified)
 					{
 						for (let entry in oldIndexPass.entries)
 						{
@@ -537,22 +643,10 @@ namespace Pile
 					}
 
 					if (needToBuildData)
-					{
-						switch (passSet.importer.Build(target.path))
-						{
-						case .Err:
-							LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Failed to build file '{target.path}' with importer {passSet.importer.Name}");
-						case .Ok(out entryData):
-						}
+						DoImporterBuild!(importer, target.path, ref entryData, packageName);
 
-						if (entryData == null)
-							LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Importer {passSet.importer.Name} returned no data for '{target.path}'");
-					}
-
-					Debug.Assert(entryData != null);
-
-					Try!(PackageFormat.WritePackageData(sr, entryName, entryData, packageStartPos, let passEntry));
-					indexPass.entries.Add(passEntry);
+					Try!(PackageFormat.WritePackageData(sr, entryName, entryData, packageStartPos, let indexEntry));
+					indexPass.entries.Add(indexEntry);
 				}
 			}
 
@@ -578,11 +672,6 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Task<bool> BuildPackageAsync(StringView configPath, StringView outputFolderPath)
-		{
-			return new PackageBuildTask(configPath, outputFolderPath);
-		}
-
 		// adapted from StreamReader
 		internal class PackageBuildTask : Task<bool> // bool indicates success
 		{
@@ -590,11 +679,13 @@ namespace Pile
 
 			String configPath = new String() ~ delete _;
 			String outputFolderPath = new String() ~ delete _;
+			bool quickPatchOldFile;
 
-			public this(StringView packageBuildFilePath, StringView outputFolderPath)
+			public this(StringView packageBuildFilePath, StringView outputFolderPath, bool quickPatchOldFile = false)
 			{
 				this.configPath.Set(packageBuildFilePath);
 				this.outputFolderPath.Set(outputFolderPath);
+				this.quickPatchOldFile = quickPatchOldFile;
 
 				ThreadPool.QueueUserWorkItem(new => Proc);
 			}
@@ -606,7 +697,7 @@ namespace Pile
 
 			void Proc()
 			{
-				m_result = BuildPackage(configPath, outputFolderPath) case .Ok;
+				m_result = BuildPackage(configPath, outputFolderPath, quickPatchOldFile) case .Ok;
 				Finish(false);
 				Ref();
 				if (m_result)

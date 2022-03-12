@@ -345,14 +345,14 @@ namespace Pile
 			Result<void> err = .Ok;
 
 			DateTime buildStart = DateTime.Now;
-			//if (RunPackager() case .Err) // TODO: redo this... no longer call packager!
+			if (Packager.BuildAndPackageAssets(true) case .Err)
 				LogErrorReturn!("Failed to run Packager");
 
 			for (let file in Directory.EnumerateFiles(packagesPath))
 			{
 				if (file.GetLastWriteTime() > buildStart)
 				{
-					let name = Path.GetFileNameWithoutExtension(file.GetFileName(.. scope String()), .. scope String());
+					let name = Path.GetFileNameWithoutExtension(file.GetFileName(.. scope String(64)), .. scope String(64));
 					
 					if (!PackageLoaded(name, ?))
 						continue;

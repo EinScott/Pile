@@ -130,6 +130,7 @@ namespace Pile
 			return .Ok;
 		}
 
+		/// Assumed to be called directly after writing the index (e.g. the stream pos is at the very end)
 		public static Result<void> WritePackageHeaderComplete(Serializer sr, uint64 indexOffset, uint64 startPosition)
 		{
 			let fillPos = startPosition + 5 /* header / version / flags */ + 32 /* source hash */;
@@ -138,7 +139,7 @@ namespace Pile
 			uint64 fileSize = (.)sr.underlyingStream.Position - startPosition;
 			if (sr.underlyingStream.Seek((.)fillPos) case .Err)
 				LogErrorReturn!("Couldn't write package. Failed to seek back to header");
-			
+
 			sr.Write<uint64>((.)fileSize);
 			sr.Write<uint64>(indexOffset);
 
@@ -225,11 +226,11 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> OpenPackage(StringView packagePath, FileStream fs)
+		public static Result<void> OpenPackage(StringView packagePath, FileStream fs, bool write = false)
 		{
 			Debug.Assert(fs != null && fs.Handle == 0);
 
-			if (fs.Open(packagePath, .Open, .Read, .None, 65536) case .Err(let err))
+			if (fs.Open(packagePath, .Open, write ? .Read|.Write : .Read, .None, 65536) case .Err(let err))
 				LogErrorReturn!(scope $"Couldn't read package. Error opening stream to '{packagePath}'");
 
 			return .Ok;
@@ -344,11 +345,11 @@ namespace Pile
 			return .Ok;
 		}
 
-		public static Result<void> ReadPackageData(Serializer sr, uint64 startPosition, IndexPassEntry entry, Span<uint8> buffer)
+		public static Result<void> ReadPackageData(Serializer sr, uint64 startPosition, IndexPassEntry indexEntry, Span<uint8> buffer)
 		{
-			Try!(sr.underlyingStream.Seek((.)startPosition + (.)entry.offset));
+			Try!(sr.underlyingStream.Seek((.)startPosition + (.)indexEntry.offset));
 
-			Debug.Assert(entry.length == (.)buffer.Length);
+			Debug.Assert(indexEntry.length == (.)buffer.Length);
 
 			sr.ReadInto!(buffer);
 
@@ -358,24 +359,90 @@ namespace Pile
 			return .Ok;
 		}
 
-		// TODO
-
-		public static Result<void> PatchPackageData(Serializer sr, Span<uint8> entryData, ref IndexPassEntry passEntry, out uint64 appendSize)
+		public static Result<void> PatchExistingPackageData(Serializer sr, Span<uint8> entryData, ref IndexPassEntry indexEntry, uint64 startPosition, ref uint64 contentEndAndindexPosition)
 		{
-			appendSize = 0;
-			return .Err;
+			let entryLen = Math.Max(indexEntry.length, indexEntry.slotSize);
+			if (entryLen >= (.)entryData.Length)
+			{
+				Try!(sr.underlyingStream.Seek((.)startPosition + (.)indexEntry.offset));
+
+				if (entryData.Length != 0)
+					sr.Write!(entryData);
+
+				if (indexEntry.length != (.)entryData.Length)
+				{
+					indexEntry.isPatched = true;
+					indexEntry.slotSize = indexEntry.length;
+					indexEntry.length = (.)entryData.Length;
+				}
+			}
+			else if (indexEntry.offset + entryLen == contentEndAndindexPosition)
+			{
+				Debug.Assert(entryLen < (.)entryData.Length);
+
+				Try!(sr.underlyingStream.Seek((.)startPosition + (.)indexEntry.offset));
+
+				if (entryData.Length != 0)
+					sr.Write!(entryData);
+
+				indexEntry.length = (.)entryData.Length;
+
+				contentEndAndindexPosition += (.)entryData.Length - entryLen;
+			}
+			else
+			{
+				Try!(sr.underlyingStream.Seek((.)contentEndAndindexPosition));
+
+				if (indexEntry.length != 0)
+					sr.Write!(entryData);
+				
+				indexEntry.offset = (.)sr.underlyingStream.Position - startPosition;
+				indexEntry.length = (uint64)entryData.Length;
+				indexEntry.isPatched = false;
+				indexEntry.slotSize = 0;
+
+				contentEndAndindexPosition += indexEntry.length;
+			}
+
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't patch package. Failed to write data (content data)");
+
+			return .Ok;
 		}
 
-		public static Result<void> PatchPackageRemove(Serializer sr, ref IndexPassEntry passEntry)
+		public static Result<void> PatchNewPackageData(Serializer sr, StringView entryName, Span<uint8> entryData, uint64 startPosition, ref uint64 contentEndAndindexPosition, out IndexPassEntry indexEntry)
 		{
-			return .Err;
+			indexEntry = default;
+
+			// Append to end
+			Try!(sr.underlyingStream.Seek((.)contentEndAndindexPosition));
+			Try!(WritePackageData(sr, entryName, entryData, startPosition, out indexEntry));
+			contentEndAndindexPosition += indexEntry.length;
+
+			return .Ok;
 		}
 
-		public static Result<void> PatchPackageHeader(Serializer sr, PackageFlags flags, SHA256Hash sourceHash, uint64 fileSize, uint64 indexOffset, uint64 startPosition)
+		/// Assumed to be called directly after writing the index (e.g. the stream pos is at the very end)
+		public static Result<void> PatchPackageHeader(Serializer sr, PackageFlags flags, SHA256Hash sourceHash, uint64 indexOffset, uint64 startPosition)
 		{
-			// Add .Patched to flags in any case!
+			uint64 fileSize = (.)sr.underlyingStream.Position - startPosition;
+			if (sr.underlyingStream.Seek((.)startPosition + 4 /* header / version */) case .Err)
+				LogErrorReturn!("Couldn't patch package. Failed to seek back to header");
 
-			return .Err;
+			sr.Write((flags | .Patched).Underlying);
+
+			// Write content hash
+			var sourceHash;
+			let hashSpan = Span<uint8>(&sourceHash.mHash[0], sourceHash.mHash.Count);
+			sr.Write!(hashSpan);
+
+			sr.Write<uint64>((.)fileSize);
+			sr.Write<uint64>(indexOffset);
+
+			if (sr.HadError)
+				LogErrorReturn!("Couldn't patch package. Failed to write data (header)");
+
+			return .Ok;
 		}
 	}
 }

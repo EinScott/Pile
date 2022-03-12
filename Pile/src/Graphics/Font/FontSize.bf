@@ -48,6 +48,8 @@ namespace Pile
 
 	    public this(Font font, uint32 size, Span<char32> charset)
 	    {
+			Debug.Assert(font != null);
+
 	        Font = font;
 	        Size = size;
 	        Scale = font.GetScale(size);
