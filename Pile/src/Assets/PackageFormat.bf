@@ -393,13 +393,13 @@ namespace Pile
 			{
 				Try!(sr.underlyingStream.Seek((.)contentEndAndindexPosition));
 
-				if (indexEntry.length != 0)
-					sr.Write!(entryData);
-				
 				indexEntry.offset = (.)sr.underlyingStream.Position - startPosition;
-				indexEntry.length = (uint64)entryData.Length;
+				indexEntry.length = (.)entryData.Length;
 				indexEntry.isPatched = false;
 				indexEntry.slotSize = 0;
+
+				if (indexEntry.length != 0)
+					sr.Write!(entryData);
 
 				contentEndAndindexPosition += indexEntry.length;
 			}

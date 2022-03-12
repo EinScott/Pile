@@ -482,7 +482,8 @@ namespace Pile
 
 			if (!sourceChanged
 				&& oldPackageSr != null
-				&& sourceHash == oldSourceHash)
+				&& sourceHash == oldSourceHash
+				&& !oldPackageFlags.HasFlag(.Patched))
 			{
 				t.Stop();
 				Log.Info(scope $"Package '{packageName}' didn't change; took {t.ElapsedMilliseconds}ms");
@@ -511,9 +512,6 @@ namespace Pile
 				{
 					Debug.Assert(passSet.targets.Count > 0);
 
-					if (!passSet.dependModified)
-						continue;
-
 					let importer = passSet.importer;
 					PrepareImporterConfig!(importer, passSet.importerConfig, packageName);
 
@@ -522,7 +520,7 @@ namespace Pile
 
 					for (let target in passSet.targets)
 					{
-						if (!target.modified)
+						if (!target.modified && !passSet.dependModified)
 							continue;
 
 						let entryName = GetScopedAssetName!(target.path, inputPath);
