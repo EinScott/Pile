@@ -40,12 +40,12 @@ namespace SDL2
 			case False;
 			case True;
 
-			public static operator Bool (bool val)
+			public static implicit operator Bool (bool val)
 			{
 				return val ? True : False;
 			}
 
-			public static operator bool (Bool val)
+			public static implicit operator bool (Bool val)
 			{
 				return (val == .True) ? true : false;
 			}
@@ -3857,6 +3857,13 @@ namespace SDL2
 			uint32 duration_ms
 		);
 
+		/* joystick refers to an SDL_Joystick*.
+		 * This function is only available in 2.0.18 or higher.
+		 */
+		[LinkName("SDL_JoystickHasRumble")]
+		public static extern Bool JoystickHasRumble(
+			SDL_Joystick* joystick
+		);
 		
 		[LinkName("SDL_JoystickClose")]
 		public static extern void JoystickClose(SDL_Joystick* joystick);
@@ -4260,6 +4267,14 @@ namespace SDL2
 			uint16 low_frequency_rumble,
 			uint16 high_frequency_rumble,
 			uint32 duration_ms
+		);
+
+		/* gamecontroller refers to an SDL_GameController*.
+		* This function is only available in 2.0.18 or higher.
+		*/
+		[LinkName("SDL_GameControllerHasRumble")]
+		public static extern Bool GameControllerHasRumble(
+			SDL_GameController* gamecontroller
 		);
 
 		/* gamecontroller refers to an SDL_GameController* */

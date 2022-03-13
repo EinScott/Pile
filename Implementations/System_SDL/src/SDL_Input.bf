@@ -32,11 +32,17 @@ namespace Pile
 		{
 			if (sdlGamepads[index] != null)
 			{
-				SDL.GameControllerRumble(sdlGamepads[index], (.)(leftMotor * uint16.MaxValue), (.)(rightMotor * uint16.MaxValue), (.)duration);
+				let gameController = sdlGamepads[index];
+				if (!SDL.GameControllerHasRumble(gameController))
+					return;
+				SDL.GameControllerRumble(gameController, (.)(leftMotor * uint16.MaxValue), (.)(rightMotor * uint16.MaxValue), (.)duration);
 			}
 			else if (sdlJoysticks[index] != null)
 			{
-				SDL.JoystickRumble(sdlJoysticks[index], (.)(leftMotor * uint16.MaxValue), (.)(rightMotor * uint16.MaxValue), (.)duration);
+				let joystick = sdlJoysticks[index];
+				if (!SDL.JoystickHasRumble(joystick))
+					return;
+				SDL.JoystickRumble(joystick, (.)(leftMotor * uint16.MaxValue), (.)(rightMotor * uint16.MaxValue), (.)duration);
 			}
 		}
 
