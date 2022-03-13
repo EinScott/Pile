@@ -16,7 +16,7 @@ namespace Pile
 					Runtime.FatalError("Use PersistentAsset<> instead of Asset<> for this type!");
 		}
 
-		this
+		static this
 		{
 			// Check if T should use PersistentAsset instead!
 			ValidateT();
