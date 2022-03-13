@@ -16,6 +16,7 @@ namespace Game
 		Batch2D batch = new .() ~ delete _;
 		SpriteFont debugFont ~ delete _;
 
+		// This is always a reference to the asset with that name if it's loaded
 		Asset<Subtexture> button = Asset<Subtexture>("button");
 
 		bool debugRender;
@@ -105,34 +106,34 @@ namespace Game
 			// weren't rendering onto a blank cleared screen
 
 			{
-				PerfTrack!("DrawTextSimple");
+				PerfTrack("DrawTextSimple");
 				batch.Text(debugFont, "Sample text... I guess?", .(120, 200), .White);
 			}
 
 			{
-				PerfTrack!("DrawTextModified");
+				PerfTrack("DrawTextModified");
 				batch.Text(debugFont, "Hello! I am a text.\nNice to see you.", .(120, 300), .White, .Zero, => SuperCharModifier);
 			}
 
 			{
-				PerfTrack!("DrawTextMixed");
+				PerfTrack("DrawTextMixed");
 				batch.TextMixed(debugFont, "Press {0} to doubt. {0}", Vector2(120, 450), .White, .Zero, => WiggleCharModifier, true, true, button.Asset);
 			}
 
 			batch.HollowRect(textBox, 2, .DarkGray);
 			{
-				PerfTrack!("DrawTextFramed");
+				PerfTrack("DrawTextFramed");
 				batch.TextFramed(debugFont, "Hello I am a text.\nI squeeze in here somehow.\nWeird...", textBox, .White);
 			}
 
 			batch.HollowRect(textBox2, 2, .DarkGray);
 			{
-				PerfTrack!("DrawTextMixedFramed");
+				PerfTrack("DrawTextMixedFramed");
 				batch.TextMixedFramed(debugFont, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .Gray, .Gray, .Zero, 0, null, true, true, button.Asset);
 			}
 
 			{
-				PerfTrack!("DrawTextMixedFramedModified");
+				PerfTrack("DrawTextMixedFramedModified");
 				batch.TextMixedFramed(debugFont, "I found this button today: {}\n it looked very {{interesting}}!\nDoesn't it?\nI think so at least.", textBox2, .White, .White, .Zero, 0, => SuperCharModifier, true, true, button.Asset);
 			}
 

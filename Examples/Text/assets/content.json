@@ -1,8 +1,0 @@
-{
-  "imports": [
-    {
-      "path": "*.png",
-      "importer": "png"
-    }
-  ]
-}

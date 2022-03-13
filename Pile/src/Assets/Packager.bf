@@ -671,11 +671,9 @@ namespace Pile
 				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Couldn't finish writing");
 
 			if (oldPackageSr != null)
-			{
 				oldPackageSr.underlyingStream.Close(); // We only read... this should never error!
-				File.Delete(outputPath).IgnoreError();
-			}
 
+			File.Delete(outputPath).IgnoreError(); // If some file is here, now it is not any more!
 			if (File.Move(newPackagePath, outputPath) case .Err)
 				LogErrorReturn!(scope $"Couldn't build package '{packageName}'. Couldn't rename build file to '{outputPath}'");
 

@@ -28,11 +28,6 @@ namespace Game
 		protected override void Startup()
 		{
 			Log.Info("Hello!");
-
-			// todo: no need to load default stuff anymore, but this is kind of a good example... load some png here?
-
-			// This is automatically built for us. See BeefProj.toml and Pile/Core/EntryPoint.bf @ RunPackager
-			//Assets.LoadPackage("shaders");
 		}
 
 		protected override void Update()

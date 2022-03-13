@@ -1,8 +1,0 @@
-{
-  "imports": [
-    {
-      "path": "*.ttf",
-      "importer": "font"
-    }
-  ]
-}
