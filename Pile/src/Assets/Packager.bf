@@ -13,98 +13,113 @@ namespace Pile
 {
 	internal static class Packager
 	{
-		// TODO: it would be nice if libraries could declare packages of their own!
-		// --> multiple asset source dirs? -- but how
-
 		// make it easier to interface with Assets, make it usable for SpriteFont -- make textureFilter settable from importers actually
 		// separate package load & hot reload stuff from resource management? -- maybe packageManager/packager all together?
 		// -> packager packageBuilder & the other will be PackageLoader
 
 		// TODO: package compression
 
-		/// Set in static init!
-		internal static String relativeAssetsPath = @"../../../assets";
+		const String defaultRelativeAssetPath = @"../../../assets";
+		static List<String> assetSourcePaths = new .(8) ~ DeleteContainerAndItems!(_);
 
-		// Used for package hot reload
-		internal static mixin MakeScopedAssetsSourcePath()
+		static this()
 		{
-			String assetsPath = scope:mixin .();
+			// Always have relative path of the built project
+			String assetsPath = null;
 
 			let dirPath = scope String();
 			if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 			{
-				assetsPath.Append(Path.GetAbsolutePath(relativeAssetsPath, dirPath, .. scope String()));
+				assetsPath = new .(dirPath.Length + defaultRelativeAssetPath.Length);
+				Path.GetAbsolutePath(defaultRelativeAssetPath, dirPath, assetsPath);
 			}
-
-			assetsPath
+			assetSourcePaths.Add(assetsPath);
 		}
 
-		static Result<void> GetAssetPaths(String inPath, String outPath)
+		/// Call during static init!
+		[Comptime]
+		public static void AddAssetPathForThisProject(String projectFolderRelativeAssetsPath = "assets", String pathInProject = Compiler.CallerFileDir)
+		{
+			Compiler.MixinRoot(scope $"""
+				Pile.Packager.[Friend]assetSourcePaths.Add(
+					System.IO.Path.GetAbsolutePath(
+						@"{projectFolderRelativeAssetsPath}",
+						Pile.Packager.[Friend]GetProjectFolderPath(@"{pathInProject}", .. scope .({pathInProject.Length})),
+						.. new .()));
+				""");
+		}
+
+		static void GetProjectFolderPath(String pathInProject, String outPath)
+		{
+			var temp = StringView(pathInProject);
+
+			while (true)
+			{
+				if (temp.EndsWith('/') || temp.EndsWith('\\'))
+					temp.RemoveFromEnd(1);
+
+				if (temp.Length == 0)
+					Runtime.FatalError(pathInProject);
+
+				let last = temp.EndsWith("/src") || temp.EndsWith("\\src");
+
+				while (!(temp.EndsWith('/') || temp.EndsWith('\\')))
+					temp.RemoveFromEnd(1);
+
+				if (temp.Length == 0)
+					Runtime.FatalError(pathInProject);
+
+				if (last)
+					break;
+			}
+
+			outPath.Append(temp);
+		}
+
+		static Result<void> GetAssetPaths(List<String> inPaths, String outPath)
 		{
 			let dirPath = scope String();
 			if (Path.GetDirectoryPath(Environment.GetExecutableFilePath(.. scope String()), dirPath) case .Ok)
 			{
-				let assetsPath = Path.GetAbsolutePath(relativeAssetsPath, dirPath, .. scope String());
-
-				// If the usual dir doesnt exist... try args
-				if (!Directory.Exists(assetsPath))
-				{
-					if (Core.CommandLine.Count > 1)
-					{
-						if (Path.IsPathRooted(Core.CommandLine[1]))
-							assetsPath.Set(Core.CommandLine[1]);
-						else
-						{
-							assetsPath.Clear();
-							Path.GetAbsolutePath(Core.CommandLine[1], dirPath, assetsPath);
-						}
-					}
-
-					if (!Directory.Exists(assetsPath))
-					{
-						Log.Warn("Assets folder couldn't be found in workspace.");
-						return .Ok;
-					}
-				}
-
-				inPath.Append(assetsPath);
+				
 				outPath.Append(Path.InternalCombine(.. scope String(dirPath), @"packages"));
-
-				if (!Directory.Exists(inPath))
-				{
-					Log.Info(scope $"No packages to build. {inPath} doesn't exist");
-					return .Ok;
-				}
 
 				if (!Directory.Exists(outPath) && (Directory.CreateDirectory(outPath) case .Err(let err)))
 					LogErrorReturn!(scope $"Failed to create package output path {outPath}");
+			}
+			else return .Err;
 
-				return .Ok;
+			for (let inPath in assetSourcePaths)
+			{
+				if (!Directory.Exists(inPath))
+					Log.Info(scope $"No packages to build in asset directory. '{inPath}' doesn't exist");
+				else inPaths.Add(inPath);
 			}
 
-			return .Err;
+			return .Ok;
 		}
 
 		[Optimize]
-		internal static Result<void> BuildAndPackageAssets(bool quickPatchOldFile = false)
+		public static Result<void> BuildAndPackageAssets(bool quickPatchOldFile = false)
 		{
-			String inPath = scope .(260);
+			List<String> inPaths = scope .(4);
 			String outPath = scope .(260);
-			Try!(GetAssetPaths(inPath, outPath));
+			Try!(GetAssetPaths(inPaths, outPath));
 
 			let tasks = scope List<PackageBuildTask>();
 
 			// Start tasks
-			for (let file in Directory.EnumerateFiles(inPath))
-			{
-				// Identify file
-				let path = file.GetFilePath(.. scope String(260));
-
-				if (!path.EndsWith(".package.bon")) continue;
-
-				// Add these as PackageBuildTask, because we need the details passed in to log errors later on
-				tasks.Add(scope:: PackageBuildTask(path, outPath, quickPatchOldFile));
-			}
+			for (let inPath in inPaths)
+				for (let file in Directory.EnumerateFiles(inPath))
+				{
+					// Identify file
+					let path = file.GetFilePath(.. scope String(260));
+	
+					if (!path.EndsWith(".package.bon")) continue;
+	
+					// Add these as PackageBuildTask, because we need the details passed in to log errors later on
+					tasks.Add(scope:: PackageBuildTask(path, outPath, quickPatchOldFile));
+				}
 
 			if (tasks.Count == 0)
 			{
@@ -671,7 +686,7 @@ namespace Pile
 		}
 
 		// adapted from StreamReader
-		internal class PackageBuildTask : Task<bool> // bool indicates success
+		public class PackageBuildTask : Task<bool> // bool indicates success
 		{
 			WaitEvent mDoneEvent = new WaitEvent() ~ delete _;
 

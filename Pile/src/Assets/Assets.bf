@@ -75,12 +75,12 @@ namespace Pile
 			System.Window.OnFocusChanged.Add(new => OnWindowFocusChanged);
 
 #if BF_PLATFORM_WINDOWS // TODO: when fs-watcher is implemented for other platforms beef-side, remove this restriction (and the two ones below)
-			let assetsSource = Packager.MakeScopedAssetsSourcePath!();
+			let assetsSource = Packager.[Friend]assetSourcePaths[0]; // Watch for the main project's changes only
 			if (Directory.Exists(assetsSource))
 				assetsWatcher = Platform.BfpFileWatcher_WatchDirectory(assetsSource, => OnBfpDirectoryChanged, .IncludeSubdirectories, null, null);
-#endif
+#endif // BF_PLATFORM_WINDOWS
 
-#endif
+#endif // USE_HOTRELOAD
 		}
 
 		internal static void Destroy()
@@ -90,9 +90,9 @@ namespace Pile
 
 #if BF_PLATFORM_WINDOWS
 			if (assetsWatcher != null) Platform.BfpFileWatcher_Release(assetsWatcher);
-#endif
+#endif // BF_PLATFORM_WINDOWS
 
-#endif
+#endif // USE_HOTRELOAD
 		}
 
 #if USE_HOTRELOAD
@@ -110,14 +110,14 @@ namespace Pile
 			if (
 #if BF_PLATFORM_WINDOWS
 				assetsChanged &&
-#endif
+#endif // BF_PLATFORM_WINDOWS
 				System.Window.Focus && Time.RawDuration > TimeSpan(0, 0, 1))
 			{
 				HotReloadPackages();
 				assetsChanged = false;
 			}
 		}
-#endif		
+#endif // USE_HOTRELOAD
 
 		public static bool Has<T>(String name) where T : class, delete
 		{
