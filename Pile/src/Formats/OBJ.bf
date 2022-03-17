@@ -26,6 +26,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Pile
 {
@@ -146,9 +147,9 @@ namespace Pile
 		}
 
 		// Add a dummy one in each
-		public readonly List<Vector3> positions = new .()..Add(.()) ~ delete _;
-		public readonly List<Vector2> texCoords = new .()..Add(.()) ~ delete _;
-		public readonly List<Vector3> normals = new .()..Add(.()) ~ delete _;
+		public readonly List<Vector3> positions = new .(16)..Add(.()) ~ delete _;
+		public readonly List<Vector2> texCoords = new .(16)..Add(.()) ~ delete _;
+		public readonly List<Vector3> normals = new .(16)..Add(.()) ~ delete _;
 
 		public readonly List<FaceData> faces = new .() ~ delete _;
 		public readonly List<IndexData> indices = new .() ~ delete _; // One element per face vertex
@@ -202,8 +203,7 @@ namespace Pile
 			currGroup = .();
 			defer
 			{
-#unwarn // @do report bug: for some reason the Try! thinks that currGroup isn't accessible				
-				[Friend]currGroup.Dispose();
+				currGroup.Dispose();
 			}
 
 			Try!(ProcessStream(stream, scope => ProcessObjLine));
@@ -227,52 +227,53 @@ namespace Pile
 
 		Result<void> ProcessStream(Stream stream, delegate Result<void>(StringView line) processFunc)
 		{
-			const int BUF_READ = 512;
-			String buf = scope .(BUF_READ); // This should be more than enough for at least one line
+			String buf = scope .(4096);
+			let predictLen = stream.Length - stream.Position;
+			buf.PrepareBuffer(predictLen); // Proper length, allocate for longer files!
 
-			// Streams ReadStrSized32 is waaay too slow for us
-			Result<void> ReadStrSized32()
+			int bufPos = 0;
+			READ: while (true)
 			{
-				char8[BUF_READ] charBuf = default;
-
-				if (stream.TryRead(Span<uint8>((uint8*)&charBuf[0], BUF_READ)) case .Ok(let val))
+				switch (stream.TryRead(Span<uint8>((uint8*)&buf[bufPos], 4096)))
 				{
-					if (val == 0)
-						return .Err;
+				case .Ok(let bytes):
+					bufPos += bytes;
 
-					buf.Append(StringView(&charBuf[0], val));
+					if (bytes == 0 || bufPos == predictLen)
+						break READ;
+				case .Err:
+					LogErrorReturn!("Error reading OBJ file");
 				}
-				else return .Err;
-
-				return .Ok;
 			}
+			Debug.Assert(bufPos == predictLen);
 
 			currLine = 0;
-			bool streamEnded = false;
+			var readView = (StringView)buf;
 			while (true)
 			{
-				if (!streamEnded && buf.Length < BUF_READ && ReadStrSized32() case .Err)
-					streamEnded = true;
-				if (streamEnded && buf.Length == 0) // End when we processed everything still in the buffer too
+				if (readView.Length == 0)
 					break;
 
-				int lineEndIndex = buf.IndexOf('\n');
+				if (readView[0].[Inline]IsWhiteSpace)
+					readView.TrimStart();
 
-				if (lineEndIndex == -1)
-					continue; // Read more from buffer
+				var lineEndIndex = readView.Length;
+				for (let i < readView.Length)
+				{
+					let char = readView[[Unchecked]i];
+					if (char == '\n' || char == '\r')
+					{
+						lineEndIndex = i;
+						break;
+					}
+				}
 
 				currLine++;
-				var line = StringView(&buf[0], lineEndIndex);
-
-				if (line.Length > 0 && line[0].IsWhiteSpace)
-					line.TrimStart();
-				if (line.Length > 0 && line[line.Length - 1].IsWhiteSpace)
-					line.TrimEnd();
-
-				if (line.Length > 0) // Skip empty lines
-					Try!(processFunc(line));
-
-				buf.Remove(0, lineEndIndex + 1);
+				if (lineEndIndex > 0) // Skip empty lines
+				{
+					Try!(processFunc(.(&readView[[Unchecked]0], lineEndIndex)));
+					readView.RemoveFromStart(lineEndIndex);
+				}
 			}
 
 			return .Ok;
@@ -734,7 +735,6 @@ namespace Pile
 			return -1;
 		}
 
-		// @do: typing return with the last backet removed crashes!
 		Result<float[TComponents]> ParseVector<TComponents>(StringView line) where TComponents : const int
 		{
 			var line;
