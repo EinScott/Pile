@@ -2,22 +2,53 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Collections;
+using Bon;
 
 namespace Pile
 {
-	// TODO: more than just PNG
-	// TODO: options
-	// -> submit to packer or not
-	// -> texture format
-	// -> keep as bitmap?
-
 	[RegisterImporter]
 	class ImageImporter : Importer
 	{
+		[BonTarget]
+		enum SubmitOption
+		{
+			PackedTexture,
+			SingleTexture,
+			SingleBitmap
+		}
+
+		[BonTarget]
+		enum FilterOption
+		{
+			Default,
+			Linear,
+			Nearest
+		}
+
+		[BonTarget]
+		struct Options
+		{
+			public SubmitOption submit; // TODO!
+			public FilterOption filter;
+		}
+
 		public override String Name => "image";
 
 		static StringView[?] ext = .("png");
 		public override Span<StringView> TargetExtensions => ext;
+
+		Options options;
+
+		public override void ClearConfig()
+		{
+			options = default;
+		}
+
+		public override Result<void> SetConfig(StringView bonStr)
+		{
+			Try!(Bon.Deserialize(ref options, bonStr));
+			return .Ok;
+		}
 
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
@@ -29,7 +60,16 @@ namespace Pile
 				sr.Read<uint32>());
 			sr.ReadInto!(Span<uint8>((uint8*)bitmap.Pixels.Ptr, bitmap.Pixels.Count * sizeof(Color)));
 
-			Try!(SubmitLoadedTextureAsset(name, bitmap));
+			TextureFilter filter;
+			switch (options.filter)
+			{
+			case .Default:
+				filter = Core.Defaults.TextureFilter;
+			case .Linear: filter = .Linear;
+			case .Nearest: filter = .Nearest;
+			}
+
+			Try!(SubmitLoadedTextureAsset(name, bitmap, filter));
 
 			return .Ok;
 		}
@@ -47,7 +87,7 @@ namespace Pile
 			let bitmap = scope Bitmap();
 			Try!(PNG.Read(fs, bitmap));
 
-			// TODO: try to just write back our png?
+			// TODO: try to just write back our png? - use qui internally?
 			// does this work again; try after we use compression again!
 
 			Debug.Assert(sizeof(uint32) == sizeof(Color));

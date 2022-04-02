@@ -142,6 +142,9 @@ namespace Pile
 				{
 					Debug.Assert(sdlJoysticks[index] == null);
 				    let ptr = sdlJoysticks[index] = SDL.JoystickOpen(index);
+
+					Debug.Assert(SDL.IsGameController(index) == .False);
+
 				    let buttonCount = SDL.JoystickNumButtons(ptr);
 				    let axisCount = SDL.JoystickNumAxes(ptr);
 
@@ -154,9 +157,8 @@ namespace Pile
 				{
 				    OnJoystickDisconnect((uint)index);
 
-				    let ptr = sdlJoysticks[index];
+				    SDL.JoystickClose(sdlJoysticks[index]);
 				    sdlJoysticks[index] = null;
-				    SDL.JoystickClose(ptr);
 				}
 			case .JoyButtonDown:
 				let index = JoystickIdToIndex(e.jbutton.which);
@@ -176,7 +178,14 @@ namespace Pile
 				// Controller events
 			case .ControllerDeviceadded:
 				let index = e.cdevice.which;
-				Debug.Assert(sdlGamepads[index] == null && sdlJoysticks[index] == null);
+				Debug.Assert(sdlGamepads[index] == null);
+				if (sdlJoysticks[index] != null)
+				{
+					// No idea... sometimes a controller is not a controller at one time, but then still registers as one later anyway!
+					SDL.JoystickClose(sdlJoysticks[index]);
+					sdlJoysticks[index] = null;
+				}
+
 				sdlGamepads[index] = SDL.GameControllerOpen(index);
 				OnJoystickConnect((uint)index, 15, 6, true);
 			case .ControllerDeviceremoved:
@@ -185,9 +194,8 @@ namespace Pile
 				{
 					OnJoystickDisconnect((uint)index);
 
-					let ptr = sdlGamepads[index];
+					SDL.GameControllerClose(sdlGamepads[index]);
 					sdlGamepads[index] = null;
-					SDL.GameControllerClose(ptr);
 				}
 			case .ControllerButtondown:
 				let index = GamepadIdToIndex(e.cdevice.which);
