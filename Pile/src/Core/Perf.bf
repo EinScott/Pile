@@ -81,8 +81,8 @@ namespace Pile
 	{
 		// We need double buffering here because render functions should also be able to fill these
 		// Thus the stats will just be delayed by one collection cycle
-		static Dictionary<String, TimeSpan> sectionDurationsFill ~ DeleteNotNull!(_);
-		static Dictionary<String, TimeSpan> sectionDurationsRead ~ DeleteNotNull!(_);
+		static Dictionary<String, (TimeSpan runTime, int calls)> sectionDurationsFill ~ DeleteNotNull!(_);
+		static Dictionary<String, (TimeSpan runTime, int calls)> sectionDurationsRead ~ DeleteNotNull!(_);
 
 		const String trackSection = "Pile.Perf (PerfTrack overhead)";
 		static TimeSpan trackOverhead = .Zero;
@@ -120,14 +120,15 @@ namespace Pile
 				for (let pair in ref sectionDurationsRead)
 				{
 					// Average over collection interval
-					*pair.valueRef = TimeSpan((*pair.valueRef).Ticks / TrackCollectInterval);
+					pair.valueRef.runTime = TimeSpan((pair.valueRef.runTime).Ticks / TrackCollectInterval);
+					pair.valueRef.calls /= TrackCollectInterval;
 				}
 
 				collectCounter = 0;
 
 				// Sneak our internal time into the read dictionary we just switched
 				trackOverhead += __pt.Elapsed;
-				sectionDurationsRead.Add(trackSection, TimeSpan(trackOverhead.Ticks / TrackCollectInterval));
+				sectionDurationsRead.Add(trackSection, (TimeSpan(trackOverhead.Ticks / TrackCollectInterval), 0));
 				trackOverhead = .Zero;
 			}
 			else
@@ -147,9 +148,9 @@ namespace Pile
 
 			if (sectionDurationsFill.GetValue(sectionName) case .Ok(let val))
 			{
-				sectionDurationsFill[sectionName] = val + time; // Sum up
+				sectionDurationsFill[sectionName] = (val.runTime + time, val.calls + 1); // Sum up
 			}
-			else sectionDurationsFill.Add(sectionName, time);
+			else sectionDurationsFill.Add(sectionName, (time, 1));
 
 			trackOverhead += __pt.Elapsed;
 		}
@@ -217,32 +218,35 @@ namespace Pile
 #if USE_PERF
 				if (sectionDurationsRead.Count > 0)
 				{
-					List<(String key, TimeSpan value)> ranking = scope .();
+					List<(String key, TimeSpan runTime, int calls)> ranking = scope .();
 	
 					for (let pair in sectionDurationsRead) // Rank sections
 					{
 						bool inserted = false;
 						for (int i < ranking.Count)
 						{
-							let ranked = ref ranking[i];
-							if (ranked.value < pair.value) // The pair should be here in the table
+							let ranked = ref ranking[[Unchecked]i];
+							if (ranked.runTime < pair.value.runTime) // The pair should be here in the table
 							{
 								if (ranking.Count == perfTrackDisplayCount) // Remove if we would push beyond what we need
 									ranking.PopBack();
 	
-								ranking.Insert(i, pair);
+								ranking.Insert(i, (pair.key, pair.value.runTime, pair.value.calls));
 								inserted = true;
 								break;
 							}
 						}
 	
 						if (!inserted && ranking.Count < perfTrackDisplayCount)
-							ranking.Add(pair);
+							ranking.Add((pair.key, pair.value.runTime, pair.value.calls));
 					}
 	
 					for (let pair in ranking) // Draw sections
 					{
-						perfText.AppendF("{:0.000}ms {}\n", (float)pair.value.Ticks / TimeSpan.[Friend]TicksPerMillisecond, pair.key);
+						let msRunTime = (float)pair.runTime.Ticks / TimeSpan.[Friend]TicksPerMillisecond;
+						if (pair.calls > 1)
+							perfText.AppendF("{:0.000}ms ({:00} * {:0.000}) - {}\n", msRunTime, pair.calls, msRunTime / pair.calls, pair.key);
+						else perfText.AppendF("{:0.000}ms (01 * -----) - {}\n", msRunTime, pair.key);
 					}
 				}
 #endif
@@ -252,7 +256,7 @@ namespace Pile
 		}
 
 		[Inline]
-		public static Dictionary<String, TimeSpan>.Enumerator EnumerateTrackingResults()
+		public static Dictionary<String, (TimeSpan runTime, int calls)>.Enumerator EnumerateTrackingResults()
 		{
 			return sectionDurationsRead.GetEnumerator();
 		}
