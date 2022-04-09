@@ -10,7 +10,7 @@ namespace Pile
 	class ImageImporter : Importer
 	{
 		[BonTarget]
-		enum SubmitOption
+		protected enum SubmitOption
 		{
 			PackedTexture,
 			PackedExactTexture,
@@ -27,7 +27,7 @@ namespace Pile
 		}
 
 		[BonTarget]
-		struct Options
+		protected struct Options
 		{
 			public SubmitOption submit;
 			public FilterOption filter;
@@ -38,7 +38,7 @@ namespace Pile
 		static StringView[?] ext = .("png");
 		public override Span<StringView> TargetExtensions => ext;
 
-		Options options;
+		protected Options options;
 
 		public override void ClearConfig()
 		{
