@@ -1,7 +1,21 @@
 using System;
+using Bon;
 
 namespace Pile
 {
+	[BonTarget]
+	extension Point2 {}
+
+	[BonTarget]
+	extension Point3 {}
+
+	[BonTarget]
+	extension Point4 {}
+
+	[BonTarget]
+	extension UPoint2 {}
+
+	[BonTarget]
 	extension Vector2
 	{
 		/// Returns if a vector point is inside a triangle of three vector vertices.
@@ -79,15 +93,9 @@ namespace Pile
 		}
 	}
 
+	[BonTarget]
 	extension Vector3
 	{
-		public this(Vector2 xy, float z)
-		{
-			X = xy.X;
-			Y = xy.Y;
-			Z = z;
-		}
-
 		[Inline]
 		/// Computes the cross product of two vectors.
 		public static Vector3 Cross(Vector3 vector1, Vector3 vector2)
@@ -142,24 +150,9 @@ namespace Pile
 		}
 	}
 
+	[BonTarget]
 	extension Vector4
 	{
-		public this(Vector2 vector2, float z, float w)
-		{
-			X = vector2.X;
-			Y = vector2.Y;
-			Z = z;
-			W = w;
-		}
-
-		public this(Vector3 vector3, float w)
-		{
-			X = vector3.X;
-			Y = vector3.Y;
-			Z = vector3.Z;
-			W = w;
-		}
-
 		[Inline]
 		/// Transforms a vector by the given matrix.
 		public static Vector4 Transform(Vector2 position, Matrix4x4 matrix)

@@ -151,12 +151,12 @@ namespace Pile
 		}
 
 		/// Should only be called from Load(). DOES NOT CONSUME BITMAP!
-		protected static Result<Subtexture> SubmitLoadedTextureAsset(StringView name, Bitmap bitmap, TextureFilter filter = Core.Defaults.TextureFilter)
+		protected static Result<Subtexture> SubmitLoadedTextureAsset(StringView name, Bitmap bitmap, TextureFilter filter = Core.Defaults.TextureFilter, bool untrimmed = false)
 		{
 			Debug.Assert(currentPackage != null, "Importers can only submit assets while loading a Package (when called from Assets.LoadPackage(...))");
 
 			// Add object in assets
-			let nameView = Try!(Assets.AddTextureAsset(name, bitmap, let asset, filter));
+			let nameView = Try!(Assets.AddTextureAsset(name, bitmap, let asset, filter, untrimmed));
 
 			// Store object key in package
 			currentPackage.ownedTextureAssets.Add(nameView);

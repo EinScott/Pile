@@ -13,12 +13,13 @@ namespace Pile
 		enum SubmitOption
 		{
 			PackedTexture,
+			PackedExactTexture,
 			SingleTexture,
 			SingleBitmap
 		}
 
 		[BonTarget]
-		enum FilterOption
+		protected enum FilterOption
 		{
 			Default,
 			Linear,
@@ -28,7 +29,7 @@ namespace Pile
 		[BonTarget]
 		struct Options
 		{
-			public SubmitOption submit; // TODO!
+			public SubmitOption submit;
 			public FilterOption filter;
 		}
 
@@ -69,7 +70,17 @@ namespace Pile
 			case .Nearest: filter = .Nearest;
 			}
 
-			Try!(SubmitLoadedTextureAsset(name, bitmap, filter));
+			switch (options.submit)
+			{
+			case .PackedTexture:
+				Try!(SubmitLoadedTextureAsset(name, bitmap, filter));
+			case .PackedExactTexture:
+				Try!(SubmitLoadedTextureAsset(name, bitmap, filter, true));
+			case .SingleTexture:
+				Try!(SubmitLoadedAsset(name, new Texture(bitmap, filter)));
+			case .SingleBitmap:
+				Try!(SubmitLoadedAsset(name, bitmap.CopyTo(.. new .(bitmap.Width, bitmap.Height))));
+			}
 
 			return .Ok;
 		}

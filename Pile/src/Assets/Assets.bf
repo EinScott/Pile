@@ -484,7 +484,7 @@ namespace Pile
 			return .Ok(nameString);
 		}
 
-		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset, TextureFilter textureFilter = Core.Defaults.TextureFilter)
+		internal static Result<StringView> AddTextureAsset(StringView name, Bitmap bitmap, out Subtexture asset, TextureFilter textureFilter = Core.Defaults.TextureFilter, bool untrimmed = false)
 		{
 			Debug.Assert(Core.run);
 			Debug.Assert(name.Ptr != null);
@@ -500,8 +500,13 @@ namespace Pile
 				LogErrorReturn!(scope $"Couldn't submit texture {name}: A texture is already registered under this name");
 			}
 
+			let before = packer.trim;
+			if (untrimmed && before)
+				packer.trim = false;
+
 			// Add to packer
 			packer.AddBitmap(nameString, bitmap, GetPackerFlag(textureFilter));
+			packer.trim = before;
 
 			// Even if somebody decides to have their own asset type for subtextures like class Sprite { Subtexture subtex; }
 			// It's still good to store them here, because they would need to be in some lookup for updating on packer pack anyways
