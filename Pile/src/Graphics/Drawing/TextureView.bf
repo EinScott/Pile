@@ -34,7 +34,7 @@ namespace Pile
 			DrawCoords = subTex.DrawCoords;
 		}
 
-		public this(Texture texture, Rect source) : this(texture, Rect(0, 0, source.Width, source.Height)) {}
+		public this(Texture texture, Rect source) : this(texture, source, Rect(0, 0, source.Width, source.Height)) {}
 		public this(Texture texture, Rect source, Rect frame)
 		{
 			this.texture = texture;
@@ -94,7 +94,7 @@ namespace Pile
 
 		public TextureView GetClipTextureView(Rect clip)
 		{
-		    var (source, frame) = GetClip(clip);
+		    let (source, frame) = GetClip(clip);
 		    return TextureView(texture, source, frame);
 		}
 	}

@@ -109,36 +109,36 @@ namespace Pile
 		}
 
 		/// Buffered will only reallocate if pixel buffer isnt long enough
-		public void Reset(uint32 width, uint32 height, Span<Color> pixels, bool buffered = true)
+		public void Reset(uint32 newWidth, uint32 newHeight, Span<Color> pixels, bool buffered = true)
 		{
-			Runtime.Assert(width > 0 && height > 0 && width * height <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
+			Runtime.Assert(newWidth > 0 && newHeight > 0 && newWidth * newHeight <= pixels.Length, "Bitmap Width and Height need to be greater than 0; Number of Pixels in array needs to be at least Width * Height");
 
-			Width = width;
-			Height = height;
-
-			if (!buffered || Width * Height > Pixels.Count)
+			if (!buffered && (Width != newWidth || Height != newHeight || Pixels == null) || newWidth * newHeight > Pixels.Count)
 			{
 				if (Pixels != null) delete Pixels;
-				Pixels = new Color[width * height];
+				Pixels = new Color[newWidth * newHeight];
 			}
+
+			Width = newWidth;
+			Height = newHeight;
 
 			pixels.CopyTo(Pixels);
 		}
 
 		/// Buffered will only reallocate if pixel buffer isnt long enough
-		public void ResizeAndClear(uint32 width, uint32 height, bool buffered = true)
+		public void ResizeAndClear(uint32 newWidth, uint32 newHeight, bool buffered = true)
 		{
-			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
+			Runtime.Assert(newWidth > 0 && newHeight > 0, "Bitmap Width and Height need to be greater than 0");
 
-			if (!buffered || ((Width != width || Height != height || Pixels == null) || Width * Height > Pixels.Count))
+			if (!buffered && (Width != newWidth || Height != newHeight || Pixels == null) || newWidth * newHeight > Pixels.Count)
 			{
 				if (Pixels != null) delete Pixels;
-				Pixels = new Color[width * height];
+				Pixels = new Color[newWidth * newHeight];
 			}
 			else Clear();
 
-			Width = width;
-			Height = height;
+			Width = newWidth;
+			Height = newHeight;
 		}
 
 		public void Clear()

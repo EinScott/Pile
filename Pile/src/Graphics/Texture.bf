@@ -74,16 +74,16 @@ namespace Pile
 			SetData(bitmap.Pixels.Ptr);
 		}
 
-		public void ResizeAndClear(uint32 width, uint32 height)
+		public void ResizeAndClear(uint32 newWidth, uint32 newHeight)
 		{
-			Runtime.Assert(width > 0 && height > 0, "FrameBuffer size must be larger than 0");
+			Runtime.Assert(newWidth > 0 && newHeight > 0, "FrameBuffer size must be larger than 0");
 
-			if (Width != width || Height != height)
+			if (Width != newWidth || Height != newHeight)
 			{
-				Width = width;
-				Height = height;
+				Width = newWidth;
+				Height = newHeight;
 
-				ResizeAndClearInternal(width, height);
+				ResizeAndClearInternal(newWidth, newHeight);
 			}
 		}
 
