@@ -21,9 +21,6 @@ namespace Pile
 
 		public override String Name => "imageSheet";
 
-		static StringView[?] ext = .("png");
-		public override Span<StringView> TargetExtensions => ext;
-
 		public override Result<void> Load(StringView name, Span<uint8> data)
 		{
 			let s = scope ArrayStream(data);

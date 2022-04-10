@@ -156,9 +156,10 @@ namespace Pile
 #if DEBUG
 					using (debugWriteMonitor.Enter())
 					{
-						if (debugNeedsWrite < DEBUGWRITEBUFSIZE)
-							debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
-						else debugWriteBuffer[DEBUGWRITEBUFSIZE - 1].Set(fullMessage); // rest in peace previous message...
+						debugWriteBuffer[debugNeedsWrite++].Set(fullMessage);
+
+						if (debugNeedsWrite == DEBUGWRITEBUFSIZE)
+							FlushDebugWrite(); // Buffer full... do it here!
 					}
 #endif
 				}
@@ -176,7 +177,7 @@ namespace Pile
 		}
 
 		static Monitor writeMonitor = new Monitor() ~ delete _;
-		const int DEBUGWRITEBUFSIZE = 8;
+		const int DEBUGWRITEBUFSIZE = 16;
 #if DEBUG
 		[Inline]
 		static void DoDebugWriteBuffer()
