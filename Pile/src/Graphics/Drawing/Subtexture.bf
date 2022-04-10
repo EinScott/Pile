@@ -88,7 +88,7 @@ namespace Pile
 		{
 			this.texture = texture;
 			this.source = source;
-			this.frame = source;
+			this.frame = Rect(0, 0, 0, 0);
 
 			UpdateCoords();
 		}
