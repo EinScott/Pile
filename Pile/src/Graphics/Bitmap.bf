@@ -130,7 +130,7 @@ namespace Pile
 		{
 			Runtime.Assert(width > 0 && height > 0, "Bitmap Width and Height need to be greater than 0");
 
-			if (!buffered && (Width != width || Height != height || Pixels == null) || Width * Height > Pixels.Count)
+			if (!buffered || ((Width != width || Height != height || Pixels == null) || Width * Height > Pixels.Count))
 			{
 				if (Pixels != null) delete Pixels;
 				Pixels = new Color[width * height];

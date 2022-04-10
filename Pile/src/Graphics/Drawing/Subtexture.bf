@@ -54,7 +54,6 @@ namespace Pile
 
 		public this() {}
 		public this(Texture texture) : this(texture, Rect(0, 0, texture.Width, texture.Height), Rect(0, 0, texture.Width, texture.Height)) {}
-		public this(Texture texture, Rect source) : this(texture, Rect(0, 0, source.Width, source.Height)) {}
 
 		public this(TextureView view)
 		{
@@ -64,6 +63,11 @@ namespace Pile
 
 			TexCoords = view.TexCoords;
 			DrawCoords = view.DrawCoords;
+		}
+
+		public this(Texture texture, Rect source)
+		{
+			Reset(texture, source);
 		}
 
 		public this(Texture texture, Rect source, Rect frame)
@@ -76,6 +80,15 @@ namespace Pile
 			this.texture = texture;
 			this.source = source;
 			this.frame = frame;
+
+			UpdateCoords();
+		}
+
+		public void Reset(Texture texture, Rect source)
+		{
+			this.texture = texture;
+			this.source = source;
+			this.frame = Rect(0, 0, 0, 0);
 
 			UpdateCoords();
 		}
