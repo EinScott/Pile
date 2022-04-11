@@ -217,6 +217,19 @@ namespace Pile
 			Log.Info(packages);
 		}
 
+		[Description("Lists the available asset importers")]
+		public static void AssetImporters()
+		{
+			String importers = scope .("Available importers:");
+			for (let pair in Importer.importers)
+			{
+				importers.Append(" \"");
+				importers.Append(pair.key);
+				importers.Append("\"");
+			}
+			Log.Info(importers);
+		}
+
 		[Optimize]
 		internal static class Interpreter
 		{
