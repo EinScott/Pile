@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
+Dependencies = {corlib = "*", corlib = "*", corlib = "*"}
 
 [Project]
 Name = "Pile_SoLoud"
@@ -10,28 +10,28 @@ BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
+[Configs.Debug.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]
+
 [Configs.Test.Win64]
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
+[Configs.Test.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]
+
 [Configs.Paranoid.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
 
+[Configs.Paranoid.Linux64]
+LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]
+
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/soloud.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/soloud.dll\")"]
-
-[Configs.Debug.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]
-
-[Configs.Test.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]
-
-[Configs.Paranoid.Linux64]
-LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]
 
 [Configs.Release.Linux64]
 LibPaths = ["$(ProjectDir)/dist/linux64/soloud.a"]

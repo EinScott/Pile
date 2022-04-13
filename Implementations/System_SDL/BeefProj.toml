@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", corlib = "*", Pile = "*"}
+Dependencies = {corlib = "*", corlib = "*", corlib = "*"}
 
 [Project]
 Name = "Pile_SDL2"
@@ -10,28 +10,28 @@ BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
+[Configs.Debug.Linux64]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
+
 [Configs.Test.Win64]
 BuildCommandsOnCompile = "IfFilesChanged"
 BuildCommandsOnRun = "IfFilesChanged"
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
+[Configs.Test.Linux64]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
+
 [Configs.Paranoid.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
 
+[Configs.Paranoid.Linux64]
+OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
+
 [Configs.Release.Win64]
 LibPaths = ["$(ProjectDir)/dist/win64/SDL2.lib"]
 PreBuildCmds = ["CopyToDependents(\"$(ProjectDir)/dist/win64/SDL2.dll\")"]
-
-[Configs.Debug.Linux64]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
-
-[Configs.Test.Linux64]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
-
-[Configs.Paranoid.Linux64]
-OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
 
 [Configs.Release.Linux64]
 OtherLinkFlags = "$(LinkFlags) -Wl,--no-undefined -lm -ldl -lpthread -lrt -lSDL2"
