@@ -68,6 +68,6 @@ namespace Pile
 		public T AssetOrDefault(T def) mut => Asset == null ? def : asset;
 
 		[Inline]
-		public static implicit operator T(Asset<T> assetHandler) => assetHandler.asset;
+		public static implicit operator T(ref Asset<T> assetHandler) => assetHandler.Asset;
 	}
 }

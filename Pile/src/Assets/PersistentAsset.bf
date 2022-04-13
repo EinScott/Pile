@@ -59,7 +59,7 @@ namespace Pile
 		}
 
 		[Inline]
-		public static implicit operator T(PersistentAsset<T, TReset> assetHandler) => assetHandler.asset;
+		public static implicit operator T(ref PersistentAsset<T, TReset> assetHandler) => assetHandler.Asset;
 
 		public void Dispose()
 		{
