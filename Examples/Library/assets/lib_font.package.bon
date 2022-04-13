@@ -1,0 +1,8 @@
+{
+	importPasses = [
+		{
+			importer = "font",
+			targetDir = "."
+		}
+	]
+}

@@ -1,0 +1,5 @@
+FileVersion = 1
+Dependencies = {corlib = "*", Pile = "*"}
+
+[Project]
+Name = "Dimtoo"
