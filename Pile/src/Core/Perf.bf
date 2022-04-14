@@ -246,7 +246,7 @@ namespace Pile
 						let msRunTime = (float)pair.runTime.Ticks / TimeSpan.[Friend]TicksPerMillisecond;
 						if (pair.calls > 1)
 							perfText.AppendF("{:0.000}ms ({:00} * {:0.000}) - {}\n", msRunTime, pair.calls, msRunTime / pair.calls, pair.key);
-						else perfText.AppendF("{:0.000}ms (01 * -----) - {}\n", msRunTime, pair.key);
+						else perfText.AppendF("{:0.000}ms - {}\n", msRunTime, pair.key);
 					}
 				}
 #endif
