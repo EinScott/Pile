@@ -268,7 +268,7 @@ namespace Pile
 		[Inline]
 		public bool Overlaps(Rect rect)
 		{
-			return (X + Width) > rect.X	&& (rect.X + rect.Width) > X && (Y + Height) > rect.Y && (rect.Y + rect.Height) > Y;
+			return (X + Width) > rect.X && (rect.X + rect.Width) > X && (Y + Height) > rect.Y && (rect.Y + rect.Height) > Y;
 		}
 
 		[Inline]

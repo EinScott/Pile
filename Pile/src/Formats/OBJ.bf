@@ -553,7 +553,7 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessPosition(StringView line)
 		{
-			let pos = Try!(ParseVector<const 3>(line));
+			let pos = Try!(ParseVector<3>(line));
 			positions.Add(.(pos[0], pos[1], pos[2]));
 			return .Ok;
 		}
@@ -561,7 +561,7 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessTexCoord(StringView line)
 		{
-			let tex = Try!(ParseVector<const 2>(line));
+			let tex = Try!(ParseVector<2>(line));
 			texCoords.Add(.(tex[0], tex[1]));
 			return .Ok;
 		}
@@ -569,7 +569,7 @@ namespace Pile
 		[Inline]
 		Result<void> ProcessNormal(StringView line)
 		{
-			let norm = Try!(ParseVector<const 3>(line));
+			let norm = Try!(ParseVector<3>(line));
 			normals.Add(.(norm[0], norm[1], norm[2]));
 			return .Ok;
 		}
@@ -767,7 +767,7 @@ namespace Pile
 
 		Result<Vector3> ParseVec3(StringView line)
 		{
-			let vec = Try!(ParseVector<const 3>(line));
+			let vec = Try!(ParseVector<3>(line));
 			return .Ok(.(vec[0], vec[1], vec[2]));
 		}
 
