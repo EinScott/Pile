@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Reflection;
 using System.Diagnostics;
 using System.Collections;
@@ -86,6 +87,7 @@ namespace Pile
 
 		const String trackSection = "Pile.Perf (PerfTrack overhead)";
 		static TimeSpan trackOverhead = .Zero;
+		static Monitor trackEndLock = new .() ~ delete _;
 
 		/// Whether or not to track function performance.
 		/// PerfTrack is always disabled if DEBUG is not defined
@@ -109,32 +111,35 @@ namespace Pile
 		internal static void Step()
 		{
 			if (!Track) return;
-			let __pt = scope System.Diagnostics.Stopwatch(true);
-
-			// Only collect on interval so you can actually read the numbers, especially in the lower digits
-			if (collectCounter >= TrackCollectInterval)
+			using (trackEndLock.Enter())
 			{
-				Swap!(sectionDurationsFill, sectionDurationsRead);
-				sectionDurationsFill.Clear();
+				let __pt = scope System.Diagnostics.Stopwatch(true);
 
-				for (let pair in ref sectionDurationsRead)
+				// Only collect on interval so you can actually read the numbers, especially in the lower digits
+				if (collectCounter >= TrackCollectInterval)
 				{
-					// Average over collection interval
-					pair.valueRef.runTime = TimeSpan((pair.valueRef.runTime).Ticks / TrackCollectInterval);
-					pair.valueRef.calls /= TrackCollectInterval;
+					Swap!(sectionDurationsFill, sectionDurationsRead);
+					sectionDurationsFill.Clear();
+
+					for (let pair in ref sectionDurationsRead)
+					{
+						// Average over collection interval
+						pair.valueRef.runTime = TimeSpan((pair.valueRef.runTime).Ticks / TrackCollectInterval);
+						pair.valueRef.calls /= TrackCollectInterval;
+					}
+
+					collectCounter = 0;
+
+					// Sneak our internal time into the read dictionary we just switched
+					trackOverhead += __pt.Elapsed;
+					sectionDurationsRead.Add(trackSection, (TimeSpan(trackOverhead.Ticks / TrackCollectInterval), 0));
+					trackOverhead = .Zero;
 				}
-
-				collectCounter = 0;
-
-				// Sneak our internal time into the read dictionary we just switched
-				trackOverhead += __pt.Elapsed;
-				sectionDurationsRead.Add(trackSection, (TimeSpan(trackOverhead.Ticks / TrackCollectInterval), 0));
-				trackOverhead = .Zero;
-			}
-			else
-			{
-				collectCounter++;
-				trackOverhead += __pt.Elapsed;
+				else
+				{
+					collectCounter++;
+					trackOverhead += __pt.Elapsed;
+				}
 			}
 		}
 
@@ -144,15 +149,19 @@ namespace Pile
 		static void EndSection(String sectionName, TimeSpan time)
 		{
 			if (!Track) return;
-			let __pt = scope System.Diagnostics.Stopwatch(true); // Track this manually to not... infinite loop
 
-			if (sectionDurationsFill.GetValue(sectionName) case .Ok(let val))
+			using (trackEndLock.Enter())
 			{
-				sectionDurationsFill[sectionName] = (val.runTime + time, val.calls + 1); // Sum up
-			}
-			else sectionDurationsFill.Add(sectionName, (time, 1));
+				let __pt = scope System.Diagnostics.Stopwatch(true); // Track this manually to not... infinite loop
 
-			trackOverhead += __pt.Elapsed;
+				if (sectionDurationsFill.GetValue(sectionName) case .Ok(let val))
+				{
+					sectionDurationsFill[sectionName] = (val.runTime + time, val.calls + 1); // Sum up
+				}
+				else sectionDurationsFill.Add(sectionName, (time, 1));
+
+				trackOverhead += __pt.Elapsed;
+			}
 		}
 
 #unwarn // yes... we don't need [Friend] here... calm down
