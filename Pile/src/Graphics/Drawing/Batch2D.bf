@@ -475,6 +475,7 @@ namespace Pile
 			currentBatch.elements += 2;
 		}
 
+		[Inline]
 		public void Line(Vector2 from, Vector2 to, float thickness, Color color)
 		{
 			let normal = (to - from).ToNormalized();
@@ -482,6 +483,7 @@ namespace Pile
 			Quad(from + perp, from - perp, to - perp, to + perp, color);
 		}
 
+		[Inline]
 		public void Rect(Rect rect, Color color)
 		{
 		    Quad(
@@ -492,6 +494,7 @@ namespace Pile
 		        color);
 		}
 
+		[Inline]
 		public void Rect(Vector2 position, Vector2 size, Color color)
 		{
 		    Quad(
@@ -502,6 +505,7 @@ namespace Pile
 		        color);
 		}
 
+		[Inline]
 		public void Rect(float x, float y, float width, float height, Color color)
 		{
 		    Quad(
@@ -511,6 +515,7 @@ namespace Pile
 		        Vector2(x, y + height), color);
 		}
 
+		[Inline]
 		public void Rect(Rect rect, Color c0, Color c1, Color c2, Color c3)
 		{
 		    Quad(
@@ -521,6 +526,7 @@ namespace Pile
 		        c0, c1, c2, c3);
 		}
 
+		[Inline]
 		public void Rect(Vector2 position, Vector2 size, Color c0, Color c1, Color c2, Color c3)
 		{
 		    Quad(
@@ -531,6 +537,7 @@ namespace Pile
 		        c0, c1, c2, c3);
 		}
 
+		[Inline]
 		public void Rect(float x, float y, float width, float height, Color c0, Color c1, Color c2, Color c3)
 		{
 		    Quad(
@@ -541,6 +548,7 @@ namespace Pile
 		        c0, c1, c2, c3);
 		}
 
+		[Inline]
 		public void SemiCircle(Vector2 center, float startRadians, float endRadians, float radius, int steps, Color color)
 		{
 		    SemiCircle(center, startRadians, endRadians, radius, steps, color, color);
@@ -558,6 +566,7 @@ namespace Pile
 		    }
 		}
 
+		[Inline]
 		public void Circle(Vector2 center, float radius, int steps, Color color)
 		{
 		    Circle(center, radius, steps, color, color);
@@ -589,36 +598,31 @@ namespace Pile
 
 		public void HollowRect(Rect rect, float t, Color color)
 		{
-		    if (t > 0)
-		    {
-				Debug.Assert(rect.Width >= 0 && rect.Height >= 0);
+		    Debug.Assert(t > 0 && rect.Width >= 0 && rect.Height >= 0);
 
-		        let tx = Math.Min(t, rect.Width / 2f);
-		        let ty = Math.Min(t, rect.Height / 2f);
+			let tx = Math.Min(t, rect.Width / 2f);
+			let ty = Math.Min(t, rect.Height / 2f);
 
-		        Rect(rect.X, rect.Y, rect.Width, ty, color);
-		        Rect(rect.X, rect.Bottom - ty, rect.Width, ty, color);
-		        Rect(rect.X, rect.Y + ty, tx, rect.Height - ty * 2, color);
-		        Rect(rect.Right - tx, rect.Y + ty, tx, rect.Height - ty * 2, color);
-		    }
+			Rect(rect.X, rect.Y, rect.Width, ty, color);
+			Rect(rect.X, rect.Bottom - ty, rect.Width, ty, color);
+			Rect(rect.X, rect.Y + ty, tx, rect.Height - ty * 2, color);
+			Rect(rect.Right - tx, rect.Y + ty, tx, rect.Height - ty * 2, color);
 		}
 
 		public void HollowRect(float x, float y, float width, float height, float t, Color color)
 		{
-		    if (t > 0)
-		    {
-				Debug.Assert(width >= 0 && height >= 0);
+		    Debug.Assert(t > 0 && width >= 0 && height >= 0);
 
-		        let tx = Math.Min(t, width / 2f);
-		        let ty = Math.Min(t, height / 2f);
+			let tx = Math.Min(t, width / 2f);
+			let ty = Math.Min(t, height / 2f);
 
-		        Rect(x, y, width, ty, color);
-		        Rect(x, y + height - ty, width, ty, color);
-		        Rect(x, y + ty, tx, height - ty * 2, color);
-		        Rect(x + width - tx, y + ty, tx, height - ty * 2, color);
-		    }
+			Rect(x, y, width, ty, color);
+			Rect(x, y + height - ty, width, ty, color);
+			Rect(x, y + ty, tx, height - ty * 2, color);
+			Rect(x + width - tx, y + ty, tx, height - ty * 2, color);
 		}
 
+		[Inline]
 		public void Image(Texture texture,
 		    Vector2 pos0, Vector2 pos1, Vector2 pos2, Vector2 pos3,
 		    Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector2 uv3,
@@ -628,6 +632,7 @@ namespace Pile
 		    Quad(pos0, pos1, pos2, pos3, uv0, uv1, uv2, uv3, col0, col1, col2, col3, washed);
 		}
 
+		[Inline]
 		public void Image(Texture texture,
 		    Vector2 pos0, Vector2 pos1, Vector2 pos2, Vector2 pos3,
 		    Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector2 uv3,
@@ -637,6 +642,7 @@ namespace Pile
 		    Quad(pos0, pos1, pos2, pos3, uv0, uv1, uv2, uv3, color, washed);
 		}
 
+		[Inline]
 		public void Image(Texture texture, Color color = .White, bool washed = false)
 		{
 		    SetTexture(texture);
@@ -652,6 +658,7 @@ namespace Pile
 		        color, washed);
 		}
 
+		[Inline]
 		public void Image(Texture texture, Vector2 position, Color color = .White, bool washed = false)
 		{
 		    SetTexture(texture);
@@ -734,6 +741,7 @@ namespace Pile
 		    MatrixStack = was;
 		}
 
+		[Inline]
 		public void Image(Subtexture subtex, Color color = .White, bool washed = false)
 		{
 		    SetTexture(subtex.Texture);

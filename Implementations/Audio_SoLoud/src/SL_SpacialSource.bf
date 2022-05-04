@@ -25,7 +25,7 @@ namespace Pile
 		protected override void Initialize()
 		{
 			slBus = SL_Bus.Create();
-			SL_Bus.SetInaudibleBehavior(slBus, SL_TRUE, SL_FALSE);
+			SL_Bus.SetInaudibleBehavior(slBus, SL_FALSE /*SL_TRUE*/, SL_FALSE); // TODO: theoretically we want it to keep ticking here and below... but soloud's broken with that rn
 			group = SL_Soloud.CreateVoiceGroup(Audio.slPtr);
 
 			Debug.Assert(slBus != null && group != 0, "Failed to create SL_AudioSource (Bus or VoiceGroup)");
@@ -40,7 +40,7 @@ namespace Pile
 
 			// Apply source config
 			let ptr = Audio.slPtr;
-			SL_Soloud.SetInaudibleBehavior(ptr, handle, StopInaudible ? SL_FALSE : SL_TRUE, StopInaudible ? SL_TRUE : SL_FALSE);
+			SL_Soloud.SetInaudibleBehavior(ptr, handle, SL_FALSE /*StopInaudible ? SL_FALSE : SL_TRUE*/, StopInaudible ? SL_TRUE : SL_FALSE);
 			if (Prioritized) SL_Soloud.SetProtectVoice(ptr, handle, SL_TRUE);
 			if (Audio.SimulateSpacialDelay) SL_Bus.Set3dDistanceDelay(slBus, 1);
 
