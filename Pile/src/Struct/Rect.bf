@@ -351,6 +351,12 @@ namespace Pile
 			return r;
 		}
 
+		[Inline]
+		public Point2 ClampPoint(Point2 point)
+		{
+			return .(Math.Clamp(point.X, X, X + Width), Math.Clamp(point.Y, Y, Y + Height));
+		}
+
 		public override void ToString(String strBuffer)
 		{
 			strBuffer.Append("Rect [ ");
