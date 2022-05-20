@@ -442,12 +442,11 @@ namespace Pile
 						continue;
 
 					bool dependModified = false;
-					if (dependPath != targetPath
-						&& importer.DependantExtensions.Length > 0)
+					if (importer.DependantExtensions.Length > 0)
 					{
 						let dependExts = PrepareExtensionsScoped!(importer.DependantExtensions);
 
-						Try!(ForFilesInDirRecursive(targetPath, dependExts, scope [&dependModified,&hashBuilder,&inputPath,&oldPackageSr,&oldPackageBuildDate](entry, path) =>
+						Try!(ForFilesInDirRecursive(dependPath, dependExts, scope [&dependModified,&hashBuilder,&inputPath,&oldPackageSr,&oldPackageBuildDate](entry, path) =>
 							{
 								// Also hash these since they potentially affect importer behavior
 								let relativePath = GetScopedAssetName!(path, inputPath, false);

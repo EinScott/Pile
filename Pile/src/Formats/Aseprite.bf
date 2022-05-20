@@ -110,7 +110,7 @@ namespace Pile
 	    public class Cel : IUserData
 	    {
 	        public Layer Layer;
-	        public Color[] Pixels ~ delete _;
+	        public Color[] Pixels ~ delete _; // TODO: manage better, bitmap here would be nice as well, also this is currently doubly deleted on Linked cels!
 	        public Cel Link;
 
 	        public int32 X;

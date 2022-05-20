@@ -49,7 +49,7 @@ namespace Pile
 		{
 			public const int MaxTexCount = 32;
 
-			public int32 layer;
+			public float layer;
 			public Material material;
 			public BlendMode blendMode;
 			public Matrix3x2 matrix;
@@ -61,7 +61,7 @@ namespace Pile
 			public uint offset;
 			public uint elements;
 
-			public this(uint offset, uint elements, Matrix3x2 matrix, BlendMode blendMode, int32 layer = 0, Material material = null)
+			public this(uint offset, uint elements, Matrix3x2 matrix, BlendMode blendMode, float layer = 0, Material material = null)
 			{
 				this.offset = offset;
 				this.elements = elements;
@@ -115,7 +115,7 @@ namespace Pile
 		readonly List<Batch> batches = new List<Batch>() ~ delete _;
 		Batch currentBatch;
 		int currentBatchInsert;
-		
+
 		public uint BatchCount => (.)batches.Count + (currentBatch.elements > 0 ? 1 : 0);
 
 		/// Creates a Batch2D with the default shader. Other materials provided are expected to use the default "u_texture" and "u_matrix" uniforms
@@ -320,7 +320,7 @@ namespace Pile
 			}
 		}
 
-		public void SetLayer(int32 layer)
+		public void SetLayer(float layer)
 		{
 			if (currentBatch.elements == 0)
 			{

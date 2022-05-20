@@ -565,6 +565,7 @@ namespace OpenGL45
             case GL_COLOR_ATTACHMENT1 = 0x8CE1;
             case GL_COLOR_ATTACHMENT30 = 0x8CFE;
             case GL_STENCIL_ATTACHMENT = 0x8D20;
+			case GL_DEPTH_STENCIL_ATTACHMENT = 0x821A; // @CHANGE added manually
             case GL_COLOR_ATTACHMENT8 = 0x8CE8;
             case GL_COLOR_ATTACHMENT7 = 0x8CE7;
             case GL_COLOR_ATTACHMENT6 = 0x8CE6;

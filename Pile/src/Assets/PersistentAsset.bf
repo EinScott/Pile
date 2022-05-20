@@ -55,6 +55,8 @@ namespace Pile
 				resetAsset = Assets.Get<TReset>(resetName);
 				knownAssetAddIteration = Assets.assetAddIteration;
 				knownAssetDelIteration = Assets.assetDelIteration;
+
+				asset.Reset(resetAsset).IgnoreError();
 			}
 		}
 

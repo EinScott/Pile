@@ -55,7 +55,7 @@ namespace Pile
 
 		[Inline]
 		public static void Clear(RenderTarget target, Color color) =>
-			Clear(target, .Color, color, 0, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
+			Clear(target, .Color, color, 1, 0, .(0, 0, target.RenderSize.X, target.RenderSize.Y));
 
 		[Inline]
 		public static void Clear(RenderTarget target, Color color, float depth, int stencil) =>

@@ -310,7 +310,7 @@ namespace Pile
 				if (paramsByName.TryGetValue(name, var entry))
 					return ref *entry.param;
 
-				Runtime.FatalError("Couldn't find Parameter with given name on material");
+				Runtime.FatalError("Couldn't find Parameter with given name on material (maybe optimized out?)");
 			}
 		}
 

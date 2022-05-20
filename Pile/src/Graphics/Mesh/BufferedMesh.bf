@@ -32,9 +32,9 @@ namespace Pile
 			let ret = EnsureBuffer(3, 3);
 
 			let count = (uint32)ret.newVert;
-			indices[[Unchecked]ret.newIndex] = count;
+			indices[[Unchecked]ret.newIndex] = count + 2;
 			indices[[Unchecked]ret.newIndex + 1] = count + 1;
-			indices[[Unchecked]ret.newIndex + 2] = count + 2;
+			indices[[Unchecked]ret.newIndex + 2] = count;
 
 			return .(&vertices[[Unchecked]ret.newVert], 3);
 		}
@@ -44,12 +44,12 @@ namespace Pile
 			let ret = EnsureBuffer(4, 6);
 
 			let count = (uint32)ret.newVert;
-			indices[[Unchecked]ret.newIndex] = count;
-			indices[[Unchecked]ret.newIndex + 1] = count + 1;
-			indices[[Unchecked]ret.newIndex + 2] = count + 2;
-			indices[[Unchecked]ret.newIndex + 3] = count + 0;
-			indices[[Unchecked]ret.newIndex + 4] = count + 2;
-			indices[[Unchecked]ret.newIndex + 5] = count + 3;
+			indices[[Unchecked]ret.newIndex] = count + 3;
+			indices[[Unchecked]ret.newIndex + 1] = count + 2;
+			indices[[Unchecked]ret.newIndex + 2] = count + 0;
+			indices[[Unchecked]ret.newIndex + 3] = count + 2;
+			indices[[Unchecked]ret.newIndex + 4] = count + 1;
+			indices[[Unchecked]ret.newIndex + 5] = count;
 
 			return .(&vertices[[Unchecked]ret.newVert], 4);
 		}

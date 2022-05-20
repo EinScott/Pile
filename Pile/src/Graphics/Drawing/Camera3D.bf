@@ -273,7 +273,7 @@ namespace Pile
 
 		void UpdateCombinedMatrix()
 		{
-			combined = projection * view;
+			combined = view * projection; //projection * view; is the way it should be conventionally..
 			combinedInverse = TrySilent!(combined.Invert());
 		}
 

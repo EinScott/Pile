@@ -49,7 +49,7 @@ namespace Pile
 						color++;
 					}
 					else
-						GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_STENCIL_ATTACHMENT | .GL_STENCIL_ATTACHMENT, .GL_TEXTURE_2D, texture.textureID, 0);
+						GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_DEPTH_STENCIL_ATTACHMENT, .GL_TEXTURE_2D, texture.textureID, 0);
 				}
 			}
 			else
