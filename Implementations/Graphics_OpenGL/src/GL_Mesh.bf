@@ -101,7 +101,7 @@ namespace Pile
 		}
 
 		[Inline]
-		void SetBuffer(ref uint32 bufferID, GL.BufferTargetARB glBufferType, void* data, int32 size, ref int currentSize)
+		void SetBuffer(ref uint32 bufferID, GL.BufferTargetARB glBufferType, void* data, uint32 size, ref int currentSize)
 		{
 			if (bufferID == 0) GL.glGenBuffers(1, &bufferID);
 
@@ -133,7 +133,7 @@ namespace Pile
 		}
 
 		[Inline]
-		void SetBufferPartial(uint32 bufferID, GL.BufferTargetARB glBufferType, int32 offset, void* data, int32 size, int currentSize)
+		void SetBufferPartial(uint32 bufferID, GL.BufferTargetARB glBufferType, uint32 offset, void* data, uint32 size, int currentSize)
 		{
 			Debug.Assert(offset + size <= currentSize);
 

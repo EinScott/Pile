@@ -3,7 +3,7 @@ using System;
 namespace OpenGL45
 {
     static class GL
-    {
+	{
         // GL_NVX_gpu_memory_info
         public const uint32 GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX = 0x9048;
         public const uint32 GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX = 0x9049;
@@ -64,7 +64,6 @@ namespace OpenGL45
         public const uint32 GL_DRAW_BUFFER14 = 0x8833;
         public const uint32 GL_DRAW_BUFFER15 = 0x8834;
         public const uint32 GL_UNSIGNED_NORMALIZED = 0x8C17;
-        public const uint32 GL_RGB565 = 0x8D62;
         public const uint32 GL_TRANSFORM_FEEDBACK_BUFFER_PAUSED = 0x8E23;
         public const uint32 GL_TRANSFORM_FEEDBACK_BUFFER_ACTIVE = 0x8E24;
         public const uint32 GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION = 0x8E4C;
@@ -565,11 +564,11 @@ namespace OpenGL45
             case GL_COLOR_ATTACHMENT1 = 0x8CE1;
             case GL_COLOR_ATTACHMENT30 = 0x8CFE;
             case GL_STENCIL_ATTACHMENT = 0x8D20;
-			case GL_DEPTH_STENCIL_ATTACHMENT = 0x821A; // @CHANGE added manually
             case GL_COLOR_ATTACHMENT8 = 0x8CE8;
             case GL_COLOR_ATTACHMENT7 = 0x8CE7;
             case GL_COLOR_ATTACHMENT6 = 0x8CE6;
             case GL_COLOR_ATTACHMENT5 = 0x8CE5;
+            case GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
             case GL_COLOR_ATTACHMENT29 = 0x8CFD;
             case GL_COLOR_ATTACHMENT26 = 0x8CFA;
             case GL_COLOR_ATTACHMENT25 = 0x8CF9;
@@ -1075,7 +1074,8 @@ namespace OpenGL45
             case GL_MAX_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E80;
             case GL_BLEND = 0x0BE2;
             case GL_MAX_COLOR_TEXTURE_SAMPLES = 0x910E;
-			public static implicit operator Self(uint32 num)
+
+			public static implicit operator Self(uint32 num) // @CHANGE
 			{
 				var a = Self();
 				a.UnderlyingRef = num;
@@ -1538,6 +1538,12 @@ namespace OpenGL45
         [AllowDuplicates]
         public enum BindTransformFeedbackTarget : uint32 {
             case GL_TRANSFORM_FEEDBACK = 0x8E22;
+        }
+
+        [AllowDuplicates]
+        public enum DepthStencilTextureMode : uint32 {
+            case GL_STENCIL_INDEX = 0x1901;
+            case GL_DEPTH_COMPONENT = 0x1902;
         }
 
         [AllowDuplicates]
@@ -2162,6 +2168,7 @@ namespace OpenGL45
             case GL_RG32UI = 0x823C;
             case GL_RGB16F = 0x881B;
             case GL_R32I = 0x8235;
+            case GL_RGB565 = 0x8D62;
             case GL_RGB10_A2 = 0x8059;
             case GL_R16_SNORM = 0x8F98;
             case GL_R8UI = 0x8232;
@@ -2288,6 +2295,7 @@ namespace OpenGL45
             case GL_RGB16 = 0x8054;
             case GL_RGB16F = 0x881B;
             case GL_R32I = 0x8235;
+            case GL_RGB565 = 0x8D62;
             case GL_RGB12 = 0x8053;
             case GL_RGB10_A2 = 0x8059;
             case GL_RGB10 = 0x8052;
@@ -2375,6 +2383,7 @@ namespace OpenGL45
             case GL_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9102;
             case GL_PROXY_TEXTURE_RECTANGLE = 0x84F7;
             case GL_TEXTURE_BUFFER = 0x8C2A;
+            case GL_RENDERBUFFER = 0x8D41;
             case GL_PROXY_TEXTURE_CUBE_MAP_ARRAY = 0x900B;
             case GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9103;
         }
@@ -2757,8 +2766,10 @@ namespace OpenGL45
             case GL_PRIMITIVE_RESTART_FIXED_INDEX = 0x8D69;
             case GL_SAMPLE_SHADING = 0x8C36;
             case GL_RASTERIZER_DISCARD = 0x8C89;
+            case GL_TEXTURE_RECTANGLE = 0x84F5;
             case GL_COLOR_LOGIC_OP = 0x0BF2;
             case GL_SAMPLE_COVERAGE = 0x80A0;
+            case GL_TEXTURE_CUBE_MAP = 0x8513;
             case GL_PRIMITIVE_RESTART = 0x8F9D;
             case GL_POLYGON_SMOOTH = 0x0B41;
             case GL_STENCIL_TEST = 0x0B90;
@@ -2913,9 +2924,9 @@ namespace OpenGL45
         public static function void(uint32 program, uint32 index, char8* name) glBindAttribLocation;
         public static function void(BufferTargetARB target, uint32 buffer) glBindBuffer;
         public static function void(BufferTargetARB target, uint32 index, uint32 buffer) glBindBufferBase;
-        public static function void(BufferTargetARB target, uint32 index, uint32 buffer, int32 offset, int32 size) glBindBufferRange;
+        public static function void(BufferTargetARB target, uint32 index, uint32 buffer, int offset, uint size) glBindBufferRange;
         public static function void(BufferTargetARB target, uint32 first, int32 count, uint32* buffers) glBindBuffersBase;
-        public static function void(BufferTargetARB target, uint32 first, int32 count, uint32* buffers, int32* offsets, int32* sizes) glBindBuffersRange;
+        public static function void(BufferTargetARB target, uint32 first, int32 count, uint32* buffers, int* offsets, uint* sizes) glBindBuffersRange;
         public static function void(uint32 program, uint32 color, char8* name) glBindFragDataLocation;
         public static function void(uint32 program, uint32 colorNumber, uint32 index, char8* name) glBindFragDataLocationIndexed;
         public static function void(FramebufferTarget target, uint32 framebuffer) glBindFramebuffer;
@@ -2930,8 +2941,8 @@ namespace OpenGL45
         public static function void(uint32 first, int32 count, uint32* textures) glBindTextures;
         public static function void(BindTransformFeedbackTarget target, uint32 id) glBindTransformFeedback;
         public static function void(uint32 array) glBindVertexArray;
-        public static function void(uint32 bindingindex, uint32 buffer, int32 offset, int32 stride) glBindVertexBuffer;
-        public static function void(uint32 first, int32 count, uint32* buffers, int32* offsets, int32* strides) glBindVertexBuffers;
+        public static function void(uint32 bindingindex, uint32 buffer, int offset, int32 stride) glBindVertexBuffer;
+        public static function void(uint32 first, int32 count, uint32* buffers, int* offsets, int32* strides) glBindVertexBuffers;
         public static function void(float red, float green, float blue, float alpha) glBlendColor;
         public static function void(BlendEquationModeEXT mode) glBlendEquation;
         public static function void(BlendEquationModeEXT modeRGB, BlendEquationModeEXT modeAlpha) glBlendEquationSeparate;
@@ -2943,15 +2954,15 @@ namespace OpenGL45
         public static function void(uint32 buf, BlendingFactor src, BlendingFactor dst) glBlendFunci;
         public static function void(int32 srcX0, int32 srcY0, int32 srcX1, int32 srcY1, int32 dstX0, int32 dstY0, int32 dstX1, int32 dstY1, ClearBufferMask mask, BlitFramebufferFilter filter) glBlitFramebuffer;
         public static function void(uint32 readFramebuffer, uint32 drawFramebuffer, int32 srcX0, int32 srcY0, int32 srcX1, int32 srcY1, int32 dstX0, int32 dstY0, int32 dstX1, int32 dstY1, ClearBufferMask mask, BlitFramebufferFilter filter) glBlitNamedFramebuffer;
-        public static function void(BufferTargetARB target, int32 size, void* data, BufferUsageARB usage) glBufferData;
-        public static function void(BufferStorageTarget target, int32 size, void* data, BufferStorageMask flags) glBufferStorage;
-        public static function void(BufferTargetARB target, int32 offset, int32 size, void* data) glBufferSubData;
+        public static function void(BufferTargetARB target, uint size, void* data, BufferUsageARB usage) glBufferData;
+        public static function void(BufferStorageTarget target, uint size, void* data, BufferStorageMask flags) glBufferStorage;
+        public static function void(BufferTargetARB target, int offset, uint size, void* data) glBufferSubData;
         public static function FramebufferStatus(FramebufferTarget target) glCheckFramebufferStatus;
         public static function FramebufferStatus(uint32 framebuffer, FramebufferTarget target) glCheckNamedFramebufferStatus;
         public static function void(ClampColorTargetARB target, ClampColorModeARB clamp) glClampColor;
         public static function void(ClearBufferMask mask) glClear;
         public static function void(BufferStorageTarget target, SizedInternalFormat internalformat, PixelFormat format, PixelType type, void* data) glClearBufferData;
-        public static function void(BufferTargetARB target, SizedInternalFormat internalformat, int32 offset, int32 size, PixelFormat format, PixelType type, void* data) glClearBufferSubData;
+        public static function void(BufferTargetARB target, SizedInternalFormat internalformat, int offset, uint size, PixelFormat format, PixelType type, void* data) glClearBufferSubData;
         public static function void(Buffer buffer, int32 drawbuffer, float depth, int32 stencil) glClearBufferfi;
         public static function void(Buffer buffer, int32 drawbuffer, float* value) glClearBufferfv;
         public static function void(Buffer buffer, int32 drawbuffer, int32* value) glClearBufferiv;
@@ -2960,7 +2971,7 @@ namespace OpenGL45
         public static function void(double depth) glClearDepth;
         public static function void(float d) glClearDepthf;
         public static function void(uint32 buffer, SizedInternalFormat internalformat, PixelFormat format, PixelType type, void* data) glClearNamedBufferData;
-        public static function void(uint32 buffer, SizedInternalFormat internalformat, int32 offset, int32 size, PixelFormat format, PixelType type, void* data) glClearNamedBufferSubData;
+        public static function void(uint32 buffer, SizedInternalFormat internalformat, int offset, uint size, PixelFormat format, PixelType type, void* data) glClearNamedBufferSubData;
         public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, float depth, int32 stencil) glClearNamedFramebufferfi;
         public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, float* value) glClearNamedFramebufferfv;
         public static function void(uint32 framebuffer, Buffer buffer, int32 drawbuffer, int32* value) glClearNamedFramebufferiv;
@@ -2980,15 +2991,15 @@ namespace OpenGL45
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 width, int32 border, int32 imageSize, void* data) glCompressedTexImage1D;
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 width, int32 height, int32 border, int32 imageSize, void* data) glCompressedTexImage2D;
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 width, int32 height, int32 depth, int32 border, int32 imageSize, void* data) glCompressedTexImage3D;
-        public static function void(TextureTarget target, int32 level, int32 xoffset, int32 width, PixelFormat format, int32 imageSize, void* data) glCompressedTexSubImage1D;
-        public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, PixelFormat format, int32 imageSize, void* data) glCompressedTexSubImage2D;
-        public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, int32 imageSize, void* data) glCompressedTexSubImage3D;
-        public static function void(uint32 texture, int32 level, int32 xoffset, int32 width, PixelFormat format, int32 imageSize, void* data) glCompressedTextureSubImage1D;
-        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, PixelFormat format, int32 imageSize, void* data) glCompressedTextureSubImage2D;
-        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, int32 imageSize, void* data) glCompressedTextureSubImage3D;
-        public static function void(CopyBufferSubDataTarget readTarget, CopyBufferSubDataTarget writeTarget, int32 readOffset, int32 writeOffset, int32 size) glCopyBufferSubData;
+        public static function void(TextureTarget target, int32 level, int32 xoffset, int32 width, InternalFormat format, int32 imageSize, void* data) glCompressedTexSubImage1D;
+        public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, InternalFormat format, int32 imageSize, void* data) glCompressedTexSubImage2D;
+        public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, InternalFormat format, int32 imageSize, void* data) glCompressedTexSubImage3D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 width, InternalFormat format, int32 imageSize, void* data) glCompressedTextureSubImage1D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 width, int32 height, InternalFormat format, int32 imageSize, void* data) glCompressedTextureSubImage2D;
+        public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, InternalFormat format, int32 imageSize, void* data) glCompressedTextureSubImage3D;
+        public static function void(CopyBufferSubDataTarget readTarget, CopyBufferSubDataTarget writeTarget, int readOffset, int writeOffset, uint size) glCopyBufferSubData;
         public static function void(uint32 srcName, CopyImageSubDataTarget srcTarget, int32 srcLevel, int32 srcX, int32 srcY, int32 srcZ, uint32 dstName, CopyImageSubDataTarget dstTarget, int32 dstLevel, int32 dstX, int32 dstY, int32 dstZ, int32 srcWidth, int32 srcHeight, int32 srcDepth) glCopyImageSubData;
-        public static function void(uint32 readBuffer, uint32 writeBuffer, int32 readOffset, int32 writeOffset, int32 size) glCopyNamedBufferSubData;
+        public static function void(uint32 readBuffer, uint32 writeBuffer, int readOffset, int writeOffset, uint size) glCopyNamedBufferSubData;
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 x, int32 y, int32 width, int32 border) glCopyTexImage1D;
         public static function void(TextureTarget target, int32 level, InternalFormat internalformat, int32 x, int32 y, int32 width, int32 height, int32 border) glCopyTexImage2D;
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 x, int32 y, int32 width) glCopyTexSubImage1D;
@@ -3037,7 +3048,7 @@ namespace OpenGL45
         public static function void(uint32 index) glDisableVertexAttribArray;
         public static function void(EnableCap target, uint32 index) glDisablei;
         public static function void(uint32 num_groups_x, uint32 num_groups_y, uint32 num_groups_z) glDispatchCompute;
-        public static function void(int32 indirect) glDispatchComputeIndirect;
+        public static function void(int indirect) glDispatchComputeIndirect;
         public static function void(PrimitiveType mode, int32 first, int32 count) glDrawArrays;
         public static function void(PrimitiveType mode, void* indirect) glDrawArraysIndirect;
         public static function void(PrimitiveType mode, int32 first, int32 count, int32 instancecount) glDrawArraysInstanced;
@@ -3068,8 +3079,8 @@ namespace OpenGL45
         public static function void*(SyncCondition condition, SyncBehaviorFlags flags) glFenceSync;
         public static function void() glFinish;
         public static function void() glFlush;
-        public static function void(BufferTargetARB target, int32 offset, int32 length) glFlushMappedBufferRange;
-        public static function void(uint32 buffer, int32 offset, int32 length) glFlushMappedNamedBufferRange;
+        public static function void(BufferTargetARB target, int offset, uint length) glFlushMappedBufferRange;
+        public static function void(uint32 buffer, int offset, uint length) glFlushMappedNamedBufferRange;
         public static function void(FramebufferTarget target, FramebufferParameterName pname, int32 param) glFramebufferParameteri;
         public static function void(FramebufferTarget target, FramebufferAttachment attachment, RenderbufferTarget renderbuffertarget, uint32 renderbuffer) glFramebufferRenderbuffer;
         public static function void(FramebufferTarget target, FramebufferAttachment attachment, uint32 texture, int32 level) glFramebufferTexture;
@@ -3106,7 +3117,7 @@ namespace OpenGL45
         public static function void(BufferTargetARB target, BufferPNameARB pname, int64* parameters) glGetBufferParameteri64v;
         public static function void(BufferTargetARB target, BufferPNameARB pname, int32* parameters) glGetBufferParameteriv;
         public static function void(BufferTargetARB target, BufferPointerNameARB pname, void** parameters) glGetBufferPointerv;
-        public static function void(BufferTargetARB target, int32 offset, int32 size, void* data) glGetBufferSubData;
+        public static function void(BufferTargetARB target, int offset, uint size, void* data) glGetBufferSubData;
         public static function void(TextureTarget target, int32 level, void* img) glGetCompressedTexImage;
         public static function void(uint32 texture, int32 level, int32 bufSize, void* pixels) glGetCompressedTextureImage;
         public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, int32 bufSize, void* pixels) glGetCompressedTextureSubImage;
@@ -3131,7 +3142,7 @@ namespace OpenGL45
         public static function void(uint32 buffer, BufferPNameARB pname, int64* parameters) glGetNamedBufferParameteri64v;
         public static function void(uint32 buffer, BufferPNameARB pname, int32* parameters) glGetNamedBufferParameteriv;
         public static function void(uint32 buffer, BufferPointerNameARB pname, void** parameters) glGetNamedBufferPointerv;
-        public static function void(uint32 buffer, int32 offset, int32 size, void* data) glGetNamedBufferSubData;
+        public static function void(uint32 buffer, int offset, uint size, void* data) glGetNamedBufferSubData;
         public static function void(uint32 framebuffer, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, int32* parameters) glGetNamedFramebufferAttachmentParameteriv;
         public static function void(uint32 framebuffer, GetFramebufferParameter pname, int32* param) glGetNamedFramebufferParameteriv;
         public static function void(uint32 renderbuffer, RenderbufferParameterName pname, int32* parameters) glGetNamedRenderbufferParameteriv;
@@ -3150,10 +3161,10 @@ namespace OpenGL45
         public static function void(uint32 program, ProgramInterface programInterface, uint32 index, int32 propCount, ProgramResourceProperty* props, int32 count, int32* length, int32* parameters) glGetProgramResourceiv;
         public static function void(uint32 program, ShaderType shadertype, ProgramStagePName pname, int32* values) glGetProgramStageiv;
         public static function void(uint32 program, ProgramPropertyARB pname, int32* parameters) glGetProgramiv;
-        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjecti64v;
-        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjectiv;
-        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjectui64v;
-        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int32 offset) glGetQueryBufferObjectuiv;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int offset) glGetQueryBufferObjecti64v;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int offset) glGetQueryBufferObjectiv;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int offset) glGetQueryBufferObjectui64v;
+        public static function void(uint32 id, uint32 buffer, QueryObjectParameterName pname, int offset) glGetQueryBufferObjectuiv;
         public static function void(QueryTarget target, uint32 index, QueryParameterName pname, int32* parameters) glGetQueryIndexediv;
         public static function void(uint32 id, QueryObjectParameterName pname, int64* parameters) glGetQueryObjecti64v;
         public static function void(uint32 id, QueryObjectParameterName pname, int32* parameters) glGetQueryObjectiv;
@@ -3231,7 +3242,7 @@ namespace OpenGL45
         public static function void(uint32 program, int32 location, int32 bufSize, uint32* parameters) glGetnUniformuiv;
         public static function void(HintTarget target, HintMode mode) glHint;
         public static function void(uint32 buffer) glInvalidateBufferData;
-        public static function void(uint32 buffer, int32 offset, int32 length) glInvalidateBufferSubData;
+        public static function void(uint32 buffer, int offset, uint length) glInvalidateBufferSubData;
         public static function void(FramebufferTarget target, int32 numAttachments, InvalidateFramebufferAttachment* attachments) glInvalidateFramebuffer;
         public static function void(uint32 framebuffer, int32 numAttachments, FramebufferAttachment* attachments) glInvalidateNamedFramebufferData;
         public static function void(uint32 framebuffer, int32 numAttachments, FramebufferAttachment* attachments, int32 x, int32 y, int32 width, int32 height) glInvalidateNamedFramebufferSubData;
@@ -3256,9 +3267,9 @@ namespace OpenGL45
         public static function void(uint32 program) glLinkProgram;
         public static function void(LogicOp opcode) glLogicOp;
         public static function void*(BufferTargetARB target, BufferAccessARB access) glMapBuffer;
-        public static function void*(BufferTargetARB target, int32 offset, int32 length, MapBufferAccessMask access) glMapBufferRange;
+        public static function void*(BufferTargetARB target, int offset, uint length, MapBufferAccessMask access) glMapBufferRange;
         public static function void*(uint32 buffer, BufferAccessARB access) glMapNamedBuffer;
-        public static function void*(uint32 buffer, int32 offset, int32 length, MapBufferAccessMask access) glMapNamedBufferRange;
+        public static function void*(uint32 buffer, int offset, uint length, MapBufferAccessMask access) glMapNamedBufferRange;
         public static function void(MemoryBarrierMask barriers) glMemoryBarrier;
         public static function void(MemoryBarrierMask barriers) glMemoryBarrierByRegion;
         public static function void(float value) glMinSampleShading;
@@ -3275,9 +3286,9 @@ namespace OpenGL45
         public static function void(TextureUnit texture, TexCoordPointerType type, uint32* coords) glMultiTexCoordP3uiv;
         public static function void(TextureUnit texture, TexCoordPointerType type, uint32 coords) glMultiTexCoordP4ui;
         public static function void(TextureUnit texture, TexCoordPointerType type, uint32* coords) glMultiTexCoordP4uiv;
-        public static function void(uint32 buffer, int32 size, void* data, VertexBufferObjectUsage usage) glNamedBufferData;
-        public static function void(uint32 buffer, int32 size, void* data, BufferStorageMask flags) glNamedBufferStorage;
-        public static function void(uint32 buffer, int32 offset, int32 size, void* data) glNamedBufferSubData;
+        public static function void(uint32 buffer, uint size, void* data, VertexBufferObjectUsage usage) glNamedBufferData;
+        public static function void(uint32 buffer, uint size, void* data, BufferStorageMask flags) glNamedBufferStorage;
+        public static function void(uint32 buffer, int offset, uint size, void* data) glNamedBufferSubData;
         public static function void(uint32 framebuffer, ColorBuffer buf) glNamedFramebufferDrawBuffer;
         public static function void(uint32 framebuffer, int32 n, ColorBuffer* bufs) glNamedFramebufferDrawBuffers;
         public static function void(uint32 framebuffer, FramebufferParameterName pname, int32 param) glNamedFramebufferParameteri;
@@ -3391,7 +3402,7 @@ namespace OpenGL45
         public static function void(StencilOp fail, StencilOp zfail, StencilOp zpass) glStencilOp;
         public static function void(StencilFaceDirection face, StencilOp sfail, StencilOp dpfail, StencilOp dppass) glStencilOpSeparate;
         public static function void(TextureTarget target, SizedInternalFormat internalformat, uint32 buffer) glTexBuffer;
-        public static function void(TextureTarget target, SizedInternalFormat internalformat, uint32 buffer, int32 offset, int32 size) glTexBufferRange;
+        public static function void(TextureTarget target, SizedInternalFormat internalformat, uint32 buffer, int offset, uint size) glTexBufferRange;
         public static function void(TexCoordPointerType type, uint32 coords) glTexCoordP1ui;
         public static function void(TexCoordPointerType type, uint32* coords) glTexCoordP1uiv;
         public static function void(TexCoordPointerType type, uint32 coords) glTexCoordP2ui;
@@ -3421,7 +3432,7 @@ namespace OpenGL45
         public static function void(TextureTarget target, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, PixelType type, void* pixels) glTexSubImage3D;
         public static function void() glTextureBarrier;
         public static function void(uint32 texture, SizedInternalFormat internalformat, uint32 buffer) glTextureBuffer;
-        public static function void(uint32 texture, SizedInternalFormat internalformat, uint32 buffer, int32 offset, int32 size) glTextureBufferRange;
+        public static function void(uint32 texture, SizedInternalFormat internalformat, uint32 buffer, int offset, uint size) glTextureBufferRange;
         public static function void(uint32 texture, TextureParameterName pname, int32* parameters) glTextureParameterIiv;
         public static function void(uint32 texture, TextureParameterName pname, uint32* parameters) glTextureParameterIuiv;
         public static function void(uint32 texture, TextureParameterName pname, float param) glTextureParameterf;
@@ -3438,7 +3449,7 @@ namespace OpenGL45
         public static function void(uint32 texture, int32 level, int32 xoffset, int32 yoffset, int32 zoffset, int32 width, int32 height, int32 depth, PixelFormat format, PixelType type, void* pixels) glTextureSubImage3D;
         public static function void(uint32 texture, TextureTarget target, uint32 origtexture, SizedInternalFormat internalformat, uint32 minlevel, uint32 numlevels, uint32 minlayer, uint32 numlayers) glTextureView;
         public static function void(uint32 xfb, uint32 index, uint32 buffer) glTransformFeedbackBufferBase;
-        public static function void(uint32 xfb, uint32 index, uint32 buffer, int32 offset, int32 size) glTransformFeedbackBufferRange;
+        public static function void(uint32 xfb, uint32 index, uint32 buffer, int offset, uint size) glTransformFeedbackBufferRange;
         public static function void(uint32 program, int32 count, char8** varyings, TransformFeedbackBufferMode bufferMode) glTransformFeedbackVaryings;
         public static function void(int32 location, double x) glUniform1d;
         public static function void(int32 location, int32 count, double* value) glUniform1dv;
@@ -3504,8 +3515,8 @@ namespace OpenGL45
         public static function void(uint32 vaobj, uint32 attribindex, int32 size, VertexAttribLType type, uint32 relativeoffset) glVertexArrayAttribLFormat;
         public static function void(uint32 vaobj, uint32 bindingindex, uint32 divisor) glVertexArrayBindingDivisor;
         public static function void(uint32 vaobj, uint32 buffer) glVertexArrayElementBuffer;
-        public static function void(uint32 vaobj, uint32 bindingindex, uint32 buffer, int32 offset, int32 stride) glVertexArrayVertexBuffer;
-        public static function void(uint32 vaobj, uint32 first, int32 count, uint32* buffers, int32* offsets, int32* strides) glVertexArrayVertexBuffers;
+        public static function void(uint32 vaobj, uint32 bindingindex, uint32 buffer, int offset, int32 stride) glVertexArrayVertexBuffer;
+        public static function void(uint32 vaobj, uint32 first, int32 count, uint32* buffers, int* offsets, int32* strides) glVertexArrayVertexBuffers;
         public static function void(uint32 index, double x) glVertexAttrib1d;
         public static function void(uint32 index, double* v) glVertexAttrib1dv;
         public static function void(uint32 index, float x) glVertexAttrib1f;
