@@ -188,7 +188,12 @@ namespace Pile
 			[Inline]
 			get => X;
 			[Inline]
-			set	mut => X = value;
+			set	mut
+			{
+				let prevX = X;
+				X = value;
+				Width = Math.Max(Width + prevX - X, 0);
+			}
 		}
 
 		public int Right
@@ -196,7 +201,11 @@ namespace Pile
 			[Inline]
 			get => X + Width;
 			[Inline]
-			set	mut => X = value - Width;
+			set	mut
+			{
+				Width = value - X;
+				X = Math.Min(X, X + Width);
+			}
 		}
 
 		public int Top
@@ -204,7 +213,12 @@ namespace Pile
 			[Inline]
 			get => Y;
 			[Inline]
-			set mut => Y = value;
+			set mut
+			{
+				let prevY = Y;
+				Y = value;
+				Height = Math.Max(Height + prevY - Y, 0);
+			}
 		}
 
 		public int Bottom
@@ -212,7 +226,11 @@ namespace Pile
 			[Inline]
 			get => Y + Height;
 			[Inline]
-			set mut => Y = value - Height;
+			set mut
+			{
+				Height = value - Y;
+				Y = Math.Min(Y, Y + Height);
+			}
 		}
 
 		public int CenterX
@@ -260,8 +278,6 @@ namespace Pile
 		    rect.Top -= top;
 		    rect.Right += right;
 		    rect.Bottom += bottom;
-		    rect.Width += left + right;
-		    rect.Height += top + bottom;
 		    return rect;
 		}
 
