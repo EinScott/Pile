@@ -313,7 +313,7 @@ namespace Pile
 				{
 					outRemaining -= availOutGiven;
 
-					if (outRemaining < 0 && status != .STREAM_END)
+					if (outRemaining <= 0)
 						LogErrorReturn!("Insufficient deflate destination buffer");
 
 					s.next_out = &destination[destination.Length - outRemaining];
