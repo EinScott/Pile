@@ -169,7 +169,7 @@ namespace Pile
 #if !DEBUG
 		[SkipCall]
 #endif
-		static void FlushDebugWrite()
+		internal static void FlushDebugWrite()
 		{
 #if DEBUG
 			DoDebugWriteBuffer();

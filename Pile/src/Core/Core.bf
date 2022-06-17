@@ -120,6 +120,21 @@ namespace Pile
 			var w = scope Stopwatch(true);
 			title.Set(config.gameTitle);
 
+#if DEBUG
+			Runtime.ErrorHandler logFlush = new (stage, error) => {
+				// This will print to debug out on the main thread before we
+				// potentially get frozen by the IDE/crash. Debug only call
+				Log.FlushDebugWrite();
+				return .ContinueFailure;
+			};
+			Runtime.AddErrorHandler(logFlush);
+			defer
+			{
+				Runtime.RemoveErrorHandler(logFlush);
+				delete logFlush;
+			}
+#endif
+
 			// Print platform
 			{
 				let s = scope String();

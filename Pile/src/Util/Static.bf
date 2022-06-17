@@ -27,12 +27,6 @@ namespace Pile
 		public static mixin LogErrorReturn(String errMsg)
 		{
 			Log.Error(errMsg);
-
-			// Since this gets injected, we can't use internal
-			// This will print to debug out on the main thread before we
-			// potentially get frozen by the IDE/crash. Debug only call
-			Log.[Friend]FlushDebugWrite();
-
 			return .Err(default);
 		}
 
