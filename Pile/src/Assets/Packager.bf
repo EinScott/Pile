@@ -509,7 +509,8 @@ namespace Pile
 			{
 				oldPackageFileIndex = scope:: .();
 
-				if (PackageFormat.ReadPackageIndex(oldPackageSr, oldPackageIndexPos, oldPackageStartPos, oldPackageFileSize, oldPackageFlags, oldPackageFileIndex) case .Err)
+				if (PackageFormat.ReadPackageIndex(oldPackageSr, oldPackageIndexPos, oldPackageStartPos, oldPackageFileSize, oldPackageFlags, oldPackageFileIndex) case .Err
+					|| oldPackageFileIndex.passes.Count != passSets.Count) // Pass that previously had no effect now has!
 				{
 					oldPackageFileIndex = null; // Then... don't
 					quickPatchOldFile = false;
