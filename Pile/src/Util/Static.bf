@@ -27,6 +27,10 @@ namespace Pile
 		public static mixin LogErrorReturn(String errMsg)
 		{
 			Log.Error(errMsg);
+
+			// Debug only call to flush before debugger pause
+			Log.[Friend]FlushDebugWrite();
+
 			return .Err(default);
 		}
 
