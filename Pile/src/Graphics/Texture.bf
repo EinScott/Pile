@@ -52,6 +52,14 @@ namespace Pile
 			Initialize();
 		}
 
+		public this(uint32 width, uint32 height, Span<Color> pixels, TextureFilter filter = Core.Defaults.TextureFilter, bool genMipmaps = Core.Defaults.TexturesGenMipmaps)
+			: this(width, height, .Color, filter, genMipmaps)
+		{
+			Runtime.Assert(pixels.Length >= width * height);
+
+			SetData(pixels.Ptr);
+		}
+
 		public this(Bitmap bitmap, TextureFilter filter = Core.Defaults.TextureFilter, bool genMipmaps = Core.Defaults.TexturesGenMipmaps)
 			: this(bitmap.Width, bitmap.Height, .Color, filter, genMipmaps)
 		{

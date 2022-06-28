@@ -334,19 +334,19 @@ namespace Pile
 				// Reset state and change
 				currentBatch.layer = layer;
 				ResetCurrentBatch();
-
-				// Set insert
-				currentBatchInsert = -1;
-				for (let i < batches.Count)
-					if (batches[i].layer > layer)
-					{
-						currentBatchInsert = i;
-						break;
-					}
-
-				if (currentBatchInsert == -1)
-					currentBatchInsert = batches.Count;
 			}
+
+			// Set insert
+			currentBatchInsert = -1;
+			for (let i < batches.Count)
+				if (batches[i].layer > layer)
+				{
+					currentBatchInsert = i;
+					break;
+				}
+
+			if (currentBatchInsert == -1)
+				currentBatchInsert = batches.Count;
 		}
 
 		[Inline]
