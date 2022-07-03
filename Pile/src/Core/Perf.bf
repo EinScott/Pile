@@ -27,7 +27,7 @@ namespace Pile
 				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
 				defer
 				{{
-					Pile.Perf.[System.FriendAttribute]EndSection("{scopeName}", __pt_s{sNum}.Elapsed);
+					Pile.Perf.[System.Friend]EndSection("{scopeName}", __pt_s{sNum}.Elapsed);
 				}}
 				""");
 #endif
@@ -71,7 +71,7 @@ namespace Pile
 				let __pt_s{sNum} = scope System.Diagnostics.Stopwatch(true);
 				defer
 				{{
-					Pile.Perf.[System.FriendAttribute]EndSection("{sectionName}", __pt_s{sNum}.Elapsed);
+					Pile.Perf.[System.Friend]EndSection("{sectionName}", __pt_s{sNum}.Elapsed);
 				}}
 				""");
 #endif
