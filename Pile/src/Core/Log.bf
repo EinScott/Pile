@@ -192,8 +192,21 @@ namespace Pile
 			}
 		}
 
-		static Monitor debugWriteMonitor = new Monitor() ~ delete _;
-		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start() ~ debugExit = true;
+		static Monitor debugWriteMonitor = new Monitor();
+		static Thread debugWriteThread = new Thread(new => DebugWriteThread)..SetName("Pile Log DebugWrite")..Start(false) ~ {
+			debugExit = true;
+
+			// Wait for debug thread deletion
+			while (true)
+			{
+				using (debugWriteMonitor.Enter())
+				{
+					if (debugWriteThread == null)
+						break;
+				}
+			}
+			delete debugWriteMonitor;
+		}
 		static bool debugExit;
 
 		static String[] debugWriteBuffer = {
@@ -219,7 +232,14 @@ namespace Pile
 					Thread.Sleep(1);
 
 					if (debugExit)
+					{
+						using (debugWriteMonitor.Enter())
+						{
+							delete debugWriteThread;
+							debugWriteThread = null;
+						}
 						return;
+					}	 
 				}
 
 				DoDebugWriteBuffer();
