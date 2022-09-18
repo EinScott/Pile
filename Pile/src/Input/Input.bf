@@ -42,7 +42,7 @@ namespace Pile
 			nextState.Dispose();
 
 			deleting = true;
-			DeleteContainerAndItems!(virtualButtons);
+			delete virtualButtons;
 		}
 
 		internal static void Step()
