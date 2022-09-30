@@ -207,6 +207,11 @@ namespace Pile
 
 		protected static override void RenderInternal(RenderPass pass)
 		{
+			/*if (pass.material.shader != defaultBatchShader)
+			{
+				NOP!(); // CONTINUE: intel driver crash with cavex char shader batch pass
+			}*/
+
 			// Get last state
 			RenderPass lastPass;
 			var updateAll = false;

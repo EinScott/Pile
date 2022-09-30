@@ -21,7 +21,6 @@ namespace Pile
 		VertexFormat lastVertexFormat;
 		VertexFormat lastInstanceFormat;
 
-		Material lastMaterial;
 		Shader lastShader;
 		bool bound;
 
@@ -148,7 +147,9 @@ namespace Pile
 
 			GL.glBindVertexArray(vertexArrayID);
 
-			if (lastMaterial != null && lastShader != material.Shader) bound = false;
+			if (lastShader != material.Shader)
+				bound = false;
+			lastShader = material.shader;
 
 			if (!bound)
 			{
