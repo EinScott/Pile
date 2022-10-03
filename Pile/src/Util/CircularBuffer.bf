@@ -342,7 +342,7 @@ namespace Pile
 			return -1;
 		}
 
-		public void CopyTo(T[] array)
+		public void CopyTo(Span<T> array)
 		{
 			CopyTo(array, 0);
 		}
@@ -358,13 +358,13 @@ namespace Pile
 			}	
 		}
 
-		public void CopyTo(T[] array, int arrayIndex)
+		public void CopyTo(Span<T> array, int arrayIndex)
 		{
 			for (int i = 0; i < mSize; i++)
 				array[i + arrayIndex] = this[i];
 		}
 
-		public void CopyTo(int index, T[] array, int arrayIndex, int count)
+		public void CopyTo(int index, Span<T> array, int arrayIndex, int count)
 		{
 			Debug.Assert(count <= mSize);
 			for (int i = 0; i < count; i++)

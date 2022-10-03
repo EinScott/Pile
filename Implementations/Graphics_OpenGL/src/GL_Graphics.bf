@@ -221,7 +221,7 @@ namespace Pile
 				lastPass = pass;
 			}
 			else lastPass = lastRenderState.Value;
-			 
+
 			lastRenderState = pass;
 
 			// Bind target
