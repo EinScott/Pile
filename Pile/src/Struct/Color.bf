@@ -21,6 +21,8 @@ namespace Pile
 		public const Color Gray = Color(0x7F, 0x7F, 0x7F);
 		public const Color LightGray = Color(0xBF, 0xBF, 0xBF);
 
+		public const Color Orange = Color(0xAA, 0xA5, 0);
+
 		public uint8 R;
 		public uint8 G;
 		public uint8 B;
