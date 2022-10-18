@@ -102,22 +102,22 @@ namespace Pile
 
 		public override Result<int> TryWrite(Span<uint8> data)
 		{
-			var count = data.Length;
-			if (count == 0)
+			var writeCount = data.Length;
+			if (writeCount == 0)
 				return .Ok(0);
-			int growSize = mPosition + count - mCount;
+			int growSize = mPosition + writeCount - mCount;
 			if (growSize > 0)
 			{
 				mCount += growSize;
 				if (mCount > mData.Length)
 				{
-					count -= mData.Length - mCount;
+					writeCount = mData.Length - mPosition;
 					mCount = mData.Length;
 				}
 			}
-			Internal.MemCpy(&mData[mPosition], data.Ptr, count);
-			mPosition += count;
-			return .Ok(count);
+			Internal.MemCpy(&mData[mPosition], data.Ptr, writeCount);
+			mPosition += writeCount;
+			return .Ok(writeCount);
 		}
 
 		public override Result<void> Close()
