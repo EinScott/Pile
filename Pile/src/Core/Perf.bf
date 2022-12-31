@@ -96,6 +96,8 @@ namespace Pile
 		public static int TrackCollectInterval = 30; // in steps/frames/loops
 		static int collectCounter;
 
+		public static Event<delegate void(String buffer)> DebugPrinters = .() ~ _.Dispose();
+
 #if !USE_PERF
 		[SkipCall]
 #endif
@@ -206,7 +208,7 @@ namespace Pile
 			{
 				let textScale = Vector2(((float)scale / font.Size) * 5);
 	
-				String perfText = scope .();
+				String perfText = scope .(1024);
 	
 				// Fps, delta & freeze
 				STATS:
@@ -259,6 +261,8 @@ namespace Pile
 					}
 				}
 #endif
+				perfText.Append('\n');
+				DebugPrinters.Invoke(perfText);
 
 				batch.Text(font, perfText, .(scale, 4 * scale), textScale, .Zero, 0, .White);
 			}
