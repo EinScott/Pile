@@ -26,7 +26,7 @@ namespace Pile
 
 		public mixin Write(Span<uint8> span)
 		{
-			if (!this.write || !(this.underlyingStream.Write(span) case .Ok((.)span.Length)))
+			if (!this.write || !(this.underlyingStream.TryWrite(span) case .Ok(span.Length)))
 				err = true;
 		}
 
