@@ -141,9 +141,9 @@ namespace Pile
 		}
 
 		[Inline]
-		public static bool OnInterval(double interval, double offset = 0.0)
+		public static bool OnInterval(double intervalSecs, double offset = 0.0)
 		{
-		    return OnInterval(RawDuration.TotalSeconds, Delta, interval, offset);
+		    return OnInterval(RawDuration.TotalSeconds, Delta, intervalSecs, offset);
 		}
 
 		[Inline]

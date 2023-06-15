@@ -6,7 +6,7 @@ namespace System
 
 	extension Int64
 	{
-		public static new Result<int64, ParseError> Parse(StringView val, NumberStyles style)
+		public static new Result<int64, ParseError> Parse(StringView val, NumberStyles style = .Number, CultureInfo cultureInfo = null)
 		{
 			if (val.IsEmpty)
 				return .Err(.NoValue);

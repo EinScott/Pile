@@ -531,7 +531,9 @@ namespace Pile
 			s.Append(": ");
 
 			// Add message
-			s.Append(message, length);
+			if (length < 0)
+				s.Append(message);
+			else s.Append(message, length);
 
 			if (severity == .GL_DEBUG_SEVERITY_HIGH || type == .GL_DEBUG_TYPE_ERROR) Log.Error(s);
 			else Log.Warn(s);

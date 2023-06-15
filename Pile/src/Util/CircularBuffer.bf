@@ -187,19 +187,6 @@ namespace Pile
 			}
 		}
 
-		public Variant IList.this[int index]
-		{
-			get
-			{
-				return [Unbound]Variant.Create(this[index]);
-			}
-
-			set
-			{
-				ThrowUnimplemented();
-			}
-		}
-
 		void Realloc(int newSize)
 		{
 			T* oldAlloc = null;
@@ -485,6 +472,51 @@ namespace Pile
 					return .Err;
 				return &CurrentRef;
 			}
+		}
+
+		public Variant IList.this[int index]
+		{
+			get
+			{
+				return [Unbound]Variant.Create(this[index]);
+			}
+
+			set
+			{
+				ThrowUnimplemented();
+			}
+		}
+
+		public void IList.Add(Variant item)
+		{
+			Add(item.Get<T>());
+		}
+
+		public bool IList.Contains(Variant item)
+		{
+			return Contains(item.Get<T>());
+		}
+
+		public int IList.IndexOf(Variant item)
+		{
+			return IndexOf(item.Get<T>());
+		}
+
+		public void IList.Insert(int index, Variant item)
+		{
+			ThrowUnimplemented();
+			//Insert(index, item.Get<T>());
+		}
+
+		public bool IList.Remove(Variant item)
+		{
+			ThrowUnimplemented();
+			//return Remove(item.Get<T>());
+		}
+
+		public void IList.RemoveAt(int index)
+		{
+			ThrowUnimplemented();
 		}
 	}
 }
