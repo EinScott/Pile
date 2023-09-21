@@ -101,6 +101,11 @@ namespace Pile
 		{
 			return Self.Round(this);
 		}
+		[Inline]
+		public Point2 ToFloored()
+		{
+			return Self.Floor(this);
+		}
 
 		/// Returns a vector with the same direction as the given vector, but with a length of 1.
 		/// Vector2.Zero will still just return Vector2.Zero.
@@ -115,6 +120,11 @@ namespace Pile
 		public static Point2 Round(Self vector)
 		{
 			return .((int)Math.Round(vector.X), (int)Math.Round(vector.Y));
+		}
+		[Inline]
+		public static Point2 Floor(Self vector)
+		{
+			return .((int)Math.Floor(vector.X), (int)Math.Floor(vector.Y));
 		}
 
 		/// Returns a vector with the same direction as the given vector, but with a length of 1.

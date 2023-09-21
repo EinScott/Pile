@@ -68,8 +68,8 @@ namespace Pile
 
 			dirty = false;
 
-			mesh.SetVertices((Span<TVert>)vertices, format);
-			mesh.SetIndices((Span<uint32>)indices);
+			mesh.SetVertices(Span<TVert>(vertices.Ptr, (.)vertexCount), format);
+			mesh.SetIndices(Span<uint32>(indices.Ptr, (.)indexCount));
 		}
 
 		[Inline]
