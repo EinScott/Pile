@@ -4,6 +4,7 @@ using System.Threading;
 using System.IO;
 
 using internal Pile;
+using internal System;
 
 namespace Pile
 {
@@ -121,7 +122,7 @@ namespace Pile
 			title.Set(config.gameTitle);
 
 #if DEBUG
-			Runtime.ErrorHandler logFlush = new (stage, error) => {
+			delegate Runtime.ErrorHandlerResult(Runtime.ErrorStage stage, Runtime.Error error) logFlush = new (stage, error) => {
 				// This will print to debug out on the main thread before we
 				// potentially get frozen by the IDE/crash. Debug only call
 				Log.FlushDebugWrite();
