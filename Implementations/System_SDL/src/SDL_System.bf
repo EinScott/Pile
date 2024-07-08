@@ -39,7 +39,7 @@ namespace Pile
 			{
 				GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, (int32)Graphics.MajorVersion);
 				GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, (int32)Graphics.MinorVersion);
-				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, Graphics.Renderer == .OpenGLCore ? SDL_GLProfile.GL_CONTEXT_PROFILE_CORE : SDL_GLProfile.GL_CONTEXT_PROFILE_ES);
+				GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, Graphics.Renderer == .OpenGLCore ? SDL_GLProfile.GL_CONTEXT_PROFILE_CORE : SDL_GLProfile.GL_CONTEXT_PROFILE_COMPATIBILITY);
 				GL_SetAttribute(.GL_CONTEXT_FLAGS, (int32)SDL_GLContextFlags.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 				GL_SetAttribute(.GL_DOUBLEBUFFER, 1);
 
